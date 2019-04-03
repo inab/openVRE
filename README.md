@@ -1,4 +1,4 @@
-#Virtual Research Environment 
+Virtual Research Environment 
 =========
 
 VRE is a web-based collaborative working environment providing its users with a set of ready-to-use services (datasets, analysis tools and visualizaters) for supporting a research lifecycle. It is written in PHP, HTML and Javascript.
@@ -15,7 +15,13 @@ Several research projects has adopted the VRE framework for its project-specific
 
 - composer.json: 3rd party software requirements
 - [config](./config) : configuration files 
+	- [settings] (.config/globals.inc.php) global application file
+	- [conf] (.config/) files for credentials : mail, db, oauth2, etc
+	- [bootstrap] (.config/bootstrap.php) VRE application
 - [install](./install) : installation instructions and data 
+	- [install](./install/INSTALL) instructions
+	- [database](./install/INSTALL) skeleton with structural collections
+	- [data](./install/INSTALL) datasets and sample schemas
 - [logs](./logs) : paths for VRE logging files
 - [public](./public) : web application elements
 	- **web pages**
@@ -35,5 +41,5 @@ Several research projects has adopted the VRE framework for its project-specific
 	- [htmlib](./public/htmlib) : html templates
 	- **content**
 	- [tools](./public/tools) : web form, assets and summart page for integrated tools
-	- [visualizer](./public/visualizer) : visualizers code
+	- [visualizers](./public/visualizers) : visualizers code
 - [scripts](./scripts) : maintainance scripts
