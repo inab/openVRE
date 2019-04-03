@@ -15,9 +15,9 @@ Several research projects has adopted the VRE framework for its project-specific
 
 - composer.json: 3rd party software requirements
 - [config](./config) : configuration files 
-	- [settings] (.config/globals.inc.php) global application file
-	- [conf] (.config/) files for credentials : mail, db, oauth2, etc
-	- [bootstrap] (.config/bootstrap.php) VRE application
+	- [settings](.config/globals.inc.php) global application file
+	- [conf](.config/) files for credentials : mail, db, oauth2, etc
+	- [bootstrap](.config/bootstrap.php) VRE application
 - [install](./install) : installation instructions and data 
 	- [install](./install/INSTALL) instructions
 	- [database](./install/INSTALL) skeleton with structural collections
