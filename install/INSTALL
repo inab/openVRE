@@ -1,0 +1,69 @@
+# Get VRE code
+git clone https://github.com/Multiscale-Genomics/VRE
+
+ln -s /shared/refGenomes/ refGenomes 
+ln -s /shared/userData/ files <--- !!!
+ln -s /shared/tool_schemas/son* json*
+
+
+# Create new mongo DB
+use dbname
+for f in ../install/database/*.json; do mongoimport --db dbname -u myAdmin -p XXXX --authenticationDatabase admin $f; done
+
+# Import structural and sample data into DB
+
+# Copy VRE data default structure
+cp install/data/* /gpfs/vre-dev
+chown -R  vre:bsc23 /gpfs/vre-dev/
+vim /gpfs/vre-dev/sampleData/basic/uploads/README.md
+
+# Prepare web access
+	DocumentRoot /home/user/VRE/public/
+
+	<Directory "/home/user/VRE/public">
+    		Options Indexes FollowSymLinks
+    		AllowOverride All 
+		Require all granted
+	</Directory>
+
+
+# Configure VRE settings
+conf/globals.inc.php
+
+# Configure SMTP mail account
+conf/mail.cnf
+
+# Configure Mongo DB access
+conf/mongo.cnf
+
+# Configure Oauth2 client
+conf/oauth2.cnf
+conf/ouath2_admin.cnf
+
+
+# Add Logos and FavIcon
+assets/pages/img/logo-big.png # big and negative
+assets/layouts/layout/img/icon.png # small 
+assets/layouts/layout/img/logo.png  # small and negative
+
+# Add Static help pages content
+../help/general.php
+../help/starting.php
+../help/upload.php
+../helplaunch.php
+../help/related.php
+../helprelated.php
+../help/refs.php
+../help/ackn.php
+
+# Add First Admin user
+
+db.users.update(
+   { _id: admin@mail.com },
+   { $set: { "Type": 0 } }
+)
+
+# Configure SGE
+sudo qconf -as oeb-vre-dev.bsc.es # add submit host 
+
+

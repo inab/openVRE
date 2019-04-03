@@ -1,0 +1,17 @@
+{ 
+    "_id" : "FASTA", 
+    "extension" : [
+        "FASTA", 
+        "FA", 
+        "FN"
+    ]
+}
+{ 
+    "_id" : "TAR", 
+    "extension" : [
+        "TAR", 
+        "TGZ", 
+        "TBZ", 
+        "TBZ2"
+    ]
+}

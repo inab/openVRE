@@ -1,0 +1,244 @@
+{ "_id" : 7, "country" : "Armenia", "field2" : "                     " }
+{ "_id" : 12, "country" : "American Samoa", "field2" : "              " }
+{ "_id" : 35, "country" : "Belize", "field2" : "                      " }
+{ "_id" : 67, "country" : "Finland", "field2" : "                     " }
+{ "_id" : 39, "country" : "Congo", "field2" : "                       " }
+{ "_id" : 174, "country" : "St. Pierre and Miquelon", "field3" : "   " }
+{ "_id" : 197, "country" : "Senegal", "field3" : "                   " }
+{ "_id" : 196, "country" : "San Marino", "field3" : "                " }
+{ "_id" : 218, "country" : "Tuvalu", "field3" : "                    " }
+{ "_id" : 21, "country" : "Burkina Faso", "field2" : "                " }
+{ "_id" : 198, "country" : "Somalia", "field3" : "                   " }
+{ "_id" : 193, "country" : "Svalbard and Jan Mayen Islands " }
+{ "_id" : 43, "country" : "Chile", "field2" : "                       " }
+{ "_id" : 205, "country" : "Turks and Caicos Islands", "field3" : "  " }
+{ "_id" : 81, "country" : "Greenland", "field2" : "                   " }
+{ "_id" : 119, "country" : "Cayman Islands", "field3" : "            " }
+{ "_id" : 62, "country" : "Egypt", "field2" : "                       " }
+{ "_id" : 26, "country" : "Bermuda", "field2" : "                     " }
+{ "_id" : 186, "country" : "Solomon Islands", "field3" : "           " }
+{ "_id" : 142, "country" : "Northern Mariana Islands", "field3" : "  " }
+{ "_id" : 103, "country" : "Iraq", "field3" : "                      " }
+{ "_id" : 170, "country" : "Papua New Guinea", "field3" : "          " }
+{ "_id" : 82, "country" : "Gambia", "field2" : "                      " }
+{ "_id" : 123, "country" : "Saint Lucia", "field3" : "               " }
+{ "_id" : 227, "country" : "Uzbekistan", "field3" : "                " }
+{ "_id" : 89, "country" : "Guam", "field2" : "                        " }
+{ "_id" : 145, "country" : "Montserrat", "field3" : "                " }
+{ "_id" : 50, "country" : "Cape Verde", "field2" : "                  " }
+{ "_id" : 47, "country" : "Costa Rica", "field2" : "                  " }
+{ "_id" : 100, "country" : "Israel", "field3" : "                    " }
+{ "_id" : 203, "country" : "Syria", "field3" : "                     " }
+{ "_id" : 79, "country" : "Ghana", "field2" : "                       " }
+{ "_id" : 106, "country" : "Italy", "field3" : "                     " }
+{ "_id" : 59, "country" : "Algeria", "field2" : "                     " }
+{ "_id" : 86, "country" : "Greece", "field2" : "                      " }
+{ "_id" : 125, "country" : "Sri Lanka", "field3" : "                 " }
+{ "_id" : 131, "country" : "Libya", "field3" : "                     " }
+{ "_id" : 141, "country" : "Macau", "field3" : "                     " }
+{ "_id" : 177, "country" : "Portugal", "field3" : "                  " }
+{ "_id" : 185, "country" : "Saudi Arabia", "field3" : "              " }
+{ "_id" : 144, "country" : "Mauritania", "field3" : "                " }
+{ "_id" : 167, "country" : "Panama", "field3" : "                    " }
+{ "_id" : 245, "country" : "United Kingdom", "field3" : "            " }
+{ "_id" : 8, "country" : "Netherlands Antilles", "field2" : "        " }
+{ "_id" : 101, "country" : "India", "field3" : "                     " }
+{ "_id" : 63, "country" : "Western Sahara", "field2" : "              " }
+{ "_id" : 53, "country" : "Czech Republic", "field2" : "              " }
+{ "_id" : 73, "country" : "France, Metropolitan", "field2" : "        " }
+{ "_id" : 2, "country" : "United Arab Emirates", "field3" : "      " }
+{ "_id" : 10, "country" : "Antarctica", "field2" : "                  " }
+{ "_id" : 172, "country" : "Pakistan", "field3" : "                  " }
+{ "_id" : 220, "country" : "Tanzania", "field3" : "                  " }
+{ "_id" : 175, "country" : "Pitcairn", "field3" : "                  " }
+{ "_id" : 200, "country" : "Sao Tome and Principe", "field3" : "     " }
+{ "_id" : 34, "country" : "Belarus", "field2" : "                     " }
+{ "_id" : 138, "country" : "Mali", "field3" : "                      " }
+{ "_id" : 109, "country" : "Japan", "field3" : "                     " }
+{ "_id" : 127, "country" : "Lesotho", "field3" : "                   " }
+{ "_id" : 117, "country" : "Korea (South)", "field3" : "             " }
+{ "_id" : 31, "country" : "Bhutan", "field2" : "                      " }
+{ "_id" : 187, "country" : "Seychelles", "field3" : "                " }
+{ "_id" : 158, "country" : "Nicaragua", "field3" : "                 " }
+{ "_id" : 204, "country" : "Swaziland", "field3" : "                 " }
+{ "_id" : 192, "country" : "Slovenia", "field3" : "                  " }
+{ "_id" : 13, "country" : "Austria", "field2" : "                     " }
+{ "_id" : 30, "country" : "Bahamas", "field2" : "                     " }
+{ "_id" : 69, "country" : "Falkland Islands (Malvinas)", "field2" : " " }
+{ "_id" : 195, "country" : "Sierra Leone", "field3" : "              " }
+{ "_id" : 71, "country" : "Faroe Islands", "field2" : "               " }
+{ "_id" : 120, "country" : "Kazakhstan", "field3" : "                " }
+{ "_id" : 24, "country" : "Burundi", "field2" : "                     " }
+{ "_id" : 66, "country" : "Ethiopia", "field2" : "                    " }
+{ "_id" : 229, "country" : "Saint Vincent and Grenadines" }
+{ "_id" : 22, "country" : "Bulgaria", "field2" : "                    " }
+{ "_id" : 25, "country" : "Benin", "field2" : "                       " }
+{ "_id" : 65, "country" : "Spain", "field2" : "                      " }
+{ "_id" : 97, "country" : "Hungary", "field2" : "                     " }
+{ "_id" : 110, "country" : "Kenya", "field3" : "                     " }
+{ "_id" : 219, "country" : "Taiwan", "field3" : "                    " }
+{ "_id" : 148, "country" : "Maldives", "field3" : "                  " }
+{ "_id" : 156, "country" : "Norfolk Island", "field3" : "            " }
+{ "_id" : 80, "country" : "Gibraltar", "field2" : "                   " }
+{ "_id" : 121, "country" : "Laos", "field3" : "                      " }
+{ "_id" : 98, "country" : "Indonesia", "field2" : "                   " }
+{ "_id" : 232, "country" : "Virgin Islands (U.S.)", "field3" : "     " }
+{ "_id" : 20, "country" : "Belgium", "field2" : "                     " }
+{ "_id" : 51, "country" : "Christmas Island", "field2" : "            " }
+{ "_id" : 55, "country" : "Djibouti", "field2" : "                    " }
+{ "_id" : 190, "country" : "Singapore", "field3" : "                 " }
+{ "_id" : 249, "country" : "Serbia and Montenegro", "field3" : "     " }
+{ "_id" : 56, "country" : "Denmark", "field2" : "                     " }
+{ "_id" : 84, "country" : "Guadeloupe", "field2" : "                  " }
+{ "_id" : 105, "country" : "Iceland", "field3" : "                   " }
+{ "_id" : 135, "country" : "Madagascar", "field3" : "                " }
+{ "_id" : 210, "country" : "Tajikistan", "field3" : "                " }
+{ "_id" : 164, "country" : "Niue", "field3" : "                      " }
+{ "_id" : 42, "country" : "Cook Islands", "field2" : "                " }
+{ "_id" : 161, "country" : "Nepal", "field3" : "                     " }
+{ "_id" : 176, "country" : "Puerto Rico", "field3" : "               " }
+{ "_id" : 216, "country" : "Turkey", "field3" : "                    " }
+{ "_id" : 46, "country" : "Colombia", "field2" : "                    " }
+{ "_id" : 157, "country" : "Nigeria", "field3" : "                   " }
+{ "_id" : 212, "country" : "Turkmenistan", "field3" : "              " }
+{ "_id" : 228, "country" : "Vatican City State", "field3" : "        " }
+{ "_id" : 99, "country" : "Ireland", "field2" : "                     " }
+{ "_id" : 36, "country" : "Canada", "field2" : "                      " }
+{ "_id" : 217, "country" : "Trinidad and Tobago", "field3" : "       " }
+{ "_id" : 244, "country" : "Estonia", "field3" : "                   " }
+{ "_id" : 254, "country" : "Sikkim", "field3" : "                    " }
+{ "_id" : 248, "country" : "Eritrea", "field3" : "                   " }
+{ "_id" : 152, "country" : "Mozambique", "field3" : "                " }
+{ "_id" : 23, "country" : "Bahrain", "field2" : "                     " }
+{ "_id" : 54, "country" : "Germany", "field2" : "                     " }
+{ "_id" : 139, "country" : "Myanmar", "field3" : "                   " }
+{ "_id" : 134, "country" : "Moldova", "field3" : "                   " }
+{ "_id" : 150, "country" : "Mexico", "field3" : "                    " }
+{ "_id" : 140, "country" : "Mongolia", "field3" : "                  " }
+{ "_id" : 180, "country" : "Qatar", "field3" : "                     " }
+{ "_id" : 88, "country" : "Guatemala", "field2" : "                   " }
+{ "_id" : 182, "country" : "Romania", "field3" : "                   " }
+{ "_id" : 76, "country" : "Grenada", "field2" : "                     " }
+{ "_id" : 154, "country" : "New Caledonia", "field3" : "             " }
+{ "_id" : 38, "country" : "Central African Republic", "field2" : "    " }
+{ "_id" : 137, "country" : "Macedonia", "field3" : "                 " }
+{ "_id" : 178, "country" : "Palau", "field3" : "                     " }
+{ "_id" : 3, "country" : "Afghanistan", "field2" : "                 " }
+{ "_id" : 17, "country" : "Bosnia and Herzegovina", "field2" : "      " }
+{ "_id" : 14, "country" : "Australia", "field2" : "                   " }
+{ "_id" : 44, "country" : "Cameroon", "field2" : "                    " }
+{ "_id" : 27, "country" : "Brunei Darussalam", "field2" : "           " }
+{ "_id" : 163, "country" : "Neutral Zone", "field3" : "              " }
+{ "_id" : 234, "country" : "Vanuatu", "field3" : "                   " }
+{ "_id" : 91, "country" : "Guyana", "field2" : "                      " }
+{ "_id" : 207, "country" : "French Southern Territories", "field2" : " " }
+{ "_id" : 173, "country" : "Poland", "field3" : "                    " }
+{ "_id" : 202, "country" : "El Salvador", "field3" : "               " }
+{ "_id" : 241, "country" : "Zambia", "field3" : "                    " }
+{ "_id" : 252, "country" : "Burma", "field3" : "                     " }
+{ "_id" : 238, "country" : "Mayotte", "field3" : "                   " }
+{ "_id" : 153, "country" : "Namibia", "field3" : "                   " }
+{ "_id" : 194, "country" : "Slovak Republic", "field3" : "           " }
+{ "_id" : 18, "country" : "Barbados", "field2" : "                    " }
+{ "_id" : 60, "country" : "Ecuador", "field2" : "                     " }
+{ "_id" : 159, "country" : "Netherlands", "field3" : "               " }
+{ "_id" : 52, "country" : "Cyprus", "field2" : "                      " }
+{ "_id" : 128, "country" : "Lithuania", "field3" : "                 " }
+{ "_id" : 5, "country" : "Anguilla", "field2" : "                    " }
+{ "_id" : 183, "country" : "Russian Federation", "field3" : "        " }
+{ "_id" : 96, "country" : "Haiti", "field2" : "                       " }
+{ "_id" : 247, "country" : "Ashmore and Cartier Islands", "field2" : " " }
+{ "_id" : 160, "country" : "Norway", "field3" : "                    " }
+{ "_id" : 239, "country" : "Yugoslavia", "field3" : "                " }
+{ "_id" : 124, "country" : "Liechtenstein", "field3" : "             " }
+{ "_id" : 118, "country" : "Kuwait", "field3" : "                    " }
+{ "_id" : 41, "country" : "Cote D'Ivoire", "field2" : "               " }
+{ "_id" : 104, "country" : "Iran", "field3" : "                      " }
+{ "_id" : 224, "country" : "US Minor Outlying Islands", "field3" : " " }
+{ "_id" : 147, "country" : "Mauritius", "field3" : "                 " }
+{ "_id" : 181, "country" : "Reunion", "field3" : "                   " }
+{ "_id" : 235, "country" : "Wallis and Futuna Islands", "field3" : " " }
+{ "_id" : 15, "country" : "Aruba", "field2" : "                       " }
+{ "_id" : 37, "country" : "Cocos (Keeling) Islands", "field2" : "     " }
+{ "_id" : 95, "country" : "Croatia (Hrvatska)", "field2" : "          " }
+{ "_id" : 215, "country" : "East Timor", "field3" : "                " }
+{ "_id" : 116, "country" : "Korea (North)", "field3" : "             " }
+{ "_id" : 87, "country" : "S. Georgia and S. Sandwich", "field2" : "  " }
+{ "_id" : 9, "country" : "Angola", "field2" : "                      " }
+{ "_id" : 231, "country" : "Virgin Islands (British)", "field3" : "  " }
+{ "_id" : 16, "country" : "Azerbaijan", "field2" : "                  " }
+{ "_id" : 149, "country" : "Malawi", "field3" : "                    " }
+{ "_id" : 243, "country" : "Zimbabwe", "field3" : "                  " }
+{ "_id" : 214, "country" : "Tonga", "field3" : "                     " }
+{ "_id" : 29, "country" : "Brazil", "field2" : "                      " }
+{ "_id" : 169, "country" : "French Polynesia", "field3" : "          " }
+{ "_id" : 253, "country" : "Nunavut", "field3" : "                   " }
+{ "_id" : 74, "country" : "Gabon", "field2" : "                       " }
+{ "_id" : 122, "country" : "Lebanon", "field3" : "                   " }
+{ "_id" : 230, "country" : "Venezuela", "field3" : "                 " }
+{ "_id" : 70, "country" : "Micronesia", "field2" : "                  " }
+{ "_id" : 189, "country" : "Sweden", "field3" : "                    " }
+{ "_id" : 19, "country" : "Bangladesh", "field2" : "                  " }
+{ "_id" : 90, "country" : "Guinea-Bissau", "field2" : "               " }
+{ "_id" : 40, "country" : "Switzerland", "field2" : "                 " }
+{ "_id" : 208, "country" : "Togo", "field3" : "                      " }
+{ "_id" : 225, "country" : "United States", "field3" : "             " }
+{ "_id" : 237, "country" : "Yemen", "field3" : "                     " }
+{ "_id" : 221, "country" : "Ukraine", "field3" : "                   " }
+{ "_id" : 58, "country" : "Dominican Republic", "field2" : "          " }
+{ "_id" : 102, "country" : "British Indian Ocean Terr." }
+{ "_id" : 162, "country" : "Nauru", "field3" : "                     " }
+{ "_id" : 92, "country" : "Hong Kong", "field2" : "                   " }
+{ "_id" : 236, "country" : "Samoa", "field3" : "                     " }
+{ "_id" : 222, "country" : "Uganda", "field3" : "                    " }
+{ "_id" : 77, "country" : "Georgia", "field2" : "                     " }
+{ "_id" : 32, "country" : "Bouvet Island", "field2" : "               " }
+{ "_id" : 78, "country" : "French Guiana", "field2" : "               " }
+{ "_id" : 246, "country" : "Andorra", "field3" : "                   " }
+{ "_id" : 166, "country" : "Oman", "field3" : "                      " }
+{ "_id" : 33, "country" : "Botswana", "field2" : "                    " }
+{ "_id" : 168, "country" : "Peru", "field3" : "                      " }
+{ "_id" : 184, "country" : "Rwanda", "field3" : "                    " }
+{ "_id" : 136, "country" : "Marshall Islands", "field3" : "          " }
+{ "_id" : 49, "country" : "Cuba", "field2" : "                        " }
+{ "_id" : 133, "country" : "Monaco", "field3" : "                    " }
+{ "_id" : 114, "country" : "Comoros", "field3" : "                   " }
+{ "_id" : 242, "country" : "Zaire", "field3" : "                     " }
+{ "_id" : 129, "country" : "Luxembourg", "field3" : "                " }
+{ "_id" : 155, "country" : "Niger", "field3" : "                     " }
+{ "_id" : 68, "country" : "Fiji", "field2" : "                        " }
+{ "_id" : 113, "country" : "Kiribati", "field3" : "                  " }
+{ "_id" : 4, "country" : "Antigua and Barbuda", "field2" : "         " }
+{ "_id" : 108, "country" : "Jordan", "field3" : "                    " }
+{ "_id" : 188, "country" : "Sudan", "field3" : "                     " }
+{ "_id" : 143, "country" : "Martinique", "field3" : "                " }
+{ "_id" : 179, "country" : "Paraguay", "field3" : "                  " }
+{ "_id" : 126, "country" : "Liberia", "field3" : "                   " }
+{ "_id" : 191, "country" : "St. Helena", "field3" : "                " }
+{ "_id" : 45, "country" : "China", "field2" : "                       " }
+{ "_id" : 240, "country" : "South Africa", "field3" : "              " }
+{ "_id" : 115, "country" : "Saint Kitts and Nevis", "field3" : "     " }
+{ "_id" : 132, "country" : "Morocco", "field3" : "                   " }
+{ "_id" : 112, "country" : "Cambodia", "field3" : "                  " }
+{ "_id" : 85, "country" : "Equatorial Guinea", "field2" : "           " }
+{ "_id" : 165, "country" : "New Zealand", "field3" : "               " }
+{ "_id" : 211, "country" : "Tokelau", "field3" : "                   " }
+{ "_id" : 226, "country" : "Uruguay", "field3" : "                   " }
+{ "_id" : 111, "country" : "Kyrgyzstan", "field3" : "                " }
+{ "_id" : 6, "country" : "Albania", "field2" : "                     " }
+{ "_id" : 28, "country" : "Bolivia", "field2" : "                     " }
+{ "_id" : 130, "country" : "Latvia", "field3" : "                    " }
+{ "_id" : 171, "country" : "Philippines", "field3" : "               " }
+{ "_id" : 206, "country" : "Chad", "field3" : "                      " }
+{ "_id" : 11, "country" : "Argentina", "field2" : "                   " }
+{ "_id" : 72, "country" : "France", "field2" : "                      " }
+{ "_id" : 146, "country" : "Malta", "field3" : "                     " }
+{ "_id" : 151, "country" : "Malaysia", "field3" : "                  " }
+{ "_id" : 94, "country" : "Honduras", "field2" : "                    " }
+{ "_id" : 209, "country" : "Thailand", "field3" : "                  " }
+{ "_id" : 93, "country" : "Heard and McDonald Islands", "field2" : "  " }
+{ "_id" : 83, "country" : "Guinea", "field2" : "                      " }
+{ "_id" : 107, "country" : "Jamaica", "field3" : "                   " }
+{ "_id" : 199, "country" : "Suriname", "field3" : "                  " }
+{ "_id" : 233, "country" : "Vietnam", "field3" : "                   " }
+{ "_id" : 213, "country" : "Tunisia", "field3" : "                   " }

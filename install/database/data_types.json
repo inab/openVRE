@@ -1,0 +1,18 @@
+{ 
+    "_id" : "dna_sequence", 
+    "name" : "DNA sequence", 
+    "file_types" : [
+        "FASTA" 
+    ]
+}
+{ 
+    "_id" : "tool_statistics", 
+    "name" : "Tool summary file", 
+    "file_types" : [
+        "TAR"
+    ], 
+    "taxon_id" : false, 
+    "assembly" : [
+
+    ]
+}

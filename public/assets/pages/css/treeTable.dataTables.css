@@ -1,0 +1,91 @@
+
+table.dt-treetable tr.branch.collapsed .indenter a:before {
+  font-family: 'FontAwesome';
+  content: "\f07b";
+  color: #006b8f;
+  font-size:18px;
+}
+table.dt-treetable tr.branch.expanded .indenter a:before {
+  font-family: 'FontAwesome';
+  content: "\f07c";
+  color: #006b8f;
+  font-size:18px;
+}
+
+table.treetable span.indenter {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  text-align: right;
+
+  /* Disable text selection of nodes (for better D&D UX) */
+  user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  -webkit-user-select: none;
+
+  /* Force content-box box model for indenter (Bootstrap compatibility) */
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+
+  width: 19px;
+}
+
+table.treetable span.indenter a {
+  background-position: left center;
+  background-repeat: no-repeat;
+  display: inline-block;
+  text-decoration: none;
+  width: 19px;
+}
+
+/****/
+
+.mock_button { position:absolute;right:0;top:0;z-index:100;width:100%;height:100%;cursor:pointer; }
+#workspace tr th { position:relative; }
+.extra_info { background: #eee; display: none; margin:10px 0 0 0; padding:2px; white-space: normal; border-left:4px solid #ccc; }
+.extra_info table tbody tr { background-color:transparent;  }
+.extra_info table tbody tr td { white-space:normal!important; padding: 5px 2px; font-size: 12px; }
+.extra_info table tbody tr td:nth-child(2) { color:#666; }
+.extra_info table tbody tr:hover { background-color:transparent!important;  } 
+.expand_info:before {
+    font-family: 'FontAwesome';
+    content: "\f13a";
+    color: #006b8f;
+    cursor: pointer;
+    margin-left:5px;
+}
+.expand_info_up:before {
+    font-family: 'FontAwesome';
+    content: "\f139";
+    color: #006b8f;
+    cursor: pointer;
+    margin-left:5px;
+}
+
+.table-scrollable .dataTable td>.btn-group { margin-top:-10px!important; }
+table.dataTable tr.heading>th { background-color: #ddd!important; }
+#workspace thead label.mt-checkbox { margin-left: -8px; }
+#workspace td { white-space: nowrap;}
+table.treetable span.indenter { position: absolute; left: 4.5%; margin-top:-2px; }
+/*.table-scrollable .dataTable td>.btn-group, .table-scrollable .dataTable th>.btn-group { position:relative!important; }*/
+
+.refresh-table:before {
+    font-family: 'FontAwesome';
+    content: "\f021";
+    color: #006b8f;
+    cursor: pointer;
+    margin-left:5px;
+    font-size: 16px;
+}
+
+.reset-table:before {
+    font-family: 'FontAwesome';
+    content: "\f057";
+    color: #006b8f;
+    cursor: pointer;
+    margin-left:5px;
+    font-size: 20px;
+}

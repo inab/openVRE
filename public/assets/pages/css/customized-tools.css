@@ -1,0 +1,35 @@
+/* PYDOCK DNA */
+
+.help-block-form { color: #737373;margin-top:5px; }
+.display-block { display:block; }
+
+.bootstrap-switch .bootstrap-switch-label { color:#ccc; }
+
+#tablePDNAD { display:none;  } 
+#tablePDNAD th, #tablePDNAD td { text-align:center;font-size:10px }
+#tablePDNAD th { background-color:#779abd; color:#fff; border-left:1px solid #fff; }
+#tablePDNAD.table-striped>tbody>tr:nth-of-type(odd) { background-color: #e9f4ff; }
+
+/* NAFLEX */
+/*.select2-container--default.select2-container--focus .select2-selection--multiple { border: solid #c2cad8 1px; }*/
+
+/* ND */
+
+#nd-toggle-table { margin-bottom: 20px; background:#f1f1f1; margin-left:0; margin-right: 0; padding:15px;}
+#nd-toggle-table .r-toggle-cols { margin-bottom:15px;}
+#nd-toggle-table .r-toggle-cols p { margin-bottom: 5px;}
+button.toggle-all { margin-left:10px;}
+button.toggle-all, button.toggle-vis { margin-bottom:3px;}
+#nd-filters-table .selector { margin-top:5px; margin-bottom:10px; }
+#nd-filters-table { margin-bottom: 20px; background:#f1f1f1; margin-left:0; margin-right: 0; padding-top:15px;}
+.DTFC_LeftBodyWrapper { top:-12px!important;}
+.DTFC_LeftHeadWrapper table thead tr { height:0!important; }
+.dataTables_scrollHeadInner table thead tr { height: auto!important;}
+.dataTables_scrollHeadInner table, .DTFC_LeftHeadWrapper table { margin-top:0!important; }
+.dataTables_scrollHeadInner table thead tr th { background-color: #c2cfd4!important; border-right: 1px solid #fff; border-top: 1px solid #fff;}
+.dataTables_scrollHeadInner table thead tr th.header-group { background: #acb9bd!important; border-right: 1px solid #fff;}
+
+.nd-accordion { background:#fafafa; }
+.nd-accordion img, .nd-accordion table { border:1px solid #e7ecf1; }
+
+

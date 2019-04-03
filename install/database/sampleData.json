@@ -1,0 +1,7 @@
+{ 
+    "_id" : "basic", 
+    "name" : "Basic", 
+    "sample_path" : "basic/", 
+    "status" : 0, 
+    "short_description" : "Basic sample data, used new accounts"
+}

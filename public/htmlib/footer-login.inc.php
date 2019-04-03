@@ -1,0 +1,1 @@
+<div class="<?php if((pathinfo($_SERVER['PHP_SELF'])['filename'] == 'index') || (pathinfo($_SERVER['PHP_SELF'])['filename'] == 'resetPassword')) { ?> copyright <?php }else{ ?> page-footer-custom  <?php } ?>"> &copy; <?php echo date("Y").' '.$GLOBALS['NAME'] ; ?></div>
