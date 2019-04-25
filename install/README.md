@@ -2,7 +2,7 @@
 # Table of contents
  - [Installation](#installation)
  - [Install a Tool](#install_my_first_tool)
- - [Create New Page](create_new_page#)
+ - [Create New Page](#create_new_page)
  - [Create New Dataset](#create_new_dataset)
 
 
@@ -99,7 +99,7 @@ Replace these files with your project logos
 - `public/assets/layouts/layout/img/logo.png`  :  small and negative
 - `public/assets/layouts/layout/img/icon.png` :  favico
 
-##### Custom Css
+##### Custom CSS
 
 Edit the custom CSS file for customizing the web look
 
@@ -216,42 +216,36 @@ For registering the complete list of help sections (Help > Tools > Tool Skeleton
 
 ```json
 { 
-    "_id" : ObjectId("5ca1fdd6b412bec8bcbaadad"), 
     "tool" : "tool_skeleton", 
     "help" : "references", 
     "title" : "References", 
     "content" : "<!-- Help content -->\r\n# Title 1\r\nEdit the content using the online *Markdown* editor."
 }
 { 
-    "_id" : ObjectId("5ca1fdd6b412bec8bcbaadae"), 
     "tool" : "tool_skeleton", 
     "help" : "results", 
     "title" : "Results", 
     "content" : "<!-- Help content -->\r\n# Title 1\r\nEdit the content using the online *Markdown* editor."
 }
 { 
-    "_id" : ObjectId("5ca1fdd6b412bec8bcbaadaf"), 
     "tool" : "tool_skeleton", 
     "help" : "method", 
     "title" : "Method", 
     "content" : "<!-- Help content -->\r\n# Title 1\r\nEdit the content using the online *Markdown* editor.\r\n"
 }
 { 
-    "_id" : ObjectId("5ca1fdd6b412bec8bcbaadb0"), 
     "tool" : "tool_skeleton", 
     "help" : "outputs", 
     "title" : "Outputs", 
     "content" : "<!-- Help content -->\r\n# Title 1\r\nEdit the content using the online *Markdown* editor.\r\n"
 }
 { 
-    "_id" : ObjectId("5ca1fdd6b412bec8bcbaadb1"), 
     "tool" : "tool_skeleton", 
     "help" : "help", 
     "title" : "Tool Skeleton", 
     "content" : "<!-- Example of navigator -->\r\n<a href=\"/tools/tool_skeleton/help/method.php\" class=\"btn green btn-xs\">Method</a> <a href=\"/tools/tool_skeleton/help/inputs.php\" class=\"btn green btn-xs\">Inputs</a> <a href=\"/tools/tool_skeleton/help/outputs.php\" class=\"btn green btn-xs\">Outputs</a> <a href=\"/tools/tool_skeleton/help/results.php\" class=\"btn green btn-xs\">Results</a> <a href=\"/tools/tool_skeleton/help/references.php\" class=\"btn green btn-xs\">References</a>\r\n\r\n<!-- Help content -->\r\n# Title 1\r\nEdit the content using the online *Markdown* editor.\r\n\r\n\r\n"
 }
 { 
-    "_id" : ObjectId("5ca1fdd6b412bec8bcbaadb2"), 
     "tool" : "tool_skeleton", 
     "help" : "inputs", 
     "title" : "Inputs", 
@@ -309,9 +303,9 @@ Add into the sample data directory (`GLOBALS['sampleData']` as defined in config
 - NewDataSet/
     - *.sample_metadata.json*
     - uploads/
-	- myInput1.txt
+        - myInput1.txt
     - [resultsFolder/]
-	- [myOutput1.txt]
+        - [myOutput1.txt]
     - [...]
 
 The main directory (here NewDataSet/) can contain *n* folders, and in turn, each folder can contain *n* files - subfolders are not supported. You can take as example the Basic sample Data:
@@ -326,10 +320,10 @@ For each directory of your dataset, create a `.sample_metadata.json` file. The d
     - *.sample_metadata.json*
     - uploads/
         - *.sample_metadata.json*
-	- myInput1.txt
+        - myInput1.txt
     - [resultsFolder/]
         - [*.sample_metadata.json*]
-	- [myOutput1.txt]
+        - [myOutput1.txt]
     - [...]
 
 - `install/sampleData/basic/uploads/.sample_metadata.json` : Metadata for 'README'  file contained  in the 'uploads/' directory
