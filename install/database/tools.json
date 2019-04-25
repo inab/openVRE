@@ -147,7 +147,7 @@
     "output_files" : [
         {
             "name" : "output1",
-            "required" : false, 
+            "required" : true, 
             "allow_multiple" : false, 
             "file" : {
                 "file_type" : "FASTA", 

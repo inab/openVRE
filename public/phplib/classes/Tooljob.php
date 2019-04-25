@@ -293,13 +293,13 @@ class Tooljob {
     	        $input_ids = array_unique($input_ids);
     	
     		$projDirMeta=array(
-    			'description' => $this->description,
-    	        //'inPaths'     => array_map(create_function('$o', 'return $o->path;'), $this->input_files),
-    	        'input_files' => $input_ids,
-                'tool'        => $this->toolId,
-    			'shPath'      => $this->submission_file,
-    			'logPath'     => $this->log_file,
-            	'arguments'   => array_merge($this->arguments,$this->input_paths_pub)
+    			'description'     => $this->description,
+	    	        //'inPaths'       => array_map(create_function('$o', 'return $o->path;'), $this->input_files),
+    		        'input_files'     => $input_ids,
+                	'tool'            => $this->toolId,
+    			'submission_file' => $this->submission_file,
+    			'log_file'         => $this->log_file,
+	            	'arguments'       => array_merge($this->arguments,$this->input_paths_pub)
             );
 
     		$r = addMetadataBNS($this->_id, $projDirMeta);
@@ -561,7 +561,6 @@ class Tooljob {
 
 
     public function setInput_files_public($input_files_public,$tool=array(),$metadata_pub=array()){
-
     foreach ($input_files_public as $input_name => $input_values){
 
         $fns = array();
@@ -571,15 +570,15 @@ class Tooljob {
 			    $input_values=array($input_values);
 
             foreach ($input_values as $input_value){
-            // checking value not empty
-			if (!$input_value){
-				$_SESSION['errorData']['Error'][]="No value given public file '$input_name'";
-				return 0;
-			}
-			// checking coherence between JSON and REQUEST
-			if (!isset($tool['input_files_public_dir'][$input_name])){
-				$_SESSION['errorData']['Internal'][]="Input file public '$input_name' not found in tool definition. '$this->toolId' is not properly registered";
-				return 0;
+            	// checking value not empty
+		if (!$input_value){
+			$_SESSION['errorData']['Error'][]="No value given public file '$input_name'";
+			return 0;
+		}
+		// checking coherence between JSON and REQUEST
+		if (!isset($tool['input_files_public_dir'][$input_name])){
+			$_SESSION['errorData']['Internal'][]="Input file public '$input_name' not found in tool definition. '$this->toolId' is not properly registered";
+			return 0;
             }
             // replacing file_path by fn in input_files_pub
             $fn = "";
@@ -841,12 +840,10 @@ class Tooljob {
             return 0;
 	}
 	$cmd = $tool['infrastructure']['executable'] .
-					" --config "         .$this->config_file_virtual .
-					//" --root_dir "       .$this->root_dir_mug .
-					//" --public_dir "     .$this->pub_dir_virtual .
-					" --in_metadata " 	 .$this->metadata_file_virtual .
-					" --out_metadata "   .$this->stageout_file_virtual .
-				    " --log_file "       .$this->log_file_virtual ;
+				" --config "         .$this->config_file_virtual .
+				" --in_metadata "    .$this->metadata_file_virtual .
+				" --out_metadata "   .$this->stageout_file_virtual .
+			    	" --log_file "       .$this->log_file_virtual ;
 	return $cmd;
     }
 
@@ -979,9 +976,9 @@ class Tooljob {
                 "source" => $app_source,
                 "interpreter" => $tool['infrastructure']['interpreter'],
 				"args"  => array(
-						"config"      => $this->config_file_virtual,
-					  //"root_dir"    => $this->root_dir_virtual,
-					  //"public_dir"  => $this->pub_dir_virtual,
+					"config"      => $this->config_file_virtual,
+				      //"root_dir"    => $this->root_dir_virtual,
+				      //"public_dir"  => $this->pub_dir_virtual,
                       //"log_file"    => $this->log_file_virtual,
 						"in_metadata" => $this->metadata_file_virtual,
                         "out_metadata"=> $this->stageout_file_virtual
@@ -1231,8 +1228,8 @@ class Tooljob {
         unset($file['format']);
         unset($file['data_type']); 
         unset($file['tracktype']); 
-        unset($file['shPath']); 
-        unset($file['logPath']); 
+        unset($file['submission_file']); 
+        unset($file['log_file']); 
         unset($file['input_files']);
         unset($file['owner']);
 
@@ -1334,7 +1331,7 @@ class Tooljob {
     		// checking coherence between JSON and REQUEST
     		if (!isset($tool['input_files_public_dir'][$input_name])){
     			$_SESSION['errorData']['Internal'][]="Input file public '$input_name' not found in tool definition. '$this->toolId' is not properly registered";
-                return $metadata_public;
+			return $metadata_public;
     		}
             if ($input_value!=""){
                 $rfn_public = 1;

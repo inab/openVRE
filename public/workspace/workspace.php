@@ -149,11 +149,11 @@ if (isset($_REQUEST['op'])){
 		if (!$_REQUEST['fnPath']){
 			$_SESSION['errorData']['Error'][]="Cannot open file. Variable 'fnPath' not received. Please, try it latter or mail <a href=\"mailto:helpdesk@multiscalegenomics.eu\">helpdesk@multiscalegenomics.eu</a>";
 			break;	
-        }
-        if (preg_match('/^\//',$_REQUEST['fnPath']))
-    		$rfn = $_REQUEST['fnPath'];
-        else
-            $rfn = $GLOBALS['dataDir']."/".$_REQUEST['fnPath'];
+        	}
+        	if (preg_match('/^\//',$_REQUEST['fnPath']))
+    			$rfn = $_REQUEST['fnPath'];
+	        else
+        	    $rfn = $GLOBALS['dataDir']."/".$_REQUEST['fnPath'];
 
 		$fileInfo = pathinfo($rfn);
 		$contentType = "text/plain";
@@ -163,9 +163,9 @@ if (isset($_REQUEST['op'])){
 			$contentType = $content_types_list[$fileExtension];
 
 		//if (!$fileData && !preg_match('/\.log/',$rfn) ){
-        //    		break;
-        //}
-        if (!is_file($rfn) || !filesize($rfn)){
+	        //    		break;
+        	//}
+	        if (!is_file($rfn) || !filesize($rfn)){
 	        	$_SESSION['errorData']['error'][]= "'".basename($rfn). "' does not exist anymore or is empty. <a href=\"javascript:deleteMesg('".urlencode($_REQUEST['fn'])."')\">[ Delete ]</a> <a href=\"workspace/workspace.php\">[ OK ]</a>";
         		 break;
 		}

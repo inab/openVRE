@@ -100,6 +100,9 @@ jQuery(document).ready(function() {
 				boxed: true,
 				message: 'Logging out...'
 			});
+			// setTimeout(() => {
+				
+			
 			$.ajax({
 				type: "POST",
 				url: baseURL + "/applib/logoutToken.php",
@@ -107,12 +110,14 @@ jQuery(document).ready(function() {
 				success: function(data) {
 					d = data.replace(/(\r\n|\n|\r|\t)/gm,"");
 					if(d == '1'){
-						setTimeout(function(){ location.href = '/'; }, 1000);	
+						setTimeout(function(){ location.href = baseURL ; }, 1000);	
 					}else{
 						App.unblockUI();
 					}
 				}
 			});
+
+		// }, 500000);
 		}
 	
 	});

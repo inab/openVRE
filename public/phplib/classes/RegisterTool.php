@@ -769,8 +769,8 @@ class RegisterTool {
         unset($file['format']);
         unset($file['data_type']); 
         unset($file['tracktype']); 
-        unset($file['shPath']); 
-        unset($file['logPath']); 
+        unset($file['submission_file']); 
+        unset($file['log_file']); 
         unset($file['input_files']);
         unset($file['owner']);
 

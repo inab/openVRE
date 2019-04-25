@@ -95,7 +95,7 @@ sort($toolList);
 														
 							$kw = array();
 							foreach($toolList as $t) { 
-                                foreach($t['keywords'] as $tk) $kw[] = $tk;
+                                				foreach($t['keywords'] as $tk) $kw[] = $tk;
 							}
 
 							sort($kw);	

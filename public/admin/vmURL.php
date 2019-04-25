@@ -1,11 +1,8 @@
 <?php
 
 require __DIR__."/../../config/bootstrap.php";
-require "../phplib/admin.inc.php";
 
-//**************************
 redirectToolDevOutside();
-//**************************
 
 if(!isset($_REQUEST['id'])) {
 

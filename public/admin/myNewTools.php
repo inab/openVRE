@@ -140,8 +140,9 @@ foreach (array_values(iterator_to_array($result)) as $v){
 										<br><br>
 
 										<?php if(file_exists($GLOBALS['dataDir']."/".$v["user_id"]."/.dev/".$v['_id']."/logo/logo.png")) { ?>
-										<a href="files/<?php echo $v["user_id"]; ?>/.dev/<?php echo $v["_id"]; ?>/logo/logo.png?rnd=<?php echo rand(); ?>" target="_blank">
-											<img src="files/<?php echo $v["user_id"]; ?>/.dev/<?php echo $v["_id"]; ?>/logo/logo.png?rnd=<?php echo rand(); ?>" style="width:100px;border:1px solid #999;" />
+
+										<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo $v["user_id"]."/.dev/".$v['_id']."/logo/logo.png";?>" target="_blank">
+											<img src="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo $v["user_id"]."/.dev/".$v['_id']."/logo/logo.png";?>" style="width:100px;border:1px solid #999;" />
 										</a>
 										<br>
 										<a href="applib/createLogo.php?toolid=<?php echo $v["_id"]; ?>" class="btn green tooltips" style="margin-top:10px;"
@@ -226,7 +227,7 @@ foreach (array_values(iterator_to_array($result)) as $v){
                      <?php } else { ?>
                         <div class="note note-success" style="background-color:rgb(233, 237, 239);border-color:#bfcad1;padding:10px;">
                             <h5>Test Files &nbsp;&nbsp;
-                                <a href="files/<?php echo $v["step1"]["test_files"];?>?v=<?php echo rand(); ?>"><i class="fa fa-download"></i></a>
+				<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo $v["step1"]["test_files"]."&v=".rand();?>"><i class="fa fa-download"></i></a>
                             </h5>
                         <?php
                         if (count($v["step1"]["files"])> 1){?>
@@ -235,7 +236,7 @@ foreach (array_values(iterator_to_array($result)) as $v){
                                 <button type="button" class="btn btn-outline green dropdown-toggle" data-toggle="dropdown">test.sh <i class="fa fa-angle-down"></i></button>
                                 <ul class="dropdown-menu" role="menu">
                                     <?php foreach($v["step1"]["files"] as $comb => $files) { ?>
-																		<li><a href="files/<?php echo $v["step1"]["files"][$comb]['bash_file'];?>?v=<?php echo rand(); ?>" target="_blank"><?php echo $comb;?></a></li>
+					<li><a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo $v["step1"]["files"][$comb]['bash_file']."&v=".rand(); ?>" target="_blank"><?php echo $comb;?></a></li>
                                     <?php } ?>
                                 </ul>
                             </div>
@@ -243,7 +244,7 @@ foreach (array_values(iterator_to_array($result)) as $v){
                                 <button type="button" class="btn btn-outline green dropdown-toggle" data-toggle="dropdown">config.json <i class="fa fa-angle-down"></i></button>
                                 <ul class="dropdown-menu" role="menu">
                                     <?php foreach($v["step1"]["files"] as $comb => $files) { ?>
-                                    <li><a href="files/<?php echo $v["step1"]["files"][$comb]['configuration_file'];?>?v=<?php echo rand(); ?>" target="_blank" ><?php echo $comb;?></a></li>
+                                    <li><a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo $v["step1"]["files"][$comb]['configuration_file']."&v=".rand(); ?>" target="_blank" ><?php echo $comb;?></a></li>
                                     <?php } ?>
                                 </ul>
                             </div>
@@ -251,7 +252,7 @@ foreach (array_values(iterator_to_array($result)) as $v){
                                 <button type="button" class="btn btn-outline green dropdown-toggle" data-toggle="dropdown">metadata.json <i class="fa fa-angle-down"></i></button>
                                 <ul class="dropdown-menu" role="menu">
                                     <?php foreach($v["step1"]["files"] as $comb => $files) { ?>
-                                    <li><a href="files/<?php echo $v["step1"]["files"][$comb]['metadata_file'];?>?v=<?php echo rand(); ?>" target="_blank" ><?php echo $comb;?></a></li>
+                                    <li><a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo $v["step1"]["files"][$comb]['metadata_file']."&v=".rand(); ?>" target="_blank" ><?php echo $comb;?></a></li>
                                     <?php } ?>
                                 </ul>
 														</div>
@@ -261,9 +262,9 @@ foreach (array_values(iterator_to_array($result)) as $v){
 
                             <div class="btn-group btn-group-sm btn-group-solid">
                                 <?php foreach($v["step1"]["files"] as $comb => $files) { ?>
-                                <a type="button" class="btn btn-outline green" href="files/<?php echo $v["step1"]["files"][$comb]['bash_file'];?>?v=<?php echo rand(); ?>" target="_blank">test.sh </a>
-                                <a type="button" class="btn btn-outline green" href="files/<?php echo $v["step1"]["files"][$comb]['configuration_file'];?>?v=<?php echo rand(); ?>" target="_blank">config.json</a>
-                                <a type="button" class="btn btn-outline green" href="files/<?php echo $v["step1"]["files"][$comb]['metadata_file'];?>?v=<?php echo rand(); ?>" target="_blank">metadata.json</a>
+                                <a type="button" class="btn btn-outline green" href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo $v["step1"]["files"][$comb]['bash_file']."&v=".rand(); ?>" target="_blank">test.sh </a>
+                                <a type="button" class="btn btn-outline green" href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo $v["step1"]["files"][$comb]['configuration_file']."&v=".rand(); ?>" target="_blank">config.json</a>
+                                <a type="button" class="btn btn-outline green" href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo $v["step1"]["files"][$comb]['metadata_file']."&v=".rand(); ?>" target="_blank">metadata.json</a>
                                 <?php } ?>
                                 </ul>
                             </div>

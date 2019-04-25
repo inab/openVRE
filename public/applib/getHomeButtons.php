@@ -2,6 +2,7 @@
 
 require __DIR__."/../../config/bootstrap.php";
 redirectOutside();
+
 $tls = getTools_ListComplete(1);
 $vslzrs = getVisualizers_ListComplete(1);
 

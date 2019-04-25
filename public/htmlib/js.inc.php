@@ -1,3 +1,4 @@
+<script src="htmlib/globals.js.inc.php"></script>
 <?php
 
 switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
@@ -18,7 +19,7 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 	case 'editFile':
 	case 'editFile2':
 	?>
-	<script src="htmlib/globals.js.inc.php"></script>
+	
 	<?php break; 
 }
 ?>
@@ -83,7 +84,7 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 	case 'logs':
 	case 'repoExample': ?>
 		<script src="assets/global/scripts/datatable.js" type="text/javascript"></script>
-    		<script src="assets/global/plugins/datatables/datatables.min.js" type="text/javascript"></script>
+		<script src="assets/global/plugins/datatables/datatables.min.js" type="text/javascript"></script>
 		<script src="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js" type="text/javascript"></script>
 		<?php break; 	
 	case 'usrProfile': ?>
@@ -247,6 +248,7 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 		<?php } ?>
 		<?php break;
 	case 'help':
+	case 'toolhelp':
 	case 'method':
 	case 'inputs':
 	case 'outputs':
@@ -318,7 +320,7 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 		<script src="assets/pages/scripts/profile.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
 		<?php break; 
 	case 'repoExample': ?>
-		<script src="assets/pages/scripts/table-bignasim.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
+		<script src="assets/pages/scripts/table-datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
 		<?php break; 
 	case 'logs': ?>
 		<script src="assets/pages/scripts/table-logs.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
@@ -399,6 +401,7 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 		<script src="assets/pages/scripts/home.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
 		<?php break;
 	case 'help':
+	case 'toolhelp':
 	case 'method':
 	case 'inputs':
 	case 'outputs':
@@ -455,6 +458,7 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 	case 'refs':
 	case 'ackn':
 	case 'help':
+	case 'toolhelp':
 	case 'method':
 	case 'inputs':
 	case 'outputs':
@@ -495,6 +499,7 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 	case 'refs':
 	case 'ackn':
 	case 'help':
+	case 'toolhelp':
 	case 'method':
 	case 'inputs':
 	case 'outputs':

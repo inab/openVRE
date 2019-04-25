@@ -34,6 +34,7 @@ if ($debug){
 $tool = getTool_fromId($_REQUEST['tool'],1);
 
 
+
 if (empty($tool)){
 	$_SESSION['errorData']['Error'][]="Tool not specified or not registered. Please, register '".$_REQUEST['tool']."'";
   	redirect($GLOBALS['BASEURL']."workspace/");

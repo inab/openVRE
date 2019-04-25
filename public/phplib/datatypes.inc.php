@@ -49,13 +49,10 @@ function getFeaturesFromDataType($datatype, $filetype) {
 	$res["sorted"] = false;
 
 
-	if($dt["taxon_id"]) $res["taxon_id"] = true;
-
-	if (in_array($filetype,$dt["assembly"])) $res["assembly"] = true;
-
-	if (isset($dt["paired"]) && in_array($filetype,$dt["paired"])) $res["paired"] = true;
-
-	if (isset($dt["sorted"]) && in_array($filetype,$dt["sorted"])) $res["sorted"] = true;
+	if (isset($dt["taxon_id"])) $res["taxon_id"] = true;
+	if (isset($dt["assembly"]) && in_array($filetype,$dt["assembly"])) $res["assembly"] = true;
+	if (isset($dt["paired"]  ) && in_array($filetype,$dt["paired"])  ) $res["paired"] = true;
+	if (isset($dt["sorted"]  ) && in_array($filetype,$dt["sorted"])  ) $res["sorted"] = true;
 
 	return $res;
 

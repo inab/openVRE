@@ -447,21 +447,27 @@ if($_REQUEST["type"] == 2) { ?>
 			<?php }else{ ?>
 			<a href="javascript:;" class="btn grey tooltips" data-container="body" data-html="true" data-placement="bottom" data-original-title="<p align='left' style='margin:0'>Fie not available</p>"><i class="fa fa-exclamation-triangle"></i> VIEW SUBMIT FILE </a>
 			<?php } ?>
-			<?php if(file_exists($mt['config_file'])) { ?>
+			<?php if(file_exists($mt['config_file'])){ ?>
 			<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['config_file']); ?>" class="btn green" target="_blank"><i class="fa fa-cog"></i> VIEW CONFIG FILE </a>
+			<?php }elseif(file_exists($GLOBALS['dataDir'].$mt['path']."/".$GLOBALS['tool_config_file']) ) { ?>
+			<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['path']."/".$GLOBALS['tool_config_file']); ?>" class="btn green" target="_blank"><i class="fa fa-cog"></i> VIEW CONFIG FILE </a>
 			<?php }else{ ?>
 			<a href="javascript:;" class="btn grey tooltips" data-container="body" data-html="true" data-placement="bottom" data-original-title="<p align='left' style='margin:0'>Fie not available</p>"><i class="fa fa-exclamation-triangle"></i> VIEW CONFIG FILE </a>
 			<?php } ?>
-			<?php if(file_exists($mt['metadata_file'])) { ?>
+			<?php if(file_exists($mt['metadata_file']) ){ ?>
 			<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['metadata_file']); ?>" class="btn green" target="_blank"><i class="fa fa-tags"></i> VIEW META FILE </a>
+			<?php }elseif(file_exists($GLOBALS['dataDir'].$mt['path']."/".$GLOBALS['tool_metadata_file']) ) { ?>
+			<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['path']."/".$GLOBALS['tool_metadata_file']); ?>" class="btn green" target="_blank"><i class="fa fa-tags"></i> VIEW META FILE </a>
 			<?php }else{ ?>
 			<a href="javascript:;" class="btn grey tooltips" data-container="body" data-html="true" data-placement="bottom" data-original-title="<p align='left' style='margin:0'>Fie not available</p>"><i class="fa fa-exclamation-triangle"></i> VIEW META FILE </a>
 			<?php } ?>
-			<?php if(file_exists($mt['stageout_file'])) { ?>
+			<?php if(file_exists($mt['stageout_file']) ){ ?>
 			<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['stageout_file']); ?>" class="btn green" target="_blank"><i class="fa fa-line-chart"></i> VIEW RESULTS FILE </a>
+			<?php }elseif(file_exists($GLOBALS['dataDir'].$mt['path']."/".$GLOBALS['tool_stageout_file']) ) { ?>
+			<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['path']."/".$GLOBALS['tool_stageout_file']); ?>" class="btn green" target="_blank"><i class="fa fa-line-chart"></i> VIEW RESULTS FILE </a>
 			<?php }else{ ?>
 			<a href="javascript:;" class="btn grey tooltips" data-container="body" data-html="true" data-placement="bottom" data-original-title="<p align='left' style='margin:0'>Fie not available</p>"><i class="fa fa-exclamation-triangle"></i> VIEW RESULTS FILE </a>
-            <?php }
+			<?php }
         } ?>
 </div>
 

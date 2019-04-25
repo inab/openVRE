@@ -44,21 +44,7 @@ redirectOutside();
 		      <!-- END PAGE HEADER-->
 
 			<?php
-			//recover REQUEST data if comming from failed form processing
-			//print "<br/>SESSION<br/>";
-			//var_dump($_SESSION);
-			/*if (isset($_REQUEST['requestID'])){
-				print "<br/>VARDUMP REQUEST INI<br/>";
-				var_dump($_REQUEST);
-				$requestID = $_REQUEST['requestID'];
-				print "<br/>RECOVERING from REQUEST[REQUEST_$requestID]<br/>";
-				$_REQUEST = $_SESSION["REQUEST_$requestID"];
-				print "<br/>VARDUMP REQUEST FIN<br/>";
-				var_dump($_REQUEST);
-				unset($_SESSION["REQUEST_$requestID"]);
-			}*/
-			
-			//chek input files from REQUEST[fn]
+
 			$filesData=Array();
 			$filesMeta=Array();
 			if (!isset($_REQUEST['fn']) || !$_REQUEST['fn'] || !count($_REQUEST['fn']) ) {
@@ -82,9 +68,6 @@ redirectOutside();
 				}
 			}
 
-			/*var_dump($filesData);
-			echo '<br><br>';
-			var_dump($filesMeta);*/
 				
 			?>
 

@@ -53,7 +53,7 @@ function getInputMetadata($input) {
 
 }
 
-function getArgument($arg, $class = null, $defval, $input_name = null) {
+function getArgument($arg, $class = null, $defval = null, $input_name = null) {
 
 	if(!$input_name) $input_name = "arguments";
 
@@ -101,13 +101,14 @@ function getArgument($arg, $class = null, $defval, $input_name = null) {
 			$options["description"] = ["True", "False"];
 
 			if(isset($defval)) {
-				$val = ($defval == 1) ? ["True"] : ["False"];
-			} else { $val = $arg["default"]; }
-
-			if($val == null) {
+				$val = ($defval == 1|| preg_match('/True/',$defval)) ? ["True"] : ["False"];
+			}elseif(isset($arg["default"])) {
+				 $val = $arg["default"];
+			}else{
 				$noselected = true;
 				$val = ["True"];
 			}
+			if (!is_array($val)) $val = array($val);
 
 			$output .= '<select  
 										name="'.$input_name.'['.$arg["name"].']" 
@@ -130,9 +131,9 @@ function getArgument($arg, $class = null, $defval, $input_name = null) {
 			$options = $arg["enum_items"];
 
 			if($defval) $val = array($defval);
-			else $val = $arg["default"];
-
-			if(!$val) $val = [];
+			elseif(isset($arg["default"])) $val = $arg["default"];
+			else $val = [];
+			if (!is_array($val)) $val = array($val);
 
 			$output .= '<select  
 										name="'.$input_name.'['.$arg["name"].']" 
@@ -151,9 +152,9 @@ function getArgument($arg, $class = null, $defval, $input_name = null) {
 			$options = $arg["enum_items"];
 
 			if($defval) $val = $defval;
-			else $val = $arg["default"];
-
-			if(!$val) $val = [];
+			elseif(isset($arg["default"])) $val = $arg["default"];
+			else $val=[];
+			if (!is_array($val)) $val = array($val);
 
 			$output .= '<select  
 				name="'.$input_name.'['.$arg["name"].'][]" 
@@ -175,13 +176,13 @@ function getArgument($arg, $class = null, $defval, $input_name = null) {
 }
 
 function generateLogo($toolid) {
-
 	$result = $GLOBALS['toolsDevMetaCol']->findOne(array("_id" => $toolid));
 
 	$path = $GLOBALS['dataDir']."/".$result["user_id"]."/.dev/".$toolid."/logo/";
 	if(!file_exists($path)) mkpath($path);
 
-	$text = ($result["step3"]["tool_spec"]? $result["step3"]["tool_spec"]["name"]: $toolid);
+	$text = ($result["step3"]["tool_spec"]["name"]=="My Tool"? str_replace(array("_","-")," ",$toolid) : $result["step3"]["tool_spec"]["name"]);
+
 	$tsize = strlen($text);
 	if($tsize < 5) $tsize = 5;
 
@@ -192,8 +193,16 @@ function generateLogo($toolid) {
 	$im = imagecreatetruecolor($w, $h);
 
 	// Create some colors
+	$rgb_colors = array(array(0,204,170),
+			    array(164,198,57),
+			    array(255,126,0),
+			    array(175,0,42),
+			    array(178,190,181),
+			    array(205,149,117),
+		      );
 	$background = imagecolorallocate($im, 255, 255, 255);
-	$color = imagecolorallocate($im, 0, 107, 143);
+	$rnd = array_rand($rgb_colors); # select random color
+	$color = imagecolorallocate($im, $rgb_colors[$rnd][0], $rgb_colors[$rnd][1], $rgb_colors[$rnd][2]);
 
 	imagefilledrectangle($im, 0, 0, $w, $w, $background);
 

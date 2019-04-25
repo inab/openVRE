@@ -21,7 +21,7 @@ $dry_run   = false ;     // true: evaluate files but dont delete them. false; cl
 $soft_mode = true;      // true: only README files are cleaned, consequently cleaning only not-used anon users. false: REGISTERED USERS FILES ARE CLEANED
 
 // disk
-$GLOBALS['shared']     = "/orozco/services/MuG/"; // MuGdev/";
+$GLOBALS['shared']     = "/data/MuG/"; // MuGdev/";
 $GLOBALS['dataDir']    = $GLOBALS['shared']."MuG_userdata/";
 
 // db

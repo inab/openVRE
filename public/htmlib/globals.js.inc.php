@@ -111,4 +111,10 @@ foreach($GLOBALS['ROLES'] as $k => $v):
 endforeach;
 echo '};';
 
+
+echo '
+
+var baseURL = '.$GLOBALS['BASEURL'].';';
+
+
 ?>

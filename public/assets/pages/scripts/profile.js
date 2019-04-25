@@ -188,28 +188,27 @@ var Profile = function () {
            			url: baseURL + "applib/changeProfileData.php",
            			data: $('#form-change-profile').serialize(), 
            			success: function(data) {
-						d = data.replace(/(\r\n|\n|\r|\t)/gm,"");
-               			if(d == '1'){
-               				$('#succ-chg-prf').fadeIn(300);
-               				$('.profile-usertitle-name').html($('input[name="Name"]').val() + ' ' + $('input[name="Surname"]').val());
+					d = data.replace(/(\r\n|\n|\r|\t)/gm,"");
+        	       			if(d == '1'){
+               					$('#succ-chg-prf').fadeIn(300);
+               					$('.profile-usertitle-name').html($('input[name="Name"]').val() + ' ' + $('input[name="Surname"]').val());
 							$('.profile-usertitle-job').html($('input[name="Inst"]').val());
 							$('.top-menu span.username').html($('input[name="Name"]').val());
 							$('.top-menu #avatar-no-picture').html($('input[name="Name"]').val().slice(0,1) + $('input[name="Surname"]').val().slice(0,1));
 							$('.profile-userpic #avatar-usr-profile').html($('input[name="Name"]').val().slice(0,1) + $('input[name="Surname"]').val().slice(0,1));
-
 							if(isFirstTime == 1) location.href = baseURL + 'home';
 
-						}else{
-							$('#err-chg-prf').fadeIn(300);
-						}
-						$('#submit-changes').prop('disabled', false);
-						$('#submit-changes').html('Save Changes');
-					},
-					error: function(data){
+					}else{
 						$('#err-chg-prf').fadeIn(300);
-						$('#submit-changes').prop('disabled', false);
-						$('#submit-changes').html('Save Changes');
 					}
+					$('#submit-changes').prop('disabled', false);
+					$('#submit-changes').html('Save Changes');
+				},
+				error: function(data){
+					$('#err-chg-prf').fadeIn(300);
+					$('#submit-changes').prop('disabled', false);
+					$('#submit-changes').html('Save Changes');
+				}
          		});
          		
             },

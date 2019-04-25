@@ -58,16 +58,8 @@ function redirectToolDevOutside(){
 }
 
 function redirectInside(){
-	redirect("/workspace/");
+	redirect($GLOBALS['BASEURL']."/workspace/");
 }
-
-function checkIfSessionUser_OBSOLETE($url = "/workspace/"){
-	if(checkLoggedIn()){
-		if($url == 'index.php') $url = "/workspace/";
-		redirect($url);
-	}
-}
-
 
 function sanitizeString($s){
 	return strip_tags(trim((string)$s));

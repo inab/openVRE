@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__."/../../config/bootstrap.php";
+require __DIR__ . "/../../config/bootstrap.php";
 redirectOutside();
 
 $tls = getTools_List(1);
@@ -19,104 +19,107 @@ sort($toolList);
 <body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-container-bg-solid page-sidebar-fixed">
   <div class="page-wrapper">
 
-  <?php require "../htmlib/top.inc.php"; ?>
-	<?php require "../htmlib/menu.inc.php"; ?>
+    <?php require "../htmlib/top.inc.php"; ?>
+    <?php require "../htmlib/menu.inc.php"; ?>
 
-<!-- BEGIN CONTENT -->
-                <div class="page-content-wrapper">
-                    <!-- BEGIN CONTENT BODY -->
-                    <div class="page-content">
-                        <!-- BEGIN PAGE HEADER-->
-                        <!-- BEGIN PAGE BAR -->
-                        <div class="page-bar">
-                            <ul class="page-breadcrumb">
-                              <li>
-                                  <span>Home</span>
-                              </li>
-                            </ul>
-                        </div>
-                        <!-- END PAGE BAR -->
-                        <!-- BEGIN PAGE TITLE-->
-                       <!-- <h1 class="page-title"> Homepage</h1> -->
-                        <!-- END PAGE TITLE-->
-												<!-- END PAGE HEADER-->
-
-												<p>
-                        </p>
-												<div class="portfolio-content portfolio-3">
-
-														<input type="hidden" id="base-url"     value="<?php echo $GLOBALS['BASEURL']; ?>"/>
-				
-														<?php 
-														
-														$kw = array();
-														foreach($toolList as $t) { 
-															foreach($t['keywords'] as $tk) {
-																if($tk == "next gen seq") $tk = "next_gen_seq"; 
-																$kw[] = $tk;
-															}
-														}
-
-														$kw = array_unique($kw);
-														sort($kw);	
-
-														?>
-
-                            <div class="clearfix">
-                                <div id="js-filters-lightbox-gallery2" class="cbp-l-filters-button cbp-l-filters-left">
-																		<div data-filter="*" class="cbp-filter-item-active cbp-filter-item btn blue btn-outline uppercase">All</div>
-		
-																		<?php foreach($kw as $k) { ?>
-																		<div data-filter=".<?php echo $k; ?>" class="cbp-filter-item btn blue btn-outline uppercase"><?php echo str_replace("_", " ", $k); $k; ?></div>
-																		<?php } ?>																	
-	
-                                </div>
-                            </div>
-														<div id="js-grid-lightbox-gallery" class="cbp">
-		
-																<?php 
-
-																foreach($toolList as $t) { 
-
-																$kw = implode(" ", $t['keywords']);
-
-																if (strpos($kw, 'visualization') === false) $type = 'tools';
-																else $type = 'visualizers';
-
-																$kw = str_replace("next gen seq", "next_gen_seq", $kw);
+    <!-- BEGIN CONTENT -->
 
 
-																?>
+    <div class="page-content-wrapper">
+      <!-- BEGIN CONTENT BODY -->
+      <div class="page-content">
+        <!-- BEGIN PAGE HEADER-->
+        <!-- BEGIN PAGE BAR -->
+        <div class="page-bar">
+          <ul class="page-breadcrumb">
+            <li>
+              <span>Home</span>
+            </li>
+          </ul>
+        </div>
+        <!-- END PAGE BAR -->
+        <!-- BEGIN PAGE TITLE-->
+        <!-- <h1 class="page-title"> Homepage</h1> -->
+        <!-- END PAGE TITLE-->
+        <!-- END PAGE HEADER-->
 
-																	<div class="cbp-item <?php echo $kw; ?>">
-																	<!-- REMOVE cbp-singlePageInline to go to new page -->
-                                    <a href="<?php echo $type; ?>/<?php echo $t['_id']; ?>/assets/home/index.html" class="cbp-caption cbp-singlePageInline" data-title="<?php echo $t['title']; ?>" rel="nofollow">
-                                        <div class="cbp-caption-defaultWrap">
-                                            <img src="<?php echo $type; ?>/<?php echo $t['_id']; ?>/assets/home/logo.png" alt="">
-                                        </div>
-                                        <div class="cbp-caption-activeWrap">
-                                            <div class="cbp-l-caption-alignLeft">
-                                                <div class="cbp-l-caption-body">
-																								<div class="cbp-l-caption-title"><?php echo $t['title']; ?></div>
-                                                    <div class="cbp-l-caption-desc"><?php echo $t['short_description']; ?></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </a>
-																	</div>
+        <p>
+        </p>
+        <div class="portfolio-content portfolio-3">
 
-																<?php } ?>
+          <input type="hidden" id="base-url" value="<?php echo $GLOBALS['BASEURL']; ?>" />
 
-                            </div>
+          <?php
 
+          $kw = array();
+          foreach ($toolList as $t) {
+            foreach ($t['keywords'] as $tk) {
+              if ($tk == "next gen seq") $tk = "next_gen_seq";
+              $kw[] = $tk;
+            }
+          }
+
+          $kw = array_unique($kw);
+          sort($kw);
+
+          ?>
+
+          <div class="clearfix">
+            <div id="js-filters-lightbox-gallery2" class="cbp-l-filters-button cbp-l-filters-left">
+              <div data-filter="*" class="cbp-filter-item-active cbp-filter-item btn blue btn-outline uppercase">All</div>
+
+              <?php foreach ($kw as $k) { ?>
+                <div data-filter=".<?php echo $k; ?>" class="cbp-filter-item btn blue btn-outline uppercase"><?php echo str_replace("_", " ", $k);
+                                                                                                              $k; ?></div>
+              <?php } ?>
+
+            </div>
+          </div>
+          <div id="js-grid-lightbox-gallery" class="cbp">
+
+            <?php
+
+            foreach ($toolList as $t) {
+
+              $kw = implode(" ", $t['keywords']);
+
+              if (strpos($kw, 'visualization') === false) $type = 'tools';
+              else $type = 'visualizers';
+
+              $kw = str_replace("next gen seq", "next_gen_seq", $kw);
+
+
+              ?>
+
+              <div class="cbp-item <?php echo $kw; ?>">
+                <!-- REMOVE cbp-singlePageInline to go to new page -->
+                <a href="<?php echo $type; ?>/<?php echo $t['_id']; ?>/assets/home/index.html" class="cbp-caption cbp-singlePageInline" data-title="<?php echo $t['title']; ?>" rel="nofollow">
+                  <div class="cbp-caption-defaultWrap">
+                    <img src="<?php echo $type; ?>/<?php echo $t['_id']; ?>/assets/home/logo.png" alt="">
+                  </div>
+                  <div class="cbp-caption-activeWrap">
+                    <div class="cbp-l-caption-alignLeft">
+                      <div class="cbp-l-caption-body">
+                        <div class="cbp-l-caption-title"><?php echo $t['title']; ?></div>
+                        <div class="cbp-l-caption-desc"><?php echo $t['short_description']; ?></div>
+                      </div>
                     </div>
-                    <!-- END CONTENT BODY -->
-                </div>
-                <!-- END CONTENT -->
+                  </div>
+                </a>
+              </div>
 
-<?php 
+            <?php } ?>
 
-require "../htmlib/footer.inc.php"; 
-require "../htmlib/js.inc.php";
+          </div>
 
-?>
+        </div>
+        <!-- END CONTENT BODY -->
+      </div>
+      <!-- END CONTENT -->
+
+      <?php
+
+      require "../htmlib/footer.inc.php";
+      require "../htmlib/js.inc.php";
+
+      ?>

@@ -143,7 +143,6 @@ function createUserFromToken($login,$token,$userinfo=array(),$anonID=false){
         $_SESSION['User']['dataDir'] = $dataDirId;
     }else{
         // change ownership for re-used  workspace
-        print "get files from datadir ".$aux['dataDir']."<br/>\n";
         $workspace_files = getGSFileIdsFromDir($aux['dataDir'],1);
         foreach ($workspace_files as $fn){
         }
@@ -297,14 +296,15 @@ function delUser($id, $asRoot=1, $force=false){
             if (!$force){return 0;}
         }
     }else{
-        $_SESSION['errorData']['Error'][]="Cannot delete user. It has no data registered, at least homeDir '$id/' is not found in DB";
-        if (!$force){return 0;}
+        if (!$force){
+	        $_SESSION['errorData']['Error'][]="Cannot delete user. It has no data registered, at least homeDir '$id/' is not found in DB";
+		return 0;
+	}
     }
 
     $rfn =  $GLOBALS['dataDir']."/".$homePath;
     if (is_dir($rfn)){
-        print "KK - rm -r '$rfn' 2>&1\n";
-	    exec ("rm -r \"$rfn\" 2>&1",$output);
+	exec ("rm -r \"$rfn\" 2>&1",$output);
     }
 
     /*
@@ -313,8 +313,8 @@ function delUser($id, $asRoot=1, $force=false){
     $r = delUser_ldap($user['_id']);
      */
 
-	//delete user from mongo
-	$GLOBALS['usersCol']->remove(array('id'=> $id));
+    //delete user from mongo
+    $GLOBALS['usersCol']->remove(array('id'=> $id));
 
     return 1;
 }

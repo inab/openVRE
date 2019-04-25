@@ -6,7 +6,7 @@ redirectOutside();
 
 if(! $_REQUEST['uploadType']){
 	$_SESSION['errorData']['getData'][]="Please specify a source data";
-	redirect("/workspace/");
+	redirect($GLOBALS['BASEURL']."/workspace/");
 }
 
 switch ($_REQUEST['uploadType']){

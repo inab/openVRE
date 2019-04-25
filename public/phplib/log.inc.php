@@ -163,7 +163,6 @@ function log_addInfo($pid,$msg="",$test=FALSE){
 function aggregateJobLogs($filters=array()){
 
     $jobs = array();
-
     // adding log_type to user filters
     $filters["log_type"] = "Submission";
 
@@ -193,10 +192,10 @@ function aggregateJobLogs($filters=array()){
 
     // do aggregate
     if ($GLOBALS['logExecutionsCol']){
-	$result = $GLOBALS['logExecutionsCol']->aggregate($aggregate,$options);
-	$result = $result['cursor']['firstBatch']; // default batchsize used. Version do not allow to set it up
+	$result = $GLOBALS['logExecutionsCol']->aggregateCursor($aggregate,$options);
+	//$result = $GLOBALS['logExecutionsCol']->aggregate($aggregate,$options);
+	//$result = $result['cursor']['firstBatch']; // default batchsize used. Version do not allow to set it up
     }
-
     // format aggregate result
     if($result){
       foreach ($result as $j){
@@ -235,7 +234,6 @@ function aggregateJobLogs($filters=array()){
         if (!isset($jobs[$pid]["success"])) {$jobs[$pid]["success"] = "";}
       }
     }
-
     return $jobs;
 }
 
