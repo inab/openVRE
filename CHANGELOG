@@ -91,3 +91,15 @@
 
 * CytoScape (Centre de Recherches en Cancérologie de Toulouse)
 
+### neat (2010-03-23)
+
+##### Code rearrangement
+* Current tree directory structure created
+* Template creation for tools, configuration files and PHP pages.
+* Easier installation with better documentation, more configurable parameters, database skeleton, sample tools and datasets, etc.
+* Neat composer project for better managing 3th party dependencies
+
+* Cleanest building of tool's help pages
+* No direct link to user's files/
+
+
