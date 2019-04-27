@@ -294,7 +294,6 @@ class Tooljob {
     	
     		$projDirMeta=array(
     			'description'     => $this->description,
-	    	        //'inPaths'       => array_map(create_function('$o', 'return $o->path;'), $this->input_files),
     		        'input_files'     => $input_ids,
                 	'tool'            => $this->toolId,
     			'submission_file' => $this->submission_file,
@@ -686,16 +685,15 @@ class Tooljob {
         $fileMuG = $this->fromVREfile_toMUGfile($file);
 
         // adapt metadata to App requirements
-        if (isset($fileMuG['source_id'])){
+        if (isset($fileMuG['sources'])){
             $source_list=array();
-            foreach($fileMuG['source_id'] as $source_id){
-                if ($source_id){
-                    $source_path = getAttr_fromGSFileId($source_id,"path");
+            foreach($fileMuG['sources'] as $sourceid){
+                if ($sourceid){
+                    $source_path = getAttr_fromGSFileId($sourceid,"path");
                     if($source_path){array_push($source_list,$this->root_dir_virtual."/".$source_path);}
                 }
             }
             $fileMuG['sources'] = $source_list;
-	    unset($fileMuG['source_id']);
         }
         if ($fileMuG['file_path']){
             $fileMuG['file_path'] = $this->root_dir_virtual."/".$fileMuG['file_path'];
@@ -714,16 +712,15 @@ class Tooljob {
         //$fileMuG = $this->fromVREfile_toMUGfile($file);
 
         // adapt metadata to App requirements
-        if (isset($fileMuG['source_id'])){
+        if (isset($fileMuG['sources'])){
             $source_list=array();
-            foreach($fileMuG['source_id'] as $source_id){
-                if ($source_id){
-                    $source_path = getAttr_fromGSFileId($source_id,"path");
+            foreach($fileMuG['sources'] as $sourceid){
+                if ($sourceid){
+                    $source_path = getAttr_fromGSFileId($sourceid,"path");
                     if($source_path){array_push($source_list,$this->public_dir_virtual."/".$source_path);}
                 }
             }
             $fileMuG['sources'] = $source_list;
-	        unset($fileMuG['source_id']);
         }
         if ($fileMuG['file_path']){
             $fileMuG['file_path'] = $this->pub_dir_virtual."/".$fileMuG['file_path'];
@@ -1187,15 +1184,15 @@ class Tooljob {
             }
         }
 
-		// input_files -> source_id (old inPaths)
+		// input_files -> sources
         if (isset($file['input_files'])){
-			if (!is_array($file['input_files'])){
-				$mugfile['input_files']=array($file['input_files']);
-            }else{
-                $mugfile['source_id']=$file['input_files'];
-			}
+		if (!is_array($file['input_files'])){
+			$mugfile['sources']=array($file['input_files']);
+            	}else{
+                	$mugfile['sources']=$file['input_files'];
+		}
         }else{
-            $mugfile['source_id'] = array();
+            $mugfile['sources'] = array();
         }
 
 		// owner -> user_id
@@ -1379,8 +1376,7 @@ class Tooljob {
                         '_id'       => $fn,
                         'file_path' => $input_value,
                         'meta_data' => array(),
-                        'sources'   => array(),
-                        'taxon_id'  => 0
+                        'sources'   => array(0)
                     );
                 if (preg_match('/refGenomes\/(.[^\/]+)\//',$input_value,$m)){
                     $refGenome = $m[1];

@@ -434,10 +434,10 @@ class RegisterTool {
         $fileMuG = $this->fromVREfile_toMUGfile($file);
 
         // adapt metadata to App requirements
-        if (isset($fileMuG['source_id'])){
-	        $fileMuG['sources'] = $fileMuG['source_id'];
-	        unset($fileMuG['source_id']);
-        }
+//        if (isset($fileMuG['input_files'])){
+//	        $fileMuG['sources'] = $fileMuG['input_files'];
+//	        unset($fileMuG['input_files']);
+//        }
 
         $fileMuGs[$fileMuG['_id']] = $fileMuG;
     }
@@ -449,10 +449,10 @@ class RegisterTool {
         $fileMuG = $this->fromVREfile_toMUGfile($file);
 
         // adapt metadata to App requirements
-        if (isset($fileMuG['source_id'])){
-	        $fileMuG['sources'] = $fileMuG['source_id'];
-	        unset($fileMuG['source_id']);
-        }
+//      if (isset($fileMuG['input_files'])){
+//	        $fileMuG['sources'] = $fileMuG['input_files'];
+//	        unset($fileMuG['input_files']);
+//      }
         if ($fileMuG['file_path']){
             $fileMuG['file_path'] = $this->pub_dir_virtual."/".$fileMuG['file_path'];
         }
@@ -729,15 +729,15 @@ class RegisterTool {
             }
         }
 
-		// input_files -> source_id (old inPaths)
+		// input_files -> sources
         if (isset($file['input_files'])){
-			if (!is_array($file['input_files'])){
-				$mugfile['input_files']=array($file['input_files']);
+	    if (!is_array($file['input_files'])){
+		$mugfile['sources']=array($file['input_files']);
             }else{
-                $mugfile['source_id']=$file['input_files'];
-			}
+                $mugfile['sources']=$file['input_files'];
+	    }
         }else{
-            $mugfile['source_id'] = array();
+            $mugfile['sources'] = array();
         }
 
 		// owner -> user_id

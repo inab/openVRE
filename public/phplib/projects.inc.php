@@ -312,7 +312,7 @@ function save_fromSampleDataMetadata($meta_folder,$dataDir,$sampleData,$type,$ve
 	}
 	// adapt sample data metadata
     $meta_folder['file_path'] = "$dataDir/".$meta_folder['file_path'];
-    $meta_folder['user_id']    = dirname($dataDir);
+    $meta_folder['user_id']   =  dirname($dataDir);
     $meta_folder['meta_data']['validated'] = true;
     if (isset($meta_folder['meta_data']['submission_file'])){
 	$meta_folder['meta_data']['submission_file']  = "$dataDirP/".$meta_folder['meta_data']['submission_file'];
@@ -328,14 +328,14 @@ function save_fromSampleDataMetadata($meta_folder,$dataDir,$sampleData,$type,$ve
 	}
 	$meta_folder['meta_data']['associated_files']=$t;
     }
-    if (isset($meta_folder['source_id'])){
+    if (isset($meta_folder['sources'])){
 	$t = array();
-	foreach($meta_folder['source_id'] as $source){
+	foreach($meta_folder['sources'] as $source){
 	    $sourcePath = "$dataDir/$source";
 	    $sourceId   = getGSFileId_fromPath($sourcePath,1);
 	    array_push($t,$sourceId);
        }
-       $meta_folder['source_id'] = $t;
+       $meta_folder['sources'] = $t;
     }
 
     // validate sample data metadata
@@ -980,43 +980,25 @@ function formatData($data) {
 			}
 
 		}
-		//inPaths and 
-		if (isset($data['inPaths'])){
-			$ins =$data['inPaths'];
-			$data['inPaths']="<tr><td>Input files:</td><td>";
-			if (count($ins)){
-				foreach ($ins as $in){
-				    if (is_array($in) && isset($in['path'])){
-					$in = $in['path'];
-				    }
-				    $data['inPaths'].= "<div>";
-				    $inFolders=split("/",dirname($in));
-				    for ($i=count($inFolders)-1;$i>=1;$i--){
-					$data['inPaths'].= "<span class=\"text-info\" style=\"font-weight:bold;\">".$inFolders[$i]."/</span>";
-				    }
-				    $data['inPaths'].= basename($in)."</div>";
-				}
-			}
-			$data['inPaths'].="</td></tr>";
-		}
+		//input_files
 		if (isset($data['input_files'])){
 			$ins =$data['input_files'];
-			$data['inPaths']="<tr><td>Input files:</td><td>";
+			$data['input_files']="<tr><td>Input files:</td><td>";
 			if (count($ins)){
 				foreach ($ins as $in){
 				    $f = getGSFile_fromId($in);	
-				    $data['inPaths'].= "<div>";
+				    $data['input_files'].= "<div>";
 				    $inFolders=split("/",dirname($f['path']));
 				    for ($i=count($inFolders)-1;$i>=1;$i--){
-					$data['inPaths'].= "<span class=\"text-info\" style=\"font-weight:bold;\">".$inFolders[$i]."/</span>";
+					$data['input_files'].= "<span class=\"text-info\" style=\"font-weight:bold;\">".$inFolders[$i]."/</span>";
 				    }
-				    $data['inPaths'].= basename($f['path'])."</div>";
+				    $data['input_files'].= basename($f['path'])."</div>";
 				}
 			}
-			$data['inPaths'].="</td></tr>";
+			$data['input_files'].="</td></tr>";
 		}
 		//rerunLink
-		if (isset($data['inPaths']) && isset($data['tool'])){
+		if (isset($data['input_files']) && isset($data['tool'])){
 			$tool = $GLOBALS['toolsCol']->findOne(array('_id' => $data['tool']));
 			if (!empty($tool)){
 			    $formPath  = "tools/".$data['tool']."/input.php";
@@ -1358,21 +1340,21 @@ function processPendingFiles($sessionId,$files=array()){
 		    	    $out_data['meta_data']['associated_files']= $assocs;
 			}
 
-			//sources : convert to fileIds and rename to source_id
+			//sources : convert to fileIds and rename to sources
 			if (isset($out_data['sources'])){
 				$sources=array();
 		    		foreach ($out_data['sources'] as $source_path){
 					$source_rfn = resolvePath_toLocalAbsolutePath($source_path, $job);
 					$source_fn = fromAbsPath_toPath($source_rfn);
-					$source_Id = getGSFileId_fromPath($source_fn);
+					$sourceid = getGSFileId_fromPath($source_fn);
 	
-					array_push($sources,$source_Id);
+					array_push($sources,$sourceid);
 		
 					if ($debug){
-					    print "SOURCES ORI = $source_path RFN = $source_rfn  FN = $source_fn ID = $source_Id <br/>";
+					    print "SOURCES ORI = $source_path RFN = $source_rfn  FN = $source_fn ID = $sourceid <br/>";
 					}
     			    	}	
-			    	$out_data['source_id'] = $sources;
+			    	$out_data['input_files'] = $sources;
 				unset($out_data['sources']);
     		    	}
 		    
@@ -1720,11 +1702,10 @@ function  build_outputs_list($tool,$stageout_job,$stageout_file){
 		foreach ($stageout_meta[$out_name] as $stg_data){
 
 			//create  merged file data
-			if (isset($out_data['file']['source_id']))
-				unset($out_data['file']['source_id']);
+			if (isset($out_data['file']['input_files']))
+				unset($out_data['file']['input_files']);
 			if (isset($stg_data['name']))
 				unset($stg_data['name']);
-			//$file_merged  = array_merge_recursive($out_data['file'],$stg_data);
 			$file_merged  = array_merge_recursive_distinct($out_data['file'],$stg_data);
 
 			array_push($outs_meta[$out_name],$file_merged);

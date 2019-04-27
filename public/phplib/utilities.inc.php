@@ -288,19 +288,18 @@ function saveMetadataUpload($fn,$request,$validationState){
 function prepMetadataUpload($request,$validationState=0){
         $fnPath    = getAttr_fromGSFileId($fn,'path');
 
-        $format    = (isset($request['format'])?$request['format']:"UNK");
-        $data_type = (isset($request['data_type'])?$request['data_type']:NULL);
-        $source_id = (isset($request['source_id'])?$request['source_id']:Array(0));
-        $validated = $validationState;
-        //$tracktype = format2trackType($format,$fnPath);
-        $visible   = (isset($insertMeta['visible'])?$insertMeta['visible']:true);
+        $format      = (isset($request['format'])?$request['format']:"UNK");
+        $data_type   = (isset($request['data_type'])?$request['data_type']:NULL);
+        $input_files = (isset($request['input_files'])?$request['input_files']:Array(0));
+        $validated   = $validationState;
+        $visible     = (isset($insertMeta['visible'])?$insertMeta['visible']:true);
 
         // compulsory metadata
         $insertMeta=array(
             'format'     => $format,
             'validated'  => $validated,
 	    'data_type'  => $data_type,
-            //'trackType'  => $tracktype,
+            'input_files'=> $input_files,
             'visible'    => $visible,
         );
         // GFF, BAM, BW,.. metadata
@@ -314,8 +313,7 @@ function prepMetadataUpload($request,$validationState=0){
         //  results metadata
         if (isset($request['submission_file'])){$insertMeta['submission_file']= $request['shFile'];}
         if (isset($request['log_file']))       {$insertMeta['log_file'] = $request['logFile'];}
-        if (isset($request['inPaths']))        {$insertMeta['inPaths']  = $request['inPaths'];}
-        if (isset($request['outPaths']))       {$insertMeta['outPaths'] = $request['outPaths'];}
+
 
         return  $insertMeta;
 }
@@ -478,14 +476,6 @@ function getVREfile_fromFile($mugfile){
 		$metadata['refGenome'] = $mugfile['assembly'];
 		unset($mugfile['assembly']);
 	}
-	if (isset($mugfile['source_id'])){
-		$metadata['input_files']= $mugfile['source_id'];
-		unset($mugfile['source_id']);
-	}
-	if (isset($mugfile['sources'])){
-		$metadata['input_files']= $mugfile['sources'];
-		unset($mugfile['sources']);
-	}
 	foreach ($mugfile as $k=>$v){
 		$metadata[$k]=$v;
 	}
@@ -506,12 +496,6 @@ function prepMetadataResult($meta,$fnPath=0,$lastjob=Array() ){
         if (!isset($meta['format']) && $fnPath)
                 $meta['format']= strtoupper($extension);
         
-//        if (!isset($meta['tracktype']) && $fnPath )
-//                $meta['tracktype']=format2trackType($meta['format'],basename($fnPath));
-        
-        if (!isset($meta['inPaths']) && isset($lastjob['inPaths']) )
-                $meta['inPaths']=$lastjob['inPaths'];
-
         if (!isset($meta['input_files']) && isset($lastjob['input_files']) ){
             $input_ids = array();
             array_walk_recursive($lastjob['input_files'], function($v, $k) use (&$input_ids){ $input_ids[] = $v; });
@@ -616,11 +600,7 @@ function validateMugFile($file,$is_output=false){
 			$_SESSION['errorData']['Error'][]= "Invalid File. Attributes 'file_path','file_type' and 'data_type' are required.";
 			return array($val_score, $file);
 		}
-    }
-	//if (!isset($file['user_id'])){
-	//	$_SESSION['errorData']['Error'][]= "Invalid File. Attribute 'user_id' is required.";
-	//	return array($val_score, $file);
-    //}
+	}
 
 	if (!isset($file['meta_data']))
 		$file['meta_data']=Array();
@@ -628,16 +608,16 @@ function validateMugFile($file,$is_output=false){
 	if (!isset($file['compressed']))
 		$file['compressed']=false;
 	
-	if (!isset($file['source_id'])){
+	if (!isset($file['sources'])){
 		if (isset($file['meta_data']['tool'])){
-            $_SESSION['errorData']['Warning'][]="Invalid File. Attribute 'source_id' required if metadata 'tool' is set";
-            $val_score= 1;
+	         	$_SESSION['errorData']['Warning'][]="Invalid File. Attribute 'sources' required if metadata 'tool' is set";
+			$val_score= 1;
 			return array($val_score, $file);
 		}else{
-			$file['source_id']=Array();
+			$file['sources']=Array(0);
 		}
 	}
-    if ($file['type']!="dir" && !isset($file['taxon_id'])){
+	if ($file['type']!="dir" && !isset($file['taxon_id'])){
         //TODO implement checking according $GLOBALS['dataTypesCol']->find(array("taxon_id"=>false),array("file_types"=>true));
 		if (!in_array($file['file_type'],Array("TXT","PDF","TAR","UNK","PNG"))){
 			$_SESSION['errorData']['Warning'][]="Invalid File. Attribute 'taxon_id' required if 'file_type' is ".$file['file_type'];
@@ -827,7 +807,7 @@ function put($data,$url,$headers=array(),$auth_basic=array()){
 }
 
 function is_url($url){
-    $regex = "((https?|ftp)\:\/\/)?"; 
+    $regex = "((https?|ftps?)\:\/\/)?"; 
     $regex .= "([a-z0-9+!*(),;?&=\$_.-]+(\:[a-z0-9+!*(),;?&=\$_.-]+)?@)?"; // User and Pass 
     $regex .= "([a-z0-9-.]*)\.([a-z]{2,3})"; // Host or IP 
     $regex .= "(\:[0-9]{2,5})?"; // Port 
@@ -838,6 +818,15 @@ function is_url($url){
         return true;
     else
         return false;
+}
+
+function is_uri($uri){
+    $uri_re =  "([A-Za-z][A-Za-z0-9+\\-.]*):(?:(//)(?:((?:[A-Za-z0-9\\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*)@)?((?:\\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\\.[A-Za-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*))(?::([0-9]*))?((?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)|/((?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?)|((?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)|)(?:\\?((?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*))?(?:\\#((?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*))?";
+
+    if (preg_match("/^$uri_re$/i",$uri))
+	return true;
+    else
+	return false;
 }
 
 function fromTaxonID2TaxonName($taxon_id){
