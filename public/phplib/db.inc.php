@@ -39,7 +39,6 @@ $GLOBALS['fileTypesCol']    = $GLOBALS['db']->file_types;
 $GLOBALS['dataTypesCol']    = $GLOBALS['db']->data_types;
 $GLOBALS['helpsCol']        = $GLOBALS['db']->helps;
 $GLOBALS['sampleDataCol']   = $GLOBALS['db']->sampleData;
-$GLOBALS['projectsCol']     = $GLOBALS['db']->projects;
 $GLOBALS['logExecutionsCol']= $GLOBALS['db']->log_executions;
 
 ?>
