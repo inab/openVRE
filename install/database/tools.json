@@ -160,3 +160,87 @@
         }
     ]
 }
+{ 
+    "_id" : "wget", 
+    "title" : "Remote file retrieving from URLs", 
+    "name" : "Get remote file", 
+    "short_description" : "Implementation of a the remote file retriever WGET.", 
+    "url" : "https://www.gnu.org/software/wget/", 
+    "owner" : {
+        "institution" : "Barcelona Supercomputing Center", 
+        "author" : "Laia Codo", 
+        "contact" : "laia.codo@bsc.es", 
+        "url" : "", 
+        "user" : "laia.codo@bsc.es"
+    }, 
+    "external" : false, 
+    "keywords" : [
+
+    ], 
+    "infrastructure" : {
+        "memory" : "", 
+        "cpus" : 1, 
+        "executable" : "/ABSOLUTE/PATH/TO/VRE/DATA/apps/internalTools/wget/wget.sh", 
+        "clouds" : {
+            "mug-bsc" : {
+                "launcher" : "SGE", 
+                "queue" : "local.q"
+            }
+        }
+    }, 
+    "input_files" : [
+
+    ], 
+    "arguments" : [
+        {
+            "name" : "url", 
+            "description" : "URL of the file to be downloaded", 
+            "help" : "URL", 
+            "type" : "string", 
+            "required" : true, 
+            "allow_multiple" : true
+        }, 
+        {
+            "name" : "output", 
+            "description" : "Name of the output file", 
+            "help" : "Name of the output file", 
+            "type" : "string", 
+            "allow_multiple" : false, 
+            "default" : ""
+        }, 
+        {
+            "name" : "working_dir", 
+            "description" : "Temporal dir", 
+            "help" : "", 
+            "type" : "string", 
+            "allow_multiple" : false, 
+            "default" : ""
+        }, 
+        {
+            "name" : "untar", 
+            "description" : "Untar output file if ", 
+            "help" : "", 
+            "type" : "string", 
+            "allow_multiple" : false, 
+            "default" : ""
+        }
+    ], 
+    "control_file" : ".summary.json", 
+    "output_files" : [
+        {
+            "name" : "file", 
+            "required" : true, 
+            "allow_multiple" : false, 
+            "file_type" : "", 
+            "data_type" : "", 
+            "file" : {
+                "meta_data" : {
+                    "validated" : false, 
+                    "description" : "Data imported from URL", 
+                    "tool" : "wget", 
+                    "visible" : true
+                }
+            }
+        }
+    ]
+}
