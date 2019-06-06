@@ -1,56 +1,58 @@
 
-# Table of contents
+# Virtual Research Environment (VRE) administration
+ VRE is a Virtual Research Environment including a web application and a cloud-based backend aimed to provide end-users an integrative platform for exploring rellevant data resources and applying to them a collection of analyses and visualizations. It is written in PHP, HTML and Javascript
+ This document describes how to install ans configure VRE platform in your system, as well as how to process on several basic operation for customizing VRE to your specific project needs.
+ 
  - [Installation](#installation)
  - [Install a Tool](#install_my_first_tool)
- - [Create New Page](#create_new_page)
- - [Create New Dataset](#create_new_dataset)
-
-
+        - [Install wget](#install_wget_tool)
+ - [Create a New Page](#create_new_page)
+ - [Create a New Dataset](#create_new_dataset)
 
 <a name="installation"></a>
 ----
 # Installation
 ----
 
-## Get VRE code
+### Get VRE code
 
 Clone VRE code in your installation directory, for instance `/home/user`
 
 ```
 git clone https://github.com/inab/openebench-vre.git
 ```
-## Configure web access
+### Configure web access
 
-The `public/` directory is to be the web root directory
+The `public/` directory is to be the web root directory. Set your web server accordingly. For instance:
 
 ```
 DocumentRoot /home/user/VRE/public/
 
 <Directory "/home/user/VRE/public">
-	Options Indexes FollowSymLinks
-	AllowOverride All 
-	Require all granted
+        Options Indexes FollowSymLinks
+        AllowOverride All 
+        Require all granted
 </Directory>
 ```
 
-## Prepare directory structure
+### Prepare directory structure
 
-Define where VRE user's data and other data is to be stored, for instance, `/data` . Copy the directory structure there, and give apache user permissions to it:
+Define where VRE user's data and other data is to be stored, for instance, in `/data` . Copy the directory structure there, and give apache/nginx user permissions to it:
 
 ```
 cp install/data/* /data/
 chown -R  www-data:www-data /data/
 ```
 
-For some visualizers, direct access to it is required
+For some visualizers, direct access to this data is required. So, if you latter plan to install one of these visualizers (e.g. NGL), add theses soft links:
 
 ```
-ln -s /data/refGenomes/ refGenomes 
 ln -s /data/userData/ files  
-ln -s /data/tool_schemas/son* json*
+ln -s /data/public/refGenomes/ refGenomes  # obsolete
+ln -s /data/tool_schemas/son* json* # obsolete
 ```
 
-## Create and populate mongo DB
+### Create and populate mongo DB
 
 Create a new database to Mongo, here `dbname`, and populate it with the structural collections:
 
@@ -59,39 +61,38 @@ use dbname
 for f in install/database/*.json; do mongoimport --db dbname -u myAdmin -p XXXX --authenticationDatabase admin $f; done
 ```
 
-## Configure application settings
+### Configure application settings
 
-Edit `config/globals.inc.php` for setting the application. In there, define the data path, the URL, the database, etc.
+Most of the VRE settings are parameterized at  `config/globals.inc.php`. Copy the template and read through it to configure arguments like the data path, the URL, the database, etc.
 
 ```
 cp config/globals.inc.php.sample config/globals.inc.php
 ```
 
 
-##### Configure SMTP mail account
-Copy the template and set the credentials in the *conf file
+##### *Configure SMTP mail account*
+Copy the conf template, set the credentials in there and parameterize `config/globals.inc.php` accordingly
 
 ```
 cp config/mail.conf.sample config/mail.conf 
 ```
 
-##### Configure Mongo DB access
+##### *Configure Mongo DB access*
 
-Copy the template and set the credentials in the *conf file
+Copy the conf template, set the credentials in there and parameterize `config/globals.inc.php` accordingly. VRE will use the PHP MongoDB driver to connect to the database.
 
 ```
 cp config/mongo.conf.sample config/mongo.conf 
 ```
 
-##### Configure Oauth2 client
-Copy the template and set the credentials in the *conf file
+##### *Configure Oauth2 client*
+Copy the conf template, set the credentials in there and parameterize `config/globals.inc.php` accordingly, including the openID endpoints. VRE uses a generic OpenID Connect Resource Provider that connects to a external identity manager server (https://www.keycloak.org/)
 
 ```
 cp config/oauth2.conf.sample config/oauth2.conf 
 cp config/oauth2_admin.conf.sample config/oauth2_admin.conf 
 ```
-
-##### Add Logos and FavIcon
+##### *Add Logos and FavIcon*
 
 Replace these files with your project logos
 
@@ -99,14 +100,14 @@ Replace these files with your project logos
 - `public/assets/layouts/layout/img/logo.png`  :  small and negative
 - `public/assets/layouts/layout/img/icon.png` :  favico
 
-##### Custom CSS
+##### *Custom CSS*
 
 Edit the custom CSS file for customizing the web look
 
 - `public/assets/layouts/layout/css/custom.min.css`
 
 
-##### Add static help pages content
+##### *Add static help pages content*
 
 Edit the following pages, mostly HTML, for the Help section
 - public/help/general.php : Section 'Help' > 'General Information'
@@ -119,7 +120,7 @@ Edit the following pages, mostly HTML, for the Help section
 - public/help/refs.php : Section 'Help' > 'References'
 - public/help/ackn.php : Section 'Help' > 'Acknowledgments'
 
-##### Add terms of use
+##### *Add terms of use*
 
 Edit the following page with your project's terms of use. They are displayed at the VRE footer page.
 
@@ -127,7 +128,7 @@ Edit the following page with your project's terms of use. They are displayed at 
 vim public/applib/getTermsOfUse.php
 ```
 
-##### Prepare default data of user's workspace
+##### *Prepare default data of user's workspace*
 
 Edit the content for the README file that appears by default on each workspace in `upload/README`.
 
@@ -135,7 +136,7 @@ Edit the content for the README file that appears by default on each workspace i
 vim /data/sampleData/basic/uploads/README.md`
 ```
 
-##### Add First Admin user
+##### *Add First Admin user*
 
 Log into VRE and register with the user you want to convert into the admin user. Then, grant it admin privileges by accessing the Mongo database and update `Type:0` 
 
@@ -147,7 +148,7 @@ db.users.update(
 ```
 
 
-## Configure SGE
+### Configure SGE
 
 Set the current system as a master SGE host able to submit jobs. Configure also a local queue, if you plan to install tools locally (i.e. WGET tool, BAMvalidation).
 
@@ -155,35 +156,36 @@ Set the current system as a master SGE host able to submit jobs. Configure also 
 sudo qconf -as mail.domain.es
 ```
 
-## Maintainance
+### Maintainance tasks
 
 Each time a new user access VRE, an anonymous account is created until it registers. Set a cron job for regularly cleanning old temporarily user, from both, database and data directory.
 
 ```
 php scripts/maintainance/cleanUsersData.php
 ```
+
 <a name="install_my_first_tool"></a>
 ----
 # Install a Tool
 ----
 
 
-## Add tool into the database
+### Register the tool into the database
 
 Register the tool definition into the `tools collection` database
 
 1. Prepare JSON schema for your project's tools extending the following definition:
-	- `install/data/tool_schemas/tool_specification/tool_schema.json`
+        - `install/data/tool_schemas/tool_specification/tool_schema.json`
 
 2. Tool developer is to prepare the tool definition and submit it to admin. Validate the `newTool.json` against the previous schema. Following, an example:
-	- `install/data/tool_schemas/tool_specification/examples/example.json`
+        - `install/data/tool_schemas/tool_specification/examples/example.json`
 
 3. Insert the tool document into the tools collection as a new entry
-	```
-	mongoimport --jsonArray --db dbname --collection tools -u myAdmin -p XXXX --authenticationDatabase admin --file newTool.json
-	```
+        ```
+        mongoimport --jsonArray --db dbname --collection tools -u myAdmin -p XXXX --authenticationDatabase admin --file newTool.json
+        ```
 
-## Prepare tool form
+### Prepare tool form
 
 Each tool in VRE requires a new folder in `tools/`. Create it for the 'newTool'. You can take the tool_skeleton as a template
 
@@ -253,7 +255,7 @@ For registering the complete list of help sections (Help > Tools > Tool Skeleton
 }
 ```
 
-## Prepare tool custom viewer 
+### Prepare tool custom viewer 
 
 Apart from generating output files that are to be displayed in the workspace, a tool may also have a custom displayer, a simple HTML template that is going to source a tool output TAR for showing the statistics, logs, etc, associated to each run. 
 
@@ -273,7 +275,7 @@ Apart from generating output files that are to be displayed in the workspace, a 
 
 <a name="create_new_page"></a>
 ----
-# Create a new page
+## Create a new page
 ----
 
 ## Create content page
@@ -290,6 +292,37 @@ Add headers for including the required CSS and JS scripts. Three files need to b
 2. public/htmlib/header.inc.php
 3. public/htmlib/js.inc.php
 
+
+
+<a name="install_wget_tool"></a>
+----
+# Install wget
+----
+
+VRE has not only tools generated and imported by tool developers. *Internal tools* are tools that the end user do not select them from the web, but are internally triggered by VRE processes. For instance:
+ - File uploads from URL triggers 'wget' tool
+ - Importing BAM file triggers 'BAMval' tool
+In consequence, the tool executable is distributed together with the VRE code, as well the entry in the tools collection. Following, the instructions on how to configure 'wget' tool 
+
+#### WGET
+At the database, the 'Tools' collection should already have the 'wget' tool entry. Update the JSON document to adapt it to your instalation requirements:
+'excutable' and 'queue':
+
+```
+"executable" : "/ABSOLUTE/PATH/TO/VRE/DATA/apps/internalTools/wget/wget.sh"
+"clouds" : {
+  "mug-bsc" : {
+     "launcher" : "SGE", 
+     "queue" : "local.q"
+}
+
+```
+
+- 'executable' : Point it to your 'apps' folder. Should have been installed in your VRE data directory as part of the data distributed in `install/data/apps`
+- 'mug-bsc' : Name of your cloud as set in `install/globals`
+- 'queue': Name of the queue configured in the host where the executable is found
+
+
 <a name="create_new_dataset"></a>
 ----
 # Create new dataset
@@ -297,7 +330,7 @@ Add headers for including the required CSS and JS scripts. Three files need to b
 VRE dataset appear listed in "Get Data > Import example dataset". On select, VRE loads certain data into user's workspace the data. 
 
 
-## Upload actual data
+### Upload actual data
 
 Add into the sample data directory (`GLOBALS['sampleData']` as defined in config/globals.inc.php) a new folder with the following directory tree:
 - NewDataSet/
@@ -312,7 +345,7 @@ The main directory (here NewDataSet/) can contain *n* folders, and in turn, each
 
 - `install/data/sampleData/basic/` : Basic data preloaded in each new workspace. Currently contains only a simple README file.
 
-## Create metadata
+### Create metadata
 
 For each directory of your dataset, create a `.sample_metadata.json` file. The document sets the metadata for each of the elements (files and folder) contained in such directory. You can take those included in the Basic sample data as examples:
 
@@ -328,7 +361,7 @@ For each directory of your dataset, create a `.sample_metadata.json` file. The d
 
 - `install/sampleData/basic/uploads/.sample_metadata.json` : Metadata for 'README'  file contained  in the 'uploads/' directory
 
-## Register the sample data
+### Register the sample data
 
 Add a new document in the `sampleData` collection defining where the new dataset is to be found
 
@@ -343,5 +376,4 @@ Add a new document in the `sampleData` collection defining where the new dataset
 ```
 
 Where "sample_path" is the relative path of the dataset from GLOBALS['sampleData'].
-
 
