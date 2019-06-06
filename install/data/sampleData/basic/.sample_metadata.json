@@ -2,7 +2,7 @@
     {
         "file_path": "uploads",
         "type":"dir",
-        "source_id": [0],
+        "sources": [0],
         "meta_data": {
             "expiration":-1,
             "description": "Uploaded personal data",
