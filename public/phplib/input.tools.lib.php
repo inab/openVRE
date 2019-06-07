@@ -193,7 +193,7 @@ function InputTool_printSelectFile($input, $rerun, $ff, $multiple, $required) {
 						readonly>
 					<input type="hidden" class="form-field-enabled" name="input_files['.$input['name'].']" value="'.$ff[1].'">
 					<span class="input-group-btn input-tool">
-						<a href="javascript:cleanInput(\'visible_'.$input['name'].'\', \'input_files['.$input['name'].']\', 0);" class="clean-input"><i class="fa fa-times-circle"></i></a>
+						<a href="javascript:cleanInput(\'visible_'.$input['name'].'\', \'input_files['.$input['name'].']\', 1);" class="clean-input"><i class="fa fa-times-circle"></i></a>
 						<button class="btn green" type="button" 
 						onclick="toolModal(\'visible_'.$input['name'].'\', \'input_files['.$input['name'].']\', '.getArrayJS($input['data_type']).', '.getArrayJS($input['file_type']).', false);"><i class="fa fa-check-square-o"></i> Select</button>
 					</span>
@@ -202,34 +202,44 @@ function InputTool_printSelectFile($input, $rerun, $ff, $multiple, $required) {
 
 	} else {
 
-		/*
-		 * TODO!!
-		 * $output = '<div class="form-group">
-			<label class="control-label">MNase-seq data <i class="icon-question tooltips" data-container="body" data-html="true" data-placement="right" data-original-title="<p align='left' style='margin:0'>Input MNase-seq data used to compute nucleosome positioning and the subsequent analyses.</p>"></i></label>
-			<div class="input-group">
-					<span class="input-group-addon" style="vertical-align: top; padding-top: 10px;"><i class="fa fa-file"></i></span>
+		$p = [];
+                $r = 0;
+var_dump($ff);
+                foreach($ff as $fi) {
+                	$p[] = $fi[0];
+                        $r ++;
+                }
+		$textarea_height= ($r > 1 ? $r*34 : 34);
+
+		$labelopt = (!$required) ? " (optional)" : "";
+	
+
+		$output = '<div class="form-group">
+			<label class="control-label">'.$input['description'].$labelopt.' <i class="icon-question tooltips" data-container="body" data-html="true" data-placement="right" data-original-title="<p align=\'left\' style=\'margin:0\'>'.$input['help'].'</p>"></i></label>
+			      <div class="input-group">
+					<span class="input-group-addon"><i class="fa fa-file"></i></span>
 					<textarea 
-						name="visible_MNaseSeq"
-						class="form-control form-field-enabled params_input" 
-						style="height:<?php echo ($r != 0 ? $r*34 : 34); ?>px"
-						placeholder="<?php echo $GLOBALS['placeholder_textarea']; ?>"
-						readonly><?php echo implode("\n", $p); ?></textarea>
-					<div id="hidden_visible_MNaseSeq">
-					<?php foreach($ff as $fi) { ?>
-					<input type="hidden" name="input_files[MNaseSeq][]" value="<?php echo $fi[1]; ?>">
-					<?php } ?>
-					</div>
+						name="visible_'.$input['name'].'"
+						class="form-control form-field-enabled field_required" 
+						style="height:'.$textarea_height.'px"
+						placeholder="'.$GLOBALS['placeholder_input'].'" 
+						readonly>'.implode("\n", $p).'</textarea>
+					<div id="hidden_visible_'.$input['name'].'">';
+		foreach($ff as $fi) { 
+			$output.='	<input type="hidden" class="form-field-enabled" name="input_files['.$input['name'].'][]" value="'.$fi[1].'">';
+		}
+		$output.='		</div>
 					<span class="input-group-btn input-tool">
-							<button class="btn green" type="button" 
-							onclick="toolModal('visible_MNaseSeq', 'input_files[MNaseSeq][]', <?php echo getArrayJS($tool['input_files']['condition1']['data_type']); ?>, true);"><i class="fa fa-check-square-o"></i> Select</button>
+						<a href="javascript:cleanInput(\'visible_'.$input['name'].'\', \'input_files['.$input['name'].'][]\', 0);" class="clean-input"><i class="fa fa-times-circle"></i></a>
+						<button class="btn green" type="button" 
+						onclick="toolModal(\'visible_'.$input['name'].'\', \'input_files['.$input['name'].'][]\','. getArrayJS($input['data_type']).', '.getArrayJS($input['file_type']).', true);"><i class="fa fa-check-square-o"></i> Select</button>
 					</span>
 			</div>
-			</div>';*/
+			</div>';
 
 	}
 
 	echo $output;
-
 }
 
 // print list of files (in select) 
