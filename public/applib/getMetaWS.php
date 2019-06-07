@@ -98,23 +98,30 @@ if ($mt['validated'] == "FALSE"){
 }
 
 
-// Data_type, file_type, taxon_id, assembly, paired, sorted (for files)
+// Data_type, file_type, and OTHER METADATA (for files)
 
 if($_REQUEST["type"] == 1) {
     // show data_type, file_type
     $dt = $GLOBALS['dataTypesCol']->findOne(array('_id' => $mt["data_type"]));
+
     // show taxon_id and assembly
-    if(!isset($mt["taxon_id"])){
-       $taxon = "N/A";
-    }elseif($mt['taxon_id'] == 0){
-        $taxon = $mt['taxon_id'];
+    if(!isset($mt["oeb_dataset_id"])){
+       $datasetId = "N/A";
     }else{
-        $taxon = fromTaxonID2TaxonName($mt['taxon_id'])." (".$mt['taxon_id'].")";
+        $datasetId = $mt['oeb_dataset_id'];
     }
-    if(!isset($mt["refGenome"])){
-        $mt['refGenome'] = "N/A";
-    }elseif($mt['refGenome'] == "0"){
-        $mt['refGenome'] = "Other";
+    if(!isset($mt["oeb_community_ids"])){
+        $community  = "N/A";
+    }else{
+	$communities = getCommunities();
+	if (!is_array($mt['oeb_community_ids'])){$mt['oeb_community_ids'] = array($mt['oeb_community_ids']);}
+	foreach ($mt['oeb_community_ids'] as $comm){
+	    if ( isset($communities[$comm]) ){
+		$community = '<a href="https://openebench.bsc.es/html/scientific/'.$comm.'" target="_blank">'.$communities[$comm]["acronym"].'</a> ';
+	    }else{
+		$community = "$comm";
+	    }
+	}
     }
 
     ?>
@@ -133,12 +140,12 @@ if($_REQUEST["type"] == 1) {
     <table class="table table-striped table-bordered">
         <tbody>
         <tr>
-    	    <th style="width:50%;"><b>Taxon</b></th>
-    	    <th><b>Assembly</b></th>
+    	    <th style="width:50%;"><b>OpEB dataset identifier</b></th>
+    	    <th><b>OpEB community</b></th>
     	</tr>
     	<tr>
-   			<td><?php echo $taxon; ?></td>
-   			<td><?php echo $mt["refGenome"]; ?></td>
+   			<td><?php echo $datasetId; ?></td>
+   			<td><?php echo $community; ?></td>
     	</tr>
     	</tbody>
     </table>
@@ -224,9 +231,9 @@ if(isset($mt["tool"]) ) {
 }
 
 
-// Input Files
+// Input File/s or URL
 
-if(isset($mt['input_files']) ) {
+if(isset($mt['input_files']) || $mt['source_url'] ) {
 ?>
 
 <table class="table table-striped table-bordered">
@@ -236,25 +243,43 @@ if(isset($mt['input_files']) ) {
     </tr>
     <tr>
         <td><?php
-			if (count($mt['input_files'])){ ?>
+	if (count($mt['input_files'])){ ?>
              <ul class="feeds" id="list-files-run-tools">
 																		
-			     <?php
+		<?php
                 foreach ($mt['input_files'] as $input_name => $inps ){
                   if (!is_array($inps)){
                     $inps = array($inps);
                   }
                   foreach ( $inps as $inp ){
-                    if ($inp == "0"){continue;}
-                    $path = getAttr_fromGSFileId($inp, 'path',$asRoot);
-                    print printFilePath_fromPath($path,$asRoot);
+                    if ($inp == "0"){
+			print "Data externally loaded or created";
+		    }else{
+                        $path = getAttr_fromGSFileId($inp, 'path',$asRoot);
+			if ($path){
+                            print printFilePath_fromPath($path,$asRoot);
+			}else{
+			    print "Data provenance lost. Internally annotated as $inp";
+			}
+                    }
                   }
-				}?>
-			</ul>
-		    <?php } ?>
+	       }?>
+	     </ul>
+	<?php } ?>
         </td>
     </tr>
-	</tbody>
+	
+    <?php if(isset($mt['source_url']) ) { ?>
+
+        <tr>
+	    <th><b>Source URL</b></th>
+        </tr>
+        <tr>
+	    <td><a href="<?php echo $mt["source_url"];?>" target="_blank" ><?php echo $mt["source_url"];?></a></td>
+        </tr>
+    <?php } ?>
+
+    </tbody>
 </table>
 <?php
 }
