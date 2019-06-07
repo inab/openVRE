@@ -165,6 +165,7 @@ if (isset($_REQUEST['op'])){
 		//if (!$fileData && !preg_match('/\.log/',$rfn) ){
 	        //    		break;
         	//}
+
 	        if (!is_file($rfn) || !filesize($rfn)){
 	        	$_SESSION['errorData']['error'][]= "'".basename($rfn). "' does not exist anymore or is empty. <a href=\"javascript:deleteMesg('".urlencode($_REQUEST['fn'])."')\">[ Delete ]</a> <a href=\"workspace/workspace.php\">[ OK ]</a>";
         		 break;
@@ -497,7 +498,7 @@ if (isset($_REQUEST['op'])){
             $msg = printErrorData();
 			print('{"error":true, "msg": "'.$msg.'"}');die();
         }else{
-            $_SESSION['errorData']['Info'][]="File/s successfully moved!";
+            $_SESSION['errorData']['Info'][]="File/s successfully moved!!";
             print('{"error":false, "msg": "File/s successfully moved!"}');die();
         }
 
@@ -534,8 +535,9 @@ if (isset($_REQUEST['op'])){
   }
 }
 
-
 header("location:../workspace/");
+//redirect($GLOBALS['BASEURL']."/workspace/");
+
 
 
 //scan disk to upload Mongo 

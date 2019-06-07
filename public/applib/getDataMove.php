@@ -6,7 +6,7 @@ redirectOutside();
 
 if(! $_REQUEST['op']){
 	$_SESSION['errorData']['getData'][]="Please specify an operation";
-	redirect($GLOBALS['BASEURL']."/workspace");
+	redirect($GLOBALS['BASEURL']."/workspace/");
 }
 
 switch ($_REQUEST['op']){
