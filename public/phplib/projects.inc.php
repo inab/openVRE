@@ -475,17 +475,19 @@ function filterFiles_by_dataType($filesAll,$filter_data_types=array()) {
 
 //add datatable tree nodes and hidden cols values
 function addTreeTableNodesToFiles($filesAll){
-	$n=1;
+    $n=1;
     foreach ($filesAll as $r){
 		// Add Tree Nodes
 		if (isset($r['files'])){
+		    if ($filesAll[$r['_id']]['tree_id'])
+			continue;	
+	
 		    $filesAll[$r['_id']]['tree_id']     = $n;
 		    $filesAll[$r['_id']]['size']	= calcGSUsedSpaceDir($r['_id']);
 		    $filesAll[$r['_id']]['size_parent'] = $filesAll[$r['_id']]['size'];
 		    $filesAll[$r['_id']]['mtime_parent']=(isset($r['atime'])? $r['atime']->sec : $r['mtime']);
 		    $i=1;
 		    foreach ($r['files'] as $rr){
-
 			$filesAll[$rr]['tree_id']       = "$n.$i";
 			$filesAll[$rr]['tree_id_parent']= $n;
 			$filesAll[$rr]['size_parent']   = $filesAll[$r['_id']]['size_parent'];
@@ -1354,8 +1356,7 @@ function processPendingFiles($sessionId,$files=array()){
 					    print "SOURCES ORI = $source_path RFN = $source_rfn  FN = $source_fn ID = $sourceid <br/>";
 					}
     			    	}	
-			    	$out_data['input_files'] = $sources;
-				unset($out_data['sources']);
+			    	$out_data['sources'] = $sources;
     		    	}
 		    
 
@@ -1392,7 +1393,7 @@ function processPendingFiles($sessionId,$files=array()){
 
 			// job successfully finished but not yet on mongo. Save output
 
-			}elseif (is_file($rfn) && $out_mug && $out_validation_score!=0) {
+			}elseif ((is_file($rfn)|| is_dir($rfn)) && $out_mug && $out_validation_score!=0) {
 				if ($debug){
 					print "<br>JOB $pid FINISHED AND NOT YET IN MONGO ($outPath). Saving!<br/>\n";
 				}
@@ -1432,7 +1433,7 @@ function processPendingFiles($sessionId,$files=array()){
 					
 			// job successfully finished but file metada not valid. Setting error mode 
 					
-			}elseif (is_file($rfn) && !$out_mug) {
+			}elseif ((is_file($rfn)||is_dir($rfn)) && !$out_mug) {
 			       	if ($debug){
 			    		print "<br/>JOB $pid FINISHED BUT INVALID FILE ($outPath). SET ERROR <br>";
 					print "<br/><br>The invalid file is:<br/>\n";
@@ -1580,7 +1581,7 @@ function saveResults($filePath,$metaData=array(),$job=array(),$rfn=0,$asRoot=0){
 		$rfn      = $filePath;
 		$filePath = str_replace($GLOBALS['dataDir']."/","",$rfn);
 	}
-	if (!is_file($rfn) || !filesize($rfn)){
+	if ((!is_file($rfn) && !is_dir($rfn)) || (is_file($rfn) && !filesize($rfn)) ){
 		if (!is_dir($rfn)){
 			$_SESSION['errorData']['Error'][]="Execution result '$rfn' does not exist or has size 0. Cannot save it into database";
 			return 0;
@@ -1605,17 +1606,22 @@ function saveResults($filePath,$metaData=array(),$job=array(),$rfn=0,$asRoot=0){
     }
 
 	#save Data
-	$fileId = createLabel();
-	
+	$fileId      = createLabel();
+	$insert_type = (isset($metaData['type'])? $metaData['type'] : (is_dir($rfn)?"dir":"file")  );
+	$size        = ($insert_type == "dir" ? getDirectorySize($rfn): filesize($rfn));
+	$child_files = (isset($metaData['files'])? $metaData['fields'] : (is_dir($rfn)? array(): false )  );
+
 	$insertData=array(
 		'_id'   => $fileId,
+		'type'  => $insert_type,
 		'owner' => $_SESSION['User']['id'],
-		'size'  => filesize($rfn),
+		'size'  => $size,
 		'path'  => $filePath,
 		'project'=> $job['project'],
 		'mtime' => new MongoDate(filemtime($rfn)),
 		'parentDir' => $parentId
 	);
+	if ($child_files !== false){ $insertData['files'] = $child_files;}
 
 	#save to MONGO
 	$fnId = uploadGSFileBNS($filePath, $rfn, $insertData,$metaData, FALSE,$asRoot);
@@ -1749,6 +1755,18 @@ function getUsedDiskSpace($fn = '',$source="fs") {
 	//$fnId= getGSFileId_fromPath($fn);
 	    return calcGSUsedSpace($fn);
     }
+}
+
+// return sum of FS directory (in bytes)
+
+function getDirectorySize($fn) {
+    if (!$fn)
+	return 0;
+    if (!preg_match('/^\//',$fn) )
+	$fn = $GLOBALS['dataDir']."/".$fn;
+
+    $data = explode("\t", exec("du -sb $fn"));
+    return $data[0];
 }
 
 // return user diskquota from mongo
@@ -1923,7 +1941,11 @@ function mimeTypes() {
 		"gff3"=> "text/plain",
 		"wig"=> "text/plain",
 		"bed"=> "text/plain",
+		"json"=> "text/plain",
 		"bedgraph"=> "text/plain",
+		"tre"=> "text/plain",
+		"nxt"=> "text/plain",
+		"nwt"=> "text/plain",
 		//"sh" => "application/x-sh",
 		"sh" => "text/plain",
 		"pdb" => "chemical/x-pdb",
