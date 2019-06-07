@@ -145,9 +145,9 @@ $communities = getCommunities();
 			    <!-- Send via POST url and metadata to getData.php -->
 
 			    <form action="applib/getData.php" method="post">
-				<input type="hidden" name="uploadType"        value="repositoryTest"/> 
+				<input type="hidden" name="uploadType"        value="repository"/> 
 				<input type="hidden" name="url"               value="<?php echo htmlspecialchars($dataset_uri);?>" />
-				<input type="hidden" name="data_type"         value="metrics_reference" />
+				<input type="hidden" name="data_type"         value="<?php echo htmlspecialchars($obj->type);?>"/>
 				<input type="hidden" name="description"       value="<?php echo htmlspecialchars($obj->description);?>"/>
 				<input type="hidden" name="oeb_dataset_id"    value="<?php echo htmlspecialchars($obj->_id);?>" />
 				<?php foreach((array)$obj->community_ids as $community_id){ ?>

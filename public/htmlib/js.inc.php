@@ -82,7 +82,7 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 		<?php
 		break; 
 	case 'logs':
-	case 'repoExample': ?>
+	case 'datasets': ?>
 		<script src="assets/global/scripts/datatable.js" type="text/javascript"></script>
 		<script src="assets/global/plugins/datatables/datatables.min.js" type="text/javascript"></script>
 		<script src="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js" type="text/javascript"></script>
@@ -203,50 +203,17 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 		<?php } ?>
 		<?php break;
 	case 'output': ?>
-		<?php if(dirname($_SERVER['PHP_SELF']) == '/tools/pydockdna'){I ?>
+		<?php if(dirname($_SERVER['PHP_SELF']) == '/tools/tool_skeleton'){I ?>
 			<script src="assets/global/plugins/ngl.js" type="text/javascript"></script>
 			<script src="assets/global/scripts/datatable.js" type="text/javascript"></script>
 			<script src="assets/global/plugins/datatables/datatables.min.js" type="text/javascript"></script>
 			<script src="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js" type="text/javascript"></script>
-			<script src="tools/pydockdna/assets/js/output.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php } elseif(dirname($_SERVER['PHP_SELF']) == '/tools/pydock'){ ?>
-			<script src="assets/global/plugins/ngl.js" type="text/javascript"></script>
-			<script src="assets/global/scripts/datatable.js" type="text/javascript"></script>
-			<script src="assets/global/plugins/datatables/datatables.min.js" type="text/javascript"></script>
-			<script src="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js" type="text/javascript"></script>
-			<script src="tools/pydock/assets/js/output.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/tools/naflex'){ ?>
-			<script type="text/javascript" src="tools/naflex/js/sequenceSelection.js"></script>
-			<script type="text/javascript" src="tools/naflex/js/NA_Checks.js"></script>
-			<script type="text/javascript" src="tools/naflex/js/sortable.js"></script>
-			<script type="text/javascript" src="tools/naflex/NUCMD/jsmol/JSmol.min.nojq.js"></script>
-			<script type="text/javascript" src="tools/naflex/NUCMD/js/jmolScripts.js"></script>
-			<script type="text/javascript" src="tools/naflex/NUCMD/js/imagePreview.js"></script>
-			<script type="text/javascript" src="tools/naflex/NUCMD/js/jqueryImages/jqueryImages.js"></script>
-			<script type="text/javascript">
-				$(document).ready( function() {
-				<?php if($analysisType == 'PCAZIP') { ?> $("#insertJmol").html(Jmol.getAppletHtml("jmol",Info)); <?php } ?>
-						imagePreview();
-				});
-			</script>
-		<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/tools/dnadyn'){ ?>
-			<script src="assets/global/plugins/ngl.last.js" type="text/javascript"></script>
-		<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/tools/chromatindyn'){ ?>
-			<script src="assets/global/plugins/ngl.last.js" type="text/javascript"></script>
-		<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/tools/minimizedStruct'){ ?>
-			<script src="assets/global/plugins/ngl.last.js" type="text/javascript"></script>
-		<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/tools/nucldynwf'){ ?>
-			<script src="assets/global/scripts/jquery.dataTables.min.js" type="text/javascript"></script>
-			<script src="assets/global/plugins/datatables/plugins/fixedColumns/dataTables.fixedColumns.min.js" type="text/javascript"></script>
-			<script src="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js" type="text/javascript"></script>
-			<script src="tools/nucldynwf/assets/js/output.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/tools/nucldynwf_pmes'){ ?>
-			<script src="assets/global/scripts/jquery.dataTables.min.js" type="text/javascript"></script>
-			<script src="assets/global/plugins/datatables/plugins/fixedColumns/dataTables.fixedColumns.min.js" type="text/javascript"></script>
-			<script src="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js" type="text/javascript"></script>
-			<script src="tools/nucldynwf_pmes/assets/js/output.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php } ?>
-		<?php break;
+			<script src="tools/tool_skeleton/assets/js/output.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
+		<?php } elseif(dirname($_SERVER['PHP_SELF']) == '/tools/GMI'){ ?>
+			<!-- <script src="tools/GMI/assets/js/output.js?v=<?php echo rand(); ?>" type="text/javascript"></script> -->
+		<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/tools/TCGA_CD'){ ?>
+			<script src="tools/TCGA_CD/assets/js/output.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
+		<?php } break;
 	case 'help':
 	case 'toolhelp':
 	case 'method':
@@ -319,7 +286,7 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 	case 'usrProfile': ?>
 		<script src="assets/pages/scripts/profile.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
 		<?php break; 
-	case 'repoExample': ?>
+	case 'datasets': ?>
 		<script src="assets/pages/scripts/table-datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
 		<?php break; 
 	case 'logs': ?>
@@ -421,7 +388,7 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 	case 'index2': 				
 	case 'index': 
 	case 'home': 
-	case 'repoExample':
+	case 'datasets':
 	case 'usrProfile':
 	case 'restoreLink':
 	case 'uploadForm':

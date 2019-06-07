@@ -87,7 +87,7 @@
 		case 'adminJobs':
 		case 'myNewTools':
 		case 'dashboard':
-		case 'repoExample':
+		case 'datasets':
 		case 'logs': ?>
 			<link href="assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.css" rel="stylesheet" type="text/css" />
 			<link href="assets/global/plugins/datatables/datatables.min.css" rel="stylesheet" type="text/css" />
@@ -212,7 +212,7 @@
 		case 'jsonSpecValidator':
 		case 'jsonTestValidator':
 		case 'dashboard':
-		case 'repoExample':
+		case 'datasets':
 		case 'sampleDataList':
 		case 'dataFromTxt':
 		case 'dataFromID':

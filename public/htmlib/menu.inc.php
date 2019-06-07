@@ -77,7 +77,7 @@ switch (pathinfo($_SERVER['PHP_SELF'])['filename']) {
 		$currentSection = 'he';
 		$currentSubSection = 'h11';
 		break;
-	case 'repoExample':
+	case 'datasets':
 		$currentSection = 'dt';
 		$currentSubSection = 'rp';
 		$currentSubSubSection = 'bs';
@@ -243,13 +243,13 @@ sort($visualizers);
 						</li>
 						<li class="nav-item <?php if ($currentSubSection == 'rp') { ?>active open<?php } ?>">
 							<a href="javascript:;" class="nav-link nav-toggle ">
-								<span class="title">From Repository</span>
+								<span class="title">From OpenEBench</span>
 								<span class="arrow"></span>
 							</a>
 							<ul class="sub-menu">
 								<li class="nav-item <?php if ($currentSubSubSection == 'bs') { ?>active open<?php } ?>">
-									<a href="getdata/repoExample.php" class="nav-link">
-										<span class="title"> Repository Name</span>
+									<a href="getdata/datasets.php" class="nav-link">
+										<span class="title"> Datasets </span>
 									</a>
 								</li>
 							</ul>
@@ -311,6 +311,7 @@ sort($visualizers);
 								<?php foreach ($tools as $t) {
 									$s = $GLOBALS['helpsCol']->find(array('tool' => $t["_id"]));
 									$sections = iterator_to_array($s);
+									$sections2= array_column($sections, 'help');
 									$arrSect = array();
 									foreach ($sections as $sec) {
 										$arrSect[] = $sec['help'];
