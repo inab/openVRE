@@ -204,8 +204,8 @@ redirectOutside();
 					$fileExtension=$filesMeta[$idx]['format'];
 				}elseif(isset($filesData[$idx]['_id'])){
                     $fnPath = $filesData[$idx]['path'];
-                    list($fileExtension,$_REQUEST['compressed'][$idx]) = getFileExtension($fnPath);
-                    list($fileExtension,$compressionType) = getFileExtension($fnPath);
+                    list($fileExtension,$_REQUEST['compressed'][$idx],$fileBaseName) = getFileExtension($fnPath);
+		    $compressionType = $_REQUEST['compressed'][$idx];
                     if ($compressionType){
                         $_REQUEST['compressed'][$idx]=1;
                     }

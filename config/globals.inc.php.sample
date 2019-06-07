@@ -90,11 +90,16 @@ $GLOBALS['tool_status'] = Array(
 
 // Accepted values for 'compression' attribute
 $GLOBALS['compressions'] = Array(
-		"zip"  => "ZIP",
-		"bz2"  => "BZIP2",
-		"gz"   => "GZIP",
-		"tgz"  => "TAR,ZIP",
-		"tbz2" => "TAR,BZIP2"
+               "zip"   => "ZIP",
+               "bz2"   => "BZIP2",
+               "gz"    => "GZIP",
+               "tgz"   => "TAR,GZIP",
+               "tar.gz"=> "TAR,GZIP",
+               "tbz2"  =>   "TAR,BZIP2",
+               "tar.bz2" => "TAR,BZIP2",
+               "tar.Z" => "TAR,ZIP",
+               "rar"   => "RAR",
+               "tar"   => "TAR"
 );
 
 // User Roles

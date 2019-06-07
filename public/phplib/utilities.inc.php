@@ -592,8 +592,9 @@ function validateMugFile($file,$is_output=false){
 
 	if ($file['type']=="dir"){
 		if (!isset($file['meta_data']['files'])){
-			$_SESSION['errorData']['Error'][]= "Invalid MuG Directory. Attribute 'meta_data->files' is required when 'type=dir'.";	
-			return array($val_score, $file);
+			$file['meta_data']['files']=Array();
+			//$_SESSION['errorData']['Error'][]= "Invalid MuG Directory. Attribute 'meta_data->files' is required when 'type=dir'.";	
+			//return array($val_score, $file);
 		}
 	}elseif($file['type']=="file" ){
 		if (!isset($file['file_path']) || !isset($file['file_type']) || !isset($file['data_type']) ){
@@ -617,6 +618,7 @@ function validateMugFile($file,$is_output=false){
 			$file['sources']=Array(0);
 		}
 	}
+	/*
 	if ($file['type']!="dir" && !isset($file['taxon_id'])){
         //TODO implement checking according $GLOBALS['dataTypesCol']->find(array("taxon_id"=>false),array("file_types"=>true));
 		if (!in_array($file['file_type'],Array("TXT","PDF","TAR","UNK","PNG"))){
@@ -624,7 +626,7 @@ function validateMugFile($file,$is_output=false){
             $val_score= 1;
 			return array($val_score, $file);
 		}
-	}
+	} 
 	if ($file['type']!="dir" && !isset($file['meta_data']['assembly'])){
         //TODO implement checking according $GLOBALS['dataTypesCol']->find(array("assembly"=>false),array("file_types"=>true));
 		if (in_array($file['file_type'],Array("BAM","BAI","BED","BB","BEDGRAPH","WIG","BW","GFF","GFF3","GTF","VCF")) ){
@@ -633,19 +635,20 @@ function validateMugFile($file,$is_output=false){
 			return array($val_score, $file);
 		}
 	}
+	*/
 	if (!isset($file['meta_data']['visible']))
 		$file['meta_data']['visible']=true;
 	
 	if ($is_output){
-        if (!isset($file['meta_data']['tool'])){
-            //TODO tool value is a valid tool_id
-			$_SESSION['errorData']['Error'][]= "Invalid File. Attribute 'meta_data->tool' required if file is a tool output";
-            $val_score= 1;
-			return array($val_score, $file);
-		}
-		if (!isset($file['meta_data']['validated'])){
-            $file['meta_data']['validated']=true;
-        }
+            if (!isset($file['meta_data']['tool'])){
+		//TODO tool value is a valid tool_id
+		$_SESSION['errorData']['Error'][]= "Invalid File. Attribute 'meta_data->tool' required if file is a tool output";
+           	$val_score= 1;
+		return array($val_score, $file);
+	    }
+	    if (!isset($file['meta_data']['validated'])){
+            	$file['meta_data']['validated']=true;
+            }
 	}
 	return array(2,$file);
 }
@@ -818,15 +821,8 @@ function is_url($url){
         return true;
     else
         return false;
-}
-
-function is_uri($uri){
-    $uri_re =  "([A-Za-z][A-Za-z0-9+\\-.]*):(?:(//)(?:((?:[A-Za-z0-9\\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*)@)?((?:\\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\\.[A-Za-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*))(?::([0-9]*))?((?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)|/((?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?)|((?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)|)(?:\\?((?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*))?(?:\\#((?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*))?";
-
-    if (preg_match("/^$uri_re$/i",$uri))
-	return true;
-    else
-	return false;
+    
+    //return filter_var($url, FILTER_VALIDATE_URL);
 }
 
 function fromTaxonID2TaxonName($taxon_id){
@@ -846,21 +842,37 @@ function fromTaxonID2TaxonName($taxon_id){
 }
 
 function getFileExtension($fnPath){
-    $fileExtension  = "";
-    $fileCompression = 0; // 0,1
+    $fileExtension  = ""; // extensions are registered in file_types collection (i.e. FA)
+    $fileCompression = 0; // 0 or compression type as appear in keys(GLOBALS[compression]) (i.e. 'TAR.GZ')
+    $fileBaseName  = "";  // basename after removing extension/s (.i.e 'myfolder' from 'myfolder.tar.gz')
 
     $fileInfo = pathinfo($fnPath);
+    $fileExtension = $fileInfo['extension'];
+    $fileBaseName = $fileInfo['filename'];
 
-    if (isset($fileInfo['extension'])){
-		      $fileExtension = strtoupper($fileInfo['extension']);
-		      $fileExtension = preg_replace('/_\d$/',"",$fileExtension);
-		      if (in_array(".".$fileExtension,Array(".BZ2",".GZ",".RAR",".ZIP",".TGZ",".TAR") )){
-    			  $fileCompression = $fileExtension;
-    			  $fileExtension = strtoupper(pathinfo(str_replace(".".$fileInfo['extension'],"",$fnPath), PATHINFO_EXTENSION));
-    			  $fileExtension = preg_replace('/_\d+$/',"",$fileExtension);
-		      }
+    if (isset($fileExtension)){
+
+	$fileExtension_ori = $fileExtension;
+	$fileExtension     = preg_replace('/_\d$/',"",strtoupper($fileExtension_ori));
+
+	$compressExtensions = preg_filter('/^/',".",array_map('strtoupper', array_keys($GLOBALS['compressions'])));
+
+	if (in_array(".".$fileExtension, $compressExtensions )){
+
+    		$fileCompression    = $fileExtension;
+		// get real fileExtension (sql.gz)
+		$fnPath2            = str_replace(".".$fileExtension_ori,"",$fnPath);
+		$fileExtension2_ori = pathinfo($fnPath2, PATHINFO_EXTENSION);
+		$fileBaseName       = pathinfo($fnPath2, PATHINFO_FILENAME);
+		$fileExtension      = preg_replace('/_\d$/',"",strtoupper($fileExtension2_ori));
+		
+		// if real fileExtension is also a compression type, append it to fileCompression (tar.gz)
+		if (in_array(".".$fileExtension,$compressExtensions )){
+			$fileCompression = "$fileExtension.$fileCompression";
+		}
+	}
     }
-    return array($fileExtension,$fileCompression);
+    return array($fileExtension,strtolower($fileCompression),$fileBaseName);
 }
 
 function indexFiles_zip($zip_rfn){
