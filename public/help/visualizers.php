@@ -86,7 +86,7 @@ sort($toolList);
 
 																	<div class="cbp-item <?php echo $kw; ?>">
 																	<!-- REMOVE cbp-singlePageInline to go to new page -->
-                                    <a href="visualizers/<?php echo $t["_id"]; ?>/help/help.php" class="cbp-caption cbp-singlePageInline" data-title="<?php echo $t['title']; ?>" rel="nofollow">
+                                    <a href="help/toolhelp.php?tool=<?php echo $t["_id"]; ?>&sec=help" class="cbp-caption cbp-singlePageInline" data-title="<?php echo $t['title']; ?>" rel="nofollow">
                                         <div class="cbp-caption-defaultWrap">
                                             <img src="<?php echo $type; ?>/<?php echo $t['_id']; ?>/assets/home/logo.png" alt="">
                                         </div>
