@@ -132,11 +132,11 @@ function getData_fromLocal() {
 
 function getData_fromURL($url, $meta = null, $uploadType="url"){
     if ($uploadType == "id"){
-       list($toolArgs,$toolOuts,$output_dir) = prepare_getData_fromURL($url,"uploads","/getdata/dataFromID.php",$meta);
-       getData_wget_syncron($toolArgs,$toolOuts,$output_dir,"uploads","/getdata/dataFromID.php"); 
+       list($toolArgs,$toolOuts,$output_dir) = prepare_getData_fromURL($url,"uploads",$GLOBALS['BASEURL']."/getdata/dataFromID.php",$meta);
+       getData_wget_syncron($toolArgs,$toolOuts,$output_dir,"uploads",$GLOBALS['BASEURL']."/getdata/dataFromID.php"); 
     }else{
-       list($toolArgs,$toolOuts,$output_dir) = prepare_getData_fromURL($url,"uploads","/getdata/uploadForm.php#load_from_url",$meta);
-       getData_wget_asyncron($toolArgs,$toolOuts,$output_dir,"/getdata/uploadForm.php#load_from_url"); 
+       list($toolArgs,$toolOuts,$output_dir) = prepare_getData_fromURL($url,"uploads",$GLOBALS['BASEURL']."/getdata/uploadForm.php#load_from_url",$meta);
+       getData_wget_asyncron($toolArgs,$toolOuts,$output_dir,$GLOBALS['BASEURL']."/getdata/uploadForm.php#load_from_url"); 
     }
     echo 1;
 }
@@ -223,7 +223,7 @@ function prepare_getData_fromURL($url,$outdir,$referer,$meta=array()) {
         $msg = "Cannot import file. There will be not enough space left in the workspace (size = ".getSize($size).")";
 	if($referer == "die"){
 		$_SESSION['errorData']['Error'][] =$msg; 
-		redirect('/workspace');
+		redirect($GLOBALS['BASEURL']."workspace/");
 	}else{
 		$_SESSION['errorData']['Error'][] =$msg; 
 		redirect($referer);
@@ -305,7 +305,7 @@ function prepare_getData_fromURL($url,$outdir,$referer,$meta=array()) {
        		   "file_path"=> $fnP,
     	    	   "data_type"=> "",
     	    	   "file_type"=> $filetype,
-                   "input_files"=> [0],
+                   "sources"=> [0],
                    "taxon_id" => $taxon,
        		   "meta_data"=> array(
                    "validated"   => false,
@@ -341,11 +341,12 @@ function  getData_wget_asyncron($toolArgs,$toolOuts,$output_dir,$referer){
    $outdir = basename($output_dir);
 
    if ($pid == 0){
-            $msg ="File imported from URL '".basename($fnP)."' cannot be imported. Error occurred while preparing the job 'Get remote file'";
-            if($referer == "die"){die($msg);}else{$_SESSION['errorData']['Error'][] =$msg; redirect($referer);}
+        $msg ="File imported from URL '".basename($fnP)."' cannot be imported. Error occurred while preparing the job 'Get remote file'";
+        if($referer == "die"){die($msg);}else{$_SESSION['errorData']['Error'][] =$msg; redirect($referer);}
     }else{
-            $_SESSION['errorData']['Info'][] ="File from URL '".basename($fnP)."' is being imported into the '$outdir' folder below. Please, edit its metadata once the import has finished";
-			header("Location:".$GLOBALS['url']."/workspace/");
+    	$_SESSION['errorData']['Info'][] ="File from URL '".basename($fnP)."' is being imported into the '$outdir' folder below. Please, edit its metadata once the import has finished";
+	redirect($GLOBALS['BASEURL']."/workspace/");
+	//header("Location:".$GLOBALS['url']."/workspace/");
     }
         //FIXME END
        
@@ -1071,7 +1072,6 @@ function getData_fromSampleData($params=array()) { //sampleData
         	redirect($GLOBALS['URL']."/getdata/sampleDataList.php");
         }else{
 	       	$_SESSION['errorData']['Info'][] = "Example data successfuly imported.";
-		//redirect("../workspace");
 		header("Location:".$GLOBALS['URL']."/workspace/");
 	}
     }

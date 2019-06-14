@@ -271,10 +271,9 @@ function getSingleTool_Help($toolID, $op) {
 					$b = [];
 					foreach($inputf["data_type"] as $dt) {
 
-						$n = $GLOBALS['dataTypesCol']->find(array("_id" => $dt), array("name" => true));
-						$n  = iterator_to_array($n, true);
-
-						$b[] = $n[$dt]["name"];
+						$b[] = getDataTypeName($dt);
+						//$n  = iterator_to_array($n, true);
+						//$b[] = $n[$dt]["name"];
 
 					}
 
@@ -332,10 +331,9 @@ function getTools_Help() {
 					$b = [];
 					foreach($inputf["data_type"] as $dt) {
 
-						$n = $GLOBALS['dataTypesCol']->find(array("_id" => $dt), array("name" => true));
-						$n  = iterator_to_array($n, true);
-
-						$b[] = $n[$dt]["name"];
+						$b[] = getDataTypeName($dt);
+						//$n  = iterator_to_array($n, true);
+						//$b[] = $n[$dt]["name"];
 
 					}
 

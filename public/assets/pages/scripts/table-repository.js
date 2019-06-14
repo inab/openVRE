@@ -27,16 +27,16 @@ var TableDatatablesRepository = function () {
             },*/ 
             "columnDefs": [{
                 "searchable": false,
-                "targets": [5, 6]
+                "targets": [1, 2]
                 //"targets": [0, 6, 7]
             }],
             "order": [
-                [4, "desc"]
+                [1, "desc"]
             ], // set first column as a default sort by asc
         	    "initComplete": function (settings, json) {
-				            $('#loading-datatable').hide();
-				            $('#table-repository').show();
-			           }
+	            $('#loading-datatable').hide();
+	            $('#table-repository').show();
+           }
         });
 
 

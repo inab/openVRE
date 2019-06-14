@@ -618,24 +618,6 @@ function validateMugFile($file,$is_output=false){
 			$file['sources']=Array(0);
 		}
 	}
-	/*
-	if ($file['type']!="dir" && !isset($file['taxon_id'])){
-        //TODO implement checking according $GLOBALS['dataTypesCol']->find(array("taxon_id"=>false),array("file_types"=>true));
-		if (!in_array($file['file_type'],Array("TXT","PDF","TAR","UNK","PNG"))){
-			$_SESSION['errorData']['Warning'][]="Invalid File. Attribute 'taxon_id' required if 'file_type' is ".$file['file_type'];
-            $val_score= 1;
-			return array($val_score, $file);
-		}
-	} 
-	if ($file['type']!="dir" && !isset($file['meta_data']['assembly'])){
-        //TODO implement checking according $GLOBALS['dataTypesCol']->find(array("assembly"=>false),array("file_types"=>true));
-		if (in_array($file['file_type'],Array("BAM","BAI","BED","BB","BEDGRAPH","WIG","BW","GFF","GFF3","GTF","VCF")) ){
-			$_SESSION['errorData']['Warning'][]="Invalid File. Attribute 'meta_data->assembly' required if 'file_type' is ".$file['file_type'];
-            $val_score= 1;
-			return array($val_score, $file);
-		}
-	}
-	*/
 	if (!isset($file['meta_data']['visible']))
 		$file['meta_data']['visible']=true;
 	

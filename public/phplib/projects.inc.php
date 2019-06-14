@@ -876,10 +876,10 @@ function formatData($data) {
 
 		//data_type
 		if ($data['data_type']){
-			$dt = $GLOBALS['dataTypesCol']->findOne(array('_id' => $data['data_type']));
-			$data['file_data_type'] = $dt['name'];
-			$data['short_file_data_type'] = maxlength(basename($dt['name']), 20);
-			$data['data_type'] = "<tr><td>Data type:</td><td>".$dt['name']."</td></tr>";
+			$dt_name = getDataTypeName($data['data_type']);
+			$data['file_data_type'] = $dt_name;
+			$data['short_file_data_type'] = maxlength(basename($dt_name), 20);
+			$data['data_type'] = "<tr><td>Data type:</td><td>".$dt_name."</td></tr>";
 		}else{
 			$data['data_type']="";
 		}

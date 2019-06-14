@@ -36,6 +36,16 @@ function getFileTypeFromExtension($fileExtension) {
 
 }
 
+function getDataTypeName($datatype) {
+	$dt = $GLOBALS['dataTypesCol']->findOne(array('_id' => $datatype), array('name' => 1));
+	if (isset($dt['name'])){
+		return $dt['name'];
+	}else{
+		return $datatype;
+	}
+
+}
+
 function getFeaturesFromDataType($datatype, $filetype) {
 
 	$dt = $GLOBALS['dataTypesCol']->findOne(array('_id' => $datatype), array('assembly' => 1, 'taxon_id' => 1, 'paired' => 1, 'sorted' => 1, ));

@@ -106,14 +106,14 @@ $communities = getCommunities();
                     <!-- process and display each result row -->
                     
                     <?php foreach (getDatasets() as $obj) {
-
+                            if($obj->type != "participant") {
                         ?>
                         <tr>
                           <td> <?php echo "$obj->_id"; ?> </td>
                           <td> <?php echo "$obj->name"; ?> </td>
                           <td> <?php echo "$obj->description"; ?> </td>
                           <td> <?php echo "$obj->version"; ?> </td>
-                          <td> <?php echo "$obj->type"; ?> </td>
+                          <td> <?php echo getDataTypeName($obj->type); ?> </td>
                           <td> <?php 
                             foreach ($obj->community_ids as $id) {
                               echo $communities[$id]["acronym"]." ";
@@ -163,7 +163,7 @@ $communities = getCommunities();
                         </tr>
                           
                         
-                      <?php //}
+                      <?php }
                      }  ?>
 
                   </tbody>
