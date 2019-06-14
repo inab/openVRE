@@ -45,6 +45,26 @@ redirectOutside();
 
 <!-- -------------------- HELP TEXT GOES HERE !!  ------------- -->
 
+          
+
+          <p>To launch a job using the VRE go to Run Tool / Visualizer and choose the tool you would like to use </p>				
+
+					<p><img src="assets/layouts/layout/img/help/Launch01.png" style="width:800px;max-width:100%;" /></p>
+
+          
+          <p>Upload prediction files to evaluate and click on compute </p> <p> info please look at the Help section on <a href="https://dev-openebench.bsc.es/vre/help/upload.php">Get Data</a></p>          
+
+          <p><img src="assets/layouts/layout/img/help/Launch02.png" style="width:800px;max-width:100%;" /></p>
+          
+          <p>This will redirect you back to your workspace and a new job will be added to your files</p>
+
+          <p><img src="assets/layouts/layout/img/help/Launch03.png" /></p>
+
+          <p>Most of the tools have a customized View Results page, which is used to show the users the results of the tool properly. To view this special page users should click the View Results button:</p>
+
+          <p><img src="assets/layouts/layout/img/help/Launch04.png" /></p>
+          
+
 												</div>
 				
                     </div>

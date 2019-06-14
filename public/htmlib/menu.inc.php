@@ -281,21 +281,21 @@ sort($visualizers);
 								<span class="title">General information</span>
 							</a>
 						</li>
-						<li class="nav-item  <?php if ($currentSubSection == 'h2') { ?>active open<?php } ?>">
+						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h2') { ?>active open<?php //} ?>">
 							<a href="help/starting.php" class="nav-link ">
 								<span class="title">Getting Started</span>
 							</a>
-						</li>
+						</li> -->
 						<li class="nav-item  <?php if ($currentSubSection == 'h3') { ?>active open<?php } ?>">
 							<a href="help/upload.php" class="nav-link ">
 								<span class="title">Get Data</span>
 							</a>
 						</li>
-						<li class="nav-item  <?php if ($currentSubSection == 'h4') { ?>active open<?php } ?>">
+						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h4') { ?>active open<?php //} ?>">
 							<a href="help/ws.php" class="nav-link ">
 								<span class="title">Workspace</span>
 							</a>
-						</li>
+						</li> -->
 						<li class="nav-item  <?php if ($currentSubSection == 'h5') { ?>active open<?php } ?>">
 							<a href="help/launch.php" class="nav-link ">
 								<span class="title">Launch Job</span>
@@ -309,7 +309,7 @@ sort($visualizers);
 
 							<ul class="sub-menu">
 								<?php foreach ($tools as $t) {
-									$s = $GLOBALS['helpsCol']->find(array('tool' => $t["_id"]));
+									$s = $GLOBALS['helpsCol']->find(array('tool' => $t["_id"]))->sort(array('_id' => 1));
 									$sections = iterator_to_array($s);
 									$sections2= array_column($sections, 'help');
 									$arrSect = array();
@@ -338,49 +338,49 @@ sort($visualizers);
 							</ul>
 
 						</li>
-						<li class="nav-item  <?php if ($currentSubSection == 'h11') { ?>active open<?php } ?>">
+						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h11') { ?>active open<?php //} ?>">
 							<a href="help/visualizers.php" class="nav-link">
 								<span class="title">Visualizers</span>
-								<span class="arrow <?php if ($currentSubSection == 'h11') { ?>open<?php } ?>"></span>
+								<span class="arrow <?php //if ($currentSubSection == 'h11') { ?>open<?php //} ?>"></span>
 							</a>
 							<ul class="sub-menu">
-								<?php foreach ($visualizers as $t) {
+								<?php /*foreach ($visualizers as $t) {
 									$s = $GLOBALS['helpsCol']->find(array('tool' => $t["_id"]));
 									$sections = iterator_to_array($s);
 									$arrSect = array();
 									foreach ($sections as $sec) {
 										$arrSect[] = $sec['help'];
-									} ?>
-									<li class="nav-item <?php if ($currentSubSubSection == $t["_id"]) { ?>active open<?php } ?>">
-										<a href="visualizers/<?php echo $t["_id"]; ?>/help/help.php" class="nav-link">
-											<span class="title"> <?php echo $t["name"]; ?> </span>
+									} */?>
+									<li class="nav-item <?php //if ($currentSubSubSection == $t["_id"]) { ?>active open<?php //} ?>">
+										<a href="visualizers/<?php //echo $t["_id"]; ?>/help/help.php" class="nav-link">
+											<span class="title"> <?php //echo $t["name"]; ?> </span>
 										</a>
 									</li>
-								<?php } ?>
+								<?php //} ?>
 							</ul>
-						</li>
-						<?php if (allowedRoles($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
-							<li class="nav-item  <?php if ($currentSubSection == 'h7') { ?>active open<?php } ?>">
+						</li> -->
+						<!-- <?php //if (allowedRoles($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
+							<li class="nav-item  <?php //if ($currentSubSection == 'h7') { ?>active open<?php //} ?>">
 								<a href="help/hdesk.php" class="nav-link ">
 									<span class="title">Helpdesk</span>
 								</a>
 							</li>
-						<?php } ?>
-						<li class="nav-item  <?php if ($currentSubSection == 'h8') { ?>active open<?php } ?>">
+						<?php //} ?> -->
+						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h8') { ?>active open<?php //} ?>">
 							<a href="help/related.php" class="nav-link ">
 								<span class="title">Related Links</span>
 							</a>
 						</li>
-						<li class="nav-item  <?php if ($currentSubSection == 'h9') { ?>active open<?php } ?>">
+						<li class="nav-item  <?php //if ($currentSubSection == 'h9') { ?>active open<?php //} ?>">
 							<a href="help/refs.php" class="nav-link ">
 								<span class="title">References</span>
 							</a>
 						</li>
-						<li class="nav-item  <?php if ($currentSubSection == 'h10') { ?>active open<?php } ?>">
+						<li class="nav-item  <?php //if ($currentSubSection == 'h10') { ?>active open<?php //} ?>">
 							<a href="help/ackn.php" class="nav-link ">
 								<span class="title">Acknowledgments</span>
 							</a>
-						</li>
+						</li> -->
 					</ul>
 				</li>
 				<?php if (allowedRoles($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
