@@ -209,8 +209,8 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 			<script src="assets/global/plugins/datatables/datatables.min.js" type="text/javascript"></script>
 			<script src="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js" type="text/javascript"></script>
 			<script src="tools/tool_skeleton/assets/js/output.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php } elseif(dirname($_SERVER['PHP_SELF']) == '/tools/GMI'){ ?>
-			<script src="tools/GMI/assets/js/output.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
+		<?php } elseif(dirname($_SERVER['PHP_SELF']) == '/tools/GMI_OD'){ ?>
+			<script src="tools/GMI_OD/assets/js/output.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
 		<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/tools/TCGA_CD'){ ?>
 			<script src="tools/TCGA_CD/assets/js/output.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
 		<?php } break;

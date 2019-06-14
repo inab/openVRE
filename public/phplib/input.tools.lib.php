@@ -204,7 +204,6 @@ function InputTool_printSelectFile($input, $rerun, $ff, $multiple, $required) {
 
 		$p = [];
                 $r = 0;
-var_dump($ff);
                 foreach($ff as $fi) {
                 	$p[] = $fi[0];
                         $r ++;
