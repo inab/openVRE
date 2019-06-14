@@ -536,8 +536,8 @@ box-shadow:  1px 1px 8px 0px rgba(204, 204, 204, 1);
     top:  80px;
     right:  30px;
     width:  40%;
-    /*height:  200px;
-    */font-size: 16px;
+    /*height:  200px;*/
+    font-size: 16px;
  }
 
 #extra-space-home  {
@@ -558,7 +558,7 @@ box-shadow:  1px 1px 8px 0px rgba(204, 204, 204, 1);
    }
 
 .truncate  {
-     float: left;
+     /*float: left;*/
      max-width:  140px;
      white-space:  nowrap;
      overflow:  hidden;
