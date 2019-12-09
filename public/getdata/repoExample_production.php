@@ -215,8 +215,6 @@ $array = json_decode($response)->Dataset;
 
 
 
-//foreach (array_values(iterator_to_array($GLOBALS['studiesCol']->find(array(),array('experimenttype'=>1, 'releasedate'=>1, 'accession'=>1, 'organism'=>1, 'name'=>1, 'assays'=>1, 'files'=>1))->sort(array('releasedate'=>1)))) as $v)
-//$studies[$v['_id']] = array($v['experimenttype'], $v['releasedate'], $v['accession'], $v['organism'], $v['name'], $v['assays'], $v['files']);
 ?>
 
 

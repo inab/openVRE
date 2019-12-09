@@ -77,7 +77,7 @@ sort($toolList);
 
 																foreach($toolList as $t) { 
 
-																$kw = implode(" ", $t['keywords']);
+																$kw = (isset($t['keyeords'])?implode(" ", $t['keywords']):"");
 
 																if (strpos($kw, 'visualizer') === false) $type = 'tools';
 																else $type = 'visualizers';

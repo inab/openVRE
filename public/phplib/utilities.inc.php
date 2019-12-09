@@ -96,6 +96,37 @@ function createLink ($source, $target){
 
 //return html from
 //SESSION['errorData'] = Array( 'seccionA' => Array( 'error msg A1', 'error msg A2'))
+function printErrorDivision(){
+        // unset empty error sections
+        if (isset($_SESSION['errorData'])) {
+                foreach ($_SESSION['errorData'] as $subTitle => $txts){
+                        if (count($txts) == 0){
+                                unset($_SESSION['errorData'][$subTitle]);
+                        }
+                }
+        }
+        // print PHP ERROR MESSAGES
+        if (isset($_SESSION['errorData']) && $_SESSION['errorData']) {
+                $errType= "alert";
+                if (isset($_SESSION['errorData']['Info'])) {
+                        $errType= "alert alert-info";
+                } else {
+                        $errType= "alert alert-warning";
+                }
+                print "<div class=\"$errType\">";
+                foreach ($_SESSION['errorData'] as $subTitle => $txts) {
+                        print "$subTitle<br/>"; 
+                        foreach ($txts as $txt) {
+                                print "<div style=\"margin-left:20px;\">$txt</div>";
+                        }
+                }
+                unset($_SESSION['errorData']);
+                print "</div>";
+        }
+}
+
+//return html from
+//SESSION['errorData'] = Array( 'seccionA' => Array( 'error msg A1', 'error msg A2'))
 function printErrorData($targetSeccion=0){
    $txt='';
     foreach ($_SESSION['errorData'] as $seccion =>$lines) {
@@ -359,13 +390,13 @@ function setVREfile_fromScratch($file_data=array()){
         unset($file_data['path']);
     }
     if (!isset($file_data['mtime'])){
-        $file['mtime']= new MongoDate(strtotime("now"));
+        $file['mtime']= new MongoDB\BSON\UTCDateTime(strtotime("now")*1000);
     }else{
         $file['mtime']= $file_data['mtime'];
         unset($file_data['mtime']);
     }
     if (!isset($file_data['atime'])){
-        $file['atime']= new MongoDate(strtotime("now"));
+        $file['atime']= new MongoDB\BSON\UTCDateTime(strtotime("now")*1000);
     }else{
         $file['atime']= $file_data['atime'];
         unset($file_data['atime']);
@@ -377,7 +408,7 @@ function setVREfile_fromScratch($file_data=array()){
         unset($file_data['parentDir']);
     }
     if (!isset($file_data['lastAccess'])){
-        $file['lastAccess']= new MongoDate(strtotime("now"));
+        $file['lastAccess']= new MongoDB\BSON\UTCDateTime(strtotime("now")*1000);
     }else{
         $file['lastAccess']= $file_data['lastAccess'];
         unset($file_data['lastAccess']);
@@ -719,7 +750,7 @@ function post($data,$url,$headers=array(),$auth_basic=array()){
         curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
         if (count($headers))
             curl_setopt($c, CURLOPT_HTTPHEADER, $headers);
-        if ($auth_basic['user'] && $auth_basic['pass'])
+        if (isset($auth_basic['user']) && isset($auth_basic['pass']))
             curl_setopt($c, CURLOPT_USERPWD, $auth_basic['user'].":".$auth_basic['pass']);
             
 		$r = curl_exec ($c);
@@ -765,15 +796,15 @@ function get($url,$headers=array(),$auth_basic=array()){
 // HTTP put
 function put($data,$url,$headers=array(),$auth_basic=array()){
 
-		$c = curl_init();
+	$c = curl_init();
         curl_setopt($c, CURLOPT_URL, $url);
         curl_setopt($c, CURLOPT_CUSTOMREQUEST, "PUT");
-		curl_setopt($c, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
+	curl_setopt($c, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
         curl_setopt($c, CURLOPT_POSTFIELDS, $data);
         curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
         if (count($headers))
             curl_setopt($c, CURLOPT_HTTPHEADER, $headers);
-        if ($auth_basic['user'] && $auth_basic['pass'])
+        if (isset($auth_basic['user']) && isset($auth_basic['pass']))
             curl_setopt($c, CURLOPT_USERPWD, $auth_basic['user'].":".$auth_basic['pass']);
             
 		$r = curl_exec ($c);
@@ -973,4 +1004,18 @@ function file_get_contents_chunked($file,$chunk_size,$callback){
 	}
 	return true;
 }
-        
+
+function indexArray($multiArray,$attr="_id"){
+    $assocArray = array();
+    foreach ($multiArray as $key => $value) {
+            if (isset($value['_id'])  &&  !is_object($value['_id']) ) {
+                $k = (string) $value['_id'];
+                $assocArray[$k] = $value;
+            }else{
+                $assocArray[$key] = $value;
+            }
+    }
+    return $assocArray;
+}
+
+ 

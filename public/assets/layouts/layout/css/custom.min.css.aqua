@@ -198,24 +198,24 @@ div.tooltip-inner  {
 
 /* SIDEBAR */
 body  {
-     background-color:  #085176!important;
+     background-color:  #00738c!important;
  }
 
 .page-sidebar  {
-     background-color:  #085176!important;
+     background-color:  #00738c!important;
  }
 
 .page-sidebar .page-sidebar-menu>li.active.open>a,  .page-sidebar .page-sidebar-menu>li.active>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active.open>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active>a  {
-     background-color: #e4032e;
+     background-color: #b61f34!important;
  }
 
 .page-sidebar .page-sidebar-menu>li.active.open>a:hover,  .page-sidebar .page-sidebar-menu>li.active>a:hover,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active.open>a:hover,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active>a:hover  {
-     background-color: #e4032e;
+     background-color: #b61f34!important;
  }
 
 .page-sidebar .page-sidebar-menu .sub-menu>li.active>a,  .page-sidebar .page-sidebar-menu .sub-menu>li.open>a,  .page-sidebar .page-sidebar-menu .sub-menu>li:hover>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu .sub-menu>li.active>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu .sub-menu>li.open>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu .sub-menu>li:hover>a  {
      color: #FFFFFF!important;
-     background:  #e4032e!important;
+     background:  #b61f34!important;
  }
 
 .page-sidebar .page-sidebar-menu>li>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li>a  {
@@ -231,7 +231,7 @@ body  {
  }
 
 .page-sidebar .page-sidebar-menu>li.open>a,  .page-sidebar .page-sidebar-menu>li:hover>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.open>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li:hover>a  {
-      background: #e4032e!important;
+      background: #b61f34!important;
 }
 
 .page-sidebar .page-sidebar-menu>li>a>i[class*=icon-],  .page-sidebar .page-sidebar-menu>li>a>i[class^=icon-],  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li>a>i[class*=icon-],  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li>a>i[class^=icon-]  {

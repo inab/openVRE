@@ -659,7 +659,7 @@ class RegisterTool {
                                                             "metadata_file"     => str_replace($GLOBALS['dataDir'],"",$this->metadata_files[$comb['description']]),
                                                             "bash_file"         => str_replace($GLOBALS['dataDir'],"",$this->bash_files[$comb['description']]));
         }
-        $GLOBALS['toolsDevMetaCol']->update(array('_id' => $this->toolId),
+        $GLOBALS['toolsDevMetaCol']->updateOne(array('_id' => $this->toolId),
                                             array('$set'   => array('last_status_date' => date('Y/m/d H:i:s'),
                                                                     'step1.date'       => date('Y/m/d H:i:s'),
                                                                     'step1.tool_io_files' => true,
@@ -677,7 +677,7 @@ class RegisterTool {
     */
     public function save_form_data($step,$request){
 
-        $GLOBALS['toolsDevMetaCol']->update(array('_id' => $this->toolId),
+        $GLOBALS['toolsDevMetaCol']->updateOne(array('_id' => $this->toolId),
                                             array('$set'=> array($step.".form_data" => $request)));
         return 1;
     }
@@ -750,7 +750,7 @@ class RegisterTool {
         if (isset($file['mtime']))
             $mugfile['creation_time'] = $file['mtime'];
         else
-            $mugfile['creation_time'] = new \MongoDate();
+            $mugfile['creation_time'] = new MongoDB\BSON\UTCDateTime(strtotime("now")*1000);
 
 		// taxon_id -> taxon_id
         if (isset($file['taxon_id'])){

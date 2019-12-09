@@ -35,13 +35,7 @@ if($_REQUEST){
 		$msg = "Tool specification saved but it doesn't validate against our JSON Schema.";
 	}
 
-	/*$GLOBALS['toolsDevCol']->remove(array('_id'=> $_REQUEST["toolid"]));
-	$GLOBALS['toolsDevCol']->insert($data_json);*/
-
-	/*$GLOBALS['toolsDevMetaCol']->update(array('_id' => $_REQUEST['toolid']),
-                                 array('$set'   => array('step1' => $validated, 'json_validated' => $validated)));*/
-
-	$GLOBALS['toolsDevMetaCol']->update(array('_id' => $_REQUEST['toolid']),
+	$GLOBALS['toolsDevMetaCol']->updateOne(array('_id' => $_REQUEST['toolid']),
                                  array('$set'   => array('last_status_date' => date('Y/m/d H:i:s'), 'step3.tool_spec' => $data_json, 'step3.date' => date('Y/m/d H:i:s'), 'step3.status' => $validated, 'step3.tool_spec_validated' => $validated, 'step3.tool_spec_saved' => true)));
 	
 	//$data_json["name"]

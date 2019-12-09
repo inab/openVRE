@@ -100,8 +100,7 @@ function getTools_DataTypes() {
 // return valid combination of input file datatypes for a given tool
 
 function getAvailableDTbyTool($tool) {
-
-	$dt = $GLOBALS['toolsCol']->find(array("external" => true, "_id" => $tool), array("input_files_combinations_internal" => true));
+	$dt = $GLOBALS['toolsCol']->find(array("external" => true, "_id" => $tool), array("input_files_combinations_internal" => true))->toArray();
 
 	$array = array();
 
@@ -143,7 +142,7 @@ function getTools_ByDT($toolsDT, $filesDT) {
 
 	// foreach de totes les possible combinacions de tools
 	foreach($toolsDT as $tdt) {
-		
+
 		// només entrem si hi ha igual o més fitxers seleccionats que a list1 (obligatoris)
 		if(sizeof($tdt["list1"]) <= sizeof($filesDT)) {
 

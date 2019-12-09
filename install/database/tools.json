@@ -49,7 +49,7 @@
                 "FASTA"
             ], 
             "data_type" : [
-                "sequence_dna"
+                "dna_sequence"
             ], 
             "required" : true, 
             "allow_multiple" : false
@@ -62,7 +62,7 @@
                 "FASTA"
             ], 
             "data_type" : [
-                "sequence_dna"
+                "dna_sequence"
             ], 
             "required" : false, 
             "allow_multiple" : false
@@ -86,15 +86,15 @@
     "input_files_combinations_internal" : [
         [
             {
-                "sequence_dna" : 1
+                "dna_sequence" : 1
             }, 
             {
-                "sequence_dna" : 1
+                "dna_sequence" : 1
             }
         ], 
         [
             {
-                "sequence_dna" : 1
+                "dna_sequence" : 1
             }
         ]
     ],
@@ -151,7 +151,7 @@
             "allow_multiple" : false, 
             "file" : {
                 "file_type" : "FASTA", 
-                "data_type" : "sequence_dna", 
+                "data_type" : "dna_sequence", 
                 "meta_data" : {
                     "visible" : true, 
                     "description" : "Output File 1 description"

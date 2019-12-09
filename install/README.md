@@ -19,35 +19,69 @@
 Clone VRE code in your installation directory, for instance `/home/user`
 
 ```
-git clone https://github.com/inab/openebench-vre.git
+git clone https://github.com/inab/openvre.git
+cd openvre
 ```
+
+### Install library dependencies
+Install PHP dependencies via composer using the following command
+```
+composer update
+```
+
+Make user PHP is able to use some extension, like CURL and GD. Install the corresponding packages and enable them at the `php.ini` uncommenting the following directives:
+
+```
+extension=curl
+extension=gd2
+
+```
+After installing the packages, restart the web server:
+
+```
+sudo apt-get install php-curl php-gd
+sudo service apache2 restart
+
+```
+
+
 ### Configure web access
 
-The `public/` directory is to be the web root directory. Set your web server accordingly. For instance:
+The `public/` directory is to be accessible on the web, and the server should accept '.htaccess' files. So, the Apache2 web server is to be accordingly set. 
+Multiple configurations are possible, for instance, you can set the host files mapping using the [Alias](https://httpd.apache.org/docs/2.4/mod/mod_alias.html) directive, or you can prepare a new virtual host by which the root document points to the openVRE public folder:
 
 ```
-DocumentRoot /home/user/VRE/public/
+DocumentRoot /home/user/openvre/public/
 
-<Directory "/home/user/VRE/public">
+<Directory "/home/user/openvre/public">
         Options Indexes FollowSymLinks
         AllowOverride All 
         Require all granted
 </Directory>
 ```
 
+Enabling the rewriting engine is also required:
+
+```
+sudo a2enmod rewrite
+systemctl restart apache2
+```
+
+
 ### Prepare directory structure
 
 Define where VRE user's data and other data is to be stored, for instance, in `/data` . Copy the directory structure there, and give apache/nginx user permissions to it:
 
 ```
-cp install/data/* /data/
+cp -r install/data/* /data/
 chown -R  www-data:www-data /data/
 ```
 
 For some visualizers, direct access to this data is required. So, if you latter plan to install one of these visualizers (e.g. NGL), add theses soft links:
 
 ```
-ln -s /data/userData/ files  
+cd public
+ln -s /data/userdata/ files  
 ln -s /data/public/refGenomes/ refGenomes  # obsolete
 ln -s /data/tool_schemas/son* json* # obsolete
 ```
@@ -57,7 +91,6 @@ ln -s /data/tool_schemas/son* json* # obsolete
 Create a new database to Mongo, here `dbname`, and populate it with the structural collections:
 
 ```
-use dbname
 for f in install/database/*.json; do mongoimport --db dbname -u myAdmin -p XXXX --authenticationDatabase admin $f; done
 ```
 
@@ -68,16 +101,27 @@ Most of the VRE settings are parameterized at  `config/globals.inc.php`. Copy th
 ```
 cp config/globals.inc.php.sample config/globals.inc.php
 ```
+Each parameter is briefly introduced, yet most of them are self-explanatory. Some of these configurations require extra settings or auxiliary files. These are listed below:
 
 
-##### *Configure SMTP mail account*
+##### *logFile*: Configure log file
+
+Configure the appropiate path in `config/globals.inc.php`, and make sure it exists and is writabble by Apache's user:
+```
+mkdir -p /home/user/openvre/logs/
+touch /home/user/openvre/logs/application.log
+sudo chown -R www-data:www-data  /home/user/openvre/logs/application.log
+
+```
+
+##### *mail_credentials* : Configure SMTP mail account
 Copy the conf template, set the credentials in there and parameterize `config/globals.inc.php` accordingly
 
 ```
 cp config/mail.conf.sample config/mail.conf 
 ```
 
-##### *Configure Mongo DB access*
+##### *db_credentials*: Configure Mongo DB access
 
 Copy the conf template, set the credentials in there and parameterize `config/globals.inc.php` accordingly. VRE will use the PHP MongoDB driver to connect to the database.
 
@@ -85,7 +129,7 @@ Copy the conf template, set the credentials in there and parameterize `config/gl
 cp config/mongo.conf.sample config/mongo.conf 
 ```
 
-##### *Configure Oauth2 client*
+##### *auth_credentials*: Configure Oauth2 client
 Copy the conf template, set the credentials in there and parameterize `config/globals.inc.php` accordingly, including the openID endpoints. VRE uses a generic OpenID Connect Resource Provider that connects to a external identity manager server (https://www.keycloak.org/)
 
 ```
@@ -96,9 +140,9 @@ cp config/oauth2_admin.conf.sample config/oauth2_admin.conf
 
 Replace these files with your project logos
 
-- `public/assets/pages/img/logo-big.png` :  big and negative
-- `public/assets/layouts/layout/img/logo.png`  :  small and negative
-- `public/assets/layouts/layout/img/icon.png` :  favico
+- `public/assets/layouts/layout/img/logo-big.png` :  logo for central frame pages 
+- `public/assets/layouts/layout/img/logo.png`  :  logo for top navigation bar
+- `public/assets/layouts/layout/img/icon.png` :  favico logo
 
 ##### *Custom CSS*
 

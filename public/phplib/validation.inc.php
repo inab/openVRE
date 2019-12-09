@@ -284,7 +284,7 @@ function getChrFromBIGWIG($bwFn){
 	if (!$trackLines)
 		return $chrNames;
 
-	$chrNames = split(PHP_EOL,$trackLines);
+	$chrNames = explode(PHP_EOL,$trackLines);
 	return $chrNames;
 }
 
@@ -323,7 +323,7 @@ function getChrFromBAM($bamFn){
 		return (false);
 	}
 	if (count($SQs)){
-		foreach (split("\n",$SQs) as $SQ){
+		foreach (explode("\n",$SQs) as $SQ){
 			if (preg_match('/SN:(\w+)\s/',$SQ,$m)){
 				if (!isset($m[1])){continue;}
 				array_push($chrNames,$m[1]);
@@ -338,7 +338,7 @@ function getChrFromBAM($bamFn){
 //			return (false);
 //		}
 //		if (count($SQs)) {	
-//			foreach (split('/$/',$SQs) as $chr){
+//			foreach (explode('/$/',$SQs) as $chr){
 //				if (!strlen($chr)){continue;}
 //				array_push($chrNames,$m[1]);
 //			}
@@ -389,7 +389,7 @@ function validateWIG($inFn,$refGenome){
 	$stdErr="";
 	subprocess("grep \"chrom=\" $inFn",$trackLines,$stdErr,$dirTmp);
 	if (count($trackLines)) {
-		foreach (split("\n",$trackLines) as $line){
+		foreach (explode("\n",$trackLines) as $line){
 			if (preg_match('/chrom=(\S+)/',$line,$m)){
 				if (!isset($m[1])){continue;}
 				$chr=$m[1];
@@ -456,7 +456,7 @@ function validateBAM($bamFn,$refGenome){
 	$stdErr="";
 	subprocess("$samtools view -H $bamFn | grep \"\@SQ\"",$SQs,$stdErr,$dirTmp);
 	if (count($SQs)) {
-		foreach (split("\n",$SQs) as $SQ){
+		foreach (explode("\n",$SQs) as $SQ){
 			if (preg_match('/SN:(\w+)\s/',$SQ,$m)){
 				if (!isset($m[1])){continue;}
 				$chr=$m[1];
@@ -486,7 +486,7 @@ function validateBAM($bamFn,$refGenome){
 			return (false);
 		}
 		if (count($SQs)) {	
-			foreach (split("\n",$SQs) as $chr){
+			foreach (explode("\n",$SQs) as $chr){
 				if (!strlen($chr)){continue;}
 				if ( in_array($chr,$chrRef)){
 					$chrs[$chr]=$chr;
@@ -584,7 +584,7 @@ function processBAM($bamId,$type,$cores){
 //               '_id'   => $bam,
 //               'owner' => $_SESSION['userId'],
 //               'size'  => filesize($bamFn),
-//               'mtime' => new MongoDate(filemtime($bamFn))
+//               'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($bamFn)*1000)
 //        );
 //		$fileMeta = $GLOBALS['filesMetaCol']->findOne(array('_id' => $bam));
 //		$r = uploadGSFileBNS($bam, $bamFn, $insertData,$fileMeta,FALSE);
@@ -630,7 +630,7 @@ function processUPLOAD($inId){
 	           '_id'   => $inId,
 	           'owner' => $_SESSION['userId'],
 	           'size'  => filesize($inFn),
-	           'mtime' => new MongoDate(filemtime($inFn))
+	           'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($inFn)*1000)
            );
 
         // delete original file from DMP
@@ -709,7 +709,7 @@ function convert2BW($fn,$BW,$refGenome,$format){
 	       '_id'   => $BW,
 	       'owner' => $_SESSION['userId'],
 	       'size'  => filesize($BWfn),
-	       'mtime' => new MongoDate(filemtime($BWfn))
+	       'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($BWfn)*1000)
 	);
 	$fileMeta = $GLOBALS['filesMetaCol']->findOne(array('_id' => $fn));
 	$r = uploadGSFileBNS($BW, $BWfn, $insertData,$fileMeta,FALSE);

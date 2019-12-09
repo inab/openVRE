@@ -3,16 +3,19 @@
 // set seccion for each page
 
 $currentSection = '';
+$currentSubSection = '';
+$currentSubSubSection = '';
+$currentSubSubSubSection =  '';
 
 switch (pathinfo($_SERVER['PHP_SELF'])['filename']) {
 	case 'index':
-		if (dirname($_SERVER['PHP_SELF']) == '/home') {
+		if (basename(dirname($_SERVER['PHP_SELF'])) == 'home') {
 			$currentSection = 'hp';
-		} elseif (dirname($_SERVER['PHP_SELF']) == '/helpdesk') {
+		} elseif (basename(dirname($_SERVER['PHP_SELF'])) == 'helpdesk') {
 			$currentSection = 'hd';
-		} elseif (dirname($_SERVER['PHP_SELF']) == '/cookies') {
+		} elseif (basename(dirname($_SERVER['PHP_SELF'])) == 'cookies') {
 			$currentSection = '';
-		} elseif (dirname($_SERVER['PHP_SELF']) == '/launch') {
+		} elseif (basename(dirname($_SERVER['PHP_SELF'])) == 'launch') {
 			$currentSection = 'lt';
 		} else {
 			$currentSection = 'uw';
@@ -243,13 +246,13 @@ sort($visualizers);
 						</li>
 						<li class="nav-item <?php if ($currentSubSection == 'rp') { ?>active open<?php } ?>">
 							<a href="javascript:;" class="nav-link nav-toggle ">
-								<span class="title">From OpenEBench</span>
+								<span class="title">From Catalogue</span>
 								<span class="arrow"></span>
 							</a>
 							<ul class="sub-menu">
 								<li class="nav-item <?php if ($currentSubSubSection == 'bs') { ?>active open<?php } ?>">
 									<a href="getdata/datasets.php" class="nav-link">
-										<span class="title"> Datasets </span>
+										<span class="title">My Datasets </span>
 									</a>
 								</li>
 							</ul>
@@ -309,7 +312,7 @@ sort($visualizers);
 
 							<ul class="sub-menu">
 								<?php foreach ($tools as $t) {
-									$s = $GLOBALS['helpsCol']->find(array('tool' => $t["_id"]))->sort(array('_id' => 1));
+									$s = $GLOBALS['helpsCol']->find(array('tool' => $t["_id"]),array('_id' => 1));
 									$sections = iterator_to_array($s);
 									$sections2= array_column($sections, 'help');
 									$arrSect = array();

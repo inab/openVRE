@@ -15,20 +15,19 @@ require __DIR__."/../config/bootstrap.php";
 $r = checkLoggedIn();
 
 // Recover guest user
-if ($_REQUEST['id']){
+if (isset($_REQUEST['id']) && $_REQUEST['id']){
     if(! checkUserLoginExists($_REQUEST['id'])){
         unset($_REQUEST['id']);
     }
     $r = loadUser($_REQUEST['id'],false);
-}
 
 // Create guest    
-if (!$_REQUEST['id']){
+}else{
 
     // Load WS with sample data, if tool requested
     $tool = array();
     $sd   = "";
-    if ($_REQUEST['from']){
+    if (isset($_REQUEST['from']) && $_REQUEST['from']){
        $tool = getTool_fromId($_REQUEST['from'],1);
        if (!isset($tool['_id'])){
           $_SESSION['userData']['Warning'][]="Cannot load '".$_REQUEST['from']."'. Tool not found";
@@ -49,7 +48,7 @@ if (!$_REQUEST['id']){
         exit('Login error: cannot create anonymous VRE user');
 
     // Redirect to WS with a welcome modal
-    if ($_REQUEST['from']){
+    if (isset($_REQUEST['from']) && $_REQUEST['from']){
         redirect("../workspace/?from=".$_REQUEST['from']);
     }
 }

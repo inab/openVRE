@@ -396,7 +396,7 @@ if (isset($_REQUEST['op'])){
 					'_id'   => $_REQUEST['fn'],
 					'owner' => $_SESSION['User']['id'],
 					'size'  => filesize($rfn_Tmp),
-					'mtime' => new MongoDate(filemtime($rfn_Tmp)),
+					'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($rfn_Tmp)*1000),
 					'path'  => $fn_Tmp
 				);
 				$insertMeta = $fileMeta;
@@ -452,7 +452,7 @@ if (isset($_REQUEST['op'])){
 		           'owner' => $_SESSION['User']['id'],
 		           'size'  => filesize($rfn_TmpZip),
 		           'path'  => $fn_TmpZip,
-		           'mtime' => new MongoDate(filemtime($rfn_TmpZip))
+		           'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($rfn_TmpZip)*1000)
 			);
 
 

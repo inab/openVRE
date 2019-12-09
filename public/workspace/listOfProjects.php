@@ -125,7 +125,7 @@ $projects = getProjects_byOwner();
 													<tr>
 														<td><?php echo $pr["name"]; ?></td>
 														<td><?php echo $pr["description"]; ?></td>
-														<td><?php echo strftime('%Y/%m/%d %H:%M', $pr['atime']->sec) ?></td>
+														<td><?php echo strftime('%Y/%m/%d %H:%M', $pr['atime']->toDateTime()->format('U')) ?></td>
 														<td>
 															<a href="workspace/editProject.php?id=<?php echo $pr["_id"]; ?>">
 																<i class="fa fa-pencil-square-o tooltips" aria-hidden="true" data-container="body" data-html="true" data-placement="top" data-original-title="<p align='left' style='margin:0'>Click here to edit this project.</p>"></i>

@@ -109,8 +109,8 @@ $communities = getCommunities();
                       <th> Description </th>
                       <th> Version </th>
                       <th> Type </th>
-                      <th> Study </th>
-                      <th> Access credentials </th>
+                      <th> Repository </th>
+                      <th> Visibility </th>
                       <th> Import </th>
 
                     </tr>
@@ -120,32 +120,23 @@ $communities = getCommunities();
                     <!-- process and display each result row -->
                     
 			<?php
-	$ds_list =  getDatasets();	
-	//JL DEMO
-	$ds_list = True;
-	if ($ds_list){
-		$datasets=[
-			['_id'=>'EGAD0001000309',
-			'name'=> 'UK10K_OBESITY_GS REL-2012-11-27',
-			'description' => '',
-			'version' => '',
-			'datatype' => 'Exome Seq',
-			'study' => 'UK10K_OBESITY_GS',
-			'access' => 'pending'
-		]];
-		//		foreach (getDatasets() as $obj) {
-		foreach ($datasets as $obj) {
-				if($obj['type'] != "participant") {
-					
+			$ds_list =  getDatasets();	
+			if ($ds_list){
+			foreach (getDatasets() as $obj) {
+                            if($obj->type != "participant") {
                         ?>
                         <tr>
-                          <td> <?php echo $obj["_id"]; ?> </td>
-                          <td> <?php echo $obj["name"]; ?> </td>
-                          <td> <?php echo $obj["description"]; ?> </td>
-                          <td> <?php echo $obj["version"]; ?> </td>
-			  <td> <?php echo $obj["datatype"]; ?> </td>
-                          <td> <?php echo $obj["study"]; ?> </td>
-                          <td> <?php echo $obj['access']; ?> </td>
+                          <td> <?php echo "$obj->_id"; ?> </td>
+                          <td> <?php echo "$obj->name"; ?> </td>
+                          <td> <?php echo "$obj->description"; ?> </td>
+                          <td> <?php echo "$obj->version"; ?> </td>
+                          <td> <?php echo getDataTypeName($obj->type); ?> </td>
+                          <td> <?php 
+                            foreach ($obj->community_ids as $id) {
+                              echo $communities[$id]["acronym"]." ";
+                            }
+                          ?> </td>
+                          <td> <?php echo "$obj->visibility"; ?> </td>
                           <td style="vertical-align:middle;">
 			    
                             <?php

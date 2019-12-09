@@ -35,8 +35,8 @@ div.tooltip-inner  {
  }
 
 .btn.green:not(.btn-outline)  {
-     background-color: #085176!important;
-    border-color: #085176!important;
+     background-color: #005076!important;
+    border-color: #005076!important;
  }
 
 .btn.green:not(.btn-outline):hover  {
@@ -153,7 +153,7 @@ div.tooltip-inner  {
 
 /* HEADER */
 .page-header.navbar  {
-     background-color: #085176;
+     background-color: white;
  }
 
 .logo-default  {
@@ -161,7 +161,7 @@ div.tooltip-inner  {
  }
 
 .page-header.navbar .top-menu .navbar-nav>li.dropdown .dropdown-toggle:hover,  .page-header.navbar .top-menu .navbar-nav>li.dropdown.open .dropdown-toggle  {
-     background-color: #06415E;
+     background-color: white;
  }
 
 /* TOP BAR */
@@ -206,11 +206,11 @@ body  {
  }
 
 .page-sidebar .page-sidebar-menu>li.active.open>a,  .page-sidebar .page-sidebar-menu>li.active>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active.open>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active>a  {
-     background-color: #007399;
+     background-color: #e4032e;
  }
 
 .page-sidebar .page-sidebar-menu>li.active.open>a:hover,  .page-sidebar .page-sidebar-menu>li.active>a:hover,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active.open>a:hover,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active>a:hover  {
-     background-color: #007399;
+     background-color: #e4032e;
  }
 
 .page-sidebar .page-sidebar-menu .sub-menu>li.active>a,  .page-sidebar .page-sidebar-menu .sub-menu>li.open>a,  .page-sidebar .page-sidebar-menu .sub-menu>li:hover>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu .sub-menu>li.active>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu .sub-menu>li.open>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu .sub-menu>li:hover>a  {
@@ -643,17 +643,17 @@ tr.first-tr td  {
 .btn.btn-outline.blue:active:hover, 
 .btn.btn-outline.blue:focus, 
 .btn.btn-outline.blue:hover  {
-     background-color:  #06415e;
-     border-color:  #06415e;
+     background-color: #005076 ;
+     border-color: #005076 ;
  }
 
 .btn.btn-outline.blue  {
-     border-color:  #06415e;
-    color:  #06415e;
+     border-color: #005076 ;
+    color: #005076 ;
  }
 
 .cbp-caption-zoom .cbp-caption-defaultWrap  {
-     border:  2px solid #06415e;
+     border:  2px solid #005076;
  }
 
 .portfolio-content.portfolio-3 .cbp-caption-zoom .cbp-caption-activeWrap, 

@@ -3,11 +3,10 @@
 
 require __DIR__."/../../config/bootstrap.php";
 
-//redirectAdminOutside();
 redirectToolDevOutside();
 
 if (checkAdmin() || in_array($_REQUEST["tool"],$_SESSION['User']['ToolsDev']) ){
-    $GLOBALS['toolsCol']->update(array('_id' => $_REQUEST["tool"]),
+    $GLOBALS['toolsCol']->updateOne(array('_id' => $_REQUEST["tool"]),
                                  array('$set'   => array('status' => intval($_REQUEST["status"])))
                              );
 }

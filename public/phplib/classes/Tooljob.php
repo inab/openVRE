@@ -175,20 +175,20 @@ class Tooljob {
     	$wd     = $GLOBALS['dataDir']."/$wdFN";
 	
     	if (!$overwrite){
-    		$prevs = $GLOBALS['filesCol']->find(array('path' => $wdFN, 'owner' => $_SESSION['User']['id']) );
-    		if ($prevs->count() > 0){
+    		$prevs = $GLOBALS['filesCol']->findOne(array('path' => $wdFN, 'owner' => $_SESSION['User']['id']));
+    		if ($prevs){
     		    for ($n=1;$n<99;$n++){
-                	$executionN= $execution. "_$n";
-        			$wdFN    = "$dataDirPath/$executionN";
-        			$prevs   = $GLOBALS['filesCol']->find(array('path' => $wdFN, 'owner' => $_SESSION['User']['id']));
-        			if ($prevs->count() == 0){
-        			    $execution= $executionN;
+               		$executionN=  $execution. "_$n";
+       			$wdFN      = "$dataDirPath/$executionN";
+       			$prevs     =  $GLOBALS['filesCol']->findOne(array('path' => $wdFN, 'owner' => $_SESSION['User']['id']));
+       			if ($prevs){
+       			    $execution= $executionN;
     	        	    $wd     = $GLOBALS['dataDir']."/$wdFN";
-        			    break;
-        		    }
+       			    break;
+       		       }
 	            }
-		    }
-	    }
+		}
+	}
         $this->execution           = $execution;
         $this->working_dir         = $this->root_dir."/".$this->project."/".$this->execution;
 
@@ -884,7 +884,7 @@ class Tooljob {
 
 	//Setting PMES execution user (name,uid,gid, token)
 	exec("stat  -c '%u:%g' ".$this->working_dir,$stat_out);
-	list($user_uid,$user_gid) = split(":",$stat_out[0]);
+	list($user_uid,$user_gid) = explode(":",$stat_out[0]);
 	$user_name = "vre".substr(md5(rand()),0,5);
 
     $token_id="";
@@ -1205,7 +1205,7 @@ class Tooljob {
         if (isset($file['mtime']))
             $mugfile['creation_time'] = $file['mtime'];
         else
-            $mugfile['creation_time'] = new \MongoDate();
+            $mugfile['creation_time'] = new MongoDB\BSON\UTCDateTime(strtotime("now")*1000);
 
 		// taxon_id -> taxon_id
         if (isset($file['taxon_id'])){

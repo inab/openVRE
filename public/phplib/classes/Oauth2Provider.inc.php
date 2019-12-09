@@ -10,17 +10,17 @@ class MuG_Oauth2Provider extends GenericProvider {
     public function __construct(array $options = [], array $collaborators = [])
     {
         // set openID endpoints from global app conf
-        if (!$options['urlAuthorize'] && $GLOBALS['urlAuthorize'])
+        if (!isset($options['urlAuthorize']) && $GLOBALS['urlAuthorize'])
              $options['urlAuthorize'] = $GLOBALS['urlAuthorize'];
-        if (!$options['urlAccessToken'] && $GLOBALS['urlAccessToken'])
+        if (!isset($options['urlAccessToken']) && $GLOBALS['urlAccessToken'])
              $options['urlAccessToken'] = $GLOBALS['urlAccessToken'];
-        if (!$options['urlResourceOwnerDetails'] && $GLOBALS['urlResourceOwnerDetails'])
+        if (!isset($options['urlResourceOwnerDetails']) && $GLOBALS['urlResourceOwnerDetails'])
              $options['urlResourceOwnerDetails'] = $GLOBALS['urlResourceOwnerDetails'];
-        if (!$options['urlLogout'] && $GLOBALS['urlLogout'])
+        if (!isset($options['urlLogout']) && $GLOBALS['urlLogout'])
              $options['urlLogout'] = $GLOBALS['urlLogout'];
         
         // set VRE as openID client
-        if (!$options['clientId'] && !$options['clientSecret']){
+        if (!isset($options['clientId']) && !isset($options['clientSecret'])){
 	    $confFile = $GLOBALS['auth_credentials'];
     	    $conf = array();
 	    if (($F = fopen($confFile, "r")) !== FALSE) {

@@ -56,7 +56,8 @@ function getProject($query,$asRoot=0,$owner=0){
 
     }elseif($query_type == "path"){
         $proj_path = (preg_match('/^__PROJ/',$query)?"$owner/$query":$query);
-        return reset(getGSFiles_filteredBy(array("path"=> $proj_path),$asRoot));
+        $files_proj = getGSFiles_filteredBy(array("path"=> $proj_path),$asRoot);
+        return reset($files_proj);
 
     }else{
         return array();

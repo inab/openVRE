@@ -17,10 +17,9 @@ function openTermsOfUse() {
 
 
 function checkSessionState() {
-
 	$.ajax({
 		type: "POST",
-		url: baseURL + "/applib/checkSession.php",
+		url: baseURL+"/applib/checkSession.php",
 		data:"id=1",
 		success: function(data) {
 			var obj = JSON.parse(data);

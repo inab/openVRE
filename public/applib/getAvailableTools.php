@@ -4,7 +4,7 @@ require __DIR__."/../../config/bootstrap.php";
 
 redirectOutside();
 
-if(!$_POST){
+if(!$_REQUEST){
 	//redirect($GLOBALS['URL']);
 	echo "Network error, please reload the Workspace";
 }
@@ -14,7 +14,6 @@ $fdt = getFiles_DataTypes($_REQUEST["fn"]);
 
 // getting all combinations for every tool
 $dt = getTools_DataTypes();
-//var_dump($dt);
 
 // getting all possible tools according to the given data types and tools combinations
 $toolsList = getTools_ByDT($dt, $fdt);

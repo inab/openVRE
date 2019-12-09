@@ -14,7 +14,7 @@ if(!isset($_GET['q'])) redirect($GLOBALS['URL']);
         <!-- BEGIN LOGO -->
         <div class="logo">
             <a href="<?php echo $GLOBALS['URL']; ?>">
-                <img src="assets/pages/img/logo-big.png" alt="" /> </a>
+                <img src="assets/layouts/layout/img/logo-big.png" alt="" /> </a>
         </div>
         <!-- END LOGO -->
         <!-- BEGIN LOGIN -->

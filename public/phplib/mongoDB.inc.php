@@ -50,6 +50,8 @@ function getGSFilesFromDir($dataSelection=Array(),$onlyVisible=0){
         );
     }
     // query directory document
+
+
     $dirData = $GLOBALS['filesCol']->findOne($dataSelection);
 
     if (!isset($dirData['_id'])){
@@ -68,23 +70,23 @@ function getGSFilesFromDir($dataSelection=Array(),$onlyVisible=0){
     // retrieve File Data and Metada for each file in directory
     $count =count( $dirData['files']);
 
-	foreach ($dirData['files'] as $d) {
+    foreach ($dirData['files'] as $d) {
 
         if ($onlyVisible)
 		    $fData = getGSFile_filteredBy($d, array('visible'=> Array('$ne'=>false)) );	
 	    else
 	    	    $fData = getGSFile_fromId($d);
 
-	    if ( $fData['path'] == $_SESSION['User']['id'] ){ // home file
+	if ( $fData['path'] == $_SESSION['User']['id'] ){ // home file
             continue;
         }
         if ($fData == 0){ // file visible == false
             continue;
-        }
+	}
+	$fData['mtime'] = $fData['mtime']->toDateTime()->format('U'); # UTC DateTime to seconds
 
-	    $fData['mtime'] = $fData['mtime']->sec;
-	    $files[$fData['_id']] = $fData; 
-	    if (isset($fData['files']) && count($fData['files'])>0 ){
+	$files[$fData['_id']] = $fData; 
+	if (isset($fData['files']) && count($fData['files'])>0 ){
 		foreach ($fData['files'] as $dd) {
 
 	    		if ($onlyVisible)
@@ -93,12 +95,12 @@ function getGSFilesFromDir($dataSelection=Array(),$onlyVisible=0){
 	    	   	     $ffData = getGSFile_fromId($dd);
 
 			if (is_object($ffData['mtime']))
-				$ffData['mtime'] = $ffData['mtime']->sec;
+				$ffData['mtime'] = $ffData['mtime']->toDateTime()->format('U');
 	    		$files[$ffData['_id']] = $ffData; 
 		}
-	    }
 	}
-	return $files;
+    }
+    return $files;
 
 }
 
@@ -177,26 +179,29 @@ function getGSFile_filteredBy($fn,$filters) {
 	
 }
 
-
 function getGSFiles_filteredBy($filters,$asRoot=0) {
 
-	foreach ($filters as $attr => $v){
-		if (in_array($attr, Array('type','owner', 'size', 'path', 'mtime', 'atime' ,'parentDir', 'expiration','project', 'files', 'lastAccess')) )
-			$filter_filesCol[$attr] = $v;
-		else
-			$filter_filesMetaCol[$attr] = $v;
+#print_r($filters);
+		
+    $filter_filesCol=array();	
+    $filter_filesMetaCol=array();	
+    foreach ($filters as $attr => $v){
+	if (in_array($attr, Array('type','owner', 'size', 'path', 'mtime', 'atime' ,'parentDir', 'expiration','project', 'files', 'lastAccess')) )
+		$filter_filesCol[$attr] = $v;
+	else
+		$filter_filesMetaCol[$attr] = $v;
     }
 
     # files = filesData + filesMetadata
-		$files=array();
+    $files=array();
 
     if (count($filter_filesMetaCol) && count($filter_filesCol)){
         # Find in Files and FilesMetadata by filter.
         if (!$asRoot)
             $filter_filesCol['owner'] = $_SESSION['User']['id'];
-
-        $fileData = $GLOBALS['filesCol']->find($filter_filesCol); 
-        $fileData_arr = iterator_to_array($fileData);
+	$fileData = $GLOBALS['filesCol']->find($filter_filesCol)->toArray(); 
+	$fileData_arr = indexArray($fileData);
+	//$fileData_arr = iterator_to_array($fileData);
 
         if (empty($fileData)){
             return $files;
@@ -205,7 +210,7 @@ function getGSFiles_filteredBy($filters,$asRoot=0) {
         $ids = array_keys($fileData_arr);
         $filter_filesMetaCol["_id"] = array('$in' => $ids);
 
-        $fileMeta = $GLOBALS['filesMetaCol']->find($filter_filesMetaCol);
+        $fileMeta = $GLOBALS['filesMetaCol']->find($filter_filesMetaCol)->toArray();
 
         foreach ($fileMeta as $fm){
             $id = $fm['_id'];
@@ -217,15 +222,16 @@ function getGSFiles_filteredBy($filters,$asRoot=0) {
 
     }elseif (count($filter_filesMetaCol)){
         # Find in FilesMetadata by filter, and find the resulting files into Files 
-        $fileMeta = $GLOBALS['filesMetaCol']->find($filter_filesMetaCol);
+        $fileMeta = $GLOBALS['filesMetaCol']->find($filter_filesMetaCol)->toArray();
+	$fileMeta_arr = indexArray($fileMeta);
+        //$fileMeta_arr = iterator_to_array($fileMeta);
 
         if (empty($fileMeta)){
             return $files;
         }
-        $fileMeta_arr = iterator_to_array($fileMeta);
         $ids = array_keys($fileMeta_arr);
 
-        $fileData = $GLOBALS['filesCol']->find(array("_id" => array('$in' => $ids)));
+        $fileData = $GLOBALS['filesCol']->find(array("_id" => array('$in' => $ids)))->toArray();
 
         foreach ($fileData as $fd){
             $id = $fd['_id'];
@@ -251,10 +257,11 @@ function getGSFiles_filteredBy($filters,$asRoot=0) {
             return $files;
         }
 
-        $fileData_arr = iterator_to_array($fileData);
+        //$fileData_arr = iterator_to_array($fileData);
+	$fileData_arr = indexArray($fileData);
         $ids = array_keys($fileData_arr);
 
-        $fileMeta = $GLOBALS['filesMetaCol']->find(array("_id" => array('$in' => $ids)));
+        $fileMeta = $GLOBALS['filesMetaCol']->find(array("_id" => array('$in' => $ids)))->toArray();
 
         foreach ($fileMeta as $fm){
             $id = $fm['_id'];
@@ -405,7 +412,7 @@ function moveGSFileBNS($fn,$fnNew,$asRoot=0,$owner=""){
     // Update file entry
     modifyGSFileBNS($fileOld['_id'],"path", $fnNew);
     modifyGSFileBNS($fileOld['_id'],"parentDir", $parentNew);
-    modifyGSFileBNS($fileOld['_id'],"atime", new MongoDate(strtotime("now")));
+    modifyGSFileBNS($fileOld['_id'],"atime", new MongoDB\BSON\UTCDateTime(strtotime("now")*1000));
     if ($p_code !=""){
         modifyGSFileBNS($fileOld['_id'],"project", $p_code);
     }
@@ -421,22 +428,23 @@ function moveGSFileBNS($fn,$fnNew,$asRoot=0,$owner=""){
         }
     
     	// update new parentDir  - add moved file
-    	$GLOBALS['filesCol']->update (
+    	$GLOBALS['filesCol']->updateOne(
         	array("_id"=>$parentNew),
     	    array('$addToSet' => array("files" => $fileOld['_id']))
         );
-    	$timeObj = new MongoDate(strtotime("now"));
-    	modifyGSFileBNS($parentNew,"atime", new MongoDate(strtotime("now")));
+	var_dump("XXXXX",strtotime("now"));
+	
+    	modifyGSFileBNS($parentNew,"atime", new MongoDB\BSON\UTCDateTime(strtotime("now")*1000));
         $size_parent = 0 + getAttr_fromGSFileId($parentNew,"size");
     	modifyGSFileBNS($parentNew,"size", $size_parent + $fileOld['size']);
     
     
     	// update old parentDir - pull moved file
-    	$GLOBALS['filesCol']->update(
+    	$GLOBALS['filesCol']->updateOne(
     		 array('_id'=> $parentOld),
     		 array('$pull' => array("files"=>$fileOld['_id']))
          );
-    	modifyGSFileBNS($parentOld,"atime", new MongoDate(strtotime("now")));
+    	modifyGSFileBNS($parentOld,"atime", new MongoDB\BSON\UTCDateTime(strtotime("now")*1000));
         $size_parent = 0 + getAttr_fromGSFileId($parentOld,"size");
         modifyGSFileBNS($parentNew,"size", $size_parent - $fileOld['size']);
     }
@@ -505,7 +513,7 @@ function moveGSDirBNS($fn,$fnNew,$asRoot=0,$owner=""){
     // Update dir entry
     modifyGSFileBNS($dir['_id'],"path", $fnNew);
  	modifyGSFileBNS($dir['_id'],"parentDir", $parentNew);
-   	modifyGSFileBNS($dir['_id'],"atime", new MongoDate(strtotime("now")));
+   	modifyGSFileBNS($dir['_id'],"atime", new MongoDB\BSON\UTCDateTime(strtotime("now")*1000));
    
     $dirNew = getGSFileId_fromPath($fnNew,$asRoot);
     if ( empty($dirNew)){
@@ -518,22 +526,21 @@ function moveGSDirBNS($fn,$fnNew,$asRoot=0,$owner=""){
     if ($parentNew != $parentId){
 
 	    // update new parentDir  - add moved file
-    	$GLOBALS['filesCol']->update (
+    	$GLOBALS['filesCol']->updateOne(
         	array("_id"=>$parentNew),
     	    array('$addToSet' => array("files" => $dir['_id']))
         );
-    	$timeObj = new MongoDate(strtotime("now"));
-    	modifyGSFileBNS($parentNew,"atime", new MongoDate(strtotime("now")));
+    	modifyGSFileBNS($parentNew,"atime", new MongoDB\BSON\UTCDateTime(strtotime("now")*1000));
         $size_parent = 0 + getAttr_fromGSFileId($parentNew,"size");
     	modifyGSFileBNS($parentNew,"size", $size_parent + $dir['size']);
 
     
     	// update old parentDir - pull moved file
-    	$GLOBALS['filesCol']->update(
+    	$GLOBALS['filesCol']->updateOne(
 	    	 array('_id'=> $parentId),
     		 array('$pull' => array("files"=>$dir['_id']))
          );
-       	modifyGSFileBNS($parentId,"atime", new MongoDate(strtotime("now")));
+       	modifyGSFileBNS($parentId,"atime", new MongoDB\BSON\UTCDateTime(strtotime("now")*1000));
         $size_parent = 0 + getAttr_fromGSFileId($parentId,"size");
         $siz  = ($dir['size'] < $size_parent ? $size_parent - $dir['size']:0 );
     	modifyGSFileBNS($parentId,"size", $siz);
@@ -673,24 +680,24 @@ function createGSDirBNS($dirPath,$asRoot=0) {
 	$dirId = createLabel();
 
 
-	$col->update (
+	$col->updateOne(
 	   array('_id' => $dirId),
-	   array(
+	   array('$set' => array(
 			'_id'        => $dirId,
 			'type'       => 'dir',
 			'owner'      => $owner,
 			'size'       => 0,
 			'path'       => $dirPath,
 			'project'    => $project,
-			'mtime'      => new MongoDate(strtotime("now")),
-			'atime'      => new MongoDate(strtotime("now")),
-			'files'      => array(),
-			'parentDir'  => $parentId
-	   ),array('upsert'=> 1)
+			'mtime'      => new MongoDB\BSON\UTCDateTime(strtotime("now")*1000),
+			'atime'      => new MongoDB\BSON\UTCDateTime(strtotime("now")*1000),
+			'files'      => [],
+			'parentDir'  => $parentId)
+		),array('upsert'=> true)	
 	);
 
 	if ($parentId && $parentId!="0"){
-		$col->update (
+		$col->updateOne(
 			array("_id"=>$parentId),
 			array('$addToSet' => array("files" => $dirId))
 		);
@@ -726,7 +733,7 @@ function uploadGSFileBNS($fnPath, $file, $attributes=Array(), $meta=Array(), $lo
         }
         $parentId = $attributes['parentDir'];
     }
-    if (!$parentId){
+    if (!isset($parentId) || !$parentId){
        $parentPath  = dirname($fnPath);
        if ($parentPath == ".")
                $parentPath=$_SESSION['User']['id'];
@@ -768,7 +775,7 @@ function uploadGSFileBNS($fnPath, $file, $attributes=Array(), $meta=Array(), $lo
 		if (! isset($attributes['owner']))
 				$attributes['owner'] = $_SESSION['User']['id'];
 		if (! isset($attributes['mtime']))
-				$attributes['mtime'] = new MongoDate(filemtime($file));
+				$attributes['mtime'] = new MongoDB\BSON\UTCDateTime(filemtime($file)*1000);
 		if (! isset($attributes['size']))
 				$attributes['size'] =filesize($file);
 		if (! isset($attributes['parentDir']))
@@ -780,27 +787,26 @@ function uploadGSFileBNS($fnPath, $file, $attributes=Array(), $meta=Array(), $lo
 		if (! isset($attributes['expiration'])){
 				$expiration = $GLOBALS['caduca'] * 24 * 3600;
 				$t = filemtime($file);
-				$attributes['expiration'] = new MongoDate($t + $expiration);
+				$attributes['expiration'] = new MongoDB\BSON\UTCDateTime(($t + $expiration)*1000);
         }
 
         // insert file
-		$GLOBALS['filesCol']->update (
-			array('_id' => $fnId),
-			$attributes,
-			array('upsert'=> 1)
+		$GLOBALS['filesCol']->updateOne(
+			array('_id'  => $fnId),
+			array('$set' => $attributes),
+			array('upsert' => true)
 		);
 
         // update parent - add into files, set new size and atime
-		$GLOBALS['filesCol']->update (
+		$GLOBALS['filesCol']->updateOne(
 			array("_id"=>$parentId),
 			array('$addToSet' => array("files" => $fnId))
         );
 
-		$timeObj = new MongoDate(strtotime("now"));
-		modifyGSFileBNS($parentId,"atime", new MongoDate(filemtime($file)));
+	modifyGSFileBNS($parentId,"atime", new MongoDB\BSON\UTCDateTime(filemtime($file)*1000));
 
         $size_parent = 0 + getAttr_fromGSFileId($parentId,"size");
-		modifyGSFileBNS($parentId,"size", $size_parent + $attributes['size']);
+	modifyGSFileBNS($parentId,"size", $size_parent + $attributes['size']);
 
 
 	}
@@ -861,7 +867,7 @@ function uploadGSFileBNS_fromURL($url, $parentPath , $attributes=Array(), $meta=
 		if (! isset($attributes['owner']))
 				$attributes['owner'] = $_SESSION['User']['id'];
 		if (! isset($attributes['mtime']))
-				$attributes['mtime'] = new MongoDate(strtotime("now"));
+				$attributes['mtime'] = new MongoDB\BSON\UTCDateTime(strtotime("now")*1000);
 		if (! isset($attributes['size'])){
                 $ch = curl_init($params['url']);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -878,21 +884,20 @@ function uploadGSFileBNS_fromURL($url, $parentPath , $attributes=Array(), $meta=
 				$attributes['project'] = $_SESSION['User']['activeProject'];
 		if (! isset($attributes['expiration'])){
 				$expiration = $GLOBALS['caduca'] * 24 * 3600;
-				$attributes['expiration'] = new MongoDate(strtotime("now") + $expiration);
+				$attributes['expiration'] = new MongoDB\BSON\UTCDateTime((strtotime("now") + $expiration)*1000);
 		}
-		$GLOBALS['filesCol']->update (
+		$GLOBALS['filesCol']->updateOne(
 			array('_id' => $fnId),
 			$attributes,
-			array('upsert'=> 1)
+			array('upsert'=> true)
 		);
 
 		// set parent
-		$GLOBALS['filesCol']->update (
+		$GLOBALS['filesCol']->updateOne(
 			array("_id"=>$parentId),
 			array('$addToSet' => array("files" => $fnId))
 		);
-		$timeObj = new MongoDate(strtotime("now"));
-		modifyGSFileBNS($parentId,"atime", new MongoDate(filemtime($file)));
+		modifyGSFileBNS($parentId,"atime", new MongoDB\BSON\UTCDateTime(filemtime($file)*1000));
 
 	}
 	// add metadata file
@@ -906,14 +911,14 @@ function uploadGSFileBNS_fromURL($url, $parentPath , $attributes=Array(), $meta=
 //insert metadata for a file
 //overwrites all metadata
 function modifyMetadataBNS($fn, $metadata){
-	if (empty($GLOBALS['filesCol']->findOne(array('_id' => $fn))) ){
+	if (empty($GLOBALS['filesCol']->findOne(array('_id' => $fn))  ) ){
 		$_SESSION['errorData']['mongoDB'][]= "Cannot modify metadata for $fn. File not in the repository";
 		return 0;
 	}
-	$GLOBALS['filesMetaCol']->update (
+	$GLOBALS['filesMetaCol']->updateOne(
 			array('_id' => $fn),
-			$metadata,
-			array('upsert'=> 1)
+			array('$set' => $metadata),
+			array('upsert'=> true)
 	);
 	//if ($GLOBALS['filesMetaCol']->lastError()){
 	//	$err = $GLOBALS['filesMetaCol']->lastError();
@@ -933,10 +938,10 @@ function addMetadataBNS($fn, $metadata){
 		return 0;
 	}
 	foreach ($metadata as $k=>$v){
-		$GLOBALS['filesMetaCol']->update (
+		$GLOBALS['filesMetaCol']->updateOne(
 			array('_id'   => $fn),
 			array('$set'  => array($k => $v)),
-			array('upsert'=> 1)
+			array('upsert'=> true)
 		);
 		
 	}
@@ -954,7 +959,7 @@ function modifyGSFileBNS($fn, $attribute, $value){
 	}
 
 	if (is_string($attribute) && !is_array($value) ){
-		$GLOBALS['filesCol']->update (
+		$GLOBALS['filesCol']->updateOne(
 			array('_id' => $fn),
 			array('$set'=> array( $attribute => $value))
 		);
@@ -1016,11 +1021,11 @@ function deleteGSFileBNS($fn,$asRoot=0,$force=false){ //fn == fnId
     	}   
     
     	// delete file
-    	$GLOBALS['filesCol']->remove(array('_id'=> $fn));
-    	$GLOBALS['filesMetaCol']->remove(array('_id'=> $fn));
+    	$GLOBALS['filesCol']->deleteOne(array('_id'=> $fn));
+    	$GLOBALS['filesMetaCol']->deleteOne(array('_id'=> $fn));
 
         // update parent dir
-	    $GLOBALS['filesCol']->update(
+	    $GLOBALS['filesCol']->updateOne(
 			array('_id'=> $parentId),
 			array('$pull' => array("files"=>$fn))
         );
@@ -1058,10 +1063,10 @@ function deleteGSDirBNS($fn,$asRoot=0,$force=false){
 			return 0;
 	}
 
-	$GLOBALS['filesCol']->remove(array('_id'=> $fn));
-	$GLOBALS['filesMetaCol']->remove(array('_id'=> $fn));
+	$GLOBALS['filesCol']->deleteOne(array('_id'=> $fn));
+	$GLOBALS['filesMetaCol']->deleteOne(array('_id'=> $fn));
 
-	$GLOBALS['filesCol']->update(
+	$GLOBALS['filesCol']->updateOne(
 				array('_id'=> $parentId),
 				array('$pull' => array("files"=>$fn))
 		  	);
@@ -1171,10 +1176,10 @@ function calcGSUsedSpace ($id) {
 */
 
     
-    $files = $GLOBALS['filesCol']->find(array('owner' => $id));
+    $files = $GLOBALS['filesCol']->find(array('owner' => $id))->toArray();
     $size=0;
     foreach ($files as $f){
-        if ($f['type'] == "dir")
+        if (isset($f['type']) && $f['type'] == "dir")
             continue;
         $size+=$f['size'];
     }
@@ -1202,7 +1207,7 @@ function calcGSUsedSpaceDir ($fn) {
         return $d['result'][0]['size']+0.;
      */
 
-    $files = $GLOBALS['filesCol']->find(array('parentDir' => $fn));
+    $files = $GLOBALS['filesCol']->find(array('parentDir' => $fn))->toArray();
     $size=0;
     foreach ($files as $f){
         $size+=$f['size'];
@@ -1218,7 +1223,7 @@ function uploadGSFile($col,$fn,$fsFile) {
 
    if(file_exists($fsFile)){
    	chdir($path);
-   	$col->remove(array('filename' => $fn));
+   	$col->deleteOne(array('filename' => $fn));
 	//exec("cd $path;mongofiles -h mmb.pcb.ub.es -u dataLoader -p mdbwany2015 --authenticationDatabase admin -d restcastemp -r put $fn");
 	//$col->storeBytes(file_get_contents("$fsFile"), array('filename'=>$fn));
 	$col->storeFile($fsFile,array('filename'=>$fn));

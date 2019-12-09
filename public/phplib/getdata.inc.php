@@ -100,7 +100,7 @@ function getData_fromLocal() {
 			$insertData=array(
 				'owner' => $_SESSION['User']['id'],
 				'size'  => filesize($rfnNew),
-				'mtime' => new MongoDate(filemtime($rfnNew))
+				'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($rfnNew)*1000)
 			);
 			$metaData=array(
 				'validated' => FALSE
@@ -283,7 +283,7 @@ function prepare_getData_fromURL($url,$outdir,$referer,$meta=array()) {
     	   if(!mkdir($dirTmp, 0775, true)) {
     		$_SESSION['errorData']['error'][]="Cannot create temporal file $dirTmp . Please, try it later.";
     		$resp['state']=0;
-	    	break;
+	    	#break;
     	    }
         }
 
@@ -356,7 +356,7 @@ function  getData_wget_asyncron($toolArgs,$toolOuts,$output_dir,$referer){
         $insertData=array(
     	'owner' => $_SESSION['User']['id'],
     	'size'  => $size,
-    	'mtime' => new MongoDate(strtotime("now"))
+    	'mtime' => new new MongoDB\BSON\UTCDateTime(strtotime("now")*1000)
         );
         $descrip=(isset($params['repo'])?"Remote file extracted from ".$params['repo']:"Remote file");
         $metaData=array(
@@ -410,7 +410,7 @@ function  getData_wget_syncron($toolArgs,$toolOuts,$output_dir,$referer){
 		$insertData=array(
 			'owner' => $_SESSION['User']['id'],
 			'size'  => filesize($fnP),
-			'mtime' => new MongoDate(filemtime($fnP))
+			'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($fnP)*1000)
 		);
 
 		$metaData=array(
@@ -507,7 +507,7 @@ function getData_fromTXT() {
 		$insertData=array(
 			'owner' => $_SESSION['User']['id'],
 			'size'  => filesize($rfnNew),
-			'mtime' => new MongoDate(filemtime($rfnNew))
+			'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($rfnNew)*1000)
 		);
 
 		$metaData=array(
@@ -646,7 +646,7 @@ print "output  (file or folder) = $output\n";
     	   if(!mkdir($dirTmp, 0775, true)) {
     		$_SESSION['errorData']['error'][]="Cannot create temporal file $dirTmp . Please, try it later.";
     		$resp['state']=0;
-	    	break;
+	    	#break;
     	    }
         }
 
@@ -662,7 +662,7 @@ print "output  (file or folder) = $output\n";
                 "output" => $fnP
 	);
 	if ($compression and $extract_uncompress){
-		$compressors = split(",",$compression);
+		$compressors = explode(",",$compression);
 		foreach($compressors as $c){
 		    if ($c == "TAR"){
 			$toolArgs['archiver']  = $c;
@@ -906,7 +906,7 @@ function getData_fromRepository($params=array()) { //url, repo, id, taxon, filen
     	   if(!mkdir($dirTmp, 0775, true)) {
     		$_SESSION['errorData']['error'][]="Cannot create temporal file $dirTmp . Please, try it later.";
     		$resp['state']=0;
-	    	break;
+	    	#break;
     	    }
         }
 
@@ -977,7 +977,7 @@ function getData_fromRepository($params=array()) { //url, repo, id, taxon, filen
         $insertData=array(
     	'owner' => $_SESSION['User']['id'],
     	'size'  => $size,
-    	'mtime' => new MongoDate(strtotime("now"))
+    	'mtime' => new MongoDB\BSON\UTCDateTime(strtotime("now")*1000)
         );
         $descrip=(isset($params['repo'])?"Remote file extracted from ".$params['repo']:"Remote file");
         $metaData=array(
@@ -1010,8 +1010,9 @@ function getSampleDataList($status=1,$filter_tool_status=true) {
 
     $ft;
     if ($filter_tool_status){
-        $fa = $GLOBALS['toolsCol']->find(array('status' => 1),array('_id' => 1));
-        $tools_active = array_keys(iterator_to_array($fa));
+	    $fa = indexArray($GLOBALS['toolsCol']->find(array('status' => 1),array('_id' => 1)));
+	    $fu = indexArray($GLOBALS['visualizersCol']->find(array('status' => 1),array('_id' => 1)));
+	    $tools_active = array_keys(array_merge($fa,$fu));
 
         // if common/anon user, list sampledata for active tools
         if ($_SESSION['User']['Type'] == 3 || $_SESSION['User']['Type'] == 2){
@@ -1020,11 +1021,11 @@ function getSampleDataList($status=1,$filter_tool_status=true) {
                                                     array("status" => $status, "tool"=> array('$not' => array('$exists' => 1)) ),
                                                     array("status" => $status, "tool"=> array('$in'  => $tools_active))
                                                 )
-                                            ))->sort(array('_id' => 1));
+                                            ),array('_id' => 1));
 
         // if admin user, list sampledata regardless tool status    
         }elseif ($_SESSION['User']['Type'] == 0){
-            $ft = $GLOBALS['sampleDataCol']->find(array('status' => $status))->sort(array('_id' => 1));
+            $ft = $GLOBALS['sampleDataCol']->find(array('status' => $status),array('_id' => 1));
         
         // if tool dev user, list sampledata for active tools + its own tools
         }elseif ($_SESSION['User']['Type'] == 1){
@@ -1035,13 +1036,13 @@ function getSampleDataList($status=1,$filter_tool_status=true) {
                                                     array("status" => $status, "tool"=> array('$not' => array('$exists' => 1)) ),
                                                     array("status" => $status, "tool"=> array('$in'  => array_merge($tools_active,$tools_owned)))
                                                 )
-                                            ))->sort(array('_id' => 1));
+                                            ),array('_id' => 1));
 
         }
 
     }else{
         // list active sample data sets, regardless tool status
-        $ft = $GLOBALS['sampleDataCol']->find(array('status' => $status))->sort(array('_id' => 1));
+        $ft = $GLOBALS['sampleDataCol']->find(array('status' => $status),array('_id' => 1));
     }
 	return iterator_to_array($ft);
 
@@ -1184,7 +1185,7 @@ function getData_fromURL_DEPRECATED($source, $ext = null) {
 		$insertData=array(
 			'owner' => $_SESSION['User']['id'],
 			'size'  => filesize($rfnNew),
-			'mtime' => new MongoDate(filemtime($rfnNew))
+			'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($rfnNew)*1000)
 		);
 
 		$metaData=array(

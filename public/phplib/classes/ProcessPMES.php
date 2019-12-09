@@ -201,7 +201,7 @@ class ProcessPMES{
 		if (!isset($_SERVER['HTTP_X_FORWARDED_SERVER'])){
             return 0;
         }else{
-            $serverName = split(",",$_SERVER['HTTP_X_FORWARDED_SERVER'])[0];
+            $serverName = explode(",",$_SERVER['HTTP_X_FORWARDED_SERVER'])[0];
         }
 		foreach ($GLOBALS['clouds'] as $cloudName => $cloudInfo){
 			if ($cloudInfo['http_host'] == $serverName){

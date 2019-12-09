@@ -57,7 +57,7 @@ function fromMongoToLdap($UserMongo){
         $info['sn']= $UserMongo['Name'];
     if ($UserMongo['Country']){
         $countries = array();
-        foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(),array('country'=>1))->sort(array('country'=>1)))) as $v)
+        foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(),array('country'=>1)))) as $v)
         	$countries[$v['_id']] = $v['country'];
         $info['l'] = $countries[$UserMongo['Country']];
     }

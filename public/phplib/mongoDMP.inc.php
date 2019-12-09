@@ -117,7 +117,7 @@ function getGSFilesFromDir_TEST($dirId,$onlyVisible=0){  ### !OJO: old params we
         //clean results: visible files, root dir, mtime
         if ($onlyVisible && (isset($fData['visible']) || $fData['visible'] === false) ){ continue;}
 	    if ( $fData['path'] == $_SESSION['User']['id']){continue; }
-       	if (is_object($fData['mtime'])){$fData['mtime'] = $fData['mtime']->sec;}
+       	if (is_object($fData['mtime'])){$fData['mtime'] = $fData['mtime']->toDateTime()->format('U');}
         //append
         $files[$fData['_id']] = $fData; 
 
@@ -126,7 +126,7 @@ function getGSFilesFromDir_TEST($dirId,$onlyVisible=0){  ### !OJO: old params we
                 $ffData = getGSFile_fromId_TEST($dd);
                 //clean results: visible files, root dir, mtime
                 if ($onlyVisible && (isset($ffData['visible']) || $ffData['visible'] === false) ){ continue;}
-       			if (is_object($ffData['mtime'])){$ffData['mtime'] = $ffData['mtime']->sec;}
+       			if (is_object($ffData['mtime'])){$ffData['mtime'] = $ffData['mtime']->toDateTime()->format('U');}
                 //append
         		$files[$ffData['_id']] = $ffData; 
     		}
@@ -290,11 +290,11 @@ function createGSDirBNS_TEST($dirPath,$asRoot=0) {
 	$dataDMP = array(
 			'user_id'       => $owner,
 			'file_path'     => $dirPath,
-            'creation_time' => new MongoDate(strtotime("now")),
+            'creation_time' => new MongoDB\BSON\UTCDateTime(strtotime("now")*1000),
             'meta_data' =>  array(
       			'size'       => 0,
     			'type'       => 'dir',
-			    'atime'      => new MongoDate(strtotime("now")),
+			    'atime'      => new MongoDB\BSON\UTCDateTime(strtotime("now")*1000),
 			    'files'      => array(),
                 'parentDir'  => $parentId
             )

@@ -32,7 +32,7 @@ require __DIR__."/../../config/bootstrap.php";
       	<!-- END PAGE LEVEL STYLES -->
         <!-- BEGIN THEME LAYOUT STYLES -->
 	
-	<link href="assets/layouts/layout/css/layout.min.css" rel="stylesheet" type="text/css" />
+	<link href="assets/layouts/layout/css/layout.css" rel="stylesheet" type="text/css" />
         <link href="assets/layouts/layout/css/themes/darkblue.min.css" rel="stylesheet" type="text/css" id="style_color" />			
 	<link href="assets/layouts/layout/css/custom.min.css" rel="stylesheet" type="text/css" />
         <!-- END THEME LAYOUT STYLES -->
@@ -46,7 +46,7 @@ require __DIR__."/../../config/bootstrap.php";
         <!-- BEGIN LOGO -->
         <div class="logo">
 	<a href="">
-        <img src="assets/pages/img/logo-big.png" alt="" /> </a>
+        <img src="assets/layouts/layout/img/logo-big.png" alt="" /> </a>
         </div>
         <!-- END LOGO -->
         <!-- BEGIN LOGIN -->
@@ -76,7 +76,7 @@ require __DIR__."/../../config/bootstrap.php";
         <!-- BEGIN PAGE LEVEL SCRIPTS -->
 						        <!-- END PAGE LEVEL SCRIPTS -->
         <!-- BEGIN THEME LAYOUT SCRIPTS -->
-        			<script src="assets/layouts/layout/scripts/layout.min.js" type="text/javascript"></script>
+        			<script src="assets/layouts/layout/scripts/layout.js" type="text/javascript"></script>
 			<script src="assets/layouts/layout/scripts/main.js" type="text/javascript"></script>
 					<!-- END THEME LAYOUT SCRIPTS -->
 					

@@ -1,9 +1,11 @@
 <?php
 
-require "../../config/globals.inc.php";
+#require "../../config/globals.inc.php";
+require __DIR__."/../../config/bootstrap.php";
 
 // resume session without restarting timeout
-session_start();
+if(!isset($_SESSION))
+	session_start();
 
 // timeout in seconds for the ending of sessions
 $timeout = $GLOBALS['TIMEOUT']; 

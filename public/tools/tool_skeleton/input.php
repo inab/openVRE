@@ -151,7 +151,7 @@ $tool   = getTool_fromId($toolId,1);
 
 			     <div class="row">
 
-				<?php if( $_REQUEST["op"] == 0 ) { ?>
+				<?php if( $_REQUEST["op"] == 0 ) {  ?>
 					<div class="col-md-12">
 						<?php $ff = matchFormat_File($tool['input_files']['fasta1']['file_type'], $inPaths); ?>
 						<?php InputTool_printSelectFile($tool['input_files']['fasta1'], $rerunParams['fasta1'], $ff[0], false, true); ?>

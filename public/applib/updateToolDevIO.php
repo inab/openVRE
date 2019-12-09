@@ -40,7 +40,7 @@ if($_REQUEST){
 	/*$GLOBALS['toolsDevCol']->remove(array('_id'=> $_REQUEST["toolid"]));
 	$GLOBALS['toolsDevCol']->insert($data_json);*/
 
-	$GLOBALS['toolsDevMetaCol']->update(array('_id' => $_REQUEST['toolid']),
+	$GLOBALS['toolsDevMetaCol']->updateOne(array('_id' => $_REQUEST['toolid']),
 		array('$set'   => array(
 			'last_status_date' => date('Y/m/d H:i:s'), 
 			'step1.tool_io' => $data_json, 

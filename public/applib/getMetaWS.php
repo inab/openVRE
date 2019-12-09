@@ -34,7 +34,7 @@ if($mt["path"] != "") {
     $name_th = ((isset($mt['type']) && $mt['type']=="dir")? "Directory Name":"File Name");
     $p = explode("/", $mt['path']);
     $project_name="foo project";
-    if (isset($mt[project]) && isProject($mt['project'])){
+    if (isset($mt['project']) && isProject($mt['project'])){
         $project = getProject($mt['project']);
         $project_name = $project['name'];
     }
@@ -137,18 +137,6 @@ if($_REQUEST["type"] == 1) {
     	</tr>
     	</tbody>
     </table>
-    <table class="table table-striped table-bordered">
-        <tbody>
-        <tr>
-    	    <th style="width:50%;"><b>OpEB dataset identifier</b></th>
-    	    <th><b>OpEB community</b></th>
-    	</tr>
-    	<tr>
-   			<td><?php echo $datasetId; ?></td>
-   			<td><?php echo $community; ?></td>
-    	</tr>
-    	</tbody>
-    </table>
 
     <?php
     if(isset($mt["paired"]) || isset($mt["sorted"])){
@@ -177,9 +165,10 @@ if($_REQUEST["type"] == 1) {
 
 $expiration ="";
 if (isset($mt['expiration'])){
-    if (isset($mt['expiration']->sec)){
-        $days2expire = intval(( $mt['expiration']->sec - time() ) / (24 * 3600));
-        $mt['expiration'] = strftime('%Y/%m/%d %H:%M', $mt['expiration']->sec);
+    if (is_object($mt['expiration'])){
+    	$expiration_date = $mt['expiration']->toDateTime()->format('U');
+        $days2expire = intval(( $expiration_date - time() ) / (24 * 3600));
+        $mt['expiration'] = strftime('%Y/%m/%d %H:%M', $expiration_date);
         if ($days2expire < 0 ){
             $expiration = "File/folder has not expiration date";
         }else{

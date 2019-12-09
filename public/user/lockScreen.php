@@ -32,7 +32,7 @@ logoutUser();
 <body class="">
         <div class="page-lock">
             <div class="page-logo">
-                    <img src="assets/pages/img/logo-big.png" alt="logo" />
+                    <img src="assets/layouts/layout/img/logo-big.png" alt="logo" />
             </div>
             <div class="page-body">
                 <div class="lock-head"> Locked </div>

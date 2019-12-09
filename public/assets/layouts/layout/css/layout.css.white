@@ -1591,7 +1591,7 @@ Page content
   padding: 0px;
   background-color: #fff; }
   .page-container-bg-solid .page-content {
-    background: #eef1f5; }
+    background: white; }
   .page-content-white .page-content .page-bar {
     border-bottom: 1px solid #e7ecf1; }
   .page-content-white.page-md .page-content .page-bar,

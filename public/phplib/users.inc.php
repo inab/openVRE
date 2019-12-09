@@ -10,7 +10,8 @@
 
 function checkLoggedIn(){
 
-	$user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
+	if (isset($_SESSION['User']) && isset($_SESSION['User']['_id']))
+		$user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
 	
 	if(isset($_SESSION['User']) && ($user['Status'] == 1)) return true;
 	else return false;
@@ -18,7 +19,7 @@ function checkLoggedIn(){
 
 function checkTermsOfUse() {
 
-	if($_SESSION['User']['terms'] == 1) return true;
+	if(isset($_SESSION['User']['terms']) and $_SESSION['User']['terms']== 1) return true;
 	else return false;
 }
 
@@ -112,13 +113,14 @@ function createUserFromToken($login,$token,$userinfo=array(),$anonID=false){
           );
         }
     }
-    if ($userinfo){
-        if ($userinfo['family_name'])
+    if (isset($userinfo) && $userinfo){
+        if (isset($userinfo['family_name']))
            $f['Surname'] = $userinfo['family_name'];
-        if ($userinfo['given_name'])
+        if (isset($userinfo['given_name']))
             $f['Name'] = $userinfo['given_name'];
-        if ($userinfo['provider'])
+        if (isset($userinfo['provider']))
             $f['AuthProvider'] = $userinfo['provider'];
+    	$f['TokenInfo'] = $userinfo;
     }
     $objUser = new User($f, True);
     if (!$objUser)
@@ -158,7 +160,7 @@ function createUserFromToken($login,$token,$userinfo=array(),$anonID=false){
     }
     if ($anonID){
     	// if replacing anon user, delete old anon from mongo
-//    	$GLOBALS['usersCol']->remove(array('_id'=> $anonID));    
+//    	$GLOBALS['usersCol']->deleteOne(array('_id'=> $anonID));    
     }
     
     //  inject user['id'] into auth server (keycloak) as 'vre_id' (so APIs will find it in /openid-connect/userinfo endpoint)
@@ -314,7 +316,7 @@ function delUser($id, $asRoot=1, $force=false){
      */
 
     //delete user from mongo
-    $GLOBALS['usersCol']->remove(array('id'=> $id));
+    $GLOBALS['usersCol']->deleteOne(array('id'=> $id));
 
     return 1;
 }
@@ -394,7 +396,7 @@ function logoutAnon() {
 }
 
 function saveNewUser($userObj) {
-    $r = $GLOBALS['usersCol']->insert($userObj);
+    $r = $GLOBALS['usersCol']->insertOne($userObj);
     if (!$r)
         return false;
 
@@ -404,15 +406,15 @@ function saveNewUser($userObj) {
 // update user document in  Mongo
 
 function updateUser($f) {
-    $GLOBALS['usersCol']->update(array('_id' => $f['_id']), $f, array('upsert=>1'));
+    $GLOBALS['usersCol']->updateOne(array('_id' => $f['_id']), array('$set'=>$f), array('upsert=>true'));
 }
 
 // update attribute user document in Mongo
 
 function modifyUser($login,$attribute,$value) {
-    $GLOBALS['usersCol']->update(array('_id'   => $login ),
+    $GLOBALS['usersCol']->updateOne(array('_id'   => $login ),
                                  array('$set'  => array($attribute => $value)),
-                                 array('upsert' => 1)
+                                 array('upsert' => true)
                              );
 }
 
@@ -479,7 +481,7 @@ function loadUserWithToken($userinfo, $token){
     if (!$user['_id'] || $user['Status'] == 0)
         return False;
     
-	$auxlastlog = $user['lastLogin'];
+    $auxlastlog = $user['lastLogin'];
     $user['lastLogin'] = moment();
     $user['Token']     = $token;
     $user['TokenInfo'] = $userinfo;
@@ -511,13 +513,13 @@ function getUser_diskQuota($login) {
 }
 
 function saveUserJobs($login,$jobInfo) {
-    $GLOBALS['usersCol']->update(array('_id' => $login),
+    $GLOBALS['usersCol']->updateOne(array('_id' => $login),
                                  array('$set'   => array('lastjobs' => $jobInfo)),
-                                 array('upsert' => 1));
+                                 array('upsert' => true));
 }
 
 function delUserJob($login,$pid) {
-    $GLOBALS['usersCol']->update(array('_id' => $login),
+    $GLOBALS['usersCol']->updateOne(array('_id' => $login),
                                  array('$unset' => array("lastjobs.$pid" => 1 ))
                                 );
                                  //array('$pull' => array("lastjobs" => $pid ))
@@ -531,10 +533,10 @@ function addUserJob($login,$data,$pid) {
 
     $lastjobs[$pid] = $data;
 
-    $GLOBALS['usersCol']->update(array('_id' => $login),
+    $GLOBALS['usersCol']->updateOne(array('_id' => $login),
                                  //array('$set'  => array("lastjobs.$pid" => $data )),
                                  array('$set'   => array('lastjobs' => $lastjobs)),
-                                array('upsert' => 1)
+                                array('upsert' => true)
                                 );
 }
 

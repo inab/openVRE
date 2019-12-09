@@ -1207,7 +1207,7 @@ class Parsedown
 				$remainder = $Excerpt['text'];
 
 				preg_match('/\{(.*?):(.*?)\}/', $remainder, $output);
-				if($output[1] == "w") $imgW = ($output[2]);
+				if($output[1] == "w") $imgW = "".($output[2]);
 
         if (preg_match('/\[((?:[^][]++|(?R))*+)\]/', $remainder, $matches))
         {
@@ -1264,7 +1264,7 @@ class Parsedown
 				preg_match('/^#/', $Element['attributes']['href'], $o);
                 if(sizeof($o) > 0) {
                     //$Element['attributes']['href'] = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_VIA]$_SERVER[REQUEST_URI]".$Element['attributes']['href'];
-                    $Element['attributes']['href'] = $GLOBALS['URL'].$_SERVER[REQUEST_URI].$Element['attributes']['href'];
+                    $Element['attributes']['href'] = $GLOBALS['URL'].$_SERVER['REQUEST_URI'].$Element['attributes']['href'];
 					$Element['attributes']['target'] = null;
 				}
 

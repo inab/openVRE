@@ -6,9 +6,9 @@
 
 
 // Main config
-$GLOBALS['SERVER']    = "https://www.mydomain.com"; // host 
-$GLOBALS['BASEURL']   = "/"; // prefix
-$GLOBALS['AppPrefix'] = "Proj"; // project abbreviation
+$GLOBALS['SERVER']    = "https://www.mydomain.com"; // domain 
+$GLOBALS['BASEURL']   = "/"; // prefix url path. Set "/" for no prefix
+$GLOBALS['AppPrefix'] = "EG"; // project url acronym
 $GLOBALS['NAME']      = "Project Name"; // project name 
 $GLOBALS['SITETITLE'] = "Project Name | Virtual Research Environment"; // site title
 $GLOBALS['TIMEOUT']   = 3600; // session and cookies timeout
@@ -35,7 +35,7 @@ $GLOBALS['sampleData'] = $GLOBALS['shared']."sampleData/"; // Tool dataset direc
 $GLOBALS['sampleData_default'] = "basic"; // Default workspace's dataset entry
 
 // File manager config
-$GLOBALS['DISKLIMIT']       = 100*1024*1024*1024; // Default user disk quote (GB)
+$GLOBALS['DISKLIMIT']       = 10*1024*1024*1024; // Default user disk quote (GB)
 $GLOBALS['DISKLIMIT_ANON']  = 5*1024*1024*1024; // Default not-registerd disk quote (GB)
 $GLOBALS['MAXSIZEUPLOAD']   = 4000; // Maximum upload file size (MB)
 $GLOBALS['caduca']          = "182"; // Expiration date for user files (days)
@@ -44,7 +44,7 @@ $GLOBALS['tmpUser_dir']     = ".tmp/"; // Default name for user temporal forder
 
 // Tool integration models and templates
 $GLOBALS['tool_json_schema']    = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/tool_schema.json"; // data model for tool registration
-$GLOBALS['tool_io_json_schema'] = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/tool_schema_io.json"; // data model for tool registration - only I/O definition
+$GLOBALS['tool_io_json_schema']  = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/tool_schema_io.json"; // data model for tool registration - only I/O definition
 $GLOBALS['tool_dev_sample']     = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/examples/example.json"; // template for tool registration - step 3
 $GLOBALS['tool_io_dev_sample']  = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/examples/example_io.json"; // template for tool registration - step 1 I/O
 
@@ -127,10 +127,10 @@ $GLOBALS['placeholder_textarea'] = "Click right button to select file(s)"; // te
 ********************************/
 
 
-// MuG cloud infrastructures
-$GLOBALS['cloud']              = "life-bsc"; // VRE central cloud. Options are any of $GLOBALS['clouds']
+// Cloud infrastructures
+$GLOBALS['cloud']              = "my_on_premises_cloud"; // VRE central cloud. Options are any of $GLOBALS['clouds']
 $GLOBALS['clouds'] = Array(
-		'my_local_cloud' => array(
+		'my_on_premises_cloud' => array(
 			"http_host"	    => "www.mydomain.com",	     // used in getCurrentCloud
 			"dataDir_fs"        => "/NFS/export/path/userdata/", // export path for NFS server
 			"pubDir_fs"         => "/NFS/export/path/public/",   // export path for NFS server

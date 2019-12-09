@@ -56,16 +56,16 @@ foreach ($sampleList as $sample){
 													<div class="col-md-12">
 													<?php  
 														$error_data = false;
-														if ($_SESSION['errorData']){ 
+														if (isset($_SESSION['errorData']) && $_SESSION['errorData']){ 
 															$error_data = true;
 														?>
-														<?php if ($_SESSION['errorData']['Info']) { ?> 
+														<?php if (isset($_SESSION['errorData']['Info']) && $_SESSION['errorData']['Info']) { ?> 
 															<div class="alert alert-info">
 														<?php } else { ?>
 															<div class="alert alert-danger">
 														<?php } ?>
 															
-																	<?php 
+<?php
 														foreach($_SESSION['errorData'] as $subTitle=>$txts){
 																		print "<strong>$subTitle</strong><br/>";
 																	foreach($txts as $txt){

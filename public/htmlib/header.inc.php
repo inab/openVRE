@@ -25,12 +25,12 @@
 	<?php
 	switch (pathinfo($_SERVER['PHP_SELF'])['filename']) {
 		case 'index2': ?>
-			<?php if (dirname($_SERVER['PHP_SELF']) == '/workspace') { ?>
+			<?php if (basename(dirname($_SERVER['PHP_SELF'])) == 'workspace') { ?>
 				<link href="assets/pages/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
 				<link href="assets/pages/css/treeTable.dataTables.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/bootstrap-toastr/toastr.min.css" rel="stylesheet" type="text/css" />
-			<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/home') { ?>
+			<?php } elseif (basename(dirname($_SERVER['PHP_SELF'])) == 'home') { ?>
 				<link href="assets/global/plugins/cubeportfolio/css/cubeportfolio.css" rel="stylesheet" type="text/css" />
 			<?php } else { ?>
 				<link href="assets/global/plugins/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
@@ -38,7 +38,7 @@
 				<link href="assets/pages/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
 			<?php } break;
 		case 'index': ?>
-			<?php if (dirname($_SERVER['PHP_SELF']) == '/workspace') { ?>
+			<?php if (basename(dirname($_SERVER['PHP_SELF'])) == 'workspace') { ?>
 				<link href="assets/pages/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
 				<link href="assets/pages/css/treeTable.dataTables.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet" type="text/css" />
@@ -46,12 +46,12 @@
 				<link href="assets/global/plugins/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/select2/css/select2-bootstrap.min.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/progress-tracker/progress-tracker.css" rel="stylesheet" type="text/css" />
-			<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/launch') { ?>
+			<?php } elseif (basename(dirname($_SERVER['PHP_SELF'])) == 'launch') { ?>
 				<link href="assets/pages/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/select2/css/select2-bootstrap.min.css" rel="stylesheet" type="text/css" />
-			<?php } elseif ((dirname($_SERVER['PHP_SELF']) == '/home') || (dirname($_SERVER['PHP_SELF']) == '/publicsite')) { ?>
+			<?php } elseif (( basename(dirname($_SERVER['PHP_SELF'])) == 'home') || ( basename(dirname($_SERVER['PHP_SELF'])) == 'publicsite')) { ?>
 				<link href="assets/global/plugins/cubeportfolio/css/cubeportfolio.css" rel="stylesheet" type="text/css" />
 			<?php } else { ?>
 				<link href="assets/global/plugins/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
@@ -104,16 +104,16 @@
 			<link href="assets/global/plugins/markdown/bootstrap-markdown-editor.css" rel="stylesheet" type="text/css" />
 			<?php break;
 		case 'output': ?>
-			<?php if (dirname($_SERVER['PHP_SELF']) == '/tools/pydockdna' || dirname($_SERVER['PHP_SELF']) == '/tools/pydock') { ?>
+			<?php if (preg_match('tools/pydockdna',dirname($_SERVER['PHP_SELF'])) )  { ?>
 				<link href="assets/global/plugins/datatables/datatables.min.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet" type="text/css" />
-			<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/tools/naflex') { ?>
+			<?php } elseif (preg_match('tools/naflex',dirname($_SERVER['PHP_SELF'])) )  { ?>
 				<link href="tools/naflex/css/styles.css" rel="stylesheet" type="text/css" />
-			<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/tools/nucldynwf') { ?>
+			<?php } elseif (preg_match('tools/nucldynwf',dirname($_SERVER['PHP_SELF'])) ) { ?>
 				<link href="assets/pages/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/datatables/plugins/fixedColumns/fixedColumns.dataTables.min.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet" type="text/css" />
-			<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/tools/nucldynwf_pmes') { ?>
+			<?php } elseif (preg_match('tools/nucldynwf_pmes',dirname($_SERVER['PHP_SELF'])) ) { ?>
 				<link href="assets/pages/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/datatables/plugins/fixedColumns/fixedColumns.dataTables.min.css" rel="stylesheet" type="text/css" />
 				<link href="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet" type="text/css" />
@@ -154,8 +154,8 @@
 		<?php
 		switch (pathinfo($_SERVER['PHP_SELF'])['filename']) {
 			case 'index2': ?>
-			<?php if (dirname($_SERVER['PHP_SELF']) == '/workspace') { ?>
-			<?php } elseif (dirname($_SERVER['PHP_SELF']) == '/home') { ?>
+			<?php if (basename(dirname($_SERVER['PHP_SELF'])) == 'workspace') { ?>
+			<?php } elseif (basename(dirname($_SERVER['PHP_SELF'])) == 'home') { ?>
 				<link href="assets/pages/css/portfolio.min.css" rel="stylesheet" type="text/css" />
 			<?php } else { ?>
 				<link href="assets/pages/css/login.min.css" rel="stylesheet" type="text/css" />
@@ -163,8 +163,8 @@
 			<?php break;
 		case 'resetPassword':
 		case 'index': ?>
-			<?php if (dirname($_SERVER['PHP_SELF']) == '/workspace') { ?>
-			<?php } elseif ((dirname($_SERVER['PHP_SELF']) == '/home') || (dirname($_SERVER['PHP_SELF']) == '/publicsite')) { ?>
+			<?php if (basename(dirname($_SERVER['PHP_SELF'])) == 'workspace') { ?>
+			<?php } elseif ((basename(dirname($_SERVER['PHP_SELF'])) == 'home') || (basename(dirname($_SERVER['PHP_SELF'])) == 'publicsite')) { ?>
 				<link href="assets/pages/css/portfolio.min.css" rel="stylesheet" type="text/css" />
 			<?php } else { ?>
 				<link href="assets/pages/css/login.min.css" rel="stylesheet" type="text/css" />
@@ -244,7 +244,7 @@
 		case 'logs':
 
 			?>
-		<link href="assets/layouts/layout/css/layout.min.css" rel="stylesheet" type="text/css" />
+		<link href="assets/layouts/layout/css/layout.css" rel="stylesheet" type="text/css" />
 		<link href="assets/layouts/layout/css/themes/darkblue.min.css" rel="stylesheet" type="text/css" id="style_color" />
 		<?php break; ?>
 	<?php } ?>

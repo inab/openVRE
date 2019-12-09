@@ -87,7 +87,7 @@ function InputTool_getPathsAndRerun($request) {
 	$output[0] = [];
 	$output[1] = [];
 
-	if ($request['rerunDir']){
+	if (isset($request['rerunDir']) && $request['rerunDir']){
 		$dirMeta = $GLOBALS['filesMetaCol']->findOne(array('_id' => $request['rerunDir'])); 
 		if (!is_array($dirMeta['input_files']) && !isset($dirMeta['arguments'])){
 			$_SESSION['errorData']['Error'][]="Cannot rerun job ".$request['rerunDir'].". Some folder metadata is missing.";
@@ -105,6 +105,9 @@ function InputTool_getPathsAndRerun($request) {
 		}
 		$output[0] = $dirMeta['arguments'];
 	}else{
+		if (!isset($request['fn']))
+			$request['fn']=array();
+		
 		if (!is_array($request['fn']))
 			$request['fn'][]=$request['fn'];
 
@@ -126,22 +129,22 @@ function InputTool_getDefExName() {
 	// default execution name
 	$dirNum="000";
 	$dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'],"path");
-	$reObj = new MongoRegex("/^".$dataDirPath."\\/run\d\d\d$/i");
-	$prevs  = $GLOBALS['filesCol']->find(array('path' => $reObj, 'owner' => $_SESSION['User']['id']));
-	if ($prevs->count() > 0){
-					$prevs->sort(array('path' => -1));
-					$prevs->next();
-					$previous = $prevs->current();
-					if (preg_match('/(\d+)$/',$previous["path"],$m) ){
-							$dirNum= sprintf("%03d",$m[1]+1);
-					}
+	$reObj = new \MongoDB\BSON\Regex("^".$dataDirPath."\\/run\d\d\d$");
+	$prevs  = $GLOBALS['filesCol']->find(array('path' => $reObj, 'owner' => $_SESSION['User']['id']), array('sort' => array('path' => -1)))->toArray();
+	if ($prevs) {
+	   foreach ($prevs as $p){
+		$previous = $p;
+		if (preg_match('/(\d+)$/',$previous["path"],$m) ){
+			$dirNum= sprintf("%03d",$m[1]+1);
+			break;
+		}
+	   }
 	}
 	$dirName="run".$dirNum;
-	$prevs  = $GLOBALS['filesCol']->find(array('path' => $dataDirPath."/$dirName", 'owner' => $_SESSION['User']['id']));
-	if ($prevs->count() > 0){
-			$dirName="run".rand(100, 999);
+	$prevs  = $GLOBALS['filesCol']->find(array('path' => $dataDirPath."/$dirName", 'owner' => $_SESSION['User']['id']))->toArray();
+	if ($prevs){
+		$dirName="run".rand(100, 999);
 	}
-
 	return $dirName;
 
 }
@@ -277,13 +280,15 @@ function InputTool_printInput($input, $type) {
 	$req = "field_not_required";
 	if($input["required"]) $req = "field_required";
 
-	$max = $input["maximum"]; 
-	$min = $input["minimum"];
+	$max  = ""; 
+	$min  = "";
+	$range= "";
+	$step = "";
 
-	if(isset($max) && isset($min)) {
-		
+	if(isset($input["maximum"]) && isset($input["minimum"])) {
+		$max = $input["maximum"]; 
+		$min = $input["minimum"];
 		$range = 'min="'.$min.'" max="'.$max.'"';
-
 	}
 
 	if($type == "number") {
@@ -300,7 +305,7 @@ function InputTool_printInput($input, $type) {
 
 	}
 
-	if(($input['default'] !== null) && ($input['default'] !== "null")) $value = $input['default'];
+	if( isset($input['default']) && ($input['default'] !== null) && ($input['default'] !== "null")) $value = $input['default'];
 	else $value = "";
 
 	$output = '<div class="form-group">
@@ -331,7 +336,7 @@ function InputTool_printInputHidden($input, $type) {
 function InputTool_printSelect($input) {
 
 	$req = "field_not_required";
-	if($input["required"]) $req = "field_required";
+	if(isset($input["required"]) && $input["required"]) $req = "field_required";
 
 	if(($input['default'] !== null) && ($input['default'] !== "null")) $default = $input['default'];
 	else $default = "";
@@ -392,47 +397,42 @@ function InputTool_printSelectMultiple($input) {
 // print field
 function InputTool_printField($input, $rerun) {
 
-	if($input["required"]) $req = "field_required";
+	if(isset($input["required"]) && $input["required"]) $req = "field_required";
 
 	switch($input["type"]) {
 
 		case 'string': $field = "input";
-									 $type = "text";
-									 break;
+			 $type = "text";
+			 break;
 		case 'enum': 
 		case 'boolean': $field = "select";
-										break;
+			break;
 		case 'enum_multiple': $field = "select_multiple";
-													break;	
+			break;	
 		case 'integer':
 		case 'number': $field = "input";
-									 $type = "number";
-									 break;
+			 $type = "number";
+			 break;
 		case 'hidden': $field = "input";
-									 $type = "hidden";
-									 break;
-
+			 $type = "hidden";
+			 break;
 	}
-
-	
 
 	switch($field) {
 
 		case "input": if($rerun) $input["default"] = $rerun;
-									if($type == "hidden") $output = InputTool_printInputHidden($input, $type);
-									else $output = InputTool_printInput($input, $type);	
-									break;
+			if($type == "hidden") $output = InputTool_printInputHidden($input, $type);
+			else $output = InputTool_printInput($input, $type);	
+			break;
 
 		case "select": if($rerun) $input["default"] = [$rerun];
-									$output = InputTool_printSelect($input);
-									break;
+			$output = InputTool_printSelect($input);
+			break;
 
 		case "select_multiple": if($rerun) $input["default"] = $rerun;
-									$output = InputTool_printSelectMultiple($input);
-									break;
-
+			$output = InputTool_printSelectMultiple($input);
+			break;
 	}
-
 	return $output;
 
 }

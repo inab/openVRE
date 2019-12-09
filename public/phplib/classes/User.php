@@ -17,6 +17,7 @@ class User {
     public $dataDir;
     public $DataSample;
     public $Token;
+    public $TokenInfo;
     public $AuthProvider;
     public $id;
     public $activeProject;
@@ -28,17 +29,20 @@ class User {
             return 0;
 
         // set attributes from arguments
-        foreach (array('Surname','Name','Inst','Country','Email','Type','dataDir','diskQuota','DataSample','AuthProvider','activeProject') as $k)
-            $this->$k= sanitizeString($f[$k]);
+	foreach (array('Surname','Name','Inst','Country','Email','Type','dataDir','diskQuota','DataSample','AuthProvider','activeProject') as $k)
+	    if (isset($f[$k]))
+		$this->$k = sanitizeString($f[$k]);
 
         // set credential attributes (crypPassword or Token or ANON)
-        if ($f['pass1']){
+        if (isset($f['pass1'])){
             //$this->crypPassword = password_hash($f['pass1'], PASSWORD_DEFAULT);
             //$this->crypPassword = crypt($f['pass1'], '$6$'.randomSalt(8).'$');
             $salt = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',4)),0,4);
             $this->crypPassword = '{SSHA}' . base64_encode(sha1( $f['pass1'].$salt, TRUE ). $salt);
-        }elseif ($f['Token']){
-            $this->Token        = $f['Token'];
+        }elseif (isset($f['Token'])){
+            $this->Token = $f['Token'];
+        }elseif (isset($f['TokenInfo'])){
+            $this->TokenInfo = $f['TokenInfo'];
         }elseif ($f['Type'] == 3){
         }else{
             return 0;

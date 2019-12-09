@@ -68,7 +68,7 @@ function setUserWorkSpace($homeDir,$projectDir,$sampleData="",$projectData,$verb
 	    		mkdir($homeDirP, 0775) or die("Cannot write main user directory $homeDirP");
     	}
 
-	$GLOBALS['filesCol']->update(
+	$GLOBALS['filesCol']->updateOne(
 		array('_id' => $homeDirId),
 		array('$set' => array(
 			  'lastAccess' => moment()
@@ -161,7 +161,7 @@ function setUserWorkSpace($homeDir,$projectDir,$sampleData="",$projectData,$verb
 	}
 	}
 
-	$GLOBALS['filesCol']->update(
+	$GLOBALS['filesCol']->updateOne(
 		array('_id' => $dataDirId),
 		array('$set' => array(
 			  'lastAccess' => moment()
@@ -307,7 +307,7 @@ function save_fromSampleDataMetadata($meta_folder,$dataDir,$sampleData,$type,$ve
 	//
     // Saving to mongo	
 
-	if ($meta_folder['mongo'] === false){
+	if (isset($meta_folder['mongo']) && $meta_folder['mongo'] === false){
 		return 1;
 	}
 	// adapt sample data metadata
@@ -479,13 +479,13 @@ function addTreeTableNodesToFiles($filesAll){
     foreach ($filesAll as $r){
 		// Add Tree Nodes
 		if (isset($r['files'])){
-		    if ($filesAll[$r['_id']]['tree_id'])
+		    if (isset($filesAll[$r['_id']]['tree_id']) && $filesAll[$r['_id']]['tree_id'])
 			continue;	
 	
 		    $filesAll[$r['_id']]['tree_id']     = $n;
 		    $filesAll[$r['_id']]['size']	= calcGSUsedSpaceDir($r['_id']);
 		    $filesAll[$r['_id']]['size_parent'] = $filesAll[$r['_id']]['size'];
-		    $filesAll[$r['_id']]['mtime_parent']=(isset($r['atime'])? $r['atime']->sec : $r['mtime']);
+		    $filesAll[$r['_id']]['mtime_parent']=(isset($r['atime'])? $r['atime']->toDateTime()->format('U') : $r['mtime']);
 		    $i=1;
 		    foreach ($r['files'] as $rr){
 			$filesAll[$rr]['tree_id']       = "$n.$i";
@@ -508,7 +508,6 @@ function addTreeTableNodesToFiles($filesAll){
 }
 
 function printTable($filesAll=Array() ) {
-
 	$autorefresh=0;
 	?>
 
@@ -708,11 +707,10 @@ function formatData($data) {
 		$data['_id_URL'] = urlencode($data['_id']);
 		//mtime atime
 		if (isset($data['mtime'])){
-			if (is_object($data['mtime']))
-				$data['mtime']=$data['mtime']->sec;
-
+			if (is_object($data['mtime'])){
+				$data['mtime']=$data['mtime']->toDateTime()->format('U');
+			}
 			$timestamp = $data['mtime'];
-
 			$data['mtime'] = strftime('%Y/%m/%d %H:%M', $data['mtime']);
 
 			$hoursleft = (time() - $timestamp) / 3600;
@@ -729,7 +727,7 @@ function formatData($data) {
 		}
 		if (isset($data['atime'])){
 			if (is_object($data['atime']))
-				$data['atime'] =$data['atime']->sec;
+				$data['atime'] =$data['atime']->toDateTime()->format('U');
 			$data['atime'] = strftime('%Y/%m/%d %H:%M', $data['atime']);
 			$data['mtime'] = $data['atime'];
 		}
@@ -741,14 +739,21 @@ function formatData($data) {
 			$data['type']="file";
 		//expiration
 		if (isset($data['expiration'])){
-			$data['expiration'] = strftime('%Y/%m/%d %H:%M', $data['expiration']->sec);
-			$days2expire = intval(( $data['expiration']  -time() ) / (24 * 3600));
-			if ($days2expire < 7)
-				$data['expiration'] =$data['expiration'] ."( in <span style=\"color:#b30000;font-weight:bold;\">".$days2expire."</span> days)";
-			else
-				$data['expiration'] =$data['expiration'] . "( in $days2expire days)";
+			if (!is_object($data['expiration']) && $data['expiration'] == -1){
+				$data['expiration'] = "File/folder does not expire";
+			}else{
+				if (is_object($data['expiration']))
+					$data['expiration'] =$data['expiration']->toDateTime()->format('U');
+
+				$days2expire = intval(( $data['expiration']  - time() ) / (24 * 3600));
+				$data['expiration'] = strftime('%Y/%m/%d %H:%M', $data['expiration']);
+				if ($days2expire < 7)
+					$data['expiration'] =$data['expiration'] ."( in <span style=\"color:#b30000;font-weight:bold;\">".$days2expire."</span> days)";
+				else
+					$data['expiration'] =$data['expiration'] . "( in $days2expire days)";
+			}
 		}else{
-			$data['expiration'] ="";
+			$data['expiration'] ="No expiration date";
 		}
 		//size
 		if (isset($data['files']) && !isset($data['size']) ){
@@ -767,10 +772,13 @@ function formatData($data) {
 	    	    if (!$data['parentDir']){
 			$_SESSION['errorData']['Warning'][]="Accessing data not belonging to your account! Some permission issues may arise";
 	    	    }
-	    	    if ($data['type'] == file)
-    			$executionName = array_pop(split("/",$data['parentDir']));
-	    	    else
-    			$executionName = array_pop(split("/",$data['path']));
+	    	    if ($data['type'] == "file"){
+    			$parentDir_explode = explode("/",$data['parentDir']);
+    			$executionName = array_pop($parentDir_explode);
+		    }else{
+    			$path_explode = explode("/",$data['path']);
+    			$executionName = array_pop($path_explode);
+		    }
 		     if($executionName == 'uploads') {
 			$executionName = "<span style='display:none;'>0</span>uploads";
 			$data['longexecutionname'] = 'uploads';
@@ -875,7 +883,7 @@ function formatData($data) {
 		}
 
 		//data_type
-		if ($data['data_type']){
+		if (isset($data['data_type']) && $data['data_type']){
 			$dt_name = getDataTypeName($data['data_type']);
 			$data['file_data_type'] = $dt_name;
 			$data['short_file_data_type'] = maxlength(basename($dt_name), 20);
@@ -968,8 +976,7 @@ function formatData($data) {
 							break;
 
 						case "jbrowse":
-							$data['jbrowseLink'] = "<li><a target=\"_blank\" href=\"/visualizers/jbrowse/index.php/?user=".$_SESSION['User']['id']."&fn[]=".$data['_id']."\"><i class=\"fa fa-align-right\"></i> View in JBrowse</a></li>";
-							$data['tadkitLink'] = "<li><a target=\"_blank\" href=\"visualizers/tadkit/index.php/?user=".$_SESSION['User']['id']."&fn=".$data['_id']."\"><i class=\"fa fa-cubes fa-rotate-180\"></i> View in TADkit</a></li>";
+							$data['jbrowseLink'] = "<li><a target=\"_blank\" href=\"".$_SESSION['BASEURL']."visualizers/jbrowse/index.php/?user=".$_SESSION['User']['id']."&fn[]=".$data['_id']."\"><i class=\"fa fa-align-right\"></i> View in JBrowse</a></li>";
 							break;
 
 						case "tadkit":
@@ -990,7 +997,7 @@ function formatData($data) {
 				foreach ($ins as $in){
 				    $f = getGSFile_fromId($in);	
 				    $data['input_files'].= "<div>";
-				    $inFolders=split("/",dirname($f['path']));
+				    $inFolders=explode("/",dirname($f['path']));
 				    for ($i=count($inFolders)-1;$i>=1;$i--){
 					$data['input_files'].= "<span class=\"text-info\" style=\"font-weight:bold;\">".$inFolders[$i]."/</span>";
 				    }
@@ -1198,7 +1205,7 @@ function processPendingFiles($sessionId,$files=array()){
 			'_id'     => $dummyId,
 			'pid'     => $pid,
 			'title'   => $title,
-	    		'mtime'   => strtotime($jobProcess['submission_time']),
+			'mtime'   => new MongoDB\BSON\UTCDateTime(strtotime($jobProcess['submission_time'])*1000),
 			'size'    => "",
 			'visible' => 1,
 			'tool'    => $job['toolId'],
@@ -1618,7 +1625,7 @@ function saveResults($filePath,$metaData=array(),$job=array(),$rfn=0,$asRoot=0){
 		'size'  => $size,
 		'path'  => $filePath,
 		'project'=> $job['project'],
-		'mtime' => new MongoDate(filemtime($rfn)),
+		'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($rfn)*1000),
 		'parentDir' => $parentId
 	);
 	if ($child_files !== false){ $insertData['files'] = $child_files;}
@@ -1627,7 +1634,7 @@ function saveResults($filePath,$metaData=array(),$job=array(),$rfn=0,$asRoot=0){
 	$fnId = uploadGSFileBNS($filePath, $rfn, $insertData,$metaData, FALSE,$asRoot);
 
 	if ($fnId){
-		$insertData['mtime'] = $insertData['mtime']->sec;
+		$insertData['mtime'] = $insertData['mtime']->toDateTime()->format('U');
 		return array_merge($insertData,$metaData);
 	}else{
 		$_SESSION['errorData']['mongoDB'][]="Cannot save execution result 'basename($filePath)' into database. Stored only on disk";

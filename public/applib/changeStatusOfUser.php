@@ -10,7 +10,7 @@ if($_POST){
 	$user = $GLOBALS['usersCol']->findOne(array('_id' => $login));
 	if ($user['_id']) {
 		$newdata = array('$set' => array('Status' => $status));
-		$GLOBALS['usersCol']->update(array('_id' => $login), $newdata);
+		$GLOBALS['usersCol']->updateOne(array('_id' => $login), $newdata);
 		echo '1';
 	}else{
 		echo '0';

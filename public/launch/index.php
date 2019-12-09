@@ -6,7 +6,8 @@ redirectOutside();
 require "../htmlib/header.inc.php";
 
 $tls = getTools_ListComplete(1);
-$vslzrs = getVisualizers_ListComplete(1);
+##### $vslzrs = getVisualizers_ListComplete(1);
+$vslzrs=array();
 
 $toolList = array_merge($tls, $vslzrs);
 
@@ -158,18 +159,18 @@ sort($toolList);
                       	<th>Tool</th>
                       	<th>Description</th>
                         <th>Author</th>
-												<!-- hidden columns -->
+			<!-- hidden columns -->
                         <th>Operations</th>
                         <th>Long Description</th>
                         <th>Keywords</th>
                         <th>Metakeywords</th>
-												<th>id</th>
-												<th>visualizer</th>
+			<th>id</th>
+			<th>visualizer</th>
                       </tr>
                     </thead>
                     <tbody>
 											<?php foreach($toolList as $tool) { 
-											$comb = getInputFilesCombinations($tool);
+										$comb = getInputFilesCombinations($tool);
 												//vaR_dump($tool["input_files_combinations"]["description"]); ?>
 												<tr class="first-level-tr">
 													<td></td>
@@ -183,7 +184,7 @@ sort($toolList);
 													<td><?php echo implode(", ", $tool["keywords_tool"]); ?></td>
 													<td><?php echo implode(", ", $tool["keywords"]); ?></td>
 													<td><?php echo $tool["_id"]; ?></td>
-													<td><?php echo $tool["visualizer"]; ?></td>
+													<td><?php if (isset($tool['visualizers'])){echo $tool["visualizer"];} ?></td>
 												</tr>
 											<?php } ?>
                     </tbody>

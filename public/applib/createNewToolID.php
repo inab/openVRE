@@ -57,7 +57,7 @@ if($_REQUEST){
 			"status_history" => []
 		];
 
-		$GLOBALS['toolsDevMetaCol']->insert($meta);
+		$GLOBALS['toolsDevMetaCol']->insertOne($meta);
 
 		/*$working_dir = $GLOBALS['dataDir']."/".$_SESSION['User']['id']."/.dev/".$_REQUEST['toolid'];
     $working_dir = preg_replace('#/+#','/',$working_dir);

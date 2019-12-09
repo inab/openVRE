@@ -22,8 +22,10 @@ if ($usedDisk < $diskLimit) {
 	$usedDiskPerc = 100;
 }
 
+$kk = $GLOBALS['toolsCol']->find(array("external" => true), array("input_files_combinations_internal" => true));
+
 // Tools list
-if (isset($_REQUEST["tool"]) && $_REQUEST["tool"] != "") $dtlist = getAvailableDTbyTool($_REQUEST["tool"]);
+$dtlist = ( (isset($_REQUEST["tool"]) && $_REQUEST["tool"] != "")?  getAvailableDTbyTool($_REQUEST["tool"]) : array() );
 
 // project list
 $projects = getProjects_byOwner();
@@ -32,7 +34,7 @@ $projects = getProjects_byOwner();
 
 $allFiles = getFilesToDisplay(array('_id' => $_SESSION['User']['dataDir']), null);
 
-$files = filterFiles_by_dataType($allFiles, $dtlist["list"]);
+$files = ( isset($dtlist['list'])? filterFiles_by_dataType($allFiles, $dtlist["list"]) : $allFiles );
 $files = addTreeTableNodesToFiles($files);
 
 $proj_name_active   = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
@@ -112,7 +114,7 @@ $proj_name_active   = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name")
 				<!-- END PAGE TITLE-->
 				<!-- END PAGE HEADER-->
 
-				<?php if ($_REQUEST["from"]) { ?>
+				<?php if (isset($_REQUEST["from"]) && $_REQUEST["from"]) { ?>
 
 					<div class="row">
 						<div class="col-md-12" style="margin-bottom:30px;">
@@ -173,30 +175,11 @@ $proj_name_active   = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name")
 
 					}
 
-					if (isset($_SESSION['errorData'])) {
-						if (isset($_SESSION['errorData']['Info'])) {
-							?>
-								<div class="alert alert-info">
-								<?php
-							} else {
-								?>
-									<div class="alert alert-warning">
-									<?php } ?>
-									<?php foreach ($_SESSION['errorData'] as $subTitle => $txts) {
-										print "$subTitle<br/>";
-										foreach ($txts as $txt) {
-											print "<div style=\"margin-left:20px;\">$txt</div>";
-										}
-									}
-									unset($_SESSION['errorData']);
-									?>
-								</div>
-
-							<?php }
+						// show Error messages		
+						print printErrorDivision();
 
 
-
-
+						// fetch tool of lists
 						$toolsList = getTools_List();
 						sort($toolsList);
 						?>
@@ -225,7 +208,7 @@ $proj_name_active   = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name")
 												<select class="form-control" style="width:100%;" onchange="loadWSTool(this)">
 													<option value="">Filter files by tool</option>
 													<?php foreach ($toolsList as $tl) { ?>
-														<option value="<?php echo $tl["_id"]; ?>" <?php if ($_REQUEST["tool"] == $tl["_id"]) echo 'selected'; ?>><?php echo $tl["name"]; ?></option>
+														<option value="<?php echo $tl["_id"]; ?>" <?php if (isset($_REQUEST["tool"]) && $_REQUEST["tool"] == $tl["_id"]) echo 'selected'; ?>><?php echo $tl["name"]; ?></option>
 													<?php } ?>
 												</select>
 											</div>
@@ -236,15 +219,22 @@ $proj_name_active   = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name")
 
 											<form name="gesdir" action="workspace/workspace.php" method="post" enctype="multipart/form-data">
 												<input type="hidden" name="op" value="" />
-												<input type="hidden" name="userId" value="<?php echo $_SESSION['userId']; ?>" />
 												<input type="hidden" id="base-url" value="<?php echo $GLOBALS['BASEURL']; ?>" />
-												<input type="hidden" id="toolSelected" value="<?php echo $_REQUEST['tool']; ?>" />
-												<input type="hidden" id="from" value="<?php echo $_REQUEST["from"]; ?>" />
+											<?php
+											if (isset($_REQUEST["userId"])){
+												print "input type=\"hidden\" id=\"userId\" value=\"".$_SESSION['userId']."\"";
+											}
+											if (isset($_REQUEST["tool"])){
+												print "input type=\"hidden\" id=\"toolSelected\" value=\"".$_REQUEST['tool']."\"";
+											}
+											if (isset($_REQUEST["from"])){
+												print "<input type=\"hidden\" id=\"from\" value=\"".$_REQUEST['from']."\"";
+											} 	
+											
+											// print FILES in TABLE
 
-												<?php
-												print printTable($files);
-												?>
-
+											print printTable($files);
+											?>
 
 											</form>
 											<!--<button class="btn green" type="submit" id="btn-run-files" style="margin-top:20px;" >Run Selected Files</button>-->
@@ -311,21 +301,12 @@ $proj_name_active   = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name")
 						</div>
 					</div>
 					<?php
-					if (isset($_SESSION['errorData'])) { ?>
-						<div class="alert alert-warning">
-							<?php foreach ($_SESSION['errorData'] as $subTitle => $txts) {
-								print "$subTitle<br/>";
-								foreach ($txts as $txt) {
-									print "<div style=\"margin-left:20px;\">$txt</div>";
-								}
-							}
-							unset($_SESSION['errorData']);
-							?>
-						</div>
+						
+					// show Error messages          
+					print printErrorDivision();
 
-					<?php } ?>
-
-
+					?>
+							
 					<!-- SUMMARY AND DISK QUOTA ROW -->
 
 
@@ -346,7 +327,7 @@ $proj_name_active   = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name")
 										<span class="caption-subject font-dark bold uppercase">TOOLS' HELP</span>
 
 										<?php
-										if ($_REQUEST["tool"] != "") {
+										if (isset($_REQUEST["tool"]) && $_REQUEST["tool"] != "") {
 											$expcol = "collapse";
 											$portlet = "";
 											?>
@@ -370,7 +351,7 @@ $proj_name_active   = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name")
 								</div>
 								<div class="portlet-body <?php echo $portlet; ?>">
 
-									<?php if ($_REQUEST["tool"] != "") { ?>
+									<?php if (isset($_REQUEST["tool"]) && $_REQUEST["tool"] != "") { ?>
 
 										<!--<p>Below users can find all the possible data type combinations for the selected tool:</p>-->
 
@@ -380,7 +361,7 @@ $proj_name_active   = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name")
 
 									<?php } ?>
 
-									<?php if ($_REQUEST["tool"] != "") { ?>
+									<?php if (isset($_REQUEST["tool"]) && $_REQUEST["tool"] != "") { ?>
 
 										<div class="panel-group accordion" id="accordion1">
 											<?php
@@ -842,7 +823,7 @@ If you want to <strong>re-use your session</strong>, make sure you save the <str
 
 			<?php
 
-			if ($_REQUEST["from"]) {
+			if (isset($_REQUEST["from"]) && $_REQUEST["from"]) {
 
 				require "../tools/" . $_REQUEST["from"] . "/assets/ws/modal.php";
 			}

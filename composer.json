@@ -3,7 +3,9 @@
         "auth0/auth0-php": "^5.0",
         "justinrainbow/json-schema": "^5.2",
         "league/oauth2-google": "^2.0",
-        "slim/slim": "^3.0"
+        "mongodb/mongodb": "^1.5",
+        "slim/slim": "^3.0",
+	"mongodb/mongodb": "1.5.1"
     },
     "autoload": {
       "psr-4": {

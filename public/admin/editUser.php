@@ -129,7 +129,8 @@ sort($tlsvlzrs);
                                                     <select name="Country" id="Country" class="form-control">
 																											<option value=""></option>
 																											<?php
-																											foreach(iterator_to_array($GLOBALS['countriesCol']->find(array(),array('country'=>1))->sort(array('country'=>1))) as $k => $v){
+				$ops = [ 'projection' => [ 'country' => 1 ], 'sort' => [ 'country' => 1 ] ];
+				foreach(iterator_to_array($GLOBALS['countriesCol']->find(array(), $ops)) as $k => $v){
 																												$selected="";
 																												if ($user["Country"] == $k)
 																												$selected = "selected";

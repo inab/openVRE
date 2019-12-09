@@ -8,8 +8,13 @@ VRE is a web-based collaborative working environment providing its users with a 
 Several research projects has adopted the VRE framework for its project-specific purposes:
 
 - MuG : https://vre.multiscalegenomics.eu
-- OpenEBench : https://openebench.bsc.es/submission
+- OpenEBench : https://openebench.bsc.es/vre
 
+### Dependencies
+- Web server (e.g. Apache2 or Nginx)
+- Mongo Server (<=4.2) 
+- PHP (<=5.6) and [mongoDB PHP driver](https://www.php.net/manual/es/mongodb.setup.php)
+- composer
 
 ### Code structure
 

@@ -50,7 +50,7 @@ function sendEmail($recipient, $subject, $body, $reply = null, $bcc = null){
 		$f = array("Email" => $recipient);
 		$objMail = new Email($f, True);
 		$mailObj = (array)$objMail;
-		$GLOBALS['logMailCol']->insert($mailObj);
+		$GLOBALS['logMailCol']->insertOne($mailObj);
 		return true;
 	}
 

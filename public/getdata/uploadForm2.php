@@ -87,8 +87,8 @@ redirectOutside();
 			<div class="col-md-12">
 				<?php  
 				$error_data = false;
-				if ($_SESSION['errorData']){ 
-				$error_data = true;
+				if (isset($_SESSION['errorData'])){ 
+					$error_data = true;
 				?>
 				<div class="alert alert-danger">
 			        <?php 
@@ -327,7 +327,7 @@ redirectOutside();
 								<select name="refGenome" id="refGenome<?php echo $idx;?>" class="form-control" disabled>
 						<option value="">Select the assembly</option>
 						<?php
-                                                $refList  = scanDir($GLOBALS['refGenomes']);
+                                                $refList  = (isset($GLOBALS['refGenomes'])? scanDir($GLOBALS['refGenomes']) : array() );
                                                 foreach ($refList as $ref){
                                                     if ( preg_match('/^\./', $ref) || !is_dir($GLOBALS['refGenomes']) )
                                                         continue;
