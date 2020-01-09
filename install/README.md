@@ -1,7 +1,7 @@
 
 # Virtual Research Environment (VRE) administration
- VRE is a Virtual Research Environment including a web application and a cloud-based backend aimed to provide end-users an integrative platform for exploring rellevant data resources and applying to them a collection of analyses and visualizations. It is written in PHP, HTML and Javascript
- This document describes how to install ans configure VRE platform in your system, as well as how to process on several basic operation for customizing VRE to your specific project needs.
+ VRE is a Virtual Research Environment including a web application and a cloud-based backend aimed to provide end-users an integrative platform for exploring rellevant data resources and applying to them a collection of analyses and visualizations. It is written in PHP, HTML and Javascript.
+ This document describes how to install and configure VRE platform in your system, as well as how to process on several basic operation for customizing VRE to your specific project needs.
  
  - [Installation](#installation)
  - [Install a Tool](#install_my_first_tool)
@@ -16,39 +16,40 @@
 
 ### Get VRE code
 
-Clone VRE code in your installation directory, for instance `/home/user`
-
+Clone VRE source code in your installation directory, for instance `/home/user`.
 ```
 git clone https://github.com/inab/openvre.git
 cd openvre
 ```
 
-### Install library dependencies
-Install PHP dependencies via composer using the following command
+### Install PHP library dependencies
+
+Install PHP extensions (curl, gd and mongodb).
+```
+sudo apt-get install php-curl php-gd php-mongodb
+```
+
+Install PHP library dependencies via composer using the following command inside the openvre directory:
 ```
 composer update
 ```
-
-Make user PHP is able to use some extension, like CURL and GD. Install the corresponding packages and enable them at the `php.ini` uncommenting the following directives:
+<!-- Make user PHP is able to use some extension, like CURL and GD. Install the corresponding packages and enable them at the `php.ini` uncommenting the following directives:
 
 ```
 extension=curl
 extension=gd2
 
-```
-After installing the packages, restart the web server:
+``` -->
+After installing the extensions and libraries, restart Apache2 Web server:
 
 ```
-sudo apt-get install php-curl php-gd
 sudo service apache2 restart
-
 ```
 
+### Configure Web access
 
-### Configure web access
-
-The `public/` directory is to be accessible on the web, and the server should accept '.htaccess' files. So, the Apache2 web server is to be accordingly set. 
-Multiple configurations are possible, for instance, you can set the host files mapping using the [Alias](https://httpd.apache.org/docs/2.4/mod/mod_alias.html) directive, or you can prepare a new virtual host by which the root document points to the openVRE public folder:
+The `/public/` directory is to be accessible on the Web, and the server should accept '.htaccess' files. So, the Apache2 Web Server is to be accordingly set. 
+Multiple configurations are possible, for instance, you can set the host files mapping using the [Alias](https://httpd.apache.org/docs/2.4/mod/mod_alias.html) directive, or you can prepare a new virtual host by which the root document points to the openVRE public folder. See an example:
 
 ```
 DocumentRoot /home/user/openvre/public/
@@ -64,17 +65,17 @@ Enabling the rewriting engine is also required:
 
 ```
 sudo a2enmod rewrite
-systemctl restart apache2
+sudo systemctl restart apache2
 ```
-
 
 ### Prepare directory structure
 
-Define where VRE user's data and other data is to be stored, for instance, in `/data` . Copy the directory structure there, and give apache/nginx user permissions to it:
+Define where VRE user's data and other data is to be stored, for example, in `/home/user/data` . Copy the directory structure there, and give Apache2 user permissions to it:
 
 ```
-cp -r install/data/* /data/
-chown -R  www-data:www-data /data/
+mkdir data
+cp -r openvre/install/data/* data/
+sudo chown -R  www-data:www-data data/
 ```
 
 For some visualizers, direct access to this data is required. So, if you latter plan to install one of these visualizers (e.g. NGL), add theses soft links:
@@ -82,16 +83,16 @@ For some visualizers, direct access to this data is required. So, if you latter 
 ```
 cd public
 ln -s /data/userdata/ files  
-ln -s /data/public/refGenomes/ refGenomes  # obsolete
-ln -s /data/tool_schemas/son* json* # obsolete
 ```
+<!--ln -s /data/public/refGenomes/ refGenomes  # obsolete
+ln -s /data/tool_schemas/json* json* # obsolete-->
 
-### Create and populate mongo DB
+### Create and populate MongoDB
 
-Create a new database to Mongo, here `dbname`, and populate it with the structural collections:
+Create a new database to MongoDB, here `dbname`, and populate it with the structural collections:
 
 ```
-for f in install/database/*.json; do mongoimport --db dbname -u myAdmin -p XXXX --authenticationDatabase admin $f; done
+for f in install/database/*.json; do mongoimport --host myServer --db dbname -u myAdmin -p myPassword --authenticationDatabase admin $f; done
 ```
 
 ### Configure application settings
@@ -420,4 +421,3 @@ Add a new document in the `sampleData` collection defining where the new dataset
 ```
 
 Where "sample_path" is the relative path of the dataset from GLOBALS['sampleData'].
-
