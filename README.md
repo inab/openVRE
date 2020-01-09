@@ -11,27 +11,25 @@ Several research projects has adopted the VRE framework for its project-specific
 - OpenEBench : https://openebench.bsc.es/vre
 
 ### Dependencies
-- Web server (e.g. Apache2 or Nginx)
-- Mongo Server (<=4.2) 
-- PHP (<=5.6) and [mongoDB PHP driver](https://www.php.net/manual/es/mongodb.setup.php)
-- composer
+- Web Server (e.g. Apache2)
+- Mongo Client (mongodb-org-shell, mongodb-org-tools, php-mongo)
+- PHP (>=7.3)
+- composer : https://getcomposer.org/doc/00-intro.md
 
 ### Code structure
 
 - composer.json: 3rd party software requirements
 - [config](./config) : configuration files 
-	- [settings](.config/globals.inc.php) global application file
-	- [conf](.config/) files for credentials : mail, db, oauth2, etc
-	- [bootstrap](.config/bootstrap.php) VRE application
+	- [settings](.config/globals.inc.php.sample) sample for the global application settings
+	- [bootstrap](.config/bootstrap.php) bootstrap VRE application
 - [install](./install) : installation instructions and data 
-	- [install](./install/INSTALL) instructions
-	- [database](./install/INSTALL) skeleton with structural collections
-	- [data](./install/INSTALL) datasets and sample schemas
-- [logs](./logs) : paths for VRE logging files
+	- [install](./install/README.md) instructions
+	- [database](./install/database) skeleton with structural collections
+	- [data](./install/data) datasets and sample schemas
 - [public](./public) : web application elements
 	- **web pages**
 	- [home](./public/home) pages for 'Homepage' section
-	- [workspace](./public/workpace) pages for 'User Workspace' section
+	- [workspace](./public/workspace) pages for 'User Workspace' section
 	- [getdata](./public/getdata) pages for 'Get Data' section
 	- [launch](./public/launch) pages for 'Run Tool / Visualizers' section
 	- [help](./public/help) pages for 'Help' section
