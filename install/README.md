@@ -70,7 +70,7 @@ sudo systemctl restart apache2
 
 ### Prepare directory structure
 
-Define where VRE user's data and other data is to be stored, for example, in `/home/user/data` . Copy the directory structure there, and give Apache2 user permissions to it:
+Define where VRE user's data and other data is to be stored, for example, in `/shared/user/data` . Make sure that the chosen folder is accessible from both, the VRE web application and the VRE workers (i.e. local or remote virtual machines). Copy the directory structure there, and give Apache2 user permissions to it:
 
 ```
 mkdir data
