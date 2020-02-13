@@ -180,7 +180,7 @@
     "infrastructure" : {
         "memory" : "", 
         "cpus" : 1, 
-        "executable" : "/ABSOLUTE/PATH/TO/VRE/DATA/apps/internalTools/wget/wget.sh", 
+        "executable" : "/ABSOLUTE/PATH/TO/VRE/DATA/apps/localTools/wget/wget.sh", 
         "clouds" : {
             "mug-bsc" : {
                 "launcher" : "SGE", 
