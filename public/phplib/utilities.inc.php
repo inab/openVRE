@@ -576,14 +576,20 @@ function prepMetadataResult($meta,$fnPath=0,$lastjob=Array() ){
                         $fnCore = preg_replace("/.$ext/i","",basename($fnPath));
                         $fnCore = preg_replace("/^.*_/","",$fnCore);
                 }
-                $reObj = new MongoRegex("/".$_SESSION['User']['id'].".*".$fnCore."/i");
-                $relatedBAMS = $GLOBALS['filesMetaCol']->find(array('path'  => $reObj));
-                if (!empty($relatedBAMS)){
-                       $relatedBAMS->next();
-                       $BAM = $relatedBAMS->current();
-                       if (!empty($BAM))
-                                $meta['refGenome'] = $BAM['refGenome'];
-                }
+                $reObj = new MongoDB\BSON\Regex ("/".$_SESSION['User']['id'].".*".$fnCore."/i");
+		$relatedBAMS = $GLOBALS['filesMetaCol']->find(array('path'  => $reObj))->toArray();
+		if (!empty($relatedBAMS)){
+			foreach($relatedBAMS as $BAM) {
+                    	    if (!empty($BAM))
+                          	$meta['refGenome'] = $BAM['refGenome'];
+			    continue;
+			}
+                    #$relatedBAMS->next();
+                    #$BAM = $relatedBAMS->current();
+                    #if (!empty($BAM))
+                    #      $meta['refGenome'] = $BAM['refGenome'];
+		} 
+
             }
         }
 	if (!isset($meta['description']) ){
