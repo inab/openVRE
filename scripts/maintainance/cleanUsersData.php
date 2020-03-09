@@ -16,6 +16,9 @@ require "phplib/genlibraries.php";
  *
  */
 
+print "########################\n# CLEAN USERS DATA\n########################\n\n";
+print "Start Time : ".date("F j, Y, g:i a")."\n\n";
+
 
 $caduca_readme = 7;     // expiration for README.md files
 $dry_run   = false ;     // true: evaluate files but dont delete them. false; clean files
