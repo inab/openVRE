@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 /*
  *  List Mongo Users and 
