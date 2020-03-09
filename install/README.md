@@ -203,11 +203,31 @@ sudo qconf -as mail.domain.es
 
 ### Maintainance tasks
 
+##### Clean old users and their data
 Each time a new user access VRE, an anonymous account is created until it registers. Set a cron job for regularly cleanning old temporarily user, from both, database and data directory.
 
+Add execution permission to the cleaning script:
 ```
-php scripts/maintainance/cleanUsersData.php
+chmod u+x scripts/maintainance/cleanUsersData.php
 ```
+
+Set a cron job to daily execute it using:
+```
+crontab -e
+```
+And setting there something similar to:
+```
+# Example of job definition:
+# .---------------- minute (0 - 59)
+# | .------------- hour (0 - 23)
+# | | .---------- day of month (1 - 31)
+# | | | .------- month (1 - 12) OR jan,feb,mar,apr ...
+# | | | | .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# | | | | |
+# * * * * * command to be executed
+  0 3 * * * /path/to/openvre/scripts/cleanUsers.php >> /path/to/openvre/logs/cleanUsers.log  2>&1
+```
+
 
 <a name="install_my_first_tool"></a>
 ----
