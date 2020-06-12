@@ -252,7 +252,7 @@ Register the tool definition into the `tools collection` database
 
 ### Prepare tool form
 
-Each tool in VRE requires a new folder in `tools/`. Create it for the 'newTool'. You can take the tool_skeleton as a template
+Each tool in VRE requires a new folder in `tools/`. Create it for the 'newTool'. Make it sure that 'newTool' is your tool id. You can take the tool_skeleton as a template
 
 ```
 cp tools/tool_skeleton/ tools/newTool
