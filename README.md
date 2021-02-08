@@ -1,27 +1,34 @@
-Virtual Research Environment 
+open Virtual-Research-Environment 
 =========
 
-VRE is a web-based collaborative working environment providing its users with a set of ready-to-use services (datasets, analysis tools and visualizaters) for supporting a research lifecycle. It is written in PHP, HTML and Javascript.
+VRE is a computational cloud-based working environment providing reseachers a web-based integrated access to a customizable set of pluggble resources: analysis tools, reference repositories, and visualizaters. 
+
 
 ### Flavors
 
-Several research projects has adopted the VRE framework for its project-specific purposes:
+Several research projects are adopting openVRE framework for a rapidly prototying their computational platforms:
 
-- MuG : https://vre.multiscalegenomics.eu
-- OpenEBench : https://openebench.bsc.es/vre
+| Project     | Title | Access |
+| ----------- | ------------- | -------|
+| MuG         | Multiscale Complex Genomics  | https://vre.multiscalegenomics.eu |
+| OpenEBench  | ELIXIR Benchmarking Platform | https://openebench.bsc.es/vre |
+| euCanSHare  | Computational environment for cardiovascular research | https://vre.eucanshare.bsc.es/ |
+| IPC         | Individualized Paediatric Cancer Analysis Platform | https://vre.ipc-project.bsc.es/ |   
 
+
+ 
 ### Dependencies
 - Web Server (e.g. Apache2)
 - Mongo Client (mongodb-org-shell, mongodb-org-tools, php-mongo)
 - PHP (>=7.3)
-- composer : https://getcomposer.org/doc/00-intro.md
+- Composer : https://getcomposer.org/doc/00-intro.md
 
 ### Code structure
 
 - composer.json: 3rd party software requirements
 - [config](./config) : configuration files 
-	- [settings](.config/globals.inc.php.sample) sample for the global application settings
-	- [bootstrap](.config/bootstrap.php) bootstrap VRE application
+	- [settings](./config/globals.inc.php.sample) sample for the global application settings
+	- [bootstrap](./config/bootstrap.php) bootstrap VRE application
 - [install](./install) : installation instructions and data 
 	- [install](./install/README.md) instructions
 	- [database](./install/database) skeleton with structural collections
