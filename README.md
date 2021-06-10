@@ -1,4 +1,4 @@
-open Virtual-Research-Environment 
+openVRE: Open Virtual Research Environment 
 =========
 
 VRE is a computational cloud-based working environment providing reseachers a web-based integrated access to a customizable set of pluggble resources: analysis tools, reference repositories, and visualizaters. 
