@@ -40,7 +40,7 @@ extension=curl
 extension=gd2
 
 ``` -->
-After installing the extensions and libraries, restart Apache2 Web server:
+After installing the extensions and libraries, restart Apache2 Web server or if missing install it and run:
 
 ```
 sudo service apache2 restart
