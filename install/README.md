@@ -49,7 +49,7 @@ sudo service apache2 restart
 ### Configure Web access
 
 The `/public/` directory is to be accessible on the Web, and the server should accept '.htaccess' files. So, the Apache2 Web Server is to be accordingly set. 
-Multiple configurations are possible, for instance, you can set the host files mapping using the [Alias](https://httpd.apache.org/docs/2.4/mod/mod_alias.html) directive, or you can prepare a new virtual host by which the root document points to the openVRE public folder. See an example:
+Multiple configurations are possible, for instance, you can set the host files mapping using the [Alias](https://httpd.apache.org/docs/2.4/mod/mod_alias.html) directive, or you can prepare a new virtual host by which the root document points to the openVRE public folder. The DocumentRoot needs to be set accordingly in apache.config and the necessary files. See an example:
 
 ```
 DocumentRoot /home/user/openvre/public/
