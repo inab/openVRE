@@ -2,15 +2,6 @@
 
 require __DIR__."/../config/bootstrap.php";
 
-?>
-
-<html>
-<head>
-  <meta charset="utf-8" />
-  </head>
-
-
-<?php
 // Check if PHP session exists
 $r = checkLoggedIn();
 
