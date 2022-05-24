@@ -65,6 +65,7 @@ class Tooljob {
         $this->launcher         = $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
         switch ($this->launcher){
             case "SGE":
+            case "docker_SGE":
                 $this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
                 $this->root_dir_mug      = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
                 $this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
@@ -787,7 +788,17 @@ class Tooljob {
 			if (!is_file($submission_rfn))
 				return 0;
 			break;
-	
+
+		    case "docker_SGE":
+			$cmd  = $this->setBashCmd_docker_SGE($tool);
+                        if (!$cmd)
+                                return 0;
+
+                        $submission_rfn = $this->createSubmitFile_SGE($cmd);
+                        if (!is_file($submission_rfn))
+                                return 0;
+                        break;
+
 		    case "PMES":
 			$json_data = $this->setPMESrequest($tool);
 			if (!$json_data)
@@ -843,6 +854,30 @@ class Tooljob {
 			    	" --log_file "       .$this->log_file_virtual ;
 	return $cmd;
     }
+
+    protected function setBashCmd_docker_SGE($tool){
+        if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])){
+            $_SESSION['errorData']['Internal Error'][]="Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
+            return 0;
+	}
+	#docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /home/user/dockerized_vre/volumes/shared_data/public:/shared_data/public -v /home/user/dockerized_vre/volumes/shared_data/userdata/user1:/shared_data/userdata/user1 re /response_estimation/VRE_RUNNER --config /shared_data/userdata/user1/proj1/runlaia/config.json --in_metadata /shared_data/userdata/user1/proj1/runlaia/in_metadata.json --out_metadata /shared_data/userdata/user1/proj1/runlaia/out_metadata.json --log_file /shared_data/userdata/user1/proj1/runlaia/VRE_RUNNER.log
+	
+
+	$cmd_vre = $tool['infrastructure']['executable'] .
+                                " --config "         .$this->config_file_virtual .
+                                " --in_metadata "    .$this->metadata_file_virtual .
+                                " --out_metadata "   .$this->stageout_file_virtual .
+				" --log_file "       .$this->log_file_virtual ;
+
+	$cmd = "docker run --privileged" .
+		" -v /var/run/docker.sock:/var/run/docker.sock " .
+		" -v " . $GLOBALS['pubDir']. ":" . $this->pub_dir_virtual  .
+		" -v " . $GLOBALS['dataDir'].":" . $this->root_dir_virtual .
+		" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
+
+        return $cmd;
+    }
+
 
     protected function setPMESrequest($tool){
 
