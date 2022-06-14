@@ -75,7 +75,7 @@ table.treetable span.indenter { position: absolute; left: 4.5%; margin-top:-2px;
 .refresh-table:before {
     font-family: 'FontAwesome';
     content: "\f021";
-    color: #006b8f;
+    color: #000221;
     cursor: pointer;
     margin-left:5px;
     font-size: 16px;

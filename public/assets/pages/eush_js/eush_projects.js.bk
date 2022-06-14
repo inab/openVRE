@@ -1,0 +1,69 @@
+$(document).ready(function() {
+
+        $("#errorsTool").hide();
+
+	console.log("ddd");
+
+        //get info on the currently logged user
+    	var urlJSON = "applib/eush_eurobioimaging.php";
+    	$.ajax({
+                type: 'POST',
+                url: urlJSON,
+                data: {'action': 'getUser'}
+        }).done(function(data) {
+        var currentUser = data;
+
+        var columns = [
+	    { "data" : "_id"},
+        { "data" : "date" },
+        { "data" : "owner.author" },
+        { "data" : "owner.community", 'defaultContent': '' },
+        { "data" : null, 'defaultContent': '' },
+        { "data" : "request_status" }];
+
+        //GENERAL DATATABLE
+        $('#workflowsTable').DataTable( {
+            "ajax": {
+                url: 'applib/eush_eurobioimaging.php?action=getProjects',
+                dataSrc: ''
+            },
+            autoWidth: false,
+            "columns" : columns,
+            "columnDefs": [
+                //targets are the number of corresponding columns
+                { "title": "Title", "targets": 0 },
+                { "title": "Date", "targets": 1 },
+                { "title": "Owner", "targets": 2 },
+                { "title": "Community Owner", "targets": 3 },
+                { "title": "View JSON", "targets": 4},
+                { "title": "Status", "targets": 5 },
+                { render: function(data, type, row) {
+                    //FOR ADMINS - display extra buttons
+                    switch(data) {
+                        case "submitted":
+                            return '<div class="note note-success" style="background-color:rgba(109, 91, 142,0.7);border-color:rgb(109, 91,142)"><p class="font-white"><b>SUBMITTED</b>:<br> Waiting for VRE team response.</p></div>';
+                            break;
+                        case "registered":
+                            return '<div><div class="note bg-green-jungle"><p class="font-white"><b>ACCEPTED</b>:<br/>Tool successfully registed!</p></div>';
+                            break;
+                        case "rejected":
+                            return '<div><div class="note note-danger"><p class="font-red"><b>REJECTED</b>:<br/>Code not accepted</p></div>';
+                            break;
+                        default:
+                            return "";
+                    }
+
+                }, "targets": 5},
+                { render: function(data, type, row) {
+                    return '<a onclick="callShowWorkflowJson(name)"; name="'+row._id+'" id="c'+row._id+'"">View JSON</a>'
+                }, "targets": 4}
+            ]
+        });
+    });
+
+        $("#workflowsReload").click(function() {
+                reload();
+    });
+});
+
+

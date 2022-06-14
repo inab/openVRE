@@ -1,25 +1,23 @@
 
 function openTermsOfUse() {
-//Decomment for tearms of use to work
+	 $('#modalTerms').modal({ show: 'true' });
 
-	// $('#modalTerms').modal({ show: 'true' });
-
-	// $.ajax({
-	// 	type: "POST",
-	// 	url: baseURL + "/applib/getTermsOfUse.php",
-	// 	data:"id=1",
-	// 	success: function(data) {
-
-	// 		$('#modalTerms .modal-body .container-terms').html(data);
-	// 	}
-	// });
+	 $.ajax({
+	 	type: "POST",
+	 	//url: baseURL + "/applib/getTermsOfUse.php",
+		url: baseURL + "/applib/termsofuse.html",
+	 	data:"id=1",
+	 	success: function(data) {
+	 		$('#modalTerms .modal-body .container-terms').html(data);
+	 	}
+	 });
 }
 
 
 function checkSessionState() {
 	$.ajax({
 		type: "POST",
-		url: baseURL+"applib/checkSession.php",
+		url: baseURL+"/applib/checkSession.php",
 		data:"id=1",
 		success: function(data) {
 			var obj = JSON.parse(data);
@@ -106,7 +104,7 @@ jQuery(document).ready(function() {
 			
 			$.ajax({
 				type: "POST",
-				url: baseURL + "applib/logoutToken.php",
+				url: baseURL + "/applib/logoutToken.php",
 				data:"id=1",
 				success: function(data) {
 					d = data.replace(/(\r\n|\n|\r|\t)/gm,"");
@@ -135,7 +133,7 @@ jQuery(document).ready(function() {
 
 			$.ajax({
 				type: "POST",
-				url: baseURL + "applib/logoutToken.php",
+				url: baseURL + "/applib/logoutToken.php",
 				data:"id=1",
 				success: function(data) {
 					d = data.replace(/(\r\n|\n|\r|\t)/gm,"");

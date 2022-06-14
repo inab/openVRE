@@ -12,7 +12,7 @@ $(document).ready(function() {
   table = $('#workspace').DataTable({
   //pagingType: "full_numbers",
 	pageLength: 20,
-	lengthMenu: [[20,-1],[20,"All"]],
+	lengthMenu: [[20,50,-1],[20,50,"All"]],
 	orderCellsTop: true,
 	ordering: true,
 	language: {
@@ -550,8 +550,8 @@ $(document).ready(function() {
 		window.location.reload();
   } );
 
-	// COLLAPSE FOLDER
-	$('.collapse-folder', table.rows().nodes()).on( 'click', function () {
+  // COLLAPSE FOLDER -- version 1: by default, only collapse on click
+  $('.collapse-folder', table.rows().nodes()).on( 'click', function () {
 
     var tr = $(this).parent().parent();
     var td = $(this).parent();
@@ -591,6 +591,77 @@ $(document).ready(function() {
     });
 
   } );
+  
+  // DEACTIVATED
+  // COLLAPSE FOLDER -- version 2: by default, collapse big folders
+  // TODO: icons open/close
+
+  function collapseFolder(record) {
+
+   var tr = $(record).parent().parent();
+   var td = $(record).parent();
+   console.log(record);
+       
+    //var tr = $(this).parent().parent();
+    //var td = $(this).parent();
+
+    var trID = "0";
+    if (tr.data('tt-id')) {
+	trID = tr.data("tt-id").toString();
+    }
+    if($(tr).hasClass("folder-off")) {
+      $(tr).removeClass("folder-off");
+      var folderAction = "visible";
+      //open
+      if($(td).hasClass('highlighted_folder')) {
+        $(record).html('<i class="fa fa-folder-open fa-stack-1x font-blue-oleo" style="left:-5px;top: -9px;"></i>' +
+        '<i class="fa fa-folder-open-o font-green" style="position: absolute;left: 4px;top: -9px;"></i>');
+      } else {
+        $(record).removeClass('fa-folder');
+        $(record).addClass('fa-folder-open');
+      }
+    } else {
+      //collapse
+      $(tr).addClass("folder-off");
+      var folderAction = "hidden";
+      if($(td).hasClass('highlighted_folder')) {
+        $(this).html('<i class="fa fa-folder fa-stack-1x font-blue-oleo" style="left:-5px;top: -9px;"></i>' +
+        '<i class="fa fa-folder-o font-green" style="position: absolute;left: 4px;top: -9px;"></i>');
+      } else {
+        $(this).addClass('fa-folder');
+        $(this).removeClass('fa-folder-open');
+      }
+    }
+
+    $(table.rows().nodes()).each(function() {
+      var id = $(this).data("tt-id").toString();
+      var l1 = id.split(".");
+      if(l1.length == 2  && l1[0] == trID) {
+        if(folderAction == "hidden") $(this).hide();
+        else $(this).show();
+      }
+    });
+
+  } 
+
+	
+  // collapsing on click
+  /*$('.collapse-folder', table.rows().nodes()).click(function() { collapseFolder(this); });
+   */
+
+  // collapsing by default FOLDERS with more than 5 files
+  /*$.each( $('.collapse-folder', table.rows().nodes()), function(index,record){
+      var tr = $(record).parent().parent();
+      var id = $(tr).data("tt-id").toString();
+      var folder_files=$('[data-tt-parent-id="'+id+'"]');
+
+      if(folder_files.length > 5){
+    	collapseFolder(record);
+        table.page.len( 50 ).draw();
+      }
+  });*/
+
+
 	
 	// SELECT2 PROJECT
   $("#select_project").select2({
@@ -620,5 +691,6 @@ checkCheckboxes = function(idNode){
 		}
 	}
 }
+
 
 

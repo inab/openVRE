@@ -10,13 +10,13 @@ var FormDropzone = function () {
 				var count_added = 0;
 				var count_uploaded = 0;
 				Dropzone.options.myDropzone = {
-					/*url: "sdfsdf.php",*/
 					dictDefaultMessage: "Drop files here or click to upload",
 					dictResponseError: "Error message",
 					maxFilesize: maxUpSize,
-					/*maxFiles: "3",*/
+					timeout: 0,
 					success: function (file, response) {
 						d = response.replace(/(\r\n|\n|\r|\t)/gm,"");
+						console.log('response=',d);
 						this.on("complete", function (file) {
 							console.log('file loaded', d);
 							if((queryArray.indexOf(d) == -1) && (d != '0'))	queryArray.push(d);
@@ -24,18 +24,19 @@ var FormDropzone = function () {
 							if (this.getUploadingFiles().length === 0 && this.getQueuedFiles().length === 0) {
 								
 								//TODO No se com ferho
-														//if(response == '0'){
+								//if(response == '0'){
 								//	print nicely $_SESSION['errorData'];
-														//}else{
+								//}else{
 								//	location.href="uploadForm2.php?fn[]="+responsefile1+"&fn[]"+responsefile2
-														//}
+								//}
 								//queryArray.pop();
 								if(queryArray.length > 0) {
 									queryString = '?fn[]=' + queryArray.join('&fn[]=');
 									location.href= baseURL + "getdata/uploadForm2.php" + queryString;
-									//console.log(d);
 								}else{
+									console.log('response=',d);
 									$('.alert-error-uploading').show();
+									location.href= baseURL + "getdata/uploadForm.php";
 								}
 								//console.log("uploadForm2.php" + queryString);
 							}

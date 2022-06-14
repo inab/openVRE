@@ -15,15 +15,18 @@ function openHelp() {
 
 }
 
+// Alejandro: Temporal fix: lengthMenu SHOW ALL rows a get rid of pagination. Until we find
+// how to Select All fn can check all pages and not just the first one.
+// ORIGINAL: "lengthMenu": [[10,20],[10,20]]
 var createDatatable = function() {
-
+	// Next step: Play with workspace_st2 id and this fn : Solution for Select All + Pagination?
 	var handleDatatable = function() {
 
 		table = $('#workspace_st2').DataTable({
 			"language": {
         emptyTable: 'No data available in User workspace'
 			},
-			"lengthMenu": [[10,20],[10,20]],
+			"lengthMenu": [[-1],["All"]],
 			"initComplete": function (settings, json) {
 					$('#workspace_st2').show();
 			},
@@ -114,9 +117,7 @@ var createModal = function() {
     }
 
     var handleModal = function() {
-
 	cleanInput = function (visible_input, input_name, type) {
-	
 		if(type == 0) {
 			$("input[name*='" + visible_input + "']").val('');
 		} else {
@@ -127,7 +128,6 @@ var createModal = function() {
 	}
 
 	toolModal = function (visible_input, input_name, dt_list, ft_list, multiple) {
-
 		// visible_input: name of the input which will show the file path
 		// input_name: name of the input which value must be changed after selecting item from the table
 		// dt_list: list of data types to be shown in tool type
@@ -141,7 +141,7 @@ var createModal = function() {
 		})
 
 		$('#modalDTStep2').modal({ show: 'true' });
-
+		console.log("pre ajax");
 		$.ajax({
 			type: "POST",
 			url: baseURL + "applib/getFilesListInputTool.php",
@@ -177,14 +177,14 @@ var createModal = function() {
 					} else {
 						var inptype = 'mt-checkbox';
 					} 
-						var inputbtn = $(this).find('td:first-child label.' + inptype + ' input');
+					var inputbtn = $(this).find('td:first-child label.' + inptype + ' input');
 					var checked =  true;
 						if(multiple) {
-						if(inputbtn.is(':checked')) {
-							checked =  false;
-						}else {
-							checked =  true;
-						}
+							if(inputbtn.is(':checked')) {
+								checked =  false;
+							}else {
+								checked =  true;
+							}
 					}
 					inputbtn.prop("checked", checked).trigger("change");
 				} );
@@ -197,7 +197,6 @@ var createModal = function() {
 			}
 
 		});
-		console.log(visible_input, input_name, dt_list, multiple, file_selected);
 
 	}
 
@@ -246,17 +245,76 @@ var createModal = function() {
 	// select checkbox
 	changeCheckbox = function(op, name, id, path) {
 	    if($(op).is(':checked')) {
-		var file = {fileName: name, fileID: id, filePath: path};
-		selectedFiles.push(file);
-		$(".btn-modal-dts2-ok").prop('disabled', false);
+			console.log("checked");
+			var file = {fileName: name, fileID: id, filePath: path};
+			console.log(file)
+			selectedFiles.push(file);
+			$(".btn-modal-dts2-ok").prop('disabled', false);
 	    } else {
-		selectedFiles = selectedFiles.filter(function(el) {
-			return el.fileID !== id;
-		});
-		if(selectedFiles.length == 0) $(".btn-modal-dts2-ok").prop('disabled', true);
-		else $(".btn-modal-dts2-ok").prop('disabled', false);
+			console.log("Not checked!")
+			selectedFiles = selectedFiles.filter(function(el) {
+				console.log("el: ", el);
+				console.log("el.fileID: ", el.fileID);
+				console.log("id: ", id);
+				console.log("el.fileID !== id :", (el.fileID !== id) )
+				return el.fileID !== id;
+			});
+			if(selectedFiles.length == 0) $(".btn-modal-dts2-ok").prop('disabled', true);
+			else $(".btn-modal-dts2-ok").prop('disabled', false);
 	    }
 	    //console.log(selectedFiles);
+	}
+
+	// Alejandro: Select All fn
+	changeAllCheckbox = function(op, name, id, path, execution) {
+		names = name.split(" ");
+		ids = id.split(" ");
+		paths = path.split(" ");
+		executions = execution.split(" ");
+		
+		paths_arr = []
+		for (i = 0; i < paths.length; i++) {
+			// paths_arr.push(paths[i] + " / " + executions[i] + " / ");
+			paths_arr.push(paths[i] + " / " + executions[i]);
+		}
+		
+		if($(op).is(':checked')) {
+			selectedFiles = [];
+			for (i = 0; i < names.length; i++) {
+				var files = {fileName: names[i], fileID: ids[i], filePath: paths_arr[i]};
+				selectedFiles.push(files);
+			}
+			i=5
+			console.log(names[i]);
+			console.log(ids[i]);
+			console.log(paths_arr[i]);
+			// APPROACH I:
+			$('#workspace_st2 tr.row-clickable').each( function () {
+				$('input[type="checkbox"]').prop("checked", "checked");
+				$('input[type="checkbox"]').val(true);
+			});
+			selectedRows=$('td.sorting_1');
+			selectedRows.each( function (){
+				console.log($(this).text() );
+			});
+			selectedRows=$('input[type="checkbox"]');
+			selectedRows.each( function (){
+				console.log(this);
+			});
+			// APPROACH II:
+			//$('input[type="checkbox"]').prop("checked", "checked");
+			//$('input[type="checkbox"]').val(true);
+			$(".btn-modal-dts2-ok").prop('disabled', false);
+		} else {
+			selectedFiles = [];
+			$('#workspace_st2 tr.row-clickable').each( function () {
+				$('input[type="checkbox"]').prop("checked", false);
+				$('input[type="checkbox"]').val(false);
+			});
+			//$('input[type="checkbox"]').prop("checked", false);
+			//$('input[type="checkbox"]').val(false);
+			$(".btn-modal-dts2-ok").prop('disabled', true);
+		}
 	}
 
 	// select radio
@@ -299,14 +357,7 @@ var createSelect2 = function() {
 
 
 $(document).ready(function() {
-
 	createSelect2.init();
 	createModal.init();
-
-	/*$("#select_project").change(function() {
-	
-		console.log($(this).val());
-
-	});*/
 
 });

@@ -12,6 +12,7 @@ $GLOBALS['AppPrefix'] = "EG"; // project url acronym
 $GLOBALS['NAME']      = "Project Name"; // project name 
 $GLOBALS['SITETITLE'] = "Project Name | Virtual Research Environment"; // site title
 $GLOBALS['TIMEOUT']   = 3600; // session and cookies timeout
+$GLOBALS['GA_TAG']    = ""; // Google Analytics (v4) general tag.
 
 // Email
 $GLOBALS['mail_credentials'] = __DIR__."/mail.conf"; // SMTP credentials

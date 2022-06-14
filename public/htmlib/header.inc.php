@@ -250,7 +250,7 @@
 	<?php } ?>
 	<link href="assets/layouts/layout/css/custom.min.css?v=<?php echo rand(); ?>" rel="stylesheet" type="text/css" />
 	<!-- END THEME LAYOUT STYLES -->
-	<link rel="icon" href="assets/layouts/layout/img/icon.png" sizes="32x32" />
+	<link rel="icon" href="assets/layouts/layout/img/longITools_Graphic_White.png" sizes="32x32" />
 
 </head>
 <!-- END HEAD -->
