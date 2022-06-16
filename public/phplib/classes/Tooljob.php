@@ -876,14 +876,14 @@ class Tooljob {
 	if (is_file("/.dockerenv") or is_file("/run/.containerenv") ){
 	   $docker_in_docker_socket= " --privileged -v /var/run/docker.sock:/var/run/docker.sock ";
 	}
-
-	$cmd = "docker run " . $docker_in_docker_socket .
-		" -p 8787:8787 " .
-		" -v /home/user/dockerized_R/R/requirements.R:/tmp/requirements.R" .
-		" -v " . $GLOBALS['pubDir']. ":" . $this->pub_dir_virtual  .
-		" -v " . $GLOBALS['dataDir'].":" . $this->root_dir_virtual .
-		" --rm -d " .
-		" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
+	
+	$cmd =  "docker run" .
+		" --privileged -v /var/run/docker.sock:/var/run/docker.sock " .
+		" -p 8787:8787 -e ROOT=TRUE" .
+ 		" -v /home/user/dockerized_R/R/requirements.R:/tmp/requirements.R" .
+ 		" -v " . $GLOBALS['pubDir']. ":" . $this->pub_dir_virtual  .
+ 		" -v " . $GLOBALS['dataDir'].":" . $this->root_dir_virtual .
+ 		" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
 
         return $cmd;
     }

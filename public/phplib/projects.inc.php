@@ -158,6 +158,7 @@ function setUserWorkSpace($homeDir,$projectDir,$sampleData="",$projectData,$verb
                 if (!is_dir("$dataDirP/rstudio"))
                         mkdir("$dataDirP/rstudio", 0775);
         }
+
 	// creating other directories not registered in mongo
 
 		if (!is_dir("$dataDirP/.jbrowse") || !is_dir("$dataDirP/.tadkit") || !is_dir("$dataDirP/.dev") || !is_dir($dataDirP."/".$GLOBALS['tmpUser_dir']) ){
