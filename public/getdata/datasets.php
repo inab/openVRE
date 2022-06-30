@@ -46,7 +46,7 @@ $communities = getCommunities();
         <!-- END PAGE BAR -->
         <!-- BEGIN PAGE TITLE-->
         <h1 class="page-title">
-          <a href="javascript:;" target="_blank"><img src="assets/layouts/layout/img/icon.png" width=100></a>
+          <a href="javascript:;" target="_blank"><img src="assets/layouts/layout/img/icon.png" width=50></a>
           My Datasets
         </h1>
         <!-- END PAGE TITLE-->
