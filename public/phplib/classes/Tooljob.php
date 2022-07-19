@@ -872,7 +872,7 @@ class Tooljob {
 	
 	$cmd =  "docker run" .
 		" --privileged -v /var/run/docker.sock:/var/run/docker.sock " .
-		" -e ROOT=TRUE -u www-data" .
+		" -u www-data" .
  		" -v " . $GLOBALS['pubDir']. ":" . $this->pub_dir_virtual  .
  		" -v " . $GLOBALS['dataDir'].":" . $this->root_dir_virtual .
  		" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
