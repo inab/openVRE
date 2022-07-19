@@ -869,12 +869,14 @@ class Tooljob {
                                 " --in_metadata "    .$this->metadata_file_virtual .
                                 " --out_metadata "   .$this->stageout_file_virtual .
 				" --log_file "       .$this->log_file_virtual ;
-
-	$cmd = "docker run --privileged" .
-		" -v /var/run/docker.sock:/var/run/docker.sock " .
-		" -v " . $GLOBALS['pubDir']. ":" . $this->pub_dir_virtual  .
-		" -v " . $GLOBALS['dataDir'].":" . $this->root_dir_virtual .
-		" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
+	
+	$cmd =  "docker run" .
+		" --privileged -v /var/run/docker.sock:/var/run/docker.sock " .
+		" -e ROOT=TRUE -u www-data" .
+ 		" -v /home/user/dockerized_R/R/requirements.R:/tmp/requirements.R" .
+ 		" -v " . $GLOBALS['pubDir']. ":" . $this->pub_dir_virtual  .
+ 		" -v " . $GLOBALS['dataDir'].":" . $this->root_dir_virtual .
+ 		" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
 
         return $cmd;
     }
