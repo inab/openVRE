@@ -780,7 +780,8 @@ class Tooljob {
 
 		switch ($launcher){
 		    case "SGE":
-			$cmd  = $this->setBashCmd_SGE($tool);
+			    
+			$cmd  = $this->setBashCmd_docker_SGE($tool);
 			if (!$cmd)
 				return 0;
 	
