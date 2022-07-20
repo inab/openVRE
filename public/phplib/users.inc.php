@@ -340,18 +340,18 @@ print "\nPOST DATA\n";
 var_dump(json_encode($data));
             $r = update_keycloak_user($kc_user['id'],json_encode($data),$kc_token['access_token']);
 
-            if (!$r){
-                $_SESSION['errorData']['Warning'][]="User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Cannot update ".$aux['_id']." in its registry";
+           if (!$r){
+          #      $_SESSION['errorData']['Warning'][]="User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Cannot update ".$aux['_id']." in its registry";
                 return false;
             }else{
                 return true;
             }
         }else{
-            $_SESSION['errorData']['Warning'][]="User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Cannot get ".$aux['_id']." from its registry";
+           # $_SESSION['errorData']['Warning'][]="User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Cannot get ".$aux['_id']." from its registry";
             return false;
-        }
+       }
     }else{
-        $_SESSION['errorData']['Warning'][]="User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Token not created";
+       # $_SESSION['errorData']['Warning'][]="User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Token not created";
         return false;
     }
 }
@@ -371,17 +371,17 @@ function resetPasswordViaKeycloak($login,$id){
             die();
 
             if (!$r){
-                $_SESSION['errorData']['Warning'][]="User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Cannot update ".$aux['_id']." in its registry";
+  #              $_SESSION['errorData']['Warning'][]="User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Cannot update ".$aux['_id']." in its registry";
                 return false;
             }else{
                 return true;
             }
         }else{
-            $_SESSION['errorData']['Warning'][]="User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Cannot get ".$aux['_id']." from its registry";
+      #      $_SESSION['errorData']['Warning'][]="User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Cannot get ".$aux['_id']." from its registry";
             return false;
         }
     }else{
-        $_SESSION['errorData']['Warning'][]="User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Token not created";
+       # $_SESSION['errorData']['Warning'][]="User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Token not created";
         return false;
     }
 }

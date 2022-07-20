@@ -876,13 +876,12 @@ class Tooljob {
 	if (is_file("/.dockerenv") or is_file("/run/.containerenv") ){
 	   $docker_in_docker_socket= " --privileged -v /var/run/docker.sock:/var/run/docker.sock ";
 	}
-
-	
 	$cmd =  "docker run" . 
 		" --privileged -e ROOT=TRUE -v /var/run/docker.sock:/var/run/docker.sock ".
-		" -v " . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
- 		" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
+		" -v /home/ubuntu/dockerized_vre/volumes" . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
+ 		" -v /home/ubuntu/dockerized_vre/volumes" . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
  		" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
+
         return $cmd;
     }
 
@@ -1060,9 +1059,9 @@ class Tooljob {
 
     protected function createSubmitFile_SGE($cmd){
 
-	$working_dir= $this->working_dir;
+	$working_dir= "/home/ubuntu/dockerized_vre/volumes".$this->working_dir;
 	$bash_rfn   = $this->submission_file;
-	$log_rfn    = $this->log_file;
+	$log_rfn    = "/home/ubuntu/dockerized_vre/volumes".$this->log_file;
 
 
 	try{
@@ -1513,4 +1512,3 @@ class Tooljob {
     }
 }
 ?>
-
