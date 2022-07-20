@@ -33,15 +33,16 @@ function get_keycloak_admintoken(){
     #curl -X POST 'https://inb.bsc.es/auth/realms/master/protocol/openid-connect/token'  -H "Content-Type: application/x-www-form-urlencoded" -d "username=admin"  -d 'password=XXX'  -d 'grant_type=password'  -d 'client_id=admin-cli'
     list($resp,$info) =post($data,$url,$headers);
 
-    if ($info['http_code'] != 200 && $info['http_code'] != 204){
-        if ($resp){
-            $err = json_decode($resp,TRUE);
-            $_SESSION['errorData']['Warning'][]="Admin access to MuG Auth Server unauthorized. [".$err['error']."]: ".$err['error_description'];
-        }else{
-            $_SESSION['errorData']['Warning'][]="Admin access to MuG Auth Server unauthorized.";
-        }
-        return false;
-    }
+
+    #if ($info['http_code'] != 200 && $info['http_code'] != 204){
+    #    if ($resp){
+    #        $err = json_decode($resp,TRUE);
+          #  $_SESSION['errorData']['Warning'][]="Admin access to MuG Auth Server unauthorized. [".$err['error']."]: ".$err['error_description'];
+   #     }else{
+           # $_SESSION['errorData']['Warning'][]="Admin access to MuG Auth Server unauthorized.";
+   #     }
+   #     return false;
+   # }
 
     // parse token result
     return json_decode($resp,TRUE);
