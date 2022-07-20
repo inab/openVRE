@@ -874,8 +874,8 @@ class Tooljob {
 
 	$cmd =  "docker run" . 
 		" --privileged -e ROOT=TRUE -u ubuntu -v /var/run/docker.sock:/var/run/docker.sock ".
-		" -v " . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
- 		" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
+		" -v /home/ubuntu/dockerized_vre/volumes" . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
+ 		" -v /home/ubuntu/dockerized_vre/volumes" . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
  		" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
 
         return $cmd;
