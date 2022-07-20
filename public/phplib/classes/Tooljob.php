@@ -872,12 +872,17 @@ class Tooljob {
 				" --log_file "       .$this->log_file_virtual ;
 
 
+	$docker_in_docker_socket="";
+	if (is_file("/.dockerenv") or is_file("/run/.containerenv") ){
+	   $docker_in_docker_socket= " --privileged -v /var/run/docker.sock:/var/run/docker.sock ";
+	}
+
+	
 	$cmd =  "docker run" . 
 		" --privileged -e ROOT=TRUE -v /var/run/docker.sock:/var/run/docker.sock ".
 		" -v " . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
  		" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
  		" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
-
         return $cmd;
     }
 
@@ -1508,3 +1513,4 @@ class Tooljob {
     }
 }
 ?>
+
