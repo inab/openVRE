@@ -780,7 +780,6 @@ class Tooljob {
 
 		switch ($launcher){
 		    case "SGE":
-			    
 			$cmd  = $this->setBashCmd_SGE($tool);
 			if (!$cmd)
 				return 0;
@@ -823,6 +822,7 @@ class Tooljob {
 		switch ($launcher){
 	
 		    case "SGE":
+    		    case "docker_SGE":	
 			$cmd = $this->setBashCmd_withoutApp($tool,$metadata);
 			if (!$cmd)
 				return 0;
@@ -863,18 +863,15 @@ class Tooljob {
 	}
 	#docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /home/user/dockerized_vre/volumes/shared_data/public:/shared_data/public -v /home/user/dockerized_vre/volumes/shared_data/userdata/user1:/shared_data/userdata/user1 re /response_estimation/VRE_RUNNER --config /shared_data/userdata/user1/proj1/runlaia/config.json --in_metadata /shared_data/userdata/user1/proj1/runlaia/in_metadata.json --out_metadata /shared_data/userdata/user1/proj1/runlaia/out_metadata.json --log_file /shared_data/userdata/user1/proj1/runlaia/VRE_RUNNER.log
 	
+	#docker run -p 8787:8787 -v /home/user/openVRE/public:/shared_data/public -v /gpfs/longitools.bsc.es/vre/userdata/LTANON6299c4d761eea/__PROJ6299c4d761eec9.48366556:/home -v /home/user/dockerized_R/R/requirements.R:/tmp/requirements.R -e ROOT=TRUE --rm -d r /vre_template_tool/VRE_RUNNER --config /vre_template_tool/tool/tests/basic_docker/config.json --in_metadata /vre_template_tool/tool/tests/basic_docker/in_metadata.json --out_metadata /vre_template_tool/tool/tests/basic_docker/run000/out_metadata.json --log_file /vre_template_tool/tool/tests/basic_docker/run000/VRE_RUNNER.log
 
 	$cmd_vre = $tool['infrastructure']['executable'] .
                                 " --config "         .$this->config_file_virtual .
                                 " --in_metadata "    .$this->metadata_file_virtual .
                                 " --out_metadata "   .$this->stageout_file_virtual .
 				" --log_file "       .$this->log_file_virtual ;
-	
-	$docker_in_docker_socket="";
-	if (is_file("/.dockerenv") or is_file("/run/.containerenv") ){
-	   $docker_in_docker_socket= " --privileged -v /var/run/docker.sock:/var/run/docker.sock ";
-	}
-#['container_port']	
+
+
 	$cmd =  "docker run" . 
 		" --privileged -e ROOT=TRUE -u www-data -v /var/run/docker.sock:/var/run/docker.sock ".
 		" -v " . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
@@ -1115,7 +1112,8 @@ class Tooljob {
     */
     public function submit($tool){
 	    switch ($tool['infrastructure']['clouds'][$this->cloudName]['launcher']){
-    	    case "SGE":
+	    case "SGE":
+	    case "docker_SGE":
     		    return $this->enqueue($tool);
         		break;
         	    case "PMES":
