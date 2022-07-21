@@ -1056,9 +1056,9 @@ class Tooljob {
 
     protected function createSubmitFile_SGE($cmd){
 
-	$working_dir= $this->working_dir;
-	$bash_rfn   = $this->submission_file;
-	$log_rfn    = $this->log_file;
+	$working_dir= $this->"/home/ubuntu/dockerized_vre/volumes".working_dir;
+	$bash_rfn   = $this->"/home/ubuntu/dockerized_vre/volumes".submission_file;
+	$log_rfn    = $this->"/home/ubuntu/dockerized_vre/volumes".log_file;
 
 
 	try{
