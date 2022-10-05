@@ -270,15 +270,20 @@ At the database, the 'Tools' collection should already have the 'wget' tool entr
 'excutable' and 'queue':
 
 ```
-"executable" : "/ABSOLUTE/PATH/TO/VRE/DATA/apps/internalTools/wget/wget.sh"
-"clouds" : {
-  "mug-bsc" : {
-     "launcher" : "SGE", 
-     "queue" : "local.q"
+  "infrastructure": {
+    "memory": 12,
+    "container_image": "nlp_vre",
+    "cpus": 4,
+    "executable": "/home/wp3_nlp_pipelines/vre_template_tool/VRE_RUNNER",
+    "clouds": {
+      "my_on_premises_cloud": {
+        "launcher": "docker_SGE",
+        "queue": "testq"
 }
 
 ```
-
+- launcher: "docker_SGE" if the tool is dockerized
+- container_image if the tool is dockerized
 - 'executable' : Point it to your 'apps' folder. Should have been installed in your VRE data directory as part of the data distributed in `install/data/apps`
 - 'mug-bsc' : Name of your cloud as set in `install/globals`
 - 'queue': Name of the queue configured in the host where the executable is found
