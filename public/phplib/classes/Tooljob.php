@@ -871,20 +871,24 @@ class Tooljob {
                                 " --out_metadata "   .$this->stageout_file_virtual .
 				" --log_file "       .$this->log_file_virtual ;
 
+	if (!isset($tool['infrastructure']['interactive'])){
+		        $cmd =  "docker run --privileged  -v /var/run/docker.sock:/var/run/docker.sock" .
+                	" -p 8787:8787"." -e ROOT=TRUE -u www-data -d".
+                	" -v /home/user/dockerized_R/".$tool['name']."/requirements.R:/tmp/requirements.R" .
+                	" -v " . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
+                	" -v " . $GLOBALS['pubDir']. ":" . $this->pub_dir_virtual  .
+                	" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
+                	" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
 
-	$docker_in_docker_socket="";
-	if (is_file("/.dockerenv") or is_file("/run/.containerenv") ){
-	   $docker_in_docker_socket= " --privileged -v /var/run/docker.sock:/var/run/docker.sock ";
+
 	}
-#['container_port']	
-	$cmd =  "docker run" . $docker_in_docker_socket .
-		" -p 8787:8787"." -e ROOT=TRUE -u www-data -d".
- 		" -v /home/user/dockerized_R/R/requirements.R:/tmp/requirements.R" .
-		" -v " . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
-		#" -v " . $GLOBALS['pubDir']. ":" . $this->pub_dir_virtual  .
- 		" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
- 		" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
+	else{
 
+		$cmd =  "docker run --privileged -u www-data" .
+			" -v " . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
+ 			" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
+ 			" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
+	}	
         return $cmd;
     }
 
