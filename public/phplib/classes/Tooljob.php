@@ -871,10 +871,10 @@ class Tooljob {
                                 " --out_metadata "   .$this->stageout_file_virtual .
 				" --log_file "       .$this->log_file_virtual ;
 
-	if (!isset($tool['infrastructure']['interactive'])){
+	if (isset($tool['infrastructure']['interactive'])){
 		        $cmd =  "docker run --privileged  -v /var/run/docker.sock:/var/run/docker.sock" .
                 	" -p 8787:8787"." -e ROOT=TRUE -u www-data -d".
-                	" -v /home/user/dockerized_R/".$tool['name']."/requirements.R:/tmp/requirements.R" .
+                	" -v /home/user/dockerized_R/R/".$tool['name']."/requirements.R:/tmp/requirements.R" .
                 	" -v " . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
                 	" -v " . $GLOBALS['pubDir']. ":" . $this->pub_dir_virtual  .
                 	" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
