@@ -874,9 +874,12 @@ class Tooljob {
 	   $docker_in_docker_socket= " --privileged -v /var/run/docker.sock:/var/run/docker.sock ";
 	}
 	$cmd =  "docker run" .
-		" -e ROOT=TRUE -u www-data".
-		" -v /home/ubuntu/dockerized_vre/volumes" . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
- 		" -v /home/ubuntu/dockerized_vre/volumes" . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
+		" --privileged -v /var/run/docker.sock:/var/run/docker.sock ".
+		" -e HOST_UID=$(id -u) -e HOST_GID=$(id -u) " .
+		" -v /home/ubuntu/dockerized_vre/volumes" . $this->pub_dir_virtual . ":" . "/shared_data/public_tmp/" .
+		" -v /home/ubuntu/dockerized_vre/volumes" . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":"."/shared_data/userdata_tmp/".$_SESSION['User']['id'].
+		#" -v /home/ubuntu/dockerized_vre/volumes" . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
+ 		#" -v /home/ubuntu/dockerized_vre/volumes" . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
  		" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
 
         return $cmd;
