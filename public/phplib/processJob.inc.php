@@ -95,9 +95,8 @@ function getRunningJobInfo($pid,$launcherType=NULL,$cloudName="local"){
                 else
                         $launcherType = "PMES";
     }
-
     // create new jobProcess
-        if ($launcherType == "SGE"){
+        if ($launcherType == "SGE" || $launcherType == "docker_SGE" ){
                 $process = new ProcessSGE();
                 $job = $process->getRunningJobInfo($pid);
 
@@ -105,7 +104,7 @@ function getRunningJobInfo($pid,$launcherType=NULL,$cloudName="local"){
                 $process = new ProcessPMES($cloudName);
                 $job = $process->getRunningJobInfo($pid);
         }else{
-                $_SESSION['errorData']['Error'][]="Cannot monitor job '$pid' of type '$launcher'. Launcher not implemented.";
+                $_SESSION['errorData']['Error'][]="Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.";
                 return $job;
     }
     // return job info
@@ -250,7 +249,7 @@ function delJob($pid,$launcherType=NULL,$cloudName="local",$login=NULL){
 
     // cancel job
     $r = false;
-    if ($launcherType == "SGE"){
+    if ($launcherType == "SGE" || $launcherType == "docker_SGE" ){
         $process = new ProcessSGE();
         list($r,$msg) = $process->stop($pid);
         if (!$r)

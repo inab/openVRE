@@ -1164,6 +1164,12 @@ function processPendingFiles($sessionId,$files=array()){
 
 	//get qstat info
 	$jobProcess = getRunningJobInfo($pid,$job['launcher'],$job['cloudName']);
+	if ($debug){
+		print "<br/> getRunningJobInfo:: returns:<br/>\n";			
+		var_dump($jobProcess);
+		var_dump("ERRORDATA: ", $_SESSION['errorData']);
+		print "<br/>\n";
+	}
 
 
 	// TODO: PMES will redirect log info to log_file. Now, info extracted from $jobProcess
@@ -1230,7 +1236,7 @@ function processPendingFiles($sessionId,$files=array()){
 	}else{
 	    log_addFinish($pid,"Workspace reload detects job $pid is not running anymore");
 
-	    unset($_SESSION['errorData']);
+	    #unset($_SESSION['errorData']);
 	    $job_in_err=0;
 
 	    //get tool info
@@ -1247,6 +1253,7 @@ function processPendingFiles($sessionId,$files=array()){
 		var_dump($job['stageout_data']);		
 		print "<br>\nSTAGEOUT_FILE.<br>";
 		var_dump($job['stageout_file']);		
+		var_dump("ERRORDATA: ", $_SESSION['errorData']);
 	    }
 
 	    // build output list merging: stageout_file + stageout_data + tool defintion data
@@ -1304,8 +1311,11 @@ function processPendingFiles($sessionId,$files=array()){
 
 			$outPath  = fromAbsPath_toPath($rfn);
 			$fileId   = getGSFileId_fromPath($outPath);
-			if ($debug)
+			if ($debug){
 			    print "PID = [$pid] file_path=".$out_data['file_path']." --> fn=$outPath rfn=$rfn . Has Id? $fileId <br/>\n";
+			    var_dump("ERRORDATA: ", $_SESSION['errorData']);
+			}
+
 
 
 			//convert stage out data into MuGFile
@@ -2043,12 +2053,12 @@ function resolvePath_toLocalAbsolutePath($path,$job){
 		 $rfn = str_replace($job['root_dir_virtual'],$GLOBALS['dataDir'].$_SESSION['User']['id'],$path);
 		 
       	     //SGE finds mounted dataDir as root_dir_virtual
-	    }elseif ($job['launcher'] == "SGE"){
+	    }elseif ($job['launcher'] == "SGE" || $job['launcher'] == "docker_SGE"){
 	   	    $rfn = str_replace($job['root_dir_mug'],$GLOBALS['dataDir'],$path);
 	    }
 	// direct from file_path
-  		}else{
-   		    $rfn = $path;
+  	}else{
+   	    $rfn = $path;
 	}
 
     // file_path is relative

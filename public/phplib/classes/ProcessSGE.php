@@ -24,7 +24,7 @@ class ProcessSGE{
 
 	public function __construct($cl=false,$workDir="",$queue="srv.q",$jobname="",$cpu=1,$mem=0){
 
-		$current_user = posix_getpwuid(posix_geteuid());
+	$current_user = posix_getpwuid(posix_geteuid());
         $this->username  = $current_user['name']; 
 
 		if ($cl != false){
@@ -92,11 +92,12 @@ class ProcessSGE{
 		$jobs=Array();
 		$command = QSTAT." -u $this->username | awk '$1 ~ /[0-9]+/ {print $1\"\t\"$5\"\t\"$6 $7}'";
 		exec($command,$queueJobs);
+            	log_addInfo($jobid,$command);
 
 		if (!isset($queueJobs[0])){
-            log_addInfo($jobid,"Job not running anymore");
+            		log_addInfo($jobid,"Job not running anymore");
 			return $jobs;
-        }else{
+        	}else{
 			foreach ($queueJobs as $jobLine){
 				list($pid,$state,$start)=explode("\t",$jobLine);
 				$cmd = QSTAT. " -j $pid | grep job_name | cut -d: -f2 | tr -d \" \"";
