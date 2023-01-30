@@ -432,7 +432,6 @@ function moveGSFileBNS($fn,$fnNew,$asRoot=0,$owner=""){
         	array("_id"=>$parentNew),
     	    array('$addToSet' => array("files" => $fileOld['_id']))
         );
-	var_dump("XXXXX",strtotime("now"));
 	
     	modifyGSFileBNS($parentNew,"atime", new MongoDB\BSON\UTCDateTime(strtotime("now")*1000));
         $size_parent = 0 + getAttr_fromGSFileId($parentNew,"size");
