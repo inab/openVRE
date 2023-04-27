@@ -34,7 +34,7 @@ sort($appList);
         <div class="page-bar">
           <ul class="page-breadcrumb">
             <li>
-              <span>Home</span>
+              <span><b>Exposome Data Analysis Toolbox</b></span>
             </li>
           </ul>
         </div>

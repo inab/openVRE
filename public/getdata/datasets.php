@@ -27,7 +27,7 @@ $communities = getCommunities();
         <div class="page-bar">
           <ul class="page-breadcrumb">
             <li>
-              <a href="home/">Home</a>
+              <a href="home/"><span><b>Exposome Data Analysis Toolbox</b></span></a>
               <i class="fa fa-circle"></i>
             </li>
             <li>
