@@ -865,28 +865,37 @@ class Tooljob {
 	
 	#docker run -p 8787:8787 -v /home/user/openVRE/public:/shared_data/public -v /gpfs/longitools.bsc.es/vre/userdata/LTANON6299c4d761eea/__PROJ6299c4d761eec9.48366556:/home -v /home/user/dockerized_R/R/requirements.R:/tmp/requirements.R -e ROOT=TRUE --rm -d r /vre_template_tool/VRE_RUNNER --config /vre_template_tool/tool/tests/basic_docker/config.json --in_metadata /vre_template_tool/tool/tests/basic_docker/in_metadata.json --out_metadata /vre_template_tool/tool/tests/basic_docker/run000/out_metadata.json --log_file /vre_template_tool/tool/tests/basic_docker/run000/VRE_RUNNER.log
 
+	$cmd = "FREE_PORT=$(python -c 'import socket; s=socket.socket(); s.bind((\"\", 0)); print(s.getsockname()[1]); s.close()');\n";
+
 	$cmd_vre = $tool['infrastructure']['executable'] .
                                 " --config "         .$this->config_file_virtual .
                                 " --in_metadata "    .$this->metadata_file_virtual .
-                                " --out_metadata "   .$this->stageout_file_virtual .
+                                " --out_metadata "   .$this->stageout_file_virtual ;
 				" --log_file "       .$this->log_file_virtual ;
 
+
+	$cmd_envs="";
+	foreach ($tool['infrastructure']['container_env'][0] as $env_key=>$env_value){
+		$cmd_envs .= "-e $env_key=$env_value ";
+	}
+
+#-e HOST_UID=$(id -u) -e HOST_GID=$(id -u) 
 	if (isset($tool['infrastructure']['interactive'])){
-		        $cmd =  "docker run --privileged  -v /var/run/docker.sock:/var/run/docker.sock" .
-                	" -p 8787:8787"." -e ROOT=TRUE -u www-data -d".
-                	" -v /home/user/dockerized_R/R/".$tool['name']."/requirements.R:/tmp/requirements.R" .
-                	" -v " . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
-                	" -v " . $GLOBALS['pubDir']. ":" . $this->pub_dir_virtual  .
-                	" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
+		        $cmd .=  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d " .
+                	" ". $cmd_envs . 
+			" -p ". "\$FREE_PORT" . ":". $tool['infrastructure']['container_port'] . #change second one to make it a variable
+                	" -v " . $this->pub_dir_virtual . ":" . $GLOBALS['shared']."public_tmp/ " .
+			" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual."_tmp/" .
                 	" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
 
 
 	}
 	else{
 
-		$cmd =  "docker run --privileged -u www-data" .
-			" -v " . $this->pub_dir_virtual . ":" . $this->pub_dir_virtual .
- 			" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual .
+		$cmd =  "docker run --privileged  -v /var/run/docker.sock:/var/run/docker.sock " .
+                	" ". $cmd_envs . 
+			" -v " . $this->pub_dir_virtual . ":" . $GLOBALS['shared']."public_tmp/ " .
+ 			" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual."_tmp/" .
  			" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
 	}	
         return $cmd;
@@ -1025,7 +1034,7 @@ class Tooljob {
 					"config"      => $this->config_file_virtual,
 				      //"root_dir"    => $this->root_dir_virtual,
 				      //"public_dir"  => $this->pub_dir_virtual,
-                      //"log_file"    => $this->log_file_virtual,
+                        "log_file"    => $this->log_file_virtual,
 						"in_metadata" => $this->metadata_file_virtual,
                         "out_metadata"=> $this->stageout_file_virtual
 						),
@@ -1088,8 +1097,9 @@ class Tooljob {
 	fwrite($fout, "\n# Running $this->toolId tool ...\n");
 	fwrite($fout, "\necho '# Start time:' \$(date) > $log_rfn\n");
 
+        #fwrite($fout, "\n$cmd >> $log_rfn 2>&1\n");
 	
-	fwrite($fout, "\n$cmd >> $log_rfn 2>&1\n");
+	fwrite($fout, "\n$cmd \n");
 	fwrite($fout, "\necho '# End time:' \$(date) >> $log_rfn\n");
 	fclose($fout);
 
