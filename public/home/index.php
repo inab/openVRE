@@ -34,8 +34,9 @@ sort($appList);
         <div class="page-bar">
           <ul class="page-breadcrumb">
             <li>
-              <span><b>Exposome Data Analysis Toolbox</b></span>
-            </li>
+              <span><b>Exposome Data Analysis Toolbox</b>
+	      An online toolbox to collate and add value to data analysis tools and visualisation methodologies. For best user experience please login.</span>
+	    </li>
           </ul>
         </div>
         <!-- END PAGE BAR -->

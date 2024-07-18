@@ -30,39 +30,41 @@ redirectOutside();
                             <i class="fa fa-circle"></i>
                         </li>
                         <li>
-                            <span>General Information</span>
+                            <span>Exposome Data Analysis Toolbox</span>
                         </li>
                     </ul>
                 </div>
                 <!-- END PAGE BAR -->
                 <!-- BEGIN PAGE TITLE-->
-                <h1 class="page-title"> What is OpenEBench ?</h1>
+                <h1 class="page-title">Exposome Data Analysis Toolbox</h1>
                 <!-- END PAGE TITLE-->
                 <!-- END PAGE HEADER-->
 
                 <div class="note note-info">
                     <h4 class="block">
-                        OpenEBench is an infra-structure designed to establish a continuous automated benchmarking system for bioinformatics methods, tools and web services.
+                        Welcome to the Exposome Data Analysis Toolbox, your comprehensive solution for analyzing exposome data. Here's what you need to know about the platform:
+
+                        <ul>
+                            <li><strong style="color: green;">Workflows:</strong> These tools are workflows that take specific input data, process it using a series of operations, and generate an output. Think of them as customizable data processing pipelines tailored to your research needs.</li>
+
+                            <li><strong style="color: purple;">R Libraries:</strong> these tools represent R libraries. When you initiate an interactive session with an R library, it opens an R environment with the specified library installed within your private workspace. This provides you with a flexible and customizable R programming environment for data analysis.</li>
+
+                            <li><strong style="color: pink;">DataSHIELD Libraries:</strong> When you access the DataSHIELD libraries, they redirect you to the central JupiterHub of the project. Here, you gain access to the project's data for analysis within a secure and controlled environment, ensuring the confidentiality of the shared data. Before running these tools, please email <a href="molgenis-support@umcg.nl">molgenis-support@umcg.nl</a> to gain access to the analysis server. </li>
+                        </ul>
                     </h4>
                 </div>
 
-                <p><img src="assets/layouts/layout/img/help/Diagram_with_textbox.svg" style="width:80%;max-width:100%;" /></p>
+                <div class="note note-info" style="background-color: #f0f8ff;">
+                    <h4 class="block">
+                        Our platform is designed to facilitate seamless collaboration and efficient analysis within a secure ecosystem. We value your feedback and continuously work on enhancing the platform to meet your evolving research requirements.
+                    </h4>
+                </div>
 
-                <p>
-                    OpenEBench is being developed so as to cater for the needs of the bioinformatics community, especially software developers who need an objective and quantitative way to inform their decisions as well as the larger community of end-users, in their search for unbiased and up-to-date evaluation of bioinformatics methods.</p>
-
-                <p>
-                    The goals of OpenEBench are to:
-
-                    <ul>
-                        <li>Provide guidance and software infrastructure for Benchmarking and Techincal monitoring of bioinformatics tools.</li>
-                        <li>Engage with existing benchmark initiatives making different communities aware of the platform.</li>
-                        <li>Maintain a data warehouse infrastructure to keep record of Benchmarking initiatives.</li>
-                        <li>Expose benchmarking and technical monitoring results to Elixir Tools registry.</li>
-                        <li>Establish and refine communication protocols with communities and/or infrastructure projects willing to have a unified benchmark infrastructure Coordinate with Elixir.</li>
-                        <li>Interoperability Platform to keep FAIR data principles on Benchmarking data warehouse.</li>
-                </p>
-
+                <div class="note note-info" style="background-color: #f0f8ff;">
+                    <h4 class="block">
+                        <strong>Please Note:</strong> The Exposome Data Analysis Toolbox is already developed and operational. While it's functional, we continue to refine and enhance its features. Your input is invaluable in shaping the future of our platform. We encourage you to explore the available tools and functionalities. Should you have any suggestions, encounter issues, or require assistance, please do not hesitate to reach out. Together, we can advance exposome research and contribute to scientific discovery.
+                    </h4>
+                </div>
             </div>
             <!-- END CONTENT BODY -->
         </div>
@@ -74,3 +76,4 @@ redirectOutside();
         require "../htmlib/js.inc.php";
 
         ?>
+

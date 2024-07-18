@@ -8,7 +8,9 @@ class Tooljob {
     public $project;           // User defined. Correspond to the project
     public $toolId;
     public $pub_dir;           // Public dir mounted to VMs. Path as seen by VRE
+    public $pub_dir_intern;    // Public dir as mounted to images using an entrypoint that downgrates virtual users via BindFS
     public $root_dir;          // User dataDir. Mounted to VMs in PMES. Already there in SGE. Path as seen by VRE 
+    public $root_dir_intern;   // User dataDir as mounted to images using an entrypoint that downgrates virtual users via BindFS
     public $root_dir_virtual;  // User dataDir. Mounted to VMs in PMES. Already there im SGE. Path as seen by VMs
     public $root_dir_mug;      // MuG  dataDir parent of user dataDir. Mounted to VMs in PMES. Already there im SGE. Path as seen by VMs 
     public $pub_dir_virtual;   // Public dir mounted to VMs. Path as seen by VMs  
@@ -18,6 +20,8 @@ class Tooljob {
     public $output_dir;
     public $launcher;
     public $imageType;
+    public $container_image;
+    public $job_type = "batch"; // Or "interactive"
 
     // Paths to files genereted during ToolJob execution
     public $config_file;
@@ -30,6 +34,8 @@ class Tooljob {
     public $log_file;
     public $log_file_virtual;
     public $logName;
+    public $stdout_file;
+    public $stderr_file;
 
     public $stageout_data   = Array();
     public $input_files     = Array();
@@ -40,7 +46,6 @@ class Tooljob {
     public $pid             = 0;
     public $start_time      = 0;
     public $hasExecutionFolder= true;
-    public $refGenome_to_taxon = Array( "hg38"=>"9606" ,  "hg19"=>"9606", "R64-1-1"=>"4932", "r5_01"=>"7227");
 
 
     /**
@@ -64,11 +69,18 @@ class Tooljob {
         $this->set_cloudName($tool);
         $this->launcher         = $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
         switch ($this->launcher){
-            case "SGE":
-            case "docker_SGE":
+	    case "SGE":
+	    case "singularity":
                 $this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
                 $this->root_dir_mug      = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
                 $this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
+                break;
+            case "docker_SGE":
+                $this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
+                $this->root_dir_mug     = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
+        	$this->root_dir_intern  = rtrim($this->root_dir_virtual,"/")."_tmp";
+                $this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
+    		$this->pub_dir_intern   = rtrim($this->pub_dir_virtual,"/"). "_tmp";
                 break;
             case "PMES":
                 $this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
@@ -76,7 +88,13 @@ class Tooljob {
                 break;
             default:
                 $_SESSION['errorData']['Error'][]="Tool '$this->toolId' not properly registered. Launcher type is set to '".$this->launcher."'. Case not implemented.";
-        }
+	}
+	# Clean resulting paths
+	$this->root_dir_virtual= preg_replace('#/+#','/',$this->root_dir_virtual);
+	$this->root_dir_mug    = preg_replace('#/+#','/',$this->root_dir_mug);
+	$this->pub_dir_virtual = preg_replace('#/+#','/',$this->pub_dir_virtual);
+	$this->root_dir_intern = preg_replace('#/+#','/',$this->root_dir_intern);
+	$this->pub_dir_intern  = preg_replace('#/+#','/',$this->pub_dir_intern); 
 
     	// Creating execution folder
         if ($execution != "0"){
@@ -171,7 +189,7 @@ class Tooljob {
 
     public function __setWorking_dir($execution, $overwrite=0){
 
-	    $dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'],"path");
+	$dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'],"path");
     	$wdFN   = $dataDirPath."/$execution";
     	$wd     = $GLOBALS['dataDir']."/$wdFN";
 	
@@ -200,6 +218,8 @@ class Tooljob {
         $this->submission_file= $this->working_dir."/".$GLOBALS['tool_submission_file'];
         $this->log_file       = $this->working_dir."/".$this->logName;
         $this->metadata_file  = $this->working_dir."/".$GLOBALS['tool_metadata_file'];
+        $this->stdout_file    = $this->working_dir."/job_output.log";
+        $this->stderr_file    = $this->working_dir."/job_error.log";
 
         $this->config_file_virtual    = $this->root_dir_virtual."/".$this->project."/".$this->execution."/".$GLOBALS['tool_config_file'];
         $this->stageout_file_virtual  = $this->root_dir_virtual."/".$this->project."/".$this->execution."/".$GLOBALS['tool_stageout_file'];
@@ -789,6 +809,16 @@ class Tooljob {
 				return 0;
 			break;
 
+		    case "singularity":
+                        $cmd  = $this->setBashCmd_singularity($tool);
+                        if (!$cmd)
+                                return 0;
+
+                        $submission_rfn = $this->createSubmitFile_SGE($cmd);
+                        if (!is_file($submission_rfn))
+                                return 0;
+                        break;
+
 		    case "docker_SGE":
 			$cmd  = $this->setBashCmd_docker_SGE($tool);
                         if (!$cmd)
@@ -822,6 +852,15 @@ class Tooljob {
 		switch ($launcher){
 	
 		    case "SGE":
+		    case "singularity":
+                        $cmd = $this->setBashCmd_withoutApp($tool,$metadata);
+                        if (!$cmd)
+                                return 0;
+
+                        $submission_rfn = $this->createSubmitFile_SGE($cmd);
+                        if (!is_file($submission_rfn))
+                                return 0;
+                        break;
     		    case "docker_SGE":	
 			$cmd = $this->setBashCmd_withoutApp($tool,$metadata);
 			if (!$cmd)
@@ -856,17 +895,46 @@ class Tooljob {
 	return $cmd;
     }
 
-    protected function setBashCmd_docker_SGE($tool){
+    protected function setBashCmd_singularity($tool){
+	if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])){
+            $_SESSION['errorData']['Internal Error'][]="Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
+            return 0;
+        }
+	$this->container_image = $tool['infrastructure']['container_image'];
+
+        $cmd_vre = $tool['infrastructure']['executable'] .
+                                " --config "         .$this->config_file_virtual .
+                                " --in_metadata "    .$this->metadata_file_virtual .
+                                " --out_metadata "   .$this->stageout_file_virtual ;
+                                " --log_file "       .$this->log_file_virtual ;
+
+        $cmd_envs="";
+        foreach ($tool['infrastructure']['container_env'][0] as $env_key=>$env_value){
+                $cmd_envs .= "-e $env_key=$env_value ";
+        }
+
+        $cmd = "singularity exec " .
+                        $cmd_envs .
+                        " -B " . $this->pub_dir_virtual . ":" . $GLOBALS['shared']."public_tmp/" .
+                        " -B " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual."_tmp/" .
+                        " ".$tool['infrastructure']['container_image'] .
+                        " ".$cmd_vre ;
+
+        return $cmd;
+
+    }
+
+
+    protected function setBashCmd_docker_SGE_old($tool){
         if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])){
             $_SESSION['errorData']['Internal Error'][]="Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
             return 0;
 	}
-	#docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /home/user/dockerized_vre/volumes/shared_data/public:/shared_data/public -v /home/user/dockerized_vre/volumes/shared_data/userdata/user1:/shared_data/userdata/user1 re /response_estimation/VRE_RUNNER --config /shared_data/userdata/user1/proj1/runlaia/config.json --in_metadata /shared_data/userdata/user1/proj1/runlaia/in_metadata.json --out_metadata /shared_data/userdata/user1/proj1/runlaia/out_metadata.json --log_file /shared_data/userdata/user1/proj1/runlaia/VRE_RUNNER.log
-	
-	#docker run -p 8787:8787 -v /home/user/openVRE/public:/shared_data/public -v /gpfs/longitools.bsc.es/vre/userdata/LTANON6299c4d761eea/__PROJ6299c4d761eec9.48366556:/home -v /home/user/dockerized_R/R/requirements.R:/tmp/requirements.R -e ROOT=TRUE --rm -d r /vre_template_tool/VRE_RUNNER --config /vre_template_tool/tool/tests/basic_docker/config.json --in_metadata /vre_template_tool/tool/tests/basic_docker/in_metadata.json --out_metadata /vre_template_tool/tool/tests/basic_docker/run000/out_metadata.json --log_file /vre_template_tool/tool/tests/basic_docker/run000/VRE_RUNNER.log
+
+	$this->container_image = $tool['infrastructure']['container_image'];
 
 	$cmd = "FREE_PORT=$(python -c 'import socket; s=socket.socket(); s.bind((\"\", 0)); print(s.getsockname()[1]); s.close()');\n";
-
+		
 	$cmd_vre = $tool['infrastructure']['executable'] .
                                 " --config "         .$this->config_file_virtual .
                                 " --in_metadata "    .$this->metadata_file_virtual .
@@ -878,29 +946,141 @@ class Tooljob {
 	foreach ($tool['infrastructure']['container_env'][0] as $env_key=>$env_value){
 		$cmd_envs .= "-e $env_key=$env_value ";
 	}
-
-#-e HOST_UID=$(id -u) -e HOST_GID=$(id -u) 
-	if (isset($tool['infrastructure']['interactive'])){
-		        $cmd .=  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d " .
-                	" ". $cmd_envs . 
-			" -p ". "\$FREE_PORT" . ":". $tool['infrastructure']['container_port'] . #change second one to make it a variable
-                	" -v " . $this->pub_dir_virtual . ":" . $GLOBALS['shared']."public_tmp/ " .
-			" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual."_tmp/" .
-                	" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
-
+	
+	if (isset($tool['infrastructure']['interactive'])) {
+		$random_string = bin2hex(random_bytes(8)); // Generate a random string
+    		$container_name = "RStudio_" . $random_string; 
+		$cmd .= 'NET_ID=$(docker network inspect openVRE_net --format {{.Id}} 2>/dev/null || docker network create --driver bridge openVRE_net); ' .
+		 'CONTAINER_ID=$(docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d ' .
+	         ' '. $cmd_envs .
+	         ' -p '. "\$FREE_PORT" . ':' . $tool['infrastructure']['container_port'] . ' ' .
+	         '--net=openVRE_net --name ' . $container_name . ' ' .
+	         '-v ' . $this->pub_dir_virtual . ':' . $GLOBALS['shared'] . 'public_tmp/ ' .
+	         '-v ' . $GLOBALS['dataDir'] . '/' . $_SESSION['User']['id'] . ':' . "/gpfs/longitools.bsc.es/vre/userdata_tmp/".$_SESSION['User']['id'].
+	         $tool['infrastructure']['container_image'] . ' ' .  $cmd_vre . '); ' .
+	         'CONTAINER_NAME=$(docker inspect --format "{{.Name}}" $CONTAINER_ID | cut -d "/" -f 2);  ' .
+	         'docker logs $CONTAINER_ID >>' . $this->log_file_virtual . '; ' .
+	         'echo "ContainerID: $CONTAINER_ID" >>' . $this->log_file_virtual . '; ' .
+	         'echo "ContainerName: $container_name" >>' . $this->log_file_virtual . '; ' .
+		 'docker logs $CONTAINER_ID >>' . $this->log_file_virtual . '; ' .
+		 'docker logs -f $CONTAINER_ID &> ' . $this->log_file_virtual . '& ' .
+	         'if ! docker inspect --format=\'{{.State.Running}}\' $CONTAINER_ID | grep -q true; then exit; fi';
 
 	}
-	else{
 
-		$cmd =  "docker run --privileged  -v /var/run/docker.sock:/var/run/docker.sock " .
+	else{
+		$cmd =  "docker run --privileged  -v /var/run/docker.sock:/var/run/docker.sock -d " .
                 	" ". $cmd_envs . 
 			" -v " . $this->pub_dir_virtual . ":" . $GLOBALS['shared']."public_tmp/ " .
  			" -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":" . $this->root_dir_virtual."_tmp/" .
- 			" ".$tool['infrastructure']['container_image'] . " $cmd_vre";
-	}	
+ 			" ".$tool['infrastructure']['container_image'] . " $cmd_vre" ;
+	}
         return $cmd;
     }
 
+    protected function setBashCmd_docker_SGE($tool){
+        if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])){
+            $_SESSION['errorData']['Internal Error'][]="Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
+            return 0;
+	}
+	
+	$this->container_image = $tool['infrastructure']['container_image'];
+
+	# Set the intermediary mounting points required by the entrypoint.sh (BindFS) of the VRE image
+	# https://github.com/inab/vre_template_tool_dockerized/blob/main/template/entrypoint.sh
+
+	# Set VRE cmd to be executed inside the container
+	$cmd_vre = $tool['infrastructure']['executable'] .
+                                " --config "         .$this->config_file_virtual .
+                                " --in_metadata "    .$this->metadata_file_virtual .
+                                " --out_metadata "   .$this->stageout_file_virtual ;
+                                " --log_file "       .$this->log_file_virtual ;
+
+	# Set ENV variables to be imported to the container
+        $cmd_envs="";
+        foreach ($tool['infrastructure']['container_env'][0] as $env_key=>$env_value){
+                $cmd_envs .= "-e $env_key=$env_value ";
+        }
+
+	# Build the FULL command for running the interactive Docker containers
+	if (isset($tool['infrastructure']['interactive'])) {
+		$this->job_type = "interactive";
+
+		# Set dynamic container name
+                $random_string = bin2hex(random_bytes(8)); // Generate a random string
+		$container_name = $tool['infrastructure']['container_image'] ."_". $random_string;
+
+		# Get the free port using the get_open_port function
+		$free_port = shell_exec('python3 /home/user/openVRE/public/phplib/classes/get_free_port.py');
+
+                $cmd=<<<EOF
+
+# Export service to an available port (-p \$FREE_PORT:{$tool['infrastructure']['container_port']}). NOT REQUIRED when using proxy-gt
+FREE_PORT=$free_port
+
+# Create or retrieve the network ID for the openVRE_net network. Required when using proxy-gt
+NET_NAME="openvre_net";
+NET_ID=\$(docker network inspect \$NET_NAME --format "{{.Id}}" 2>/dev/null || docker network create --driver bridge "\$NET_NAME");
+
+# Run the Docker container with necessary options and configurations
+CONTAINER_ID=\$(docker run \
+    --rm \
+    --privileged \
+    -v /var/run/docker.sock:/var/run/docker.sock -d \
+    --net="\$NET_NAME" --name $container_name \
+    $cmd_envs \
+    -v {$this->pub_dir_virtual}:{$GLOBALS['shared']}public_tmp/ \
+    -v {$GLOBALS['dataDir']}/{$_SESSION['User']['id']}:/gpfs/longitools.bsc.es/vre/userdata_tmp/{$_SESSION['User']['id']} \
+    -p \$FREE_PORT:{$tool['infrastructure']['container_port']} {$tool['infrastructure']['container_image']} $cmd_vre);
+
+# Check if the container is running
+if ! docker top \$CONTAINER_ID &>/dev/null; then
+    printf '%s | %s\n' "$(date)" "Container crashed unexpectedly...";
+    exit 1;
+fi
+
+if ! docker inspect --format='{{.State.Running}}' \$CONTAINER_ID | grep -q true; then
+    printf '%s | %s\n' "$(date)" "Container not running anymore";
+    exit 1;
+fi
+
+# Report container info to VRE
+CONTAINER_NAME=\$(docker inspect --format {{.Name}} \$CONTAINER_ID | cut -d "/" -f 2);
+CONTAINER_URL=\$(docker inspect --format "{{ .NetworkSettings.Networks.\$NET_NAME.IPAddress }}:8787" \$CONTAINER_ID);
+printf '%s | %s\n' "\$(date)" "ContainerID: \$CONTAINER_ID";
+printf '%s | %s\n' "\$(date)" "ContainerName: \$CONTAINER_NAME";
+printf '%s | %s\n' "\$(date)" "ContainerURL: \$CONTAINER_URL";
+printf '%s | %s\n' "\$(date)" "ExposedPort: \$FREE_PORT";
+
+docker logs -f \$CONTAINER_ID &> $this->log_file_virtual &
+
+printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
+if timeout 420 wget --retry-connrefused -q --tries=300 --waitretry=10 --spider \$CONTAINER_URL; then
+    printf '%s | %s\n' "\$(date)" "Service UP";
+else
+    printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
+fi
+
+# Wait forever
+printf '%s | %s\n' "\$(date)" "Wait while container is running...";
+exit_code="\$(docker wait \$CONTAINER_ID)";
+printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
+
+echo '# End time:' \$(date) >> $this->log_file_virtual;
+
+exit 0;
+EOF;
+
+        }
+        else{
+                $cmd =  "docker run --privileged  -v /var/run/docker.sock:/var/run/docker.sock -d " .
+                        " ". $cmd_envs .
+                        " -v " . $this->pub_dir_virtual . ":" . $GLOBALS['shared']."public_tmp/ " .
+                        " -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":/gpfs/longitools.bsc.es/vre/userdata_tmp/{$_SESSION['User']['id']}" .
+                        " ".$tool['infrastructure']['container_image'] . " $cmd_vre" ;
+        }
+        return $cmd;
+	}
 
     protected function setPMESrequest($tool){
 
@@ -1097,7 +1277,7 @@ class Tooljob {
 	fwrite($fout, "\n# Running $this->toolId tool ...\n");
 	fwrite($fout, "\necho '# Start time:' \$(date) > $log_rfn\n");
 
-        #fwrite($fout, "\n$cmd >> $log_rfn 2>&1\n");
+        ##fwrite($fout, "\n$cmd >> $log_rfn 2>&1\n");
 	
 	fwrite($fout, "\n$cmd \n");
 	fwrite($fout, "\necho '# End time:' \$(date) >> $log_rfn\n");
@@ -1135,11 +1315,12 @@ class Tooljob {
 	    switch ($tool['infrastructure']['clouds'][$this->cloudName]['launcher']){
 	    case "SGE":
 	    case "docker_SGE":
-    		    return $this->enqueue($tool);
-        		break;
-        	    case "PMES":
+	    case "singularity":
+            	return $this->enqueue($tool);
+        	break;
+            case "PMES":
     	    	return $this->callPMES();
-        		break;
+        	break;
     	    default:
     	    	$_SESSION['errorData']['Error'][]="Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"".$tool['infrastructure']['clouds'][$this->cloudName]['launcher']."\". Case not implemented.";
     		    return 0;
@@ -1155,16 +1336,17 @@ class Tooljob {
     	$cpus   = $tool['infrastructure']['cpus'];
     	$queue  = $tool['infrastructure']['clouds'][$this->cloudName]['queue'];
     
-    	list($pid,$errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory);
+    	list($pid,$errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory, $this->stdout_file, $this->stderr_file);
         if (!$pid){
             log_addError($pid,$errMesg,NULL, $this->toolId,$this->cloudName,"SGE",$cpus,$memory);
             $_SESSION['errorData']['Error'][]="Internal error. Cannot enqueue job.";
             return 0;
         }
-        logger("USER:".$_SESSION['User']['_id'].", ID:".$_SESSION['User']['id'].", LAUNCHER:SGE, TOOL:".$this->toolId.", PID:$pid");
-        log_addSubmission($pid,$this->toolId,$this->cloudName,"SGE",$cpus,$memory,$this->working_dir);
+        logger("USER:".$_SESSION['User']['_id'].", ID:".$_SESSION['User']['id'].", LAUNCHER:".$this->launcher.", TOOL:".$this->toolId.", PID:$pid");
+        log_addSubmission($pid,$this->toolId,$this->cloudName,$this->launcher,$cpus,$memory,$this->working_dir);
     
     	$this->pid = $pid;
+    	$this->start_time = date("D M d, Y G:i");
         return $pid;
     }
 

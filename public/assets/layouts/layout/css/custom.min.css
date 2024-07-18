@@ -31,19 +31,23 @@ div.tooltip-inner  {
  }
 
 .font-green  {
-     color: #03202e!important;
+     color: #008675!important;
  }
 
 .btn.green:not(.btn-outline)  {
-     background-color: #2a8f9c!important;
-    border-color: #2a8f9c!important;
+     background-color: #008675;
+    border-color: #008675;
+ }
+.btn.green:not(.btn-outline).active,.btn.green:not(.btn-outline):active, .btn.green:not(.btn-outline):hover, .open>.btn.green:not(.btn-outline).dropdown-toggle, .btn.green:not(.btn-outline).active.focus, .btn.green:not(.btn-outline).active:focus, .btn.green:not(.btn-outline).active:hover, .btn.green:not(.btn-outline):active.focus, .btn.green:not(.btn-outline):active:focus, .btn.green:not(.btn-outline):active:hover, .open>.btn.green:not(.btn-outline).dropdown-toggle.focus, .open>.btn.green:not(.btn-outline).dropdown-toggle:focus, .open>.btn.green:not(.btn-outline).dropdown-toggle:hover, .btn.green:not(.btn-outline).focus, .btn.green:not(.btn-outline):focus {
+    background-color: #336F68;
+}
+.btn.btn-outline  {
+    color: #008675;
+    background-color: transparent;
+    border-color: #008675;
  }
 
-.btn.green:not(.btn-outline):hover  {
-     background-color: #06415E!important;
- }
-
-.create-account  {
+ .create-account  {
      background-color: #007399!important;
  }
 
@@ -153,7 +157,8 @@ div.tooltip-inner  {
 
 /* HEADER */
 .page-header.navbar  {
-     background-color: rgb(42, 132, 117);
+     background-color: rgb(106,111,113);
+
  }
 
 .logo-default  {
@@ -198,35 +203,35 @@ div.tooltip-inner  {
 
 /* SIDEBAR */
 body  {
-     background-color:  rgb(42, 132, 117)!important;
+     background-color:  rgb(106,111,113)!important;
  }
 
 /* tutta la colonna */
 .page-sidebar  {
-     background-color:  rgb(42, 132, 117)!important;
+     background-color:  rgb(106,111,113)!important;
  }
 
 /* evidenziatura in seconda */
 .page-sidebar .page-sidebar-menu>li.active.open>a,  .page-sidebar .page-sidebar-menu>li.active>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active.open>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active>a  {
-     background-color: #2a8f9c;
+     background-color: #008675;
  }
 
 /* sfondo tutte barre */
 .page-sidebar .page-sidebar-menu>li.active.open>a:hover,  .page-sidebar .page-sidebar-menu>li.active>a:hover,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active.open>a:hover,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active>a:hover  {
-     background-color: #2a8f9c;
+     background-color: #008675;
  }
 
 .page-sidebar .page-sidebar-menu .sub-menu>li.active>a,  .page-sidebar .page-sidebar-menu .sub-menu>li.open>a,  .page-sidebar .page-sidebar-menu .sub-menu>li:hover>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu .sub-menu>li.active>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu .sub-menu>li.open>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu .sub-menu>li:hover>a  {
-     color: #276a91!important;
+     color: #008675!important;
      background:  #FFFFFF!important;
  }
 
 .page-sidebar .page-sidebar-menu>li>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li>a  {
-     border-top:  1px solid #276a91;
+     border-top:  1px solid #008675;
  }
 
 .page-sidebar .page-sidebar-menu>li.active.open+li>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.active.open+li>a  {
-    border-top:  1px solid #276a91;
+    border-top:  1px solid #008675;
 }
 
 .page-sidebar-menu.page-sidebar-menu-closed>li:hover, .page-sidebar-menu.page-sidebar-menu-closed>li:hover>.sub-menu  {
@@ -234,7 +239,7 @@ body  {
  }
 
 .page-sidebar .page-sidebar-menu>li.open>a,  .page-sidebar .page-sidebar-menu>li:hover>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li.open>a,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li:hover>a  {
-      background: #276a91!important;
+      background: #008675!important;
 }
 
 .page-sidebar .page-sidebar-menu>li>a>i[class*=icon-],  .page-sidebar .page-sidebar-menu>li>a>i[class^=icon-],  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li>a>i[class*=icon-],  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu>li>a>i[class^=icon-]  {
@@ -251,7 +256,7 @@ body  {
 }
 
 .page-sidebar-closed .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu:hover .sub-menu,  .page-sidebar-closed .page-sidebar .page-sidebar-menu:hover .sub-menu  {
-     background-color:  #2a8f9c;
+     background-color:  #008675;
  }
 
 .page-sidebar .page-sidebar-menu .sub-menu>li>a>.arrow.open:before,  .page-sidebar .page-sidebar-menu .sub-menu>li>a>.arrow:before,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu .sub-menu>li>a>.arrow.open:before,  .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu .sub-menu>li>a>.arrow:before  {
@@ -311,8 +316,8 @@ body  {
  }
 
 .mt-element-step .step-line .active .mt-step-number  {
-     color:  #2a8f9c!important;
-     border-color:  #2a8f9c!important;
+     color:  #008675!important;
+     border-color:  #008675!important;
  }
 
 .mt-element-step .step-line .active .mt-step-content,  .mt-element-step .step-line .active .mt-step-title  {
@@ -320,7 +325,7 @@ body  {
  }
 
 .mt-element-step .step-line .active .mt-step-title:after,  .mt-element-step .step-line .active .mt-step-title:before  {
-     background-color:  #2a8f9c;
+     background-color:  #008675;
  }
 
 .mt-element-step .step-line .mt-step-title:after,  .mt-element-step .step-line .mt-step-title:before  {
@@ -626,6 +631,7 @@ table.dataTable td.sorting_1,  table.dataTable td.sorting_2,  table.dataTable td
      -moz-border-radius:  0!important;
      padding:  1px 3px 3px;
      height:  auto;
+     background-color:#336F68;
  }
 
 tr.first-tr td  {
@@ -636,10 +642,10 @@ tr.first-tr td  {
      border-bottom-color:  #6d91b5!important;
 }
 
-/*.highlighted_folder  {
-     color:  #06415E;
- }
-*/
+.highlighted_folder  {
+     color: #008675;
+}
+
 /* HOME */
 .portfolio-content.portfolio-3 .cbp-l-filters-button .cbp-filter-counter, 
 .portfolio-content.portfolio-3 .cbp-l-filters-button .cbp-filter-item.cbp-filter-item-active, 
@@ -647,14 +653,23 @@ tr.first-tr td  {
 .btn.btn-outline.blue:active:hover, 
 .btn.btn-outline.blue:focus, 
 .btn.btn-outline.blue:hover  {
-     background-color: #276a91 ;
-     border-color: rgb(42, 132, 117) ;
+     background-color: #008675 ;
+     border-color: #008675;
  }
 
 .btn.btn-outline.blue  {
-     border-color: rgb(42, 132, 117) ;
-    color: #005076 ;
- }
+    border-color: rgb(42, 132, 117) ;
+    color: #008675;
+
+}
+.btn.blue-madison:not(.btn-outline) {
+    color: #FFF;
+    background-color: #008675;
+    border-color: #008675;
+}
+.btn.blue-madison:not(.btn-outline).active,.btn.blue-madison:not(.btn-outline):active, .btn.blue-madison:not(.btn-outline):hover, .open>.btn.blue-madison:not(.btn-outline).dropdown-toggle, .btn.blue-madison:not(.btn-outline).active.focus, .btn.blue-madison:not(.btn-outline).active:focus, .btn.blue-madison:not(.btn-outline).active:hover, .btn.blue-madison:not(.btn-outline):active.focus, .btn.blue-madison:not(.btn-outline):active:focus, .btn.blue-madison:not(.btn-outline):active:hover, .open>.btn.blue-madison:not(.btn-outline).dropdown-toggle.focus, .open>.btn.blue-madison:not(.btn-outline).dropdown-toggle:focus, .open>.btn.blue-madison:not(.btn-outline).dropdown-toggle:hover {
+    background-color: #336F68;
+}
 
 .cbp-caption-zoom .cbp-caption-defaultWrap  {
      border:  2px solid rgb(42, 132, 117);
@@ -680,7 +695,7 @@ tr.first-tr td  {
 
 .portfolio-content.portfolio-3 .cbp-caption-zoom .cbp-caption-activeWrap, 
 .portfolio-content.portfolio-4 .cbp-caption-zoom .cbp-caption-activeWrap  {
-     background-color:  #276a91;
+     background-color:  #008675;
  }
 
 .label.label-success  {
@@ -991,3 +1006,8 @@ h3.progress-title,  h4.progress-title  {
 .progress-tracker.progress-tracker--vertical  {
      margin: 10px auto;
  }
+.alert-info {
+    background-color: #0086761a;
+    border-color: #0086761a;
+    color: #008676;
+}

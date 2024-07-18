@@ -65,10 +65,10 @@ if ($debug){
 //
 // Check input file requirements
 
-if (!isset($_REQUEST['input_files'])){
-    $_SESSION['errorData']['Error'][]="Tool is not receiving input files. Please, select them from your workspace table.";
-    redirect($GLOBALS['BASEURL']."workspace/");
-}
+//if (!isset($_REQUEST['input_files'])){
+//    $_SESSION['errorData']['Error'][]="Tool is not receiving input files. Please, select them from your workspace table.";
+ //   redirect($GLOBALS['BASEURL']."workspace/");
+//}
 
 
 

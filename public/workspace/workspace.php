@@ -255,7 +255,7 @@ if (isset($_REQUEST['op'])){
 
 	case 'cancelJobSure':
 		
-		$r = delJob($_REQUEST['pid']);
+	$r = delJob($_REQUEST['pid']);
         if (!$r){
             $_SESSION['errorData']['Error'][]= "Cannot cancel task. Unsuccessfully exit of 'deljob' for job $pid.";
         }
@@ -271,7 +271,8 @@ if (isset($_REQUEST['op'])){
 	  	    foreach ($jobData as $jobId =>$data){
 			    if ($data['output_dir'] == $rfn){
                     $r = delJob($jobId);
-                    if (!$r){
+die(0); ###### OJO !!!!!!!!
+		    if (!$r){
                         $_SESSION['errorData']['Error'][]= "Cannot cancel '".$jobData["execution"]."' task. Unsuccessfully exit of 'deljob' for job $pid.";
                         $delJobs_ok=0;
                         continue;

@@ -25,11 +25,11 @@ $dry_run   = false ;     // true: evaluate files but dont delete them. false; cl
 $soft_mode = true;      // true: only README files are cleaned, consequently cleaning only not-used anon users. false: REGISTERED USERS FILES ARE CLEANED
 
 // disk
-$GLOBALS['shared']     = "/data/MuG/"; // MuGdev/";
-$GLOBALS['dataDir']    = $GLOBALS['shared']."MuG_userdata/";
+$GLOBALS['shared']     = "/gpfs/longitools.bsc.es/vre/"; // MuGdev/";
+$GLOBALS['dataDir']    = $GLOBALS['shared']."userdata/";
 
 // db
-$GLOBALS['dbname_VRE']  = "MuGVRE_irb";
+$GLOBALS['dbname_VRE']  = "longitools_vre";
 require "phplib/db.inc.php";
 
 

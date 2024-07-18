@@ -26,9 +26,9 @@ if (file_exists($avatarImg)) {
     <div class="page-header-inner ">
         <!-- BEGIN LOGO -->
         <div class="page-logo">
-            <a href="workspace/">
+            <a href="https://longitools.org">
                 <!-- <img src="assets/layouts/layout/img/longITools_Graphic_White.png" alt="logo" class="logo-default" style="width:30%"/> -->
-                <img src="assets/layouts/layout/img/longITools_Logo_White_No_Tagline.png" alt="logo" class="logo-default" style="width:90%"/>
+                <img src="assets/layouts/layout/img/longITools_Logo_White_No_Tagline.png" alt="logo" class="logo-default" style="width:30%"/>
             </a>
             <div class="menu-toggler sidebar-toggler">
                 <span></span>

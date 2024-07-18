@@ -463,7 +463,6 @@ function getFilesToDisplay($dirSelection,$filter_data_types=array()) {
     }else{
         $filesAll=$files;
     }
-
     return $filesAll;
 }
 
@@ -564,8 +563,12 @@ function printTable($filesAll=Array() ) {
                     print parseTemplate(formatData($r), getTemplate('/TreeTblworkspace/TR_folder.htm'));
         }
         // is job
-            }elseif(isset($r['pending'])){
-                    print parseTemplate(formatData($r), getTemplate('/TreeTblworkspace/TR_filePending.htm'));
+	    }elseif(isset($r['pending'])){
+		if ($r['pending'] == "ACTIVE SESSION"){
+		    print parseTemplate(formatData($r), getTemplate('/TreeTblworkspace/TR_fileInteractive.htm'));
+		}else{
+		    print parseTemplate(formatData($r), getTemplate('/TreeTblworkspace/TR_filePending.htm'));
+		}
             $autorefresh=1;
         // is file
             }elseif(isset($r['_id'])){
@@ -856,7 +859,9 @@ function formatData($data) {
                 }
         }
         }
-        if(isset($data['submission_file'])){
+	// interactive tool
+	// submission file
+	if(isset($data['submission_file'])){
             $data['execDetails'] = "<tr><td>Execution details:</td><td><a href=\"javascript:callShowSHfile('".$data ['tool']."','".$data['submission_file']."');\">Analysis parameters</a></td></tr>";
         }else{
             $data['execDetails'] = "";
@@ -1119,6 +1124,7 @@ function updatePendingFiles($sessionId,$singleJob=Array()){
         $pid     = $job['pid'];
 
     //get qstat info
+    logger("Start processPendingFiles -> getRunningJobInfo $pid. Log= ".$job['log_file']);
     $jobProcess = getRunningJobInfo($pid,$job['launcher'],$job['cloudName']);
 
     // TODO: PMES will redirect log info to log_file. Now, info extracted from $jobProcess
@@ -1153,7 +1159,7 @@ function processPendingFiles($sessionId,$files=array()){
 
     $SGE_updated = Array(); // jobs to be monitored. Stored in SESSION. Updated by checkPendingJobs.php (called by ajax)
     $filesPending= Array(); // files to be listed 
-    $debug=1;
+    $debug=0;
 
     // get files already in mongo
     $filesStored = Array();
@@ -1175,15 +1181,18 @@ function processPendingFiles($sessionId,$files=array()){
 
     // classify jobs
     foreach ($lastjobs as $job){
-        
+
         if (!isset($job['pid'])){
             continue;
         }
         $pid = $job['pid'];
-        if ($debug)
-            print "<br/>\nPID = [$pid] TOOL=".$job['toolId']." WORK_DIR=".$job['working_dir']." <br/>\n";           
+        if ($debug){
+	    print "<br/>\nPID = [$pid] TOOL=".$job['toolId']." WORK_DIR=".$job['working_dir']." <br/>\n";
+	    var_dump($job); 
+	}
 
-        //get qstat info
+	//get qstat info
+	logger("Start processPendingFiles -> getRunningJobInfo $pid. Log= ".$job['log_file']);
         $jobProcess = getRunningJobInfo($pid,$job['launcher'],$job['cloudName']);
         if ($debug){
                 print "<br/>\nJOB INFO FROM QUEUE SYSTEM:\n";
@@ -1238,8 +1247,15 @@ function processPendingFiles($sessionId,$files=array()){
             'description'=> $descrip,
             'pending' => $jobProcess['state'],
             'submission_file'  => fromAbsPath_toPath($job['submission_file']),
-            'log_file' => fromAbsPath_toPath($job['log_file'])
+            'log_file'    => fromAbsPath_toPath($job['log_file']),
+            'stdout_file' => fromAbsPath_toPath($job['stdout_file']),
+            'stderr_file' => fromAbsPath_toPath($job['stderr_file']),
+            'job_type'    => $job['job_type']
             );
+	
+	    if ($jobProcess['state']=="RUNNING" && $job['job_type']=="interactive"){
+		    $fileDummy['pending'] = "ACTIVE SESSION";
+	    }
 
             //list job in workspace
             $filesPending[$dummyId] = $fileDummy;

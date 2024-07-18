@@ -274,7 +274,7 @@ sort($visualizers);
 				<li class="nav-item  <?php if ($currentSection == 'he') { ?>active open<?php } ?>">
 					<a href="javascript:;" class="nav-link nav-toggle">
 						<i class="icon-question"></i>
-						<span class="title">Help</span>
+						<span class="title">Guidance</span>
 						<?php if ($currentSection == 'he') { ?><span class="selected"></span><?php } ?>
 						<span class="arrow <?php if ($currentSection == 'he') { ?>open<?php } ?>"></span>
 					</a>

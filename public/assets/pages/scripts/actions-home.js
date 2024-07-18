@@ -726,3 +726,7 @@ function loadWSTool(op) {
 function closeModalTool() {
 	$('#modalTool').modal('hide');
 }
+function goInteractiveTool(id) {
+
+	location.href = 'launch-interactive/?pid=' + id;
+}

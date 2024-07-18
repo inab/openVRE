@@ -4,15 +4,13 @@ define ("QSUB", "qsub -S /bin/bash" );
 define ("QDEL", "qdel ");
 define ("QSTAT", "qstat ");
 
-class ProcessSGE{
+class ProcessDockerSGE{
 	private $pid;
 	private $command;
 	private $workDir;
 	private $queue="srv.q";
 	private $cpu=1;
 	private $mem=0;
-	private $logFile="job_output.log";
-	private $errFile="job_error.log";
 
 	private $username; //may change depending on FS needs. IRB=www-data. BSC=vre
 
@@ -24,7 +22,7 @@ class ProcessSGE{
 			'dr' => "DELETING",
 			'Eqw'=> "ERROR");
 
-	public function __construct($cl=false,$workDir="",$queue="srv.q",$jobname="",$cpu=1,$mem=0,$logFile="job_output.log",$errFile="job_error.log"){
+	public function __construct($cl=false,$workDir="",$queue="srv.q",$jobname="",$cpu=1,$mem=0){
 
 		$current_user = posix_getpwuid(posix_geteuid());
         $this->username  = $current_user['name']; 
@@ -33,10 +31,8 @@ class ProcessSGE{
 			$this->workDir = $workDir;
 			$this->command = $cl;
 			$this->queue   = $queue;
-			$this->cpu     = $cpu;
-			$this->mem     = $mem; 
-			$this->logFile = $logFile; 
-			$this->errFile = $errFile; 
+			$this->cpu	 = $cpu;
+			$this->mem	 = $mem; 
 	
 			if ($jobname)
 				$this->jobname = $jobname;
@@ -53,7 +49,7 @@ class ProcessSGE{
 	private function runCom(){
 		$this->setFullCommand();
         $command = $this->fullcommand;
-		logger("SGE job submission has CML = '$command'");
+		logger("Docker_SGE job submission has CMD = '$command'");
 
         //chdir($this->workDir);
         //exec($command,$op);
@@ -83,7 +79,7 @@ class ProcessSGE{
 	// build Submit (qsub) command
 	public function setFullCommand(){
 		$workDir = $this->workDir;
-		$command = QSUB." -N '".$this->jobname."' -wd $workDir -q ".$this->queue." -o ".$this->logFile. " -e ".$this->errFile;
+		$command = QSUB." -N '".$this->jobname."' -wd $workDir -q ".$this->queue;
 		if ($this->cpu > 1)
 			$command .= " -l cpu=". $this->cpu;
 		$command .= " ".$this->command;

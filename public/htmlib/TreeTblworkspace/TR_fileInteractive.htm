@@ -8,7 +8,7 @@
 </td>
 
 <td>
-	<a class="##state## truncate"  href="workspace/workspace.php?op=##openFunction##&fn=##_id_URL##" target="_blank" title="##filename##">##filename##</a>
+	<a class="##state## truncate"  href="workspace/workspace.php?op=##openFunction##&fn=##_id_URL##" target="_blank" title="##filename##">##toolname## session</a>
 	<!--<span class="expand_info" onclick="expandInfo(this)"></span>-->
 	<div class="extra_info">
 	  <table>
@@ -22,20 +22,20 @@
   </div>
 <a href="javascript:viewFileMeta('##pid##', '##longfilename##', 2);" style="margin-left:3px;"><i class="fa fa-info-circle"></i></a>
 </td>
-<td><a href="javascript:viewProgress('##pid##', '##longfilename##', '##pending##');"><i class="fa fa-spinner fa-pulse"></i> <span style="font-weight:bold;" class="job-running">##pending##</span> </a></td>
+<td><a href="javascript:goInteractiveTool('##pid##');"><i class="fa fa-spinner fa-pulse" style="color:#004d66;"></i> <span style="font-weight:bold;" class="job-running">##pending##</span>&nbsp; <i class="fa fa-share-square-o"></i></a></td>
 <td></td>
 <td title="##execution##"><span class="truncate">##execution##</span></td>
 <td title="##mtime##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
 <td>0.00 B</td>
 <td>
 	<div class="btn-group" style="float:left; position:absolute; margin-top:-10px!important;">
-    	<button class="btn btn-xs  dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
+    	<button class="btn btn-xs btn-outline dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
 				<i class="fa fa-cogs"></i>
 				<i class="fa fa-angle-down"></i>
 		</button>
 	  <ul class="dropdown-menu pull-right" role="menu">
-			<!--<li><a href="workspace/workspace.php?op=cancelJobSure&pid=##pid##"><i class="fa fa-times-circle"></i> Cancel job</a></li>-->
-			<li><a href="javascript:cancelJob('cancelJobSure', '##pid##');"><i class="fa fa-times-circle"></i> Cancel Job </a></li>
+			<li><a href="javascript:goInteractiveTool('##pid##');"><i class="fa fa-share-square-o"></i> Access Session </a></li>
+			<li><a href="javascript:cancelJob('cancelJobSure', '##pid##');"><i class="fa fa-times-circle"></i> Stop Session </a></li>
 			<li><a href="javascript:viewProgress('##pid##', '##longfilename##', '##pending##');"><i class="fa fa-spinner fa-pulse"></i> View Progress</a></li>
 		</ul>
 	</div>

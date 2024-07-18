@@ -240,16 +240,14 @@ function delJobFromOutfiles($outfiles){
         return 1;
 }
 
+function delJob($pid,$launcherType=NULL,$cloudName="local",$login=NULL){
 
-
-function delJob($pid, $launcherType = NULL, $cloudName = "local", $login = NULL)
-{
-    $job = Array();
-    if (!$pid)
+    $job=Array();
+    if (! $pid)
         return false;
 
     // guess launcher
-    if (!$launcherType) {
+    if(!$launcherType){
         if (is_numeric($pid))
             $launcherType = "SGE";
         else
@@ -257,82 +255,49 @@ function delJob($pid, $launcherType = NULL, $cloudName = "local", $login = NULL)
     }
 
     // cancel job
-    $r_sge = false;
-    $r_docker = false;
+    $r = false;
+    if ($launcherType == "SGE" || $launcherType == "docker_SGE"){
+	if ($launcherType == "docker_SGE"){
+		//TODO LAIA
+		// get tool type from $pid
+		//if interactive {
+		//    //submit 'docker stop'
+		//    //
+		//    $process = new ProcessSGE();
+		//} 
+	}
+        $process = new ProcessSGE();
+        list($r,$msg) = $process->stop($pid);
+        if (!$r)
+           $_SESSION['errorData']['Error'][]="Cannot delete $launcherType job [id = $pid].<br/>$msg";
 
-    if ($launcherType == "SGE" || $launcherType == "docker_SGE") {
-        $processSGE = new ProcessSGE();
-
-        // Stop the SGE job using qdel
-        list($r_sge, $msg_sge) = $processSGE->stop($pid);
-
-        // Redirect files
-        if ($r_sge) {
-            // Assuming that you have functions to handle file redirection, update the following lines accordingly
-            $jobInfo = $processSGE->getRunningJobInfo($pid);
-            updateLogFromJobInfo($jobInfo['log'], $pid, $launcherType, $cloudName);
-            // Add any other file redirection logic here
-        }
+    }elseif($launcherType == "PMES"){
+        $process = new ProcessPMES();
+        $r= $process->stop($pid);
+        if (!$r)
+           $_SESSION['errorData']['Error'][]="Cannot delete $launcherType job [id = $pid].<br/>$msg";
+    }else{
+        $_SESSION['errorData']['Error'][]="Cannot delete job of type '$launcherType' [id = $pid]. Launcher not implemented.";
+        return false;
     }
-    //
-    // For interactive tools, stop container
-    // 
-    $processSGE = new ProcessSGE();
-    $jobInfo = $processSGE->getRunningJobInfo($pid);
-    $jobUser = $_SESSION['User']['lastjobs'][$pid];
-
-    if($jobUser && $jobUser['job_type'] == "interactive"){
-
-    	// Get info from Interactive tool
-	list($proxy_tool_url,$proxy_tool_headers,$autorefresh) = get_url_interactive_tool($pid);
-        $jobUser = $_SESSION['User']['lastjobs'][$pid];
-
-        // Stop the Docker container
-        $containerName = $jobUser['interactive_tool']['container_name'];
-
-        // Obtain rdata and history before stopping the Docker container
-        $dockerExecCommand = "docker exec $containerName Rscript -e 'save.image(\"./RData\"); savehistory(file = \".Rhistory\")'";
-
-	$dockerExecProcess = new ProcessSGE($dockerExecCommand,"/tmp/","local.q","$pid-save-history",1,0,"$pid-save-history.out","$pid-save-history.err");
-	return false;
-    	//die(0);
-        
-        // Stop the Docker container
-        $dockerStopCommand = "docker stop $containerName";
-        $dockerStopProcess = new ProcessSGE($dockerStopCommand);
-        list($r_docker, $msg_docker) = $dockerStopProcess->run();
-
-        // Assuming that you have functions to handle Docker container logs, update the following lines accordingly
-        $dockerLogsCommand = "docker logs $containerName >> {$GLOBALS['dataDir']}/{$jobInfo['log']}";
-        $dockerLogsProcess = new ProcessSGE($dockerLogsCommand);
-        $dockerLogsProcess->run();
-        // Add any other Docker container handling logic here
-    }
-
-    if (!$r_sge || !$r_docker)
-        $_SESSION['errorData']['Error'][] = "Cannot delete $launcherType job [id = $pid].<br/>SGE Error: $msg_sge<br/>Docker Error: $msg_docker";
-
-    $_SESSION['errorData']['Info'][] = "Job successfully cancelled";
+    $_SESSION['errorData']['Info'][]="Job successfully cancelled";
     logger("JOB $pid FINISHED. HAS BEEN CANCELLED");
-    log_addFinish($pid, "Job has been cancelled");
+    log_addFinish($pid,"Job has been cancelled");
 
     // wait to make qdel/terminateActivity effective
     sleep(15);
 
     // check job status and register output files, if required
-    if ($r_sge) {
-        if (!$login) {
-            $login = $_SESSION['User']['_id'];
-        }
-        //$filesPending= processPendingFiles($login);
-        //delUserJob($login,$pid); // directly deleting job entry leads to no output registration!
-    } else {
-        $_SESSION['errorData']['Internal Error'][] = "Error while cancelling $launcherType job [id = $pid].<br>Job deleted from the system, but not from user metadata";
+    if ($r){
+        if (!$login){$login = $_SESSION['User']['_id'];}
+        $filesPending= processPendingFiles($login);
+        //delUserJob($login,$pid); // directly deleting job entry leds to no output registration! 
+    }else{
+        $_SESSION['errorData']['Internal Error'][] = "Error while cancelling $launcherType job [id = $pid].<br>Job deleted from the system, but not from user metadata"; 
         return false;
     }
     return true;
 }
-
 /*
 function jobStateDicc($state){
         $dicc = Array (
