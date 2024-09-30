@@ -1,0 +1,57 @@
+<tr data-tt-id="##tree_id##" data-tt-parent-id="##tree_id_parent##">
+   <td>
+      <label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
+      <input type="checkbox" class="checkboxes" value="##_id##" name="##_id##" onchange="changeCheckbox(this)" id="##_id##" ##state##/>
+      <span></span>
+      </label>
+      ##lastuploaded##
+   </td>
+   <td>
+      <a class="##state## "  href="workspace/workspace.php?op=##openFunction##&fn=##_id_URL##" title="open file ##longfilename##" target="_blank" >&nbsp;&nbsp;&nbsp;##longfilename##</a>
+      <a href="javascript:viewFileMeta('##_id##', '##longfilename##', 1);" style="margin-left:5px;"><i class="fa fa-info-circle"></i></a>
+   </td>
+   <td>##format##</td>
+   <td title="##file_data_type##"><span class="truncate">##file_data_type##</span></td>
+   <td title="##longexecutionname##"><span class="truncate">##execution##</span></td>
+   <td title="##mtime##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
+   <td>##size##</td>
+   <td>
+      <div class="btn-group" style="float:left; position:absolute; margin-top:-10px!important;">
+         <button class="btn btn-xs blue-madison dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
+         <i class="fa fa-cogs"></i>
+         <i class="fa fa-angle-down"></i>
+         </button>
+         <ul class="dropdown-menu pull-right" role="menu">
+            ##metadataLink##
+            ##renameLink##
+            ##moveLink##
+            <li><a href="workspace/workspace.php?op=downloadFile&fn=##_id_URL##"><i class="fa fa-download"></i> Download file </a></li>
+            <li><a href="javascript:deleteFile('##_id_URL##');"><i class="fa fa-trash-o"></i> Delete file </a></li>
+            ##compressionLink##
+         </ul>
+      </div>
+      <div class="btn-group" style="float:left; position:absolute; margin-top:-10px!important;margin-left:38px;display:##vis_button##;">
+         <button class="btn btn-xs purple-intense dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
+         <i class="fa fa-eye"></i>
+         <i class="fa fa-angle-down"></i>
+         </button>
+         <ul class="dropdown-menu pull-right" role="menu">
+            ##PDBView##
+            ##NGLView##
+            ##jbrowseLink##
+            ##tadkitLink##
+            ##plainText##
+         </ul>
+      </div>
+      <!--<div class="btn-group" style="float:left; position:absolute; margin-top:-10px!important;margin-left:75px;display:##tools_button##;">
+         <button class="btn btn-xs blue-dark dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false"> 
+                                 <i class="fa fa-wrench"></i>
+                                 <i class="fa fa-angle-down"></i>
+                 </button>
+                 ##tools_list## 
+         </div>-->
+   </td>
+   <td>1</td>
+   <td>##mtime_parent##</td>
+   <td>##size_parent##</td>
+</tr>

@@ -1,0 +1,74 @@
+[
+    {
+        "MAPKAPK2" : "MAPK2_HUMAN"
+    },
+    {
+        "MAPK3" : "MK03_HUMAN"
+    },
+    {
+        "MAPK7" : "MK07_HUMAN"
+    },
+    {
+        "MAPKAPK5" : "MAPK5_HUMAN"
+    },
+    {
+        "MAPK6" : "MK06_HUMAN"
+    },
+    {
+        "MAPK9" : "MK09_HUMAN"
+    },
+    {
+        "MAPK15" : "MK15_HUMAN"
+    },
+    {
+        "MAPK1IP1L" : "MISSL_HUMAN"
+    },
+    {
+        "MAPK11" : "MK11_HUMAN"
+    },
+    {
+        "MAPK4" : "MK04_HUMAN"
+    },
+    {
+        "MAPKAPK3" : "MAPK3_HUMAN"
+    },
+    {
+        "MAPK8IP2" : "JIP2_HUMAN"
+    },
+    {
+        "MAPKAP1" : "SIN1_HUMAN"
+    },
+    {
+        "MAPK12" : "MK12_HUMAN"
+    },
+    {
+        "MAPK14" : "MK14_HUMAN"
+    },
+    {
+        "MAPK1" : "MK01_HUMAN"
+    },
+    {
+        "MAPK10" : "MK10_HUMAN"
+    },
+    {
+        "MAPK13" : "MK13_HUMAN"
+    },
+    {
+        "MAPK8" : "MK08_HUMAN"
+    },
+    {
+        "MAPK8IP1" : "JIP1_HUMAN"
+    },
+    {
+        "MAPKBP1" : "MABP1_HUMAN"
+    },
+    {
+        "MAPK8IP3" : "JIP3_HUMAN"
+    },
+    {
+        "STAB1" : "STAB1_HUMAN"
+    },
+    {
+        "TAB1" : "TAB1_HUMAN"
+    }
+]

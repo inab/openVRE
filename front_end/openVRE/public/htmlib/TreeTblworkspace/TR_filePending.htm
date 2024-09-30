@@ -1,0 +1,47 @@
+<tr data-tt-id="##tree_id##" data-tt-parent-id="##tree_id_parent##"  >
+<td>
+	<label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
+		<input type="checkbox" class="checkboxes" value="##_id##" name="##_id##" onchange="changeCheckbox(this)" id="##_id##" disabled >
+		<span></span>
+	</label>
+	##lastuploaded##
+</td>
+
+<td>
+	<a class="##state## truncate"  href="workspace/workspace.php?op=##openFunction##&fn=##_id_URL##" target="_blank" title="##filename##">##filename##</a>
+	<!--<span class="expand_info" onclick="expandInfo(this)"></span>-->
+	<div class="extra_info">
+	  <table>
+	  	<tr>
+		    <td style="padding:0px 5px;vertical-align:top;color:#000;font-size:12px;">Description:</td>
+		    <td style="padding:0px 5px;color:#666;font-size:12px;">##description##</td>
+		</tr>
+		##execDetails##
+		##viewLog##
+	</table>
+  </div>
+<a href="javascript:viewFileMeta('##pid##', '##longfilename##', 2);" style="margin-left:3px;"><i class="fa fa-info-circle"></i></a>
+</td>
+<td><a href="javascript:viewProgress('##pid##', '##longfilename##', '##pending##');"><span style="color:#004d66;font-weight:bold;" class="job-running">##pending##</span> <i class="fa fa-spinner fa-pulse" style="color:#004d66;"></i></a></td>
+<td></td>
+<td title="##execution##"><span class="truncate">##execution##</span></td>
+<td title="##mtime##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
+<td>0.00 B</td>
+<td>
+	<div class="btn-group" style="float:left; position:absolute; margin-top:-10px!important;">
+    	<button class="btn btn-xs  dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
+				<i class="fa fa-cogs"></i>
+				<i class="fa fa-angle-down"></i>
+		</button>
+	  <ul class="dropdown-menu pull-right" role="menu">
+			<!--<li><a href="workspace/workspace.php?op=cancelJobSure&pid=##pid##"><i class="fa fa-times-circle"></i> Cancel job</a></li>-->
+			<li><a href="javascript:cancelJob('cancelJobSure', '##pid##');"><i class="fa fa-times-circle"></i> Cancel Job </a></li>
+			<li><a href="javascript:viewProgress('##pid##', '##longfilename##', '##pending##');"><i class="fa fa-spinner fa-pulse"></i> View Progress</a></li>
+		</ul>
+	</div>
+</td>
+<td>1</td>
+<td>##mtime_parent##</td>
+<td>##size_parent##</td>
+</tr> 
+

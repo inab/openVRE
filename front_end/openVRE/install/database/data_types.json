@@ -1,0 +1,9 @@
+{"_id":"tool_statistics","name":"Tool summary file","file_types":["TAR"],"taxon_id":false,"assembly":[]}
+{"_id":"site_manifest","name":"site_manifest","file_types":["JSON"]}
+{"_id":"data_manifest","name":"data_manifest","file_types":["JSON"]}
+{"_id":"data_quality_report","name":"data_quality_report","file_types":["JSON"]}
+{"_id":"FE_Query","name":"FE_Query","file_types":["JSON"]}
+{"_id":"dataset_reference","name":"dataset_reference","file_types":["JSON"]}
+{"_id":"dataset_id","name":"Dataset Id","file_types":["JSON"]}
+{"_id":"FLCore_parameters","name":"FLCore_parameters","file_types":["YAML"]}
+{"_id":"FE_query","name":"FE_query","file_types":["JSON"]}

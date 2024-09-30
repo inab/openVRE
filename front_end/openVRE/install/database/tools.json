@@ -1,0 +1,184 @@
+{ "_id": "wget", "title": "Remote file retrieving from URLs", "name": "Get remote file", "short_description": "Implementation of a the remote file retriever WGET.", "url": "https://www.gnu.org/software/wget/", "owner": { "institution": "Barcelona Supercomputing Center", "author": "Laia Codo", "contact": "laia.codo@bsc.es", "url": "", "user": "laia.codo@bsc.es" }, "external": false, "keywords": [], "infrastructure": { "memory": "", "cpus": 1, "executable": "/ABSOLUTE/PATH/TO/VRE/DATA/apps/localTools/wget/wget.sh", "clouds": { "mug-bsc": { "launcher": "SGE", "queue": "local.q" } } }, "input_files": [], "arguments": [{ "name": "url", "description": "URL of the file to be downloaded", "help": "URL", "type": "string", "required": true, "allow_multiple": true }, { "name": "output", "description": "Name of the output file", "help": "Name of the output file", "type": "string", "allow_multiple": false, "default": "" }, { "name": "working_dir", "description": "Temporal dir", "help": "", "type": "string", "allow_multiple": false, "default": "" }, { "name": "untar", "description": "Untar output file if ", "help": "", "type": "string", "allow_multiple": false, "default": "" }], "control_file": ".summary.json", "output_files": [{ "name": "file", "required": true, "allow_multiple": false, "file_type": "", "data_type": "", "file": { "meta_data": { "validated": false, "description": "Data imported from URL", "tool": "wget", "visible": true } } }] } {
+    "_id": "FLExperiment",
+    "name": "Generic FL Experiment",
+    "title": "Generic FL Experiment",
+    "short_description": "Generic tool to derive FL Experiments",
+    "url": "https://gitlab.bsc.es/fl/dashboard-demo/FLExperiment_tool",
+    "publication": "",
+    "owner": { "author": "Josep Ll. Gelpí", "institution": "University of Barcelona", "contact": "gelpi@ub.edu", "url": "" },
+    "status": 1,
+    "external": true,
+    "keywords": ["federated_learning"],
+    "keywords_tool": ["federated_learning"],
+    "infrastructure": { "memory": 12, "container_image": "registry.gitlab.bsc.es/fl/dashboard-demo/gui_mockup/flexperiment_vre", "cpus": 4, "executable": "/home/vre_template_tool/VRE_RUNNER", "clouds": { "my_on_premises_cloud": { "launcher": "docker_SGE", "queue": "testq" } } },
+    "input_files": [{ "name": "datasets", "description": "Datasets to analyze", "help": "Datasets to be included in the analysis", "data_type": ["dataset_reference"], "file_type": ["JSON"], "required": true, "allow_multiple": true }, { "name": "manifest", "description": "Data manifest io analyze", "help": "A manifest listing the datasets to be included in the analysis", "data_type": ["data_manifest"], "file_type": ["JSON"], "required": true, "allow_multiple": false }, { "name": "parameters", "description": "Placeholder for parameters required for analysis", "help": "Input file containing the required parameters to set up de analyis", "data_type": ["FLCore_parameters"], "file_type": ["YAML"], "required": true, "allow_multiple": false }],
+    "input_files_combinations": [{ "description": "Analyze a list of datasets", "input_files": ["datasets", "parameters"] }, { "description": "Analyze a data manifest", "input_files": ["manifest", "parameters"] }],
+    "input_files_combinations_internal": [
+        [{ "dataset_reference": 0 }, { "FLCore_parameters": 1 }],
+        [{ "data_manifest": 1 }, { "FLCore_parameters": 1 }]
+    ],
+    "arguments": [{ "name": "console_log", "description": "Enable console logging", "type": "boolean", "required": true, "help": "Set to 'true' to enable console logging." }, { "name": "file_log", "description": "Enable file logging", "type": "boolean", "required": true, "help": "Set to 'true' to enable file logging." }],
+    "has_custom_viewer": true,
+    "output_files": [{ "name": "Final_coefficients", "required": true, "allow_multiple": false, "file": { "file_type": "JSON", "data_type": "ML_DL_coefficients", "meta_data": { "visible": true, "tool": "FLExperiment", "description": "Final coefficients" }, "file_path": "FL_Coefficients.json" } }]
+}
+"_id" : "tool_skeleton",
+"name" : "Tool Skeleton",
+"title" : "Tool Skeleton Template",
+"short_description" : "Skeleton for a VRE tool definition",
+"long_description" : "This a a longer description on what this tool is about: a dummy application for demonstration purposes only.",
+"url" : "https://github.com/tool_skelon/VREwrapping",
+"publication" : "10.00000/if-any",
+"owner" : {
+    "author" : "Your Name",
+    "institution" : "Your institution",
+    "contact" : "Your email account"
+},
+"status" : 1,
+"external" : true,
+"keywords" : [
+    "next gen seq",
+    "dna"
+],
+"keywords_tool" : [
+    "Tool skeleton",
+    "Sample keyword"
+],
+"infrastructure" : {
+    "memory" : 12.0,
+    "cpus" : 4.0,
+    "executable" : "/remote/host/path/for/dummy/tool_skeleton/wrapper.py",
+    "clouds" : {
+        "life-bsc" : {
+            "launcher" : "SGE",
+            "queue" : "default.q"
+        },
+        "life-bsc2" : {
+            "launcher" : "PMES",
+            "workflowType" : "COMPSs",
+            "minimumVMs" : 1.0,
+            "initialVMs" : 1.0,
+            "imageName" : "uuid_tool_skeleton_image_00",
+            "default_cloud" : false
+        }
+   }
+},
+"input_files" : [
+    {
+        "name" : "fasta1",
+        "description" : "FASTA input file 1",
+        "help" : "This is the input file 1 help tooltip",
+        "file_type" : [
+            "FASTA"
+        ],
+        "data_type" : [
+            "dna_sequence"
+        ],
+        "required" : true,
+        "allow_multiple" : false
+    },
+    {
+        "name" : "fasta2",
+        "description" : "FASTA input file 2",
+        "help" : "This is the input file 2 help tooltip",
+        "file_type" : [
+            "FASTA"
+        ],
+        "data_type" : [
+            "dna_sequence"
+        ],
+        "required" : false,
+        "allow_multiple" : false
+    }
+],
+"input_files_combinations" : [
+    {
+        "description" : "Start tool with 1 FASTA FILE",
+        "input_files" : [
+            "fasta1"
+        ]
+    },
+    {
+        "description" : "Start tool with 2 FASTA FILES",
+        "input_files" : [
+            "fasta1",
+            "fasta2"
+        ]
+    }
+],
+"input_files_combinations_internal" : [
+    [
+        {
+            "dna_sequence" : 1
+        },
+        {
+            "dna_sequence" : 1
+        }
+    ],
+    [
+        {
+            "dna_sequence" : 1
+        }
+    ]
+],
+"arguments" : [
+    {
+        "name" : "1_arg_boolean",
+        "description" : "Argument 1 Boolean",
+        "help" : " Tooltip for this argument",
+        "type" : "boolean",
+        "default" : "false"
+    },
+    {
+        "name" : "2_arg_enum_mult",
+        "description" : "Argument 2 Enum Multiple",
+        "help" : " Tooltip for this argument",
+        "type" : "enum_multiple",
+        "enum_items" : {
+            "name" : [
+                "option 1 name",
+                "option 2 name"
+            ],
+            "description" : [
+                "option1",
+                "option2"
+            ]
+        },
+        "required" : true,
+        "default" : ""
+    },
+    {
+        "name" : "3_arg_integer",
+        "description" : "Argument 3 Integer",
+        "help" : " Tooltip for this argument",
+        "type" : "integer",
+        "minimum" : 1,
+        "maximum" : 500,
+        "required" : true,
+        "default" : "100"
+    },
+    {
+        "name" : "4_arg_string",
+        "description" : "Argument 4 String",
+        "help" : " Tooltip for this argument",
+        "type" : "string",
+        "required" : true,
+        "allow_multiple" : false
+    }
+],
+"has_custom_viewer" : false,
+"output_files" : [
+    {
+        "name" : "output1",
+        "required" : true,
+        "allow_multiple" : false,
+        "file" : {
+            "file_type" : "FASTA",
+            "data_type" : "dna_sequence",
+            "meta_data" : {
+                "visible" : true,
+                "description" : "Output File 1 description"
+            }
+        }
+    }
+]
+}

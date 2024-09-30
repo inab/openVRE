@@ -1,0 +1,105 @@
+### 1.1.0 (2018-11-01)
+
+##### New Features
+
+* Setting of development status for integrated tools. tool_status = ["Coming soon", "Active", "Disabled", "Testing"]
+* Implementation of user "Projects" that allow to have n workspaces per user and group files/folders under user criteria.
+* New way of launching tools starting from tool discovery instead of input files selection.
+* New log reporting system for running jobs - more visual and interactive
+* Library for a better automation and homogenization on building the custom tool web forms
+* Creation of automatic documentation for input requirements and arguments from tool definition
+* Tool skeleton with PHP, JS and HTML templates for easing the integration of new tools
+* Automatic data loading for new registered users from their previous anomymous account
+* New helpdesk operations: request for extra space; become tool developer; integrate a new tool
+* Implementation of tool integration methods - online generation of test files
+* Implementation of tool integration methods - online tool submission
+* Tool usage pannel for statistics for admins and tool developers
+* User's job managment panel
+* New 'Rerun job' feature
+* Jbrowse updated to 1.12.3
+* Integration of BigNASim trajetories
+* Openstack login via tokens
+* Addition of file system related operations: renaming, moving, etc.
+* New panel for tool developers with their tool statistics and logs
+
+ 
+##### Bug Fixes
+
+* Reset password via keycloak 
+* Bug PMES status 'In limbo'
+* Dynamic dimensioning of VMs using OCCI available template resources
+* Any many others...
+
+##### New Tools
+
+* MACS2: identifies statistically significantly enriched genomic regions in ChIP- and DNase-seq data  (Mark McDowall)
+* Bowtie2: Align FASTQ data using Bowtie2  (Mark McDowall)
+* Process WGBS: Align WGBS data, uses BS Seeker2 and Bowtie2  (Mark McDowall)
+
+##### Tools Upgraded
+
+* TADbit bin:  TADbit Hi-C binning. (Francois Serra)
+* TADbit map parse and filter: TADbit Hi-C mapping, parsing mapped reads and filtering of artifactual reads. Francois Serra & David Castillo)
+* TADbit model: TADbit 3D modeling. (Francois Serra)
+* TADbit normalize: TADbit Hi-C normalize.  (Francois Serra)
+* TADbit segment:  TADbit Hi-C segment - TADs and compartments. (Francois Serra)
+* Nucleosome Dynamics Nucleosome Dynamics Tools for performing nucleosome-related analysis based on MNase-seq experimental data   Illa Ricard, Buitrago Diana, Brun Isabelle
+
+
+--------------------------------
+
+##### MuGVRE Tools (in production)
+
+* 3DConsensus: Analyse a protein-DNA complex 3D structure to identify interactions by integrating experimental data on the protein's DNA specificity (Marco Pasi)
+* Chromatin Dynamics: With the Chromatin Dynamics tool you can create your own 'beads-on-a-string' representation of a chromatin fiber. (Jürgen Walther)
+* MC-DNA:  is a coarse-grained DNA model in which the internal dynamics are described with helical parameters. (Jürgen Walther)
+* MD Energy Refinement: Molecular Dynamics workflow to energetically minimize a structure. MD Setup + 100ps free MD. (Pau Andrio)
+* NAFlex:  analyses Set of analyses to extract Nucleic Acids flexibility properties from Molecular Dynamics trajectories (Adam Hospital)
+* Nucleosome Dynamics: Tools for performing nucleosome-related analysis based on MNase-seq experimental data (Illa Ricard, Buitrago Diana, Brun Isabelle)
+* pyDock: PyDock is a tool for the structural prediction of protein-protein interactions  (Brian Jiménez-García)
+* pyDockDNA:  PyDockDNA is a tool for the structural prediction of protein-DNA interactions  (Brian Jiménez-García)
+* Process Genomes:  Generates BWA, Bowtie2 and GEM indexes for a given genome (Mark McDowall)
+
+##### MuGVRE Visualizers (in production)
+
+* Jbrowse: A next-generation genome browser built with JavaScript and HTML5. (MMB IRB)
+* NGL: Viewer for molecular visualization. WebGL is employed to display molecules like proteins and DNA/RNA with a variety of representations. (MMB IRB)
+* TADkit: 3D genome browser and TADbit front-end  (CNAG)
+
+--------------------------------
+
+##### Dev Tools 
+
+* BWA MEM: Align FASTQ data using BWA mem  (Mark McDowall)
+* Process ChIP-seq: Align ChIP-seq data, filtering with BioBamBam and Peak Calling using MACS2. (Mark McDowall)
+* Process RNA-seq: Align RNA-seq data, gene expression calling with Kallisto (Mark McDowall)
+* Chromatin Assortativity (Centre de Recherches en Cancérologie de Toulouse)
+
+* CHiCAGO pipeline (Pablo Acera)
+* Process DamID-seq Data (Mark McDowall)
+* BioBamBam2 Filtering (Mark McDowall)
+* TrimGalore (Mark McDowall)
+* BWA ALN (Mark McDowall)
+* Analyse FASTQ Files (Mark McDowall)
+* BS Seeker2 Methylation Peak Caller (Mark McDowall) 
+* BS Seeker2 Aligner (Mark McDowall)
+* BS Seeker2 Filter (Mark McDowall)
+* WGBS BS Seeker 2 Indexer (Mark McDowall)
+* Sleuth
+
+##### Dev Visualizers
+
+* CytoScape (Centre de Recherches en Cancérologie de Toulouse)
+
+### neat (2010-03-23)
+
+##### Code rearrangement
+* Current tree directory structure created
+* Template creation for tools, configuration files and PHP pages.
+* Easier installation with better documentation, more configurable parameters, database skeleton, sample tools and datasets, etc.
+* Neat composer project for better managing 3th party dependencies
+
+* Cleanest building of tool's help pages
+* No direct link to user's files/
+
+

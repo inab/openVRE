@@ -1,0 +1,86 @@
+{
+    "_id": "biobb_23dmodel",
+    "name": "BioBB for 3D Simulation",
+    "title": "BioExcel Building Block for Simulations",
+    "short_description": "This Building Block is used to launch a first attempt of 3D simulation of the disk.",
+    "long_description": "You can leave a dummy text for the moment!",
+    "url": "",
+    "publication":"",
+    "owner": {
+        "author": "Maria Paola Ferri",
+        "institution": "Barcelona Supercomputing Center",
+        "contact": "maria.ferri@bsc.es",
+        "url": ""
+    },
+    "keywords": [
+      "imaging",
+      "disc4all"
+    ],
+   "keywords_tool": [
+      "biobb_23dmodel",
+      "keyword"
+    ],
+    "infrastructure": {
+        "memory": 12,
+        "cpus": 4,
+        "executable": "/home/vre_template_tool/VRE_RUNNER",
+        "clouds": {
+            "BSC_Starlife": {
+                "launcher": "PMES",
+                "workflowType": "COMPSs",
+                "minimumVMs": 1,
+                "initialVMs": 1,
+                "default_cloud": true
+            }
+        }
+    },
+    "input_files": [
+        {
+            "name": "yaml_config",
+            "description": "YAML config file",
+            "help": "Some explanation about 'My Input 1' displayed to user in help tooltips ",
+            "file_type": [
+                "NIFTI"
+            ],
+            "data_type": [
+                "bioimage"
+            ],
+            "required": true,
+            "allow_multiple": false
+        }
+    ],
+    "input_files_public_dir":[],
+    "input_files_combinations": [
+      {
+        "description" : "Retrieve DisGenet results",
+        "input_files":[
+            "yaml_config"
+        ]
+      }
+    ],
+    "arguments": [
+    {
+        "name": "step1_iteration:device",
+        "description": "Computational resources for 3D Simulation",
+        "help": "Some explanation about 'Argument 1' displayed to user in help tooltips",
+        "type": "string",
+        "default":"cpu"
+    }
+    ],
+    "has_custom_viewer": true,
+    "output_files": [
+        {
+            "name": "output_mesh_path",
+            "required": true,
+            "allow_multiple": false,
+            "file": {
+                "file_type": "",
+                "data_type": "",
+                "meta_data": {
+                    "visible": true,
+                    "description": "Here goes a short description of what this output file contains"
+                }
+            }
+        }
+    ]
+}

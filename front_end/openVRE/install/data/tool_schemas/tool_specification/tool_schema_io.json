@@ -1,0 +1,380 @@
+{
+  "id": "http://multiscalegenomics.eu/tool-schema",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "MuG input/output tool definition schema",
+  "description": "Specification of inputs, outputs and arguments for MuG tools as required for VRE",
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "input_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string",
+            "default": null
+          },
+          "file_type": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "null",
+                "CSV",
+                "JSON",
+                "PDF",
+                "PNG",
+                "RDATA",
+                "TAR",
+                "TIFF",
+                "TSV",
+                "TXT"
+              ]
+            }
+          },
+          "data_type": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "configuration_file",
+                "tool_intermediate_file",
+                "tool_statistics",
+                "site_manifest",
+                "dataset_manifest",
+                "ML_DL_model",
+                "ML_DL_model_coefficients",
+                "FE_query"
+              ]
+            }
+          },
+          "required": {
+            "type": "boolean",
+            "default": true
+          },
+          "allow_multiple": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "file_type",
+          "data_type",
+          "required",
+          "allow_multiple"
+        ]
+      }
+    },
+    "input_files_public_dir": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string",
+            "default": null
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "integer",
+              "number",
+              "string",
+              "enum",
+              "enum_multiple",
+              "boolean",
+              "hidden"
+            ]
+          },
+          "default": {
+            "type": ["integer", "string", "boolean", "number", "array"],
+            "default": "null"
+          },
+          "value": {
+            "type": ["integer", "string", "boolean", "number", "array"],
+            "default": "null"
+          },
+          "enum_items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "array"
+              },
+              "description": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "file_type": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "null",
+                "CSV",
+                "JSON",
+                "PNG",
+                "RDATA",
+                "TAR",
+                "TIFF",
+                "TSV",
+                "TXT"              ]
+            }
+          },
+          "data_type": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "configuration_file",
+                "tool_intermediate_file",
+                "tool_statistics",
+                "site_manifest",
+                "dataset_manifest",
+                "ML_DL_model",
+                "ML_DL_model_coefficients",
+                "FE_query"
+              ]
+            }
+          },
+          "required": {
+            "type": "boolean",
+            "default": true
+          },
+          "allow_multiple": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "input_files_combinations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "input_files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "description",
+          "input_files"
+        ]
+      }
+    },
+    "arguments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string",
+            "default": null
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "integer",
+              "number",
+              "string",
+              "enum",
+              "enum_multiple",
+              "boolean",
+              "hidden"
+            ]
+          },
+          "default": {
+            "type": ["integer", "string", "boolean", "number", "array"],
+            "default": "null"
+          },
+          "value": {
+            "type": ["integer", "string", "boolean", "number", "array"],
+            "default": "null"
+          },
+          "enum_items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "array"
+              },
+              "description": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "maximum": {
+            "type": "integer"
+          },
+          "minimum": {
+            "type": "integer"
+          },
+          "required": {
+            "type": "boolean",
+            "default": true
+          },
+          "allow_multiple": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "description",
+          "type"
+        ]
+      }
+    },
+    "output_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean",
+            "default": true
+          },
+          "allow_multiple": {
+            "type": "boolean",
+            "default": false
+          },
+          "file": {
+            "type": "object",
+            "properties": {
+              "file_type": {
+                "type": "string",
+                "enum": [
+                  "null",
+                  "CSV",
+                  "JSON",
+                  "PDF",
+                  "PNG",
+                  "RDATA",
+                  "TAR",
+                  "TIFF",
+                  "TSV",
+                  "TXT"
+                ]
+              },
+              "data_type": {
+                "type": "string",
+                "enum": [
+                  "configuration_file",
+                  "tool_intermediate_file",
+                  "tool_statistics",
+                  "site_manifest",
+                  "dataset_manifest",
+                  "dataset_quality_report",
+                  "ML_DL_model_coefficients"
+                ]
+              },
+              "file_path": {
+                "type": "string"
+              },
+              "compressed": {
+                "type": "string",
+                "enum": [
+                  "null",
+                  "gzip",
+                  "zip"
+                ]
+              },
+              "taxon_id": {
+                "type": "integer"
+              },
+              "source_id": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "meta_data": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "tool": {
+                    "type": "string"
+                  },
+                  "assembly": {
+                    "type": "string"
+                  },
+                  "visible": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                },
+                "required": [
+                  "description",
+                  "visible"
+                ]
+              }
+            },
+            "required": [
+              "file_type",
+              "data_type",
+              "meta_data"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "required",
+          "allow_multiple",
+          "file"
+        ]
+      }
+    }
+  },
+  "required": [
+    "_id",
+    "input_files",
+    "input_files_public_dir",
+    "arguments",
+    "output_files"
+  ],
+  "additionalProperties": false
+}

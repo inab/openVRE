@@ -1,0 +1,30 @@
+# Work in progress
+
+### REST API
+
+We are working on a REST API. Database population during VRE installation will include also a 'public' user as part of the DB skeleton
+
+```
+{ 
+    "_id" : "public", 
+    "id" : "public", 
+    "Surname" : "Public", 
+    "Name" : "Ownership", 
+    "Inst" : "", 
+    "Country" : "", 
+    "Email" : "Public", 
+    "crypPassword" : null, 
+    "lastLogin" : "", 
+    "registrationDate" : "", 
+    "Type" : "44444", 
+    "Status" : "1", 
+    "diskQuota" : 107374182400, 
+    "dataDir" : "OpEBUSER5c88c58dde02d_5c88c58de7bb38.97977210", 
+    "DataSample" : "basic", 
+    "Token" : {
+    }, 
+    "AuthProvider" : "", 
+    "terms" : "1"
+}
+
+```

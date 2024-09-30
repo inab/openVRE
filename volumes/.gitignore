@@ -1,0 +1,17 @@
+mongo_data/*
+pg_data/*
+shared_data/userdata/*
+shared_data/public/*
+shared_data/sampledata/*
+vault/logs/*
+vault/file/*
+<<<<<<< HEAD
+openVRE/tools/*
+openVRE/config/*
+openVre/visualizers/*
+openVRE/config/globals.inc.php
+=======
+openVRE/config/*
+#openVRE/tools/*
+#openVRE/visualizers/*
+>>>>>>> c7b4b415a818198e18d63613f704505351560594

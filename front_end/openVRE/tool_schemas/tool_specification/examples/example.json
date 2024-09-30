@@ -1,0 +1,119 @@
+{
+    "_id": "my_tool_id",
+    "name": "My Tool",
+    "title": "My tool Complete Name",
+    "short_description": "This is a one or two lines description of what 'My Tool' does. You can leave a dummy text for the moment!",
+    "long_description": "This is a longer description of what 'My Tool' does. It includes information about the software use for it, the supported inputs, the expected results, etc. You can leave a dummy text for the moment!",
+    "url": "http://gitbub.com/MyTool",
+    "publication":"00.0000/nar/gks000",
+    "owner": {
+        "author": "My Name",
+        "institution": "My University",
+        "contact": "myEmail@uni.cat",
+        "url": "https://MyUniversity.uni.cat/MyGroup"
+    },
+    "keywords": [
+      "imaging"
+    ],
+   "keywords_tool": [
+      "whatever",
+      "keyword"
+    ],
+    "infrastructure": {
+        "memory": 12,
+        "cpus": 4,
+        "executable": "/VM/path/where/main/executable/is/going/to/be/MyTool.py",
+        "clouds": {
+            "BSC_Starlife": {
+                "launcher": "PMES",
+                "workflowType": "COMPSs",
+                "minimumVMs": 1,
+                "initialVMs": 1,
+                "default_cloud": true
+            }
+        }
+    },
+    "input_files": [
+        {
+            "name": "my_input_id1",
+            "description": "My Input 1",
+            "help": "Some explanation about 'My Input 1' displayed to user in help tooltips ",
+            "file_type": [
+                "NIFTI"
+            ],
+            "data_type": [
+                "bioimage"
+            ],
+            "required": true,
+            "allow_multiple": false
+        },
+        {
+            "name": "my_input_id2",
+            "description": "My Input 2",
+            "help": "Some explanation about 'My Input 2' displayed to user in help tooltips ",
+            "file_type": [
+                "NIFTI"
+            ],
+            "data_type": [
+                "bioimage"
+            ],
+            "required": true,
+            "allow_multiple": false
+        }
+    ],
+    "input_files_public_dir":[],
+    "input_files_combinations": [
+      {
+        "description" : "Analyse a single FASTA",
+        "input_files":[
+            "my_input_id1"
+        ]
+      },{
+        "description" : "Compare 2 FASTA files",
+        "input_files":[
+            "my_input_id1",
+            "my_input_id2"
+          ]
+      }
+    ],
+    "arguments": [
+    {
+        "name": "argument_id1",
+        "description": "Argument 1",
+        "help": "Some explanation about 'Argument 1' displayed to user in help tooltips",
+        "type": "integer",
+        "default":"99"
+    }
+    ],
+    "has_custom_viewer": true,
+    "output_files": [
+        {
+            "name": "output_id1",
+            "required": true,
+            "allow_multiple": false,
+            "file": {
+                "file_type": "NIFTI",
+                "data_type": "image_mask",
+                "meta_data": {
+                    "visible": true,
+                    "description": "Here goes a short description of what this output file contains"
+                }
+            }
+        },
+        {
+            "name": "output_id2",
+            "required": true,
+            "allow_multiple": false,
+            "file": {
+                "file_type": "TAR",
+                "data_type": "tool_statistics",
+                "file_path": "myExecutionStatistics.tar.gz",
+                "compressed": "gzip",
+                "meta_data": {
+                    "visible": false,
+                    "description": "Here goes a short description of what this output file contains"
+                }
+            }
+        }
+    ]
+}

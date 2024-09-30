@@ -1,0 +1,19 @@
+{                                    
+  "listener":  {                     
+    "tcp":  {                        
+      "address":  "0.0.0.0:8200",  
+      "cluster_address" : "0.0.0.0:8201", 
+      "tls_disable":  "true"         
+    }                                
+  },                                 
+  "backend": {                       
+    "file": {                        
+      "path": "/vault/file"          
+    }                                
+  },                                 
+  "default_lease_ttl": "168h",       
+  "max_lease_ttl": "0h",
+  "api_addr": "0.0.0.0:8200",
+  "cluster_addr": "0.0.0.0:8201",
+  "ui": true
+}  

@@ -1,0 +1,7 @@
+{"_id":"TAR","extension":["TAR","TGZ","TBZ","TBZ2"]}
+{"_id":"JSON","extension":["json"]}
+{"_id":"TXT","extension":["TXT","LOG"]}
+{"_id":"CSV","extension":["CSV"]}
+{"_id":"TSV","extension":["TSV"]}
+{"_id":"FASTA","extension":["FASTA","FA","FN"]}
+{"_id":"YAML","extension":["yml","yaml"]}

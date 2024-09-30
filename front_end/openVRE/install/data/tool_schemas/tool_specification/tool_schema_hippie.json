@@ -1,0 +1,86 @@
+{
+    "_id": "biobb_Hippie",
+    "name": "BioBB Hippie",
+    "title": "BioExcel Building Block for Hippie",
+    "short_description": "This Building Block is used to interrogate the Hippie database.",
+    "long_description": "You can leave a dummy text for the moment!",
+    "url": "http://gitbub.com/mapoferri/Biobb_disgenet",
+    "publication":"",
+    "owner": {
+        "author": "Maria Paola Ferri",
+        "institution": "Barcelona Supercomputing Center",
+        "contact": "maria.ferri@bsc.es",
+        "url": ""
+    },
+    "keywords": [
+      "data",
+      "disc4all"
+    ],
+   "keywords_tool": [
+      "biobb_disgenet",
+      "keyword"
+    ],
+    "infrastructure": {
+        "memory": 12,
+        "cpus": 4,
+        "executable": "/home/user/biobb_disc4alldata_setup/biobb-disc4alldata-setup.py",
+        "clouds": {
+            "BSC_Starlife": {
+                "launcher": "PMES",
+                "workflowType": "COMPSs",
+                "minimumVMs": 1,
+                "initialVMs": 1,
+                "default_cloud": true
+            }
+        }
+    },
+    "input_files": [
+        {
+            "name": "yaml_config",
+            "description": "YAML config file",
+            "help": "Some explanation about 'My Input 1' displayed to user in help tooltips ",
+            "file_type": [
+                "NIFTI"
+            ],
+            "data_type": [
+                "bioimage"
+            ],
+            "required": true,
+            "allow_multiple": false
+        }
+    ],
+    "input_files_public_dir":[],
+    "input_files_combinations": [
+      {
+        "description" : "Retrieve Hippie results",
+        "input_files":[
+            "yaml_config"
+        ]
+      }
+    ],
+    "arguments": [
+    {
+        "name": "output_file_path",
+        "description": "Output file path",
+        "help": "Some explanation about 'Argument 1' displayed to user in help tooltips",
+        "type": "string",
+        "default":"disease"
+    }
+    ],
+    "has_custom_viewer": true,
+    "output_files": [
+        {
+            "name": "hippie_path",
+            "required": true,
+            "allow_multiple": false,
+            "file": {
+                "file_type": "CSV",
+                "data_type": "image_mask",
+                "meta_data": {
+                    "visible": true,
+                    "description": "Here goes a short description of what this output file contains"
+                }
+            }
+        }
+    ]
+}

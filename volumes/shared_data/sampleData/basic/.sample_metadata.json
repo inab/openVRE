@@ -1,0 +1,12 @@
+[
+    {
+        "file_path": "uploads",
+        "type":"dir",
+        "sources": [0],
+        "meta_data": {
+            "expiration":-1,
+            "description": "Uploaded personal data",
+            "files":[]
+        }
+    }
+]

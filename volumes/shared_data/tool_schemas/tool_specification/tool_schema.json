@@ -1,0 +1,828 @@
+{
+  "id": "http://multiscalegenomics.eu/tool-schema",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "MuG tool definition schema",
+  "description": "Specification of MuG tools as required for VRE",
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "default": "null"
+    },
+    "short_description": {
+      "type": "string",
+      "default": "null"
+    },
+    "long_description": {
+      "type": "string",
+      "default": "null"
+    },
+    "url": {
+      "type": "string"
+    },
+    "publication": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "object",
+      "properties": {
+        "institution": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "contact": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "author",
+        "institution",
+        "contact"
+      ],
+      "additionalProperties": false
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "chromatin",
+          "dynamics",
+          "visualization",
+          "hi-C",
+          "epigenetics",
+          "nucleosome",
+          "modeling",
+          "next gen sequencing",
+          "interaction",
+          "rna",
+          "dna",
+          "protein",
+          "sequence",
+          "structure",
+          "other"
+        ]
+      },
+      "default": "other"
+    },
+    "keywords_tool": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": "other"
+    },
+    "infrastructure": {
+      "type": "object",
+      "properties": {
+        "executable": {
+          "type": "string"
+        },
+        "cpus": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12,
+          "default": 1
+        },
+        "memory": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 24,
+          "default": 0
+        },
+        "wallTime": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 1440,
+          "default": 1440
+        },
+        "clouds": {
+          "type": "object",
+          "properties": {
+            "mug-bsc": {
+              "$ref": "#/definitions/cloud"
+            },
+            "mug-irb": {
+              "$ref": "#/definitions/cloud"
+            },
+            "mug-ebi": {
+              "$ref": "#/definitions/cloud"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "has_custom_viewer": {
+      "type": "boolean",
+      "default": true
+    },
+    "input_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string",
+            "default": null
+          },
+          "file_type": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "null",
+                "AMB",
+                "ANN",
+                "BAI",
+                "BAM",
+                "BB",
+                "BED",
+                "BEDGRAPH",
+                "BT2",
+                "BW",
+                "BWT",
+                "CPT",
+                "CSV",
+                "DCD",
+                "FASTA",
+                "FASTQ",
+                "GEM",
+                "GFF",
+                "GFF3",
+                "GTF",
+                "HDF5",
+                "IDX",
+                "JSON",
+                "LIF",
+                "MDCRD",
+                "NETCDF",
+                "PAC",
+                "PARMTOP",
+                "PDB",
+                "PDF",
+                "PICKLE",
+                "PNG",
+                "RDATA",
+                "RST",
+                "SA",
+                "TAR",
+                "TBI",
+                "TIFF",
+                "TOP",
+                "TPR",
+                "TSV",
+                "TXT",
+                "VCF",
+                "WIG",
+                "XTC"
+              ]
+            }
+          },
+          "data_type": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "chromatin_3dmodel",
+                "chromatin_3dmodel_ensemble",
+                "chromatin_compartments",
+                "chromatin_tads",
+                "chromatin_traj",
+                "configuration_file",
+                "data_atac_seq",
+                "data_chip_seq",
+                "data_chic",
+                "data_dna_methylation",
+                "data_fish",
+                "data_mnase_seq",
+                "data_rna_seq",
+                "data_wgbs",
+                "docking_ranking",
+                "hic_biases",
+                "hic_contacts_coverage",
+                "hic_contacts_differential",
+                "hic_contacts_matrix",
+                "hic_contacts_peaks",
+                "hic_directionality",
+                "hic_reads",
+                "hic_sequences",
+                "hic_tads_scale",
+                "md_restart",
+                "na_md_atom_traj_coords",
+                "na_md_atom_traj_top",
+                "na_md_cg_traj",
+                "na_structure",
+                "na_traj",
+                "na_traj_coords",
+                "na_traj_top",
+                "nucleosome_dynamics",
+                "nucleosome_free_regions",
+                "nucleosome_gene_phasing",
+                "nucleosome_positioning",
+                "nucleosome_stiffness",
+                "prot_dna_specificity",
+                "prot_dna_structure",
+                "prot_structure",
+                "chic_matrix",
+                "pchic_matrix",
+                "pchic_scores",
+                "pchAS",
+                "sequence_annotation",
+                "sequence_dna",
+                "sequence_cdna",
+                "sequence_genomic",
+                "sequence_mapping_index_bowtie",
+                "sequence_mapping_index_bwa",
+                "sequence_mapping_index_gem",
+                "sequence_mapping_index_kallisto",
+                "sequence_prot",
+                "sequence_rna",
+                "structure",
+                "tool_intermediate_file",
+                "tool_statistics",
+                "tss_classification_by_nucleosomes"
+              ]
+            }
+          },
+          "required": {
+            "type": "boolean",
+            "default": true
+          },
+          "allow_multiple": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "file_type",
+          "data_type",
+          "required",
+          "allow_multiple"
+        ]
+      }
+    },
+    "input_files_public_dir": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string",
+            "default": null
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "integer",
+              "number",
+              "string",
+              "enum",
+              "enum_multiple",
+              "boolean",
+              "hidden"
+            ]
+          },
+          "default": {
+            "type": ["integer", "string", "boolean", "number", "array"],
+            "default": "null"
+          },
+          "value": {
+            "type": ["integer", "string", "boolean", "number", "array"],
+            "default": "null"
+          },
+          "enum_items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "array"
+              },
+              "description": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "file_type": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "null",
+                "AMB",
+                "ANN",
+                "BAI",
+                "BAM",
+                "BB",
+                "BED",
+                "BEDGRAPH",
+                "BT2",
+                "BW",
+                "BWT",
+                "CPT",
+                "CSV",
+                "DCD",
+                "FASTA",
+                "FASTQ",
+                "GEM",
+                "GFF",
+                "GFF3",
+                "GTF",
+                "HDF5",
+                "IDX",
+                "JSON",
+                "LIF",
+                "MDCRD",
+                "NETCDF",
+                "PAC",
+                "PARMTOP",
+                "PDB",
+                "PDF",
+                "PICKLE",
+                "PNG",
+                "RDATA",
+                "RST",
+                "SA",
+                "TAR",
+                "TBI",
+                "TIFF",
+                "TOP",
+                "TPR",
+                "TSV",
+                "TXT",
+                "VCF",
+                "WIG",
+                "XTC"
+              ]
+            }
+          },
+          "data_type": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "chromatin_3dmodel",
+                "chromatin_3dmodel_ensemble",
+                "chromatin_compartments",
+                "chromatin_tads",
+                "chromatin_traj",
+                "configuration_file",
+                "data_atac_seq",
+                "data_chip_seq",
+                "data_chic",
+                "data_dna_methylation",
+                "data_fish",
+                "data_mnase_seq",
+                "data_rna_seq",
+                "data_wgbs",
+                "docking_ranking",
+                "hic_biases",
+                "hic_contacts_coverage",
+                "hic_contacts_differential",
+                "hic_contacts_matrix",
+                "hic_contacts_peaks",
+                "hic_directionality",
+                "hic_reads",
+                "hic_sequences",
+                "hic_tads_scale",
+                "md_restart",
+                "na_md_atom_traj_coords",
+                "na_md_atom_traj_top",
+                "na_md_cg_traj",
+                "na_structure",
+                "na_traj",
+                "na_traj_coords",
+                "na_traj_top",
+                "nucleosome_dynamics",
+                "nucleosome_free_regions",
+                "nucleosome_gene_phasing",
+                "nucleosome_positioning",
+                "nucleosome_stiffness",
+                "prot_dna_specificity",
+                "prot_dna_structure",
+                "prot_structure",
+                "chic_matrix",
+                "pchic_matrix",
+                "pchic_scores",
+                "pchAS",
+                "sequence_annotation",
+                "sequence_dna",
+                "sequence_cdna",
+                "sequence_genomic",
+                "sequence_mapping_index_bowtie",
+                "sequence_mapping_index_bwa",
+                "sequence_mapping_index_gem",
+                "sequence_mapping_index_kallisto",
+                "sequence_prot",
+                "sequence_rna",
+                "structure",
+                "tool_intermediate_file",
+                "tool_statistics",
+                "tss_classification_by_nucleosomes"
+              ]
+            }
+          },
+          "required": {
+            "type": "boolean",
+            "default": true
+          },
+          "allow_multiple": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "input_files_combinations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "input_files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "description",
+          "input_files"
+        ]
+      }
+    },
+    "arguments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string",
+            "default": null
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "integer",
+              "number",
+              "string",
+              "enum",
+              "enum_multiple",
+              "boolean",
+              "hidden"
+            ]
+          },
+          "default": {
+            "type": ["integer", "string", "boolean", "number", "array"],
+            "default": "null"
+          },
+          "value": {
+            "type": ["integer", "string", "boolean", "number", "array"],
+            "default": "null"
+          },
+          "enum_items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "array"
+              },
+              "description": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "maximum": {
+            "type": "integer"
+          },
+          "minimum": {
+            "type": "integer"
+          },
+          "required": {
+            "type": "boolean",
+            "default": true
+          },
+          "allow_multiple": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "description",
+          "type"
+        ]
+      }
+    },
+    "output_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean",
+            "default": true
+          },
+          "allow_multiple": {
+            "type": "boolean",
+            "default": false
+          },
+          "file": {
+            "type": "object",
+            "properties": {
+              "file_type": {
+                "type": "string",
+                "enum": [
+                  "null",
+                  "AMB",
+                  "ANN",
+                  "BAI",
+                  "BAM",
+                  "BB",
+                  "BED",
+                  "BEDGRAPH",
+                  "BT2",
+                  "BW",
+                  "BWT",
+                  "CPT",
+                  "CSV",
+                  "DCD",
+                  "FASTA",
+                  "FASTQ",
+                  "GEM",
+                  "GFF",
+                  "GFF3",
+                  "GTF",
+                  "HDF5",
+                  "IDX",
+                  "JSON",
+                  "LIF",
+                  "MDCRD",
+                  "NETCDF",
+                  "PAC",
+                  "PARMTOP",
+                  "PDB",
+                  "PDF",
+                  "PICKLE",
+                  "PNG",
+                  "RDATA",
+                  "RST",
+                  "SA",
+                  "TAR",
+                  "TBI",
+                  "TIFF",
+                  "TOP",
+                  "TPR",
+                  "TSV",
+                  "TXT",
+                  "VCF",
+                  "WIG",
+                  "XTC"
+                ]
+              },
+              "data_type": {
+                "type": "string",
+                "enum": [
+                  "chromatin_3dmodel",
+                  "chromatin_3dmodel_ensemble",
+                  "chromatin_compartments",
+                  "chromatin_tads",
+                  "chromatin_traj",
+                  "configuration_file",
+                  "data_atac_seq",
+                  "data_chip_seq",
+                  "data_chic",
+                  "data_dna_methylation",
+                  "data_fish",
+                  "data_mnase_seq",
+                  "data_rna_seq",
+                  "data_wgbs",
+                  "docking_ranking",
+                  "hic_biases",
+                  "hic_contacts_coverage",
+                  "hic_contacts_differential",
+                  "hic_contacts_matrix",
+                  "hic_contacts_peaks",
+                  "hic_directionality",
+                  "hic_reads",
+                  "hic_sequences",
+                  "hic_tads_scale",
+                  "md_restart",
+                  "na_md_atom_traj_coords",
+                  "na_md_atom_traj_top",
+                  "na_md_cg_traj",
+                  "na_structure",
+                  "na_traj",
+                  "na_traj_coords",
+                  "na_traj_top",
+                  "nucleosome_dynamics",
+                  "nucleosome_free_regions",
+                  "nucleosome_gene_phasing",
+                  "nucleosome_positioning",
+                  "nucleosome_stiffness",
+                  "prot_dna_specificity",
+                  "prot_dna_structure",
+                  "prot_structure",
+                  "chic_matrix",
+                  "pchic_matrix",
+                  "pchic_scores",
+                  "pchAS",
+                  "sequence_annotation",
+                  "sequence_dna",
+                  "sequence_cdna",
+                  "sequence_genomic",
+                  "sequence_mapping_index_bowtie",
+                  "sequence_mapping_index_bwa",
+                  "sequence_mapping_index_gem",
+                  "sequence_mapping_index_kallisto",
+                  "sequence_prot",
+                  "sequence_rna",
+                  "structure",
+                  "tool_intermediate_file",
+                  "tool_statistics",
+                  "tss_classification_by_nucleosomes"
+                ]
+              },
+              "file_path": {
+                "type": "string"
+              },
+              "compressed": {
+                "type": "string",
+                "enum": [
+                  "null",
+                  "gzip",
+                  "zip"
+                ]
+              },
+              "taxon_id": {
+                "type": "integer"
+              },
+              "source_id": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "meta_data": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "tool": {
+                    "type": "string"
+                  },
+                  "assembly": {
+                    "type": "string"
+                  },
+                  "visible": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                },
+                "required": [
+                  "description",
+                  "visible"
+                ]
+              }
+            },
+            "required": [
+              "file_type",
+              "data_type",
+              "meta_data"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "required",
+          "allow_multiple",
+          "file"
+        ]
+      }
+    }
+  },
+  "required": [
+    "_id",
+    "name",
+    "short_description",
+    "long_description",
+    "title",
+    "owner",
+    "keywords",
+    "keywords_tool",
+    "infrastructure",
+    "input_files",
+    "input_files_public_dir",
+    "arguments",
+    "output_files"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "cloud": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/SGE"
+        },
+        {
+          "$ref": "#/definitions/PMES"
+        }
+      ]
+    },
+    "SGE": {
+      "type": "object",
+      "properties": {
+        "launcher": {
+          "type": "string",
+          "pattern": "^SGE$"
+        },
+        "default_cloud": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "launcher"
+      ],
+      "additionalProperties": false
+    },
+    "PMES": {
+      "type": "object",
+      "properties": {
+        "launcher": {
+          "type": "string",
+          "pattern": "^PMES$"
+        },
+        "workflowType": {
+          "type": "string",
+          "enum": [
+            "Single",
+            "COMPSs"
+          ],
+          "default": "Single"
+        },
+        "default_cloud": {
+          "type": "boolean",
+          "default": false
+        },
+        "minimumVMs": {
+          "type": "integer",
+          "default": 1
+        },
+        "initialVMs": {
+          "type": "integer",
+          "default": 1
+        }
+      },
+      "required": [
+        "launcher"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,14 @@
+* { color: #fff!important; }
+textarea, button, select, select option { color: #444!important; }
+canvas { background-color:#ddd!important; }
+#menubar { background-color:#006080!important; height:50px!important; }
+#sidebar { background-color:#006b8f!important; top:50px!important; overflow-y: auto; overflow-x: hidden; }
+#toolbar { background-color:#006b8f!important; }
+.OverlayPanel { background-color:#006b8f!important; }
+.Panel { border-bottom-color:#fff!important; }
+.Panel.Sticky { /*position:absolute!important;*/ width:100%!important; }
+.Panel.Sticky select { width: 85%!important; height: 25px!important; background: #fff; }
+#sidebar .Content { /*position:static;*/margin-top:45px; }
+#sidebar .Content.noModels { margin-top:0; border-top:none; }
+#sidebar .Panel { margin-bottom:0; }
+.border-settings { border-left: 1px dotted #91c7d8; }

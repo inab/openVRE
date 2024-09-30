@@ -1,0 +1,85 @@
+{
+    "_id": "my_tool_id",
+    "input_files": [
+        {
+            "name": "my_input_id1",
+            "description": "My Input 1",
+            "help": "Some explanation about 'My Input 1' displayed to user in help tooltips ",
+            "file_type": [
+                "NIFTI"
+            ],
+            "data_type": [
+                "bioimage"
+            ],
+            "required": true,
+            "allow_multiple": false
+        },
+        {
+            "name": "my_input_id2",
+            "description": "My Input 2",
+            "help": "Some explanation about 'My Input 2' displayed to user in help tooltips ",
+            "file_type": [
+                "NIFTI"
+            ],
+            "data_type": [
+                "bioimage"
+            ],
+            "required": true,
+            "allow_multiple": false
+        }
+    ],
+    "input_files_public_dir":[],
+    "input_files_combinations": [
+      {
+        "description" : "Analyse a single FASTA",
+        "input_files":[
+            "my_input_id1"
+        ]
+      },{
+        "description" : "Compare 2 FASTA files",
+        "input_files":[
+            "my_input_id1",
+            "my_input_id2"
+          ]
+      }
+    ],
+    "arguments": [
+    {
+        "name": "argument_id1",
+        "description": "Argument 1",
+        "help": "Some explanation about 'Argument 1' displayed to user in help tooltips",
+        "type": "integer",
+        "default":"99"
+    }
+    ],
+    "output_files": [
+        {
+            "name": "output_id1",
+            "required": true,
+            "allow_multiple": false,
+            "file": {
+                "file_type": "NIFTI",
+                "data_type": "image_mask",
+                "meta_data": {
+                    "visible": true,
+                    "description": "Here goes a short description of what this output file contains"
+                }
+            }
+        },
+        {
+            "name": "output_id2",
+            "required": true,
+            "allow_multiple": false,
+            "file": {
+                "file_type": "TAR",
+                "data_type": "tool_statistics",
+                "file_path": "myExecutionStatistics.tar.gz",
+                "compressed": "gzip",
+                "meta_data": {
+                    "visible": false,
+                    "description": "Here goes a short description of what this output file contains"
+                }
+            }
+        }
+    ]
+}
