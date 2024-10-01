@@ -1,3 +1,20 @@
+## Installation guide
+
+For the installation, the following commands are to be run cli:
+
+```
+git clone https://gitlab.bsc.es/disc4all/openvre/dockerized_vre_vault_multi_tools.git
+
+```
+
+First thing, is to change the .env file, since at the moment the sample is to be filled out, respectively changing the hostname depending on the installation environment.
+Example:
+
+For local development: $FQDN_HOST=localhost
+If you have a domain: $FQDN_HOST=myapp.example.com
+If using a WSL or internal IP for access: $FQDN_HOST=192.168.x.x (IP address)
+
+
 ## Build containers
 
 
