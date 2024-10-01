@@ -6,35 +6,32 @@
 
 
 // Main config
-$GLOBALS['SERVER']    = "https://vre.disc4all.eu"; // domain 
+$GLOBALS['SERVER']    = "http://".$_ENV['HOSTNAME'].":8089"; // domain
 $GLOBALS['BASEURL']   = "/"; // prefix url path. Set "/" for no prefix
-$GLOBALS['AppPrefix'] = "D4A"; // project url acronym
-$GLOBALS['NAME']      = "Disc4All"; // project name 
-$GLOBALS['SITETITLE'] = "Disc4All | Virtual Research Environment"; // site title
+$GLOBALS['AppPrefix'] = "PROJECT"; // project url acronym
+$GLOBALS['NAME']      = "PROJECT_NAME"; // project name
+$GLOBALS['SITETITLE'] = "PROJECT_TITLE | Virtual Research Environment"; // site title
 $GLOBALS['TIMEOUT']   = 3600; // session and cookies timeout
-$GLOBALS['vre_network_name'] = "dockerized_vre_local_net";  //Docker vnet name - make sure consistent with Docker Compose file
 
 // Email
 $GLOBALS['mail_credentials'] = __DIR__."/mail.conf"; // SMTP credentials
-$GLOBALS['FROMNAME']  = "VRE_Disc4All"; // 'From' for VRE tickets and notifications
-$GLOBALS['ADMINMAIL'] = "maria.ferri@bsc.es"; // BBC address for VRE ticket emails
+$GLOBALS['FROMNAME']  = "VRE"; // 'From' for VRE tickets and notifications
+$GLOBALS['ADMINMAIL'] = "admin@mail.es"; // BBC address for VRE ticket emails
 
 // SGE
 $GLOBALS['queueTask']  = "local.q"; //default queue
 
 // Mongo databases
-$GLOBALS['db_credentials'] = __DIR__."/mongo.conf"; // Mongo access 
-$GLOBALS['dbname_VRE']     = "disc4all_vre"; // Database name
-//$GLOBALS['dbname_VRE']     = "openVRE";
+$GLOBALS['db_credentials'] = __DIR__."/mongo.conf"; // Mongo access
+$GLOBALS['dbname_VRE']     = "openVRE"; // Database name
 
 //VRE installation paths
 $GLOBALS['root']       = dirname(__DIR__); // VRE root directory
-$GLOBALS['localVolumes']  = "/home/ubuntu/dockerized_vre/volumes"; // Local path for volumes for right redirection
-$GLOBALS['logFile']    = $GLOBALS['root']."/logs/application.log"; // Log file path 
 $GLOBALS['shared']     = "/shared_data/"; // VRE data directory
-$GLOBALS['dataDir']    = $GLOBALS['shared']."userdata"; // User data directory
-$GLOBALS['pubDir']     = $GLOBALS['shared']."public/"; // Public data directorY
-$GLOBALS['sampleData'] = $GLOBALS['shared']."sampleData/"; // Tool dataset directory 
+$GLOBALS['logFile']    = $GLOBALS['root']."/logs/application.log"; // Log file path
+$GLOBALS['dataDir']    = $GLOBALS['shared']."userdata/"; // User data directory
+$GLOBALS['pubDir']     = $GLOBALS['shared']."public/"; // Public data directory
+$GLOBALS['sampleData'] = $GLOBALS['shared']."sampleData/"; // Tool dataset directory
 $GLOBALS['sampleData_default'] = "basic"; // Default workspace's dataset entry
 
 // File manager config
@@ -42,9 +39,8 @@ $GLOBALS['DISKLIMIT']       = 10*1024*1024*1024; // Default user disk quote (GB)
 $GLOBALS['DISKLIMIT_ANON']  = 5*1024*1024*1024; // Default not-registerd disk quote (GB)
 $GLOBALS['MAXSIZEUPLOAD']   = 4000; // Maximum upload file size (MB)
 $GLOBALS['caduca']          = "182"; // Expiration date for user files (days)
-$GLOBALS['project_default'] = "MyFirstDisc4AllProject"; // Default name for user project
-$GLOBALS['tmpUser_dir']     = "basic"; // Default name for user temporal forder
-// $GLOBALS['tmpUser_dir']     = ".tmp/";
+$GLOBALS['project_default'] = "MyFirstProject"; // Default name for user project
+$GLOBALS['tmpUser_dir']     = ".tmp/"; // Default name for user temporal forder
 
 // Tool integration models and templates
 $GLOBALS['tool_json_schema']    = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/tool_schema.json"; // data model for tool registration
@@ -53,29 +49,18 @@ $GLOBALS['tool_dev_sample']     = $GLOBALS['root']."/install/data/tool_schemas/t
 $GLOBALS['tool_io_dev_sample']  = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/examples/example_io.json"; // template for tool registration - step 1 I/O
 
 // Oauth2 authentification
+$GLOBALS['auth_required']          = False; // Forces login
 $GLOBALS['auth_credentials']       = __DIR__."/oauth2.conf"; // oauth2 client credentials
 $GLOBALS['authAdmin_credentials']  = __DIR__."/oauth2_admin.conf"; // oauth2 client credentials with admin privileges
-// $GLOBALS['authServer']             = 'http://84.88.186.195:8089/auth'; // external oauth2 server
-//$GLOBALS['authServer']             = 'http://84.88.189.184:8089/auth'; // external oauth2 server
-$GLOBALS['authServer']             = 'https://inb.bsc.es/auth';
-//$GLOBALS['authRealm']              = 'VRE-realm'; // keycloak realm
-$GLOBALS['authRealm']              = 'disc4all'; // keycloak realm
+#$GLOBALS['authServer']             = 'http://84.88.186.195:8089/auth'; // external oauth2 server
+$GLOBALS['authServer']             = 'http://'.$_ENV['HOSTNAME'].':8080/auth'; // internal oauth2 server
+$GLOBALS['authRealm']              = 'open-vre'; // keycloak realm
 $GLOBALS['urlAuthorize' ]          = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/auth';     //get autorization_code
 $GLOBALS['urlAccessToken']         = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/token';    //get token
 $GLOBALS['urlResourceOwnerDetails']= $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/userinfo'; //get user details
-$GLOBALS['urlLogout']              = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/logout';   //close keyclok session   
+$GLOBALS['urlLogout']              = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/logout';   //close keyclok session
 $GLOBALS['adminToken']             = $GLOBALS['authServer']."/realms/master/protocol/openid-connect/token"; // get Admin token
 $GLOBALS['adminRealm']             = $GLOBALS['authServer']."/admin/realms/".$GLOBALS['authRealm']; // admin keycloak users
-
-
-// Vault integration and roles
-$GLOBALS['vaultUrl'] = 'https://vre.disc4all.eu/vault/';
-$GLOBALS['vaultToken'] = 'root';
-//$jwtToken = $_SESSION['User']['JWT'];
-$GLOBALS['vaultRolename'] = 'demo';
-$GLOBALS['secretPath'] = 'secret/mysecret/data/';
-
-
 
 /************************
 // Definitions
@@ -83,7 +68,7 @@ $GLOBALS['secretPath'] = 'secret/mysecret/data/';
 
 
 // Default names and local path for VRE
-$GLOBALS['URL']       = $GLOBALS['SERVER'].$GLOBALS['BASEURL']; // full VRE URL 
+$GLOBALS['URL']       = $GLOBALS['SERVER'].$GLOBALS['BASEURL']; // full VRE URL
 $GLOBALS['URL_login'] = $GLOBALS['URL']."login.php"; // Default for auth server login
 $GLOBALS['htmlPath']  = $GLOBALS['root']. "/public/"; // Default path for public folder
 $GLOBALS['htmlib']    = $GLOBALS['htmlPath']."htmlib"; // Default path for html templates
@@ -143,18 +128,14 @@ $GLOBALS['placeholder_textarea'] = "Click right button to select file(s)"; // te
 // Project specific definitions
 ********************************/
 
-// Get Data from Repositories
-// $GLOBALS['EUBI_XNAT_API']    = "https://xnat.bmia.nl";
-// $GLOBALS['EGA_METADATA_API'] = "https://ega-archive.org/metadata/v2";
-// $GLOBALS['EGA_METADATA_API_TEST'] = "https://test.ega-archive.org/metadata/v2";  # TODO: ask Alejandro
 
 // Cloud infrastructures
 $GLOBALS['cloud']              = "my_on_premises_cloud"; // VRE central cloud. Options are any of $GLOBALS['clouds']
 $GLOBALS['clouds'] = Array(
 		'my_on_premises_cloud' => array(
 			"http_host"	    => "www.mydomain.com",	     // used in getCurrentCloud
-			"dataDir_host"        => "/home/ubuntu/dockerized_vre/volumes/shared_data/userdata/", // export path for NFS server
-			"pubDir_host"         => "/home/ubuntu/dockerized_vre/volumes/shared_data/public/",   // export path for NFS server
+			"dataDir_fs"        => "/NFS/export/path/userdata/", // export path for NFS server
+			"pubDir_fs"         => "/NFS/export/path/public/",   // export path for NFS server
 			"dataDir_virtual"   => $GLOBALS['dataDir'],
 			"pubDir_virtual"    => $GLOBALS['pubDir'],
 			"PMESserver_domain" => "pmes.mydomain.com",
@@ -163,31 +144,42 @@ $GLOBALS['clouds'] = Array(
 			"imageTypes" 	    => array(),                      // list of cloud OCCI templates indexed by RAM (GB)
 			"auth"	            => array("required" => False)
 		),
-		'marenostrum' => array(
-			"http_host"	    => "mn1.bsc.es",  	                            // used in getCurrentCloud
-			"dataDir_fs"        => "/home/\$REMOTE_USERNAME/openvre/userdata/", // export path for NFS server
-			"pubDir_fs"         => "/home/\$REMOTE_USERNAME/openvre/public/",   // export path for NFS server
-			"dataDir_virtual"   => $GLOBALS['dataDir'],
-			"pubDir_virtual"    => $GLOBALS['pubDir'],
-			"auth"	            => array("required" => True,
-						     "accessible_via" => "SSH",
-						     "credentials_file" => "??????" // /shared_data/USERID/.vault/dt01.bsc.es.secret
 
-					       )
-		),
-		'marenostrum_dt' => array(
-			"http_host"	    => "dt01.bsc.es",  	             // used in getCurrentCloud
-			"port" 		    => "22",
-			"mn_dir"	    => "/home", 
-			"dataDir_fs"        => "/openvre/userdata/", // export path for NFS server
-			"pubDir_fs"         => "/openvre/public/",   // export path for NFS server
-			"dataDir_virtual"   => $GLOBALS['dataDir'],
-			"pubDir_virtual"    => $GLOBALS['pubDir'],
-			"auth"	            => array("required" => True,
-						     "accessible_via" => "SSH",
-						     "credentials_file" => "??????" // /shared_data/USERID/.vault/dt01.bsc.es.secret
-
-					       )
-		)
-
+		'my_remote_2' => array(
+			"http_host"	    => "www.mydomain2.com",	      // used in getCurrentCloud
+			"dataDir_fs"   	    => "/NFS/export/path2/userdata/", // export path for NFS server
+			"pubDir_fs"	    => "/NFS/export/path2/public/",   // export path for NFS server
+			"dataDir_virtual"   => "/shared/path/for/userdata",
+			"pubDir_virtual"    => "/shared/path/for/public",
+			"PMESserver_domain" => "pmes.mydomain2.com",
+			"PMESserver_port"   => "8080",
+			"PMESserver_address"=> "/",
+			"imageTypes"	=>  array(                           // list of cloud OCCI templates indexed by RAM (GB)
+				"2"  => array(
+					"1"  => array("id" => "small", "disk" => null, "name" => "small"),
+					"8"  => array("id" => "large-small", "disk" => null, "name" => "large-small"),
+					"16" => array("id" => "extra_large-small", "disk" => null, "name" => "large-small")
+				    ),
+				"4"  => array(
+					"2"  => array("id" => "medium", "disk" => null, "name" => "medium"),
+					"4"  => array("id" => "medium-medium", "disk" => null, "name" => "medium-medium"),
+					"8"  => array("id" => "large-medium", "disk" => null, "name" => "large-medium"),
+					"16" => array("id" => "extra_large-medium", "disk" => null, "name" => "extra_large-medium")
+				    )
+			),
+			"auth"  => array(
+				"required"       => True,
+				"OS_NO_CACHE"    => "True",
+				"OS_CLOUDNAME"   => "overcloud",
+				"OS_AUTH_URL"    => "https://extcloud05.ebi.ac.uk:13000/v2.0",
+				"NOVA_VERSION"   => "1.2",
+				"COMPUTE_API_VERSION" => "1.2",
+				"OS_USERNAME"    => "username@mail.es",
+				"OS_PASSWORD"    => "s3cr3t",
+				"OS_TENANT_NAME" => "tenancy_name"
+			)
+	    )
 );
+
+# Get host path (Provisional)
+$GLOBALS['host_path'] = trim(file_get_contents($GLOBALS['shared'].".pwd"));

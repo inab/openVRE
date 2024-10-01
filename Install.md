@@ -10,9 +10,25 @@ git clone https://gitlab.bsc.es/disc4all/openvre/dockerized_vre_vault_multi_tool
 First thing, is to change the .env file, since at the moment the sample is to be filled out, respectively changing the hostname depending on the installation environment.
 Example:
 
-For local development: $FQDN_HOST=localhost
-If you have a domain: $FQDN_HOST=myapp.example.com
-If using a WSL or internal IP for access: $FQDN_HOST=192.168.x.x (IP address)
+For local development: ```$FQDN_HOST=localhost```
+If you have a domain: ```$FQDN_HOST=myapp.example.com```
+If using a WSL or internal IP for access: ```$FQDN_HOST=192.168.x.x (IP address)```
+
+
+Make sure also to filled up/check every configuration file that is in the front_end/openVRE/config directory.
+
+
+```
+globals.inc.php.sample --> globals.inc.php
+
+mail.conf.sample --> mail.conf
+
+mongo.conf.sample --> mongo.conf 
+
+oauth2.conf.sample --> oauth2.conf
+
+oauth2_admin.conf.sample --> oauth2_admin.conf
+```
 
 
 ## Build containers
