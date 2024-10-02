@@ -14,7 +14,7 @@ if (($F = fopen($GLOBALS['db_credentials'], "r")) !== FALSE) {
 
 // connect DB
 try {
-	$VREConn =  new MongoDB\Client("mongodb://".$conf[0].":".$conf[1]."@".$conf[2].":".$conf[4],
+	$VREConn =  new MongoDB\Client("mongodb://".$conf[0].":".$conf[1]."@".$conf[2].":".$conf[3],
 					array(),
 					array('typeMap' => array ('root'     => 'array',
 								  'document' => 'array',

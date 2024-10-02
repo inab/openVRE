@@ -1,5 +1,15 @@
 ## Installation guide
 
+### Pre requisites
+
+ Docker Engine - Community
+ Version:           26.1.0
+
+ Docker Compose version v2.26.1
+
+
+### Installation
+
 For the installation, the following commands are to be run cli:
 
 ```
@@ -35,9 +45,9 @@ oauth2_admin.conf.sample --> oauth2_admin.conf
 
 
 ```
-docker-compose build
-docker network create shared
-docker-compose up
+docker compose build
+
+docker compose up
 ```
 
 
