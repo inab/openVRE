@@ -58,7 +58,7 @@ docker compose up -d
 Before initialiting the configuration for the SGE to recognized jobs sent from the front_end, if the user is not sure of the hostname for the front_end docker, please use the command to retrieve it and use it. 
 ```
 docker inspect front_end | grep -i Hostname 
-``
+```
 
 Change minimal UID in SGE master configuration to allow job submission from web apps:
 
