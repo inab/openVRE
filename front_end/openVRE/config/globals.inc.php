@@ -6,12 +6,13 @@
 
 
 // Main config
-$GLOBALS['SERVER']    = "http://".($_ENV['HOSTNAME'] ?? 'localhost'); // domain
+$GLOBALS['SERVER']    = "http://".($_ENV['HOSTNAME'] ?? 'localhost').":8088"; // domain
 $GLOBALS['BASEURL']   = "/"; // prefix url path. Set "/" for no prefix
 $GLOBALS['AppPrefix'] = "PROJECT"; // project url acronym
 $GLOBALS['NAME']      = "PROJECT_NAME"; // project name
 $GLOBALS['SITETITLE'] = "PROJECT_TITLE | Virtual Research Environment"; // site title
 $GLOBALS['TIMEOUT']   = 3600; // session and cookies timeout
+$GLOBALS['vre_network_name'] = "dockerized_vre_vault_multi_tools_local_net";  //Docker vnet name - make sure consistent with Docker Compose file
 
 // Email
 $GLOBALS['mail_credentials'] = __DIR__."/mail.conf"; // SMTP credentials
@@ -53,7 +54,7 @@ $GLOBALS['auth_required']          = False; // Forces login
 $GLOBALS['auth_credentials']       = __DIR__."/oauth2.conf"; // oauth2 client credentials
 $GLOBALS['authAdmin_credentials']  = __DIR__."/oauth2_admin.conf"; // oauth2 client credentials with admin privileges
 #$GLOBALS['authServer']             = 'http://84.88.186.195:8089/auth'; // external oauth2 server
-$GLOBALS['authServer']             = 'http://'.$_ENV['HOSTNAME'].':8080/auth'; // internal oauth2 server
+$GLOBALS['authServer']             = 'http://'.($_ENV['HOSTNAME']?? 'localhost').':8080/auth'; // internal oauth2 server
 $GLOBALS['authRealm']              = 'open-vre'; // keycloak realm
 $GLOBALS['urlAuthorize' ]          = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/auth';     //get autorization_code
 $GLOBALS['urlAccessToken']         = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/token';    //get token
@@ -182,4 +183,4 @@ $GLOBALS['clouds'] = Array(
 );
 
 # Get host path (Provisional)
-$GLOBALS['host_path'] = trim(file_get_contents($GLOBALS['shared'].".pwd"));
+#$GLOBALS['host_path'] = trim(file_get_contents($GLOBALS['shared'].".pwd"));

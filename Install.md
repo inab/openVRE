@@ -47,16 +47,55 @@ oauth2_admin.conf.sample --> oauth2_admin.conf
 ```
 docker compose build
 
-docker compose up
+docker compose up -d
 ```
 
 
 ## Apply manual configuration:
 
-### Vault Configuration
+### sgecore username:
+
+Before initialiting the configuration for the SGE to recognized jobs sent from the front_end, if the user is not sure of the hostname for the front_end docker, please use the command to retrieve it and use it. 
+```
+docker inspect front_end | grep -i Hostname 
+``
+
+Change minimal UID in SGE master configuration to allow job submission from web apps:
+
+```
+docker exec -it sgecore /bin/bash
+qconf -as ${FRONT_END_HOSTNAME}
+
+qconf -mconf # change UID from 1000 to 33)
+```
+
+### sgecore docker usage permission
+
+```
+groupmod -g 120 docker
+usermod -aG docker application
 
 
-##Vault manual unseal
+chown root:docker /var/run/docker.sock
+chmod 660 /var/run/docker.sock
+
+```
+
+## Keycloak Configuration
+
+Check match user and secret with keycloak config.
+Keycloak to front-end should be allowes via iptables in some systems, so run the command locally on the machine:
+
+```
+sudo iptables -I INPUT -s {keycloak internal IP} -p tcp --dport 8080 -j ACCEPT
+```
+how to retrieve keycloak realm and key cause we have to use them for the vault!
+
+
+## Vault Configuration
+
+
+### Vault manual unseal
 
 First time Vault up, execute the init and save elsewhere the 'Unseal keys' just generated:
 
@@ -71,13 +110,17 @@ docker exec -ti vault-server vault operator unseal SECRET_KEY1
 docker exec -ti vault-server vault operator unseal SECRET_KEY2
 docker exec -ti vault-server vault operator unseal SECRET_KEY3
 ```
-##Vault manual setup
+### Vault manual setup
 
 Considering an external JWT Authorization Token service as a middle identification layer to access the Vault and its secrets, it has to be properly registered.
 Here are the command to follow to instatiate a JWT Authorization service for Keycloak: 
 
 ```
+docker exec -ti vault-server /bin/sh
+vault login # with ${Intial Root Token}
+
 vault auth enable jwt
+vault auth enable oidc
 
 #Policy 
 cd vault/config
@@ -100,36 +143,6 @@ vault secrets enable -path=secret/mysecret kv-v2
 
 
 ```
-### sgecore username:
-Change minimal UID in SGE master configuration to allow job submission from web apps:
-
-```
-docker exec -it sgecore /bin/bash
-qconf -as front_end.dockerized_vre
-
-qconf -mconf # change UID from 1000 to 33)
-```
-
-### sgecore docker usage permission
-
-```
-groupmod -g 120 docker
-usermod -aG docker application
-
-
-chown root:docker /var/run/docker.sock
-chmod 660 /var/run/docker.sock
-
-```
-
-### KeyCloak:
-Check match user and secret with keycloak config.
-Keycloak to front-end should be allowes via iptables in some systems
-```
-sudo iptables -I INPUT -s {keycloak internal IP} -p tcp --dport 8080 -j ACCEPT
-```
-
-
 
 ## Troubleshotting
 
