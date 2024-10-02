@@ -6,7 +6,7 @@
 
 
 // Main config
-$GLOBALS['SERVER']    = "http://".$_ENV['HOSTNAME'].":8089"; // domain
+$GLOBALS['SERVER']    = "http://".($_ENV['HOSTNAME'] ?? 'localhost'); // domain
 $GLOBALS['BASEURL']   = "/"; // prefix url path. Set "/" for no prefix
 $GLOBALS['AppPrefix'] = "PROJECT"; // project url acronym
 $GLOBALS['NAME']      = "PROJECT_NAME"; // project name

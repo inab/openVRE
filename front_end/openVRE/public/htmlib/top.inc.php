@@ -81,8 +81,8 @@ if (file_exists($avatarImg)) {
                 <ul class="nav navbar-nav pull-right">
                     <li class="dropdown dropdown-user">
                         <a href="<?php echo $GLOBALS['URL_login']; ?>" class="dropdown-toggle" style="padding-right:15px;">
-                            <i class="fa fa-sign-in" style="font-size: 23px;position: relative;top: 3px;color: white;"></i>
-                            <span class="username username-hide-on-mobile" style="color: white;">Log In</span>
+                            <i class="fa fa-sign-in" style="font-size: 23px;position: relative;top: 3px;color: grey;"></i>
+                            <span class="username username-hide-on-mobile" style="color: grey;">Log In</span>
                         </a>
                     </li>
                 </ul>
