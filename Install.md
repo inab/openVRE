@@ -89,7 +89,26 @@ Keycloak to front-end should be allowes via iptables in some systems, so run the
 ```
 sudo iptables -I INPUT -s {keycloak internal IP} -p tcp --dport 8080 -j ACCEPT
 ```
-how to retrieve keycloak realm and key cause we have to use them for the vault!
+
+The Keycloak configuration is following the oauth2.conf, where the User and the Secret should be stored.
+If the secret is unknown or uncertain, access the Admin console to access and retrieve the Secret and store it in the oauth2.conf file, so the Keycloak server would be accessible through the VRE.
+
+#### How to do it: 
+
+1. Once the docker is up, access through the web-page at the link: *http(s)://{$FQDN_HOST}/auth/admin* ;
+
+2. Access the Admin console with the Admin credentials stored in the oauth2_admin.conf;
+
+3. Open the *Clients* section;
+
+4. Open the *open-vre* Client ID section;
+
+5. Go over the *Credentials* section, where you would find the Client Id and the Secret;
+
+6. On your own VRE configuration file, *openVRE/config/oauth2.conf*, update the file with the credentials aforementioned. 
+
+The access to the Realm is complete, you should be able to access and register new user on your local Keycloak server. 
+
 
 
 ## Vault Configuration
