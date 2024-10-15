@@ -218,6 +218,20 @@ You would find output data in whatever directoy was specified in the *metadata* 
 
 ---
 
+
+## VRE integration:
+
+1.  Adding the Tool in the MongoDB collection;
+
+2. In /volumes/openVRE/tools, make a new directory copying the tool_skeleton one with the name of the tool (same ID that was used in Mongo);
+
+3. Modify the input.php file (*especially the $tool_id*) based on the requirments of the tools (more inputs, more arguments);
+
+4. Modify the /volumes/openVRE/tools/$your_tool/assets/home/ the index.html file, for ur tool to be consinstent with the mongoDB. 
+
+
+
+
 ## Conclusion
 
 By following these steps, you’ve successfully Dockerized your tool, integrated it with the OpenVRE environment, and configured the necessary Dockerfiles to run the tool in both local and OpenVRE environments.
