@@ -63,6 +63,15 @@ $GLOBALS['urlLogout']              = $GLOBALS['authServer'].'/realms/'.$GLOBALS[
 $GLOBALS['adminToken']             = $GLOBALS['authServer']."/realms/master/protocol/openid-connect/token"; // get Admin token
 $GLOBALS['adminRealm']             = $GLOBALS['authServer']."/admin/realms/".$GLOBALS['authRealm']; // admin keycloak users
 
+// Vault integration and roles
+$GLOBALS['vaultUrl'] = 'https://vre.disc4all.eu/vault/';
+$GLOBALS['vaultToken'] = 'root';
+//$jwtToken = $_SESSION['User']['JWT'];
+$GLOBALS['vaultRolename'] = 'demo';
+$GLOBALS['secretPath'] = 'secret/mysecret/data/';
+
+
+
 /************************
 // Definitions
 ************************/
