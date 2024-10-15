@@ -181,9 +181,26 @@ With the above configuration, Vault will be able to interact with Keycloak for O
 Before interacting with the Vault Server container, for the next configuration step, is necessary to retrieve the *JWKS validating public key*, directly from the Keycloak Realm.
 Accessing the Admin Keycloak Interface through these steps :
 
-1. Access the realms specifics via *https://$FQDN_HOST/auth/realms/open-vre*;
+1. Access the Vault-Server info using this command: 
+```
+curl http://$FDQN_HOST/auth/realms/open-vre/protocol/openid-connect/certs
+```
+;
 
-2. Identify the *public_key* in the array, and save it to a public-key.pem file in the *vault/config* directory.
+2. Copy the results so to copy the *n* and the *e* values from the response array;
+
+3. Redirect in the *vault/* dir;
+
+4. Substitute the vaules you had saved in the *pem.py* script;
+
+5. Launch the *pem.py* script: 
+
+```
+python3 pem.py >> public-key.pem
+mv public-key.pem config/
+```
+
+6. Make sure that the key was saved in the *vault/config/* dir.
 
 
 ### Vault manual unseal

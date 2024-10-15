@@ -18,6 +18,7 @@ class User {
     public $DataSample;
     public $Token;
     public $TokenInfo;
+    public $Vault;
     public $AuthProvider;
     public $id;
     public $activeProject;
@@ -75,16 +76,17 @@ class User {
 	$this->DataSample = ($this->DataSample?$this->DataSample:$GLOBALS['sampleData_default']);
 
 	$this->Vault = array(
-		"vaultClient" => array(
-			"jwtToken"    => "",
-			"credentials" => array( "data" => array("SSH" => array()))
-		),
-		"vaultKey"     => null,
-		"secretPath"   => $GLOBALS['secretPath'],
-		"vaultRolename"=> $GLOBALS['vaultRolename'],
-		"vaultToken"   => $GLOBALS['vaultToken'],
-		"vaultUrl"     => $GLOBALS['vaultUrl']
-	);
+            "vaultClient" => array(
+                "jwtToken"    => isset($f['jwtToken']) ? $f['jwtToken'] : "", // Optionally pass jwtToken via $f or fetch from $_SESSION
+                "credentials" => array("data" => array("SSH" => array()))
+            ),
+            "vaultKey"     => null,
+            "secretPath"   => isset($GLOBALS['secretPath']) ? $GLOBALS['secretPath'] : '',
+            "vaultRolename"=> isset($GLOBALS['vaultRolename']) ? $GLOBALS['vaultRolename'] : '',
+            "vaultToken"   => isset($GLOBALS['vaultToken']) ? $GLOBALS['vaultToken'] : '',
+            "vaultUrl"     => isset($GLOBALS['vaultUrl']) ? $GLOBALS['vaultUrl'] : ''
+        );
+
 
         return $this;
     }

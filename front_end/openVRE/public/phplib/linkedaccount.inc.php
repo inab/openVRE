@@ -184,12 +184,12 @@ function handleMNAccount($action, $postData){
 		//echo $postData['save_credential'];
                 if (isset($postData['priv_key'], $postData['pub_key'])) {
                     // If credentials are provided, use them directly
-                        $accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
+                        $accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
                         $_SESSION['errorData']['Info'][] = "Credentials are already saved, update the credentials if needed.";
 
                 } elseif (isset($postData["save_credential"]) && $postData["save_credential"] == "true") {
 			
-			$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
+			$accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
 
                 // You can customize this part based on how you obtain Swift credentials
                         $data['data']['SSH'] = [];
@@ -206,7 +206,7 @@ function handleMNAccount($action, $postData){
 		//echo $data;
                 if (!empty($postData['priv_key']) && !empty($postData['pub_key'])) {
 
-                        $accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
+                        $accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
                         $data['data']['SSH'] = [];
 		        $data['data']['SSH']['private_key'] = $postData['priv_key'];
             		$data['data']['SSH']['public_key'] = $postData['pub_key'];
@@ -274,13 +274,13 @@ function handleObjectStorageAccount($action, $postData){
 		
 		if (isset($postData['app_id'], $postData['app_secret'])) {
 	            // If credentials are provided, use them directly
-			$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
+			$accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
             		$_SESSION['errorData']['Info'][] = "Credentials are already saved, update the credentials if needed.";
 		
 		} elseif (isset($postData['save_credential']) && $postData['save_credential'] == 'true') {
 
             	// Add logic for handling MN account and uploading credentials to Vault
-			$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
+			$accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
             	// You can customize this part based on how you obtain Swift credentials
             		$data['data']['Swift'] = [];
 	    		$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
@@ -299,9 +299,13 @@ function handleObjectStorageAccount($action, $postData){
         	// Add logic for handling MN account and uploading credentials to Vault for "update" action
 
 		if (!empty($postData['app_id']) && !empty($postData['app_secret'])) {
-
-			$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
-        		$data['data']['Swift'] = [];
+			
+			var_dump($_SESSION['User']);
+			
+			$accessToken = $_SESSION['User']['Token']['access_token'];
+			#$accessToken = json_decode($Token, true);
+			
+			$data['data']['Swift'] = [];
         		$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
 			$data['data']['Swift']['app_secret'] = $postData['app_secret']; // Modify this
 			$data['data']['Swift']['projectName'] = $postData['projectName'];     // Modify this
@@ -309,7 +313,7 @@ function handleObjectStorageAccount($action, $postData){
                         $data['data']['Swift']['domainName'] = $postData['domainName'];
 			$data['data']['Swift']['projectDomainId'] = $postData['projectDomainId'];
 			$data['data']['Swift']['_id'] = $postData['_id'];
-			$_SESSION['errorData']['Info'][] = "Credentials updated!";
+			#$_SESSION['errorData']['Info'][] = "Credentials updated!";
 		} else {
 			// Handle the case where app_id or app_secret is empty
     			$_SESSION['errorData']['Error'][] = "Please provide both app_id and app_secret.";
@@ -326,7 +330,10 @@ function handleObjectStorageAccount($action, $postData){
     	}
 		
 	//var_dump($data);
-	//var_dump($accessToken);
+	#echo 'Okay';
+	#var_dump($accessToken);
+	#echo 'Vabbuo';
+	#var_dump($_SESSION['User']);
 	$vaultClient = new VaultClient(
                 	$_SESSION['User']['Vault']['vaultUrl'],
                 	$_SESSION['User']['Vault']['vaultToken'],
@@ -334,7 +341,9 @@ function handleObjectStorageAccount($action, $postData){
                 	$_SESSION['User']['Vault']['vaultRolename'],
                 	$postData['username']
 	);
-	var_dump($data);
+	#echo 'Vault';
+	#var_dump($vaultClient);
+	#var_dump($data);
 	$key = $vaultClient->uploadKeystoVault($data);
 	var_dump($key);
 	// Update user data with vault key

@@ -400,7 +400,7 @@ class VaultClient {
 
 
     public function uploadKeystoVault($data){
-	    var_dump($data);
+	    #var_dump($data);
 	    if (isset($data['data']['SSH'])){
 		    $publicKey = $data['data']['SSH']['public_key'];
 		    $privateKey = $data['data']['SSH']['private_key'];
@@ -496,7 +496,8 @@ class VaultClient {
 
 				// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
 				// uploadFileToVault($url, $secretPath, $username, $token, $data)
-
+				
+				echo 'Ora mettiamo nel Vault';
                                 $rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $fileName, $vaultToken, $data);
                                 var_dump($rz);
                                 echo json_encode($rz, JSON_PRETTY_PRINT);

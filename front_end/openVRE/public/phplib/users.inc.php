@@ -501,8 +501,8 @@ function loadUserWithToken($userinfo, $token,$jwt){
     $user['TokenInfo'] = $userinfo;
 
     #TODO: delete after testing ( MPF, LC)
-    $user['hpc_priv_key']['mn']  = "tiriri";
-    $user['hpc_pub_key']['mn'] = "turutu";
+    #$user['hpc_priv_key']['mn']  = "tiriri";
+    #$user['hpc_pub_key']['mn'] = "turutu";
     
     updateUser($user);
     setUser($user,$auxlastlog);
