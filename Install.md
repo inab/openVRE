@@ -108,15 +108,87 @@ If the secret is unknown or uncertain, access the Admin console to access and re
 6. On your own VRE configuration file, *openVRE/config/oauth2.conf*, update the file with the credentials aforementioned. 
 
 The access to the Realm is complete, you should be able to access and register new user on your local Keycloak server. 
+Before closing the session, check the Vault configuration, since it needs a KeyCloak Client to be set up.
 
 
 
 ## Vault Configuration
 
 
+### Keycloak Configuration for HashiCorp Vault Integration
+
+This guide explains how to configure a Keycloak client to enable interaction between HashiCorp Vault and Keycloak for authentication and authorization using JWT tokens.
+
+#### Step 1: Configure Your Keycloak Client
+
+1. **Log in to the Keycloak admin console** and navigate to your realm.
+
+2. **Locate your existing client**, in this case is the *open-vre* one. 
+
+3. In the client settings, configure the following:
+
+   - **Root URL**:
+     ```
+     https://$FQDN_HOST/
+     ```
+     Replace `$FQDN_HOST` with your fully qualified domain name (e.g., `vre.disc4all.eu`).
+
+   - **Valid Redirect URIs**:
+     ```
+     https://$FQDN_HOST/*
+     ```
+     Additionally:
+     ```
+     http://$FQDN_HOST/ui/vault/auth/oidc/oidc/callback
+     ```
+
+     > Ensure `$FQDN_HOST` is replaced with the correct host name for your deployment (e.g., `vre.disc4all.eu`).
+
+4. **Save the changes** to the client configuration to ensure the URIs are authorized by Keycloak.
+
+#### Step 2: Create a New Client for Vault
+
+To enable Vault to authenticate and authorize users via Keycloak, create a new dedicated Keycloak client for Vault.
+
+1. **Go to the Clients section** in the Keycloak admin console.
+
+2. **Click on the "Create" button** (on the right side of the clients table) to create a new client.
+
+3. **Set the Client ID** to: *open-vre-vault*, with the same root Url as *open-vre* client. 
+
+4. **Configure the following for the new client**:
+
+- **Root URL**:
+  ```
+  https://$FQDN_HOST/
+  ```
+
+- **Valid Redirect URIs**:
+  ```
+  https://$FQDN_HOST/*
+  ```
+  Additionally:
+  ```
+  http://$FQDN_HOST/ui/vault/auth/oidc/oidc/callback
+  ```
+
+> Replace `$FQDN_HOST` with your domain (e.g., `vre.disc4all.eu`).
+
+5. **Save the new client configuration**.
+
+
+With the above configuration, Vault will be able to interact with Keycloak for OpenID Connect (OIDC) authentication, once it is configured manually on the Vault.
+Before interacting with the Vault Server container, for the next configuration step, is necessary to retrieve the *JWKS validating public key*, directly from the Keycloak Realm.
+Accessing the Admin Keycloak Interface through these steps :
+
+1. Access the realms specifics via *https://$FQDN_HOST/auth/realms/open-vre*;
+
+2. Identify the *public_key* in the array, and save it to a public-key.pem file in the *vault/config* directory.
+
+
 ### Vault manual unseal
 
-First time Vault up, execute the init and save elsewhere the 'Unseal keys' just generated:
+First time Vault up, access the containers in *interactive* mode, to execute the init and save elsewhere the 'Unseal keys' just generated:
 
 ```
 docker exec -ti vault-server vault operator init 
@@ -147,11 +219,10 @@ vault policy write jwt-role-demo jwt-role-demo.hcl
 vault policy write oidc-role-myrole oidc-role-myrole-policy.hcl
 
 #Role
-vault write auth/oidc/role/myrole allowed_redirect_uris="[http://$HOSTNAME/ui/vault/auth/oidc/oidc/callback, http://localhost:8250/oidc/callback]" user_claim="sub"
+vault write auth/oidc/role/myrole allowed_redirect_uris="[http://$HOSTNAME/ui/vault/auth/oidc/oidc/callback, http://localhost:8250/oidc/callback]" user_claim="sub" #Hostname can coincide with $FQDN_HOST
 vault write auth/jwt/role/demo bound_audiences="account" allowed_redirect_uris="http://localhost:8250/oidc/callback" user_claim="sub" policies=jwt-role-demo role_type=jwt ttl=1h
 vault write auth/jwt/role/demo role_type="jwt"
 #vault write auth/jwt/role/demo bound_audiences="account"
-
 
 #Configuration
 #The public key can be retrieved directly from the Keycloak Realm (from the JWKS endpoint)

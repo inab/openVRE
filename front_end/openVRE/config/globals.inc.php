@@ -6,7 +6,7 @@
 
 
 // Main config
-$GLOBALS['SERVER']    = "http://".($_ENV['HOSTNAME'] ?? 'localhost').":8088"; // domain
+$GLOBALS['SERVER']    = "https://".($_ENV['HOSTNAME'] ?? 'vre.disc4all.eu'); // domain
 $GLOBALS['BASEURL']   = "/"; // prefix url path. Set "/" for no prefix
 $GLOBALS['AppPrefix'] = "PROJECT"; // project url acronym
 $GLOBALS['NAME']      = "PROJECT_NAME"; // project name
@@ -54,7 +54,7 @@ $GLOBALS['auth_required']          = False; // Forces login
 $GLOBALS['auth_credentials']       = __DIR__."/oauth2.conf"; // oauth2 client credentials
 $GLOBALS['authAdmin_credentials']  = __DIR__."/oauth2_admin.conf"; // oauth2 client credentials with admin privileges
 #$GLOBALS['authServer']             = 'http://84.88.186.195:8089/auth'; // external oauth2 server
-$GLOBALS['authServer']             = 'http://'.($_ENV['HOSTNAME']?? 'localhost').':8080/auth'; // internal oauth2 server
+$GLOBALS['authServer']             = 'https://'.($_ENV['HOSTNAME']?? 'vre.disc4all.eu').'/auth'; // internal oauth2 server
 $GLOBALS['authRealm']              = 'open-vre'; // keycloak realm
 $GLOBALS['urlAuthorize' ]          = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/auth';     //get autorization_code
 $GLOBALS['urlAccessToken']         = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/token';    //get token

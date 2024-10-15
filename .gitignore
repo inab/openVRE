@@ -7,3 +7,4 @@ front_end/openVRE/config/globals.inc.php.disc4all
 front_end/openVRE/config/mail.conf
 front_end/openVRE/config/oauth_admin.conf
 front_end/openVRE/config/mongo.conf
+vault/config/public-key.pem

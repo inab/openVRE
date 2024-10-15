@@ -1,5 +1,4 @@
-[
-  {
+{
     "_id": "marenostrum",
     "name": "MareNostrum HPC Infrastructure",
     "type": 2,
@@ -23,8 +22,8 @@
       },
       "outbound_connectivity": true
     }
-  },
-  {
+  }
+{
     "_id": "local",
     "name": "Local Docker Infrastructure",
     "type": 2,
@@ -35,4 +34,3 @@
       "executable": "/home/user/vre_template_tool/VRE_RUNNER"
     }
   }
-]

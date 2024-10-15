@@ -14,6 +14,7 @@ if (!isset($_GET['code'])) {
     // Fetch the authorization URL from the provider; returns urlAuthorize and generates state
     $authorizationUrl = $provider->getAuthorizationUrl();
 
+
     header('Location: ' . $authorizationUrl);
     exit;
 	
