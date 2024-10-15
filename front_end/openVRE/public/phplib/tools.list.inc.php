@@ -631,10 +631,10 @@ function getSites_Info($toolId) {
 	foreach ($executionSitesData as $siteData) {
 		if ($siteData['status'] === 1) {
 			$siteId = $siteData['site_id'];
-			$_SESSION['errorData']['Error'][] = "site ID: {$siteId}";
+			#$_SESSION['errorData']['Error'][] = "site ID: {$siteId}";
 			$filterfields=array();
 			$siteDocument = $GLOBALS['sitesCol']->findOne(array('_id' => $siteId), $filterfields);
-			$_SESSION['errorData']['Warning'][] = "Site Document: {$siteDocument}";
+			#$_SESSION['errorData']['Warning'][] = "Site Document: {$siteDocument}";
 			echo ("Site Document: {$siteDocument}");
 
 			if ($siteDocument) {
@@ -652,7 +652,7 @@ function getSites_Info($toolId) {
 		}
 	
 	}
-	$_SESSION['errorData']['Error'][] = "Site: " . print_r($executionSites, true);
+	#$_SESSION['errorData']['Error'][] = "Site: " . print_r($executionSites, true);
 	return $executionSites;
 
 
