@@ -13,8 +13,7 @@
 For the installation, the following commands are to be run cli:
 
 ```
-git clone https://gitlab.bsc.es/disc4all/openvre/dockerized_vre_vault_multi_tools.git
-
+git clone -b hpc_access https://github.com/inab/dockerized_vre.git
 ```
 
 First thing, is to change the .env file, since at the moment the sample is to be filled out, respectively changing the hostname depending on the installation environment.
