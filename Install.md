@@ -29,8 +29,8 @@ Edit the new `.env` file and adapt it to your own environment. At the moment, th
     - For local development: `$FQDN_HOST=localhost`
     - If you have a domain: `$FQDN_HOST=myapp.example.com`
     - If using a WSL or internal IP for access: `$FQDN_HOST=192.168.x.x`
-- USER_UID: Identifier of the user running the containers (`id`)
-- USER_GID: Identifier of the group running the containers (non-privileged users should belong to `docker`group)
+- UID: Identifier of the host user running the containers (`id`)
+- GID: Identifier of the host group running the containers (non-privileged users should belong to `docker`group)
 - DOCKER_GROUP: Identifier of the `Docker` group. 
 
 The *frontend* component uses its own set of configuration files. Make sure to create and update the default values according to your needs:
