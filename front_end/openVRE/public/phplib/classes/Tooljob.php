@@ -72,13 +72,15 @@ class Tooljob {
 	//$this->launcher         = $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
 	//$_SESSION['errorData']['Error'][]="Tool '$this->toolId' '$this->cloudName' '$this->launcher' ";
 
-	if (!empty($this->arguments_exec['site_list']) && count($this->arguments_exec['site_list']) >= 2) {
+	if (!empty($this->arguments_exec['site_list']) && count($this->arguments_exec['site_list']) >= 1) {
 		$site_list = $this->arguments_exec['site_list'];
-		
 		// The first element in site_list is the cloudName
 		$this->cloudName = $site_list[0];
+		
 		// The second element in site_list is the launcher
 		$this->launcher = str_replace($this->cloudName . "_", "", $site_list[1]);
+		var_dump($this->launcher);
+		var_dump($this->cloudName);
     
 	} else {
 		
@@ -87,12 +89,11 @@ class Tooljob {
 		$this->launcher = $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
 	
 	}	
-
         switch ($this->launcher){
             case "SGE":
-            case "docker_SGE":
+            #case "docker_SGE":
                 #$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
-            case "docker_SGE":
+	    case "docker_SGE":
                 #$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
 		$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
                 $this->root_dir_mug     = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
@@ -863,6 +864,7 @@ class Tooljob {
 
     //$launcher = $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
 	    $launcher=$this->launcher;
+
 	    $cloudName=$this->cloudName;
     //external tool
     if ($tool['external'] !== false){
@@ -922,7 +924,7 @@ class Tooljob {
 			    break;
 	
 		    default:
-			$_SESSION['errorData']['Error'][]="Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
+			$_SESSION['errorData']['Error'][]="Tool '$this->toolId' not properly registered.  Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
 			return 0;
 		}
 
@@ -947,7 +949,7 @@ class Tooljob {
 			//TODO
 	
 		    default:
-			$_SESSION['errorData']['Error'][]="Internal Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
+			$_SESSION['errorData']['Error'][]="Internal Tool '$this->toolId' not properly registered. nonononono Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
 			return 0;
 		}
 		return 1;
@@ -1495,7 +1497,9 @@ EOF;
      * @param string $inputs_request _REQUEST data from inputs.php form
     */
     public function submit($tool){
-	    switch ($tool['infrastructure']['clouds'][$this->cloudName]['launcher']){
+	    #switch ($tool['infrastructure']['clouds'][$this->cloudName]['launcher']){
+
+	    switch($this->launcher){
 	    case "SGE":
 	    case "docker_SGE":
     		    return $this->enqueue($tool);

@@ -80,8 +80,9 @@ class ProcessDockerSGE{
 	public function setFullCommand(){
 		$workDir = $this->workDir;
 		$command = QSUB." -N '".$this->jobname."' -wd $workDir -q ".$this->queue;
-		if ($this->cpu > 1)
-			$command .= " -l cpu=". $this->cpu;
+		#To check resources
+		#if ($this->cpu > 1)
+		#	$command .= " -l cpu=". $this->cpu;
 		$command .= " ".$this->command;
 		$this->fullcommand = $command;
 	}
