@@ -6,7 +6,7 @@
 
 
 // Main config
-$GLOBALS['SERVER']    = "http://".$_ENV['HOSTNAME'].":8089"; // domain
+$GLOBALS['SERVER']    = "http://localhost:8089"; // domain
 $GLOBALS['BASEURL']   = "/"; // prefix url path. Set "/" for no prefix
 $GLOBALS['AppPrefix'] = "PROJECT"; // project url acronym
 $GLOBALS['NAME']      = "PROJECT_NAME"; // project name
@@ -52,8 +52,7 @@ $GLOBALS['tool_io_dev_sample']  = $GLOBALS['root']."/install/data/tool_schemas/t
 $GLOBALS['auth_required']          = False; // Forces login
 $GLOBALS['auth_credentials']       = __DIR__."/oauth2.conf"; // oauth2 client credentials
 $GLOBALS['authAdmin_credentials']  = __DIR__."/oauth2_admin.conf"; // oauth2 client credentials with admin privileges
-#$GLOBALS['authServer']             = 'http://84.88.186.195:8089/auth'; // external oauth2 server
-$GLOBALS['authServer']             = 'http://'.$_ENV['HOSTNAME'].':8080/auth'; // internal oauth2 server
+$GLOBALS['authServer']             = 'http://172.21.0.12:8080/auth'; // internal oauth2 server
 $GLOBALS['authRealm']              = 'open-vre'; // keycloak realm
 $GLOBALS['urlAuthorize' ]          = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/auth';     //get autorization_code
 $GLOBALS['urlAccessToken']         = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/token';    //get token
@@ -63,7 +62,7 @@ $GLOBALS['adminToken']             = $GLOBALS['authServer']."/realms/master/prot
 $GLOBALS['adminRealm']             = $GLOBALS['authServer']."/admin/realms/".$GLOBALS['authRealm']; // admin keycloak users
 
 // Vault integration and roles
-$GLOBALS['vaultUrl'] = 'https://'.$_ENV['HOSTNAME'].'/vault/';
+$GLOBALS['vaultUrl'] = 'https://localhost/vault/';
 $GLOBALS['vaultToken'] = 'root';
 //$jwtToken = $_SESSION['User']['JWT'];
 $GLOBALS['vaultRolename'] = 'demo';
@@ -190,5 +189,3 @@ $GLOBALS['clouds'] = Array(
 	    )
 );
 
-# Get host path (Provisional)
-$GLOBALS['host_path'] = trim(file_get_contents($GLOBALS['shared'].".pwd"));
