@@ -1195,7 +1195,7 @@ EOF;
 	}
         else{
                 $cmd =  "docker run --privileged  -v /var/run/docker.sock:/var/run/docker.sock -d " .
-                        " ". $cmd_envs .
+			" ". $cmd_envs .
                         " -v " . $this->pub_dir_virtual . ":" . $GLOBALS['shared']."public_tmp/ " .
                         " -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":/gpfs/vre.disc4all.eu/vre/userdata_tmp/{$_SESSION['User']['id']}" .
                         " ".$tool['infrastructure']['container_image'] . " $cmd_vre" ;
