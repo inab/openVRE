@@ -61,12 +61,12 @@ docker images
 
 ## Start the services
 
-Validate the `docker-compose.yml` file before creating the containers 
-Create and start the containers 
+Validate the `docker-compose.yml` file before creating and starting them with the following command: 
 ```
 docker compose up -d
 ```
-Check containers
+and check the status of the resulting containers
+```
 docker ps -a
 ```
 
@@ -272,6 +272,13 @@ vault secrets enable -path=secret/mysecret kv-v2
 
 ## Troubleshotting
 
+##### Frontend is not being build because of a Mongo dependency
+When building  `front_end` container: MongoDB occasionally moves or updates their GPG key. You can to replace the original `RUN` line in `frontend/Dockerfile` by an equivalent line using another URL instead:
+```
+RUN curl -fsSL https://pgp.mongodb.com/server-4.2.asc | apt-key add -
+```
+
+##### Authentication failes because token expiration
 When connecting to an external Keycloak service, make sure that both systems have the right date and time. 
 
 ```
