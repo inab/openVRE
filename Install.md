@@ -24,11 +24,14 @@ cd dockerized_vre
 cp .env.sample .env
 ```
 
-Edit the new `.env` file and adapt it to your own environment. At the moment, the default values would work in most of the systems, just make sure to setup the hostname depending on the installation environment. Example:
-
-- For local development: ```$FQDN_HOST=localhost```
-- If you have a domain: ```$FQDN_HOST=myapp.example.com```
-- If using a WSL or internal IP for access: ```$FQDN_HOST=192.168.x.x (IP address)```
+Edit the new `.env` file and adapt it to your own environment. At the moment, the default values would work in most of the systems, just make sure to setup the hostname depending on the installation environment. Examples:
+- FQDN_HOST:
+    - For local development: `$FQDN_HOST=localhost`
+    - If you have a domain: `$FQDN_HOST=myapp.example.com`
+    - If using a WSL or internal IP for access: `$FQDN_HOST=192.168.x.x`
+- USER_UID: Identifier of the user running the containers (`id`)
+- USER_GID: Identifier of the group running the containers (non-privileged users should belong to `docker`group)
+- DOCKER_GROUP: Identifier of the `Docker` group. 
 
 The *frontend* component uses its own set of configuration files. Make sure to create and update the default values according to your needs:
 
@@ -46,18 +49,24 @@ cp oauth2_admin.conf.sample oauth2_admin.conf
 
 ## Build containers
 
-Return to the `dockerized_vre` folder and check the `docker-compose.yml` before building the containers:
+Return to the `dockerized_vre` folder and check the `docker-compose.yml` file before building the containers. Two docker images are going to be build according to it:  `sgecore` and `front_end`. The task could take a while...
 ```
-cd ../../../
-
+cd dockerized_vre/
 docker compose build
+```
+Check the new images:
+```
+docker images
 ```
 
 ## Start the services
+
+Validate the `docker-compose.yml` file before creating the containers 
+Create and start the containers 
 ```
 docker compose up -d
-
-# Check containers
+```
+Check containers
 docker ps -a
 ```
 
