@@ -1,6 +1,6 @@
 ## Installation guide
 
-### Pre requisites
+### Pre-requisites
 
  Docker Engine - Community
  Version:           26.1.0
@@ -8,7 +8,7 @@
  Docker Compose version v2.26.1
 
 
-### Installation
+### Clone repository
 
 For the installation, the following commands are to be run cli:
 
@@ -16,27 +16,31 @@ For the installation, the following commands are to be run cli:
 git clone -b hpc_access https://github.com/inab/dockerized_vre.git
 ```
 
-First thing, is to change the .env file, since at the moment the sample is to be filled out, respectively changing the hostname depending on the installation environment.
-Example:
+### Setup configuration files
 
-For local development: ```$FQDN_HOST=localhost```
-If you have a domain: ```$FQDN_HOST=myapp.example.com```
-If using a WSL or internal IP for access: ```$FQDN_HOST=192.168.x.x (IP address)```
+First thing, is to create and configure your own  `.env` file:
+```
+cd dockerized_vre
+cp .env.sample .env
+```
 
+Edit the new `.env` file and adapt it to your own environment. At the moment, the default values would work in most of the systems, just make sure to setup the hostname depending on the installation environment. Example:
 
-Make sure also to filled up/check every configuration file that is in the front_end/openVRE/config directory.
+- For local development: ```$FQDN_HOST=localhost```
+- If you have a domain: ```$FQDN_HOST=myapp.example.com```
+- If using a WSL or internal IP for access: ```$FQDN_HOST=192.168.x.x (IP address)```
 
+The *frontend* component uses its own set of configuration files. Make sure to create and update the default values according to your needs:
 
 ```
-globals.inc.php.sample --> globals.inc.php
+cd front_end/openVRE/config
 
-mail.conf.sample --> mail.conf
+cp globals.inc.php.sample globals.inc.php
+cp mail.conf.sample mail.conf
+cp mongo.conf.sample mongo.conf 
+cp oauth2.conf.sample oauth2.conf
+cp oauth2_admin.conf.sample oauth2_admin.conf
 
-mongo.conf.sample --> mongo.conf 
-
-oauth2.conf.sample --> oauth2.conf
-
-oauth2_admin.conf.sample --> oauth2_admin.conf
 ```
 
 
