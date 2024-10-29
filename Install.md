@@ -46,14 +46,20 @@ cp oauth2_admin.conf.sample oauth2_admin.conf
 
 ## Build containers
 
-
+Return to the `dockerized_vre` folder and check the `docker-compose.yml` before building the containers:
 ```
 cd ../../../
 
 docker compose build
-docker compose up -d
 ```
 
+## Start the services
+```
+docker compose up -d
+
+# Check containers
+docker ps -a
+```
 
 ## Apply manual configuration:
 
