@@ -234,7 +234,7 @@
     "memory": 12,
     "cpus": 1,
     "executable": "/home/vre_template_tool/VRE_RUNNER",
-    "container_image": "mapoferri/techton-seq-tool",
+    "container_image": "mapoferri/techton-seq-tool:latest",
     "clouds": {
       "local": {
         "launcher": "docker_SGE",
@@ -277,10 +277,10 @@
   "input_files_combinations": [],
   "arguments": [
     {
-      "name": "min_length",
+      "name": "min_lenght",
       "description": "Minimum length for sequences to be extracted.",
       "help": "Specify a number between 30 and 100.",
-      "type": "integer",
+      "type": "string",
       "min": 30,
       "max": 100
     }

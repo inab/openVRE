@@ -97,7 +97,7 @@ class Tooljob {
                 #$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
 		$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
                 $this->root_dir_mug     = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
-        	$this->root_dir_intern  = rtrim($this->root_dir_virtual,"/")."_tmp";
+        	#$this->root_dir_intern  = rtrim($this->root_dir_virtual,"/")."_tmp";
                 $this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
     		$this->pub_dir_intern   = rtrim($this->pub_dir_virtual,"/"). "_tmp";
 		    
@@ -1193,11 +1193,22 @@ EOF;
 		echo $cmd_vre;
 
 	}
-        else{
-                $cmd =  "docker run --privileged  -v /var/run/docker.sock:/var/run/docker.sock -d " .
+	else{
+		$cmd_vre = $tool['infrastructure']['executable'] .
+                                #" --data "     .$this->input_dir_virtual .
+                                #" --data "      ."/gpfs/vre.disc4all.eu/vre/userdata_tmp/{$_SESSION['User']['id']}"."/".$this->project."/uploads/" .
+                                #" --port "      .$tool['infrastructure']['container_port'] .
+                                #" --host "      ."172.21.0.3";
+                                " --config "         .$this->config_file_virtual .
+                                " --in_metadata "    .$this->metadata_file_virtual .
+                                " --out_metadata "   .$this->stageout_file_virtual ;
+                                " --log_file "       .$this->log_file_virtual ;
+
+
+                $cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d " .
 			" ". $cmd_envs .
                         " -v " . $this->pub_dir_virtual . ":" . $GLOBALS['shared']."public_tmp/ " .
-                        " -v " . $GLOBALS['dataDir']."/".$_SESSION['User']['id'].":/gpfs/vre.disc4all.eu/vre/userdata_tmp/{$_SESSION['User']['id']}" .
+                        " -v " . $this->root_dir_virtual. ":" .$GLOBALS['shared']."userdata_tmp/{$_SESSION['User']['id']}" .
                         " ".$tool['infrastructure']['container_image'] . " $cmd_vre" ;
         }
         return $cmd;
