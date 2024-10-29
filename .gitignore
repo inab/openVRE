@@ -1,10 +1,5 @@
-docker-compose-kk.yml
-docker-compose.yml.JM
 .env
 demo.hcl
 front_end/openVRE/config/globals.inc.php
-front_end/openVRE/config/globals.inc.php.disc4all
-front_end/openVRE/config/mail.conf
-front_end/openVRE/config/oauth_admin.conf
-front_end/openVRE/config/mongo.conf
+front_end/openVRE/config/*.conf
 vault/config/public-key.pem
