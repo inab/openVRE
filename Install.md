@@ -46,9 +46,25 @@ cp oauth2_admin.conf.sample oauth2_admin.conf
 
 ```
 
+## Import container images
 
-## Build containers
+#### Option 1: pull images
+You can user already build images from [GitHub Container Registry](https://github.com/orgs/inab/packages?tab=packages&q=dockerized_vre). Select the version you are insterested and pull them using the following commands:
 
+```
+# Front-end image
+docker pull ghcr.io/inab/dockerized_vre/frontend:1.1
+
+# SGE core image
+docker pull ghcr.io/inab/dockerized_vre/sgecore:1.0
+```
+
+Check the new images:
+```
+docker images
+```
+
+#### Option 2: build images
 Return to the `dockerized_vre` folder and check the `docker-compose.yml` file before building the containers. Two docker images are going to be build according to it:  `sgecore` and `front_end`. The task could take a while...
 ```
 cd dockerized_vre/
