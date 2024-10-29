@@ -156,7 +156,7 @@ This guide explains how to configure a Keycloak client to enable interaction bet
 
 #### Step 1: Configure Your Keycloak Client
 
-1. **Log in to the Keycloak admin console** and navigate to your realm.
+1. **Log in to the Keycloak admin console** through *http://localhost:9099/auth* and navigate to your realm.
 
 2. **Locate your existing client**, in this case is the *open-vre* one. 
 
@@ -238,6 +238,58 @@ mv public-key.pem config/
 6. Make sure that the key was saved in the *vault/config/* dir.
 
 
+### Vault GUI unseal
+
+First time Vault is up, it is possible to access and explore the Vault via the UI.
+
+You can connect to it via *http://hostname:8200/ui/vault/*.
+There you would be able to set the number of keys you want to produce and to use to unseal the Vault.
+
+**Save the keys!**
+
+Once you proceed on the unseal process, and the Status of the Vault turns to green, from the Admin page it would be possible to establish some configuration. 
+For example, setting up some policies. 
+
+Click on the *Policies* section.
+Here with the button *Create ACL Policy*, we will add two policies: **OIDC** and **JWT**, for the Vault to communicate with the Keycloak local server. 
+
+The policies are gonna be named *jwt-role-demo*: 
+```
+path "auth/jwt/role/demo" {
+  capabilities = ["create", "read", "update", "delete"]
+}
+
+path "secret/*" {
+  capabilities = ["create", "read", "update", "delete"]
+}
+
+path "auth/token/lookup-self" {
+  capabilities = ["read"]
+}
+path "auth/token/renew-self" {
+  capabilities = ["update"]
+}
+path "auth/token/revoke-self" {
+  capabilities = ["update"]
+}
+```
+
+and *oidc-role-myrole*:
+
+```
+path "auth/oidc/role/myrole" {
+  capabilities = ["create", "read", "update", "delete"]
+}
+
+path "secret/mysecret" {
+  capabilities = ["create", "read", "update", "delete"]
+}
+```
+
+Rest of the configuration could be done manually. 
+
+
+
 ### Vault manual unseal
 
 First time Vault up, access the containers in *interactive* mode, to execute the init and save elsewhere the 'Unseal keys' just generated:
@@ -265,7 +317,7 @@ vault login # with ${Intial Root Token}
 vault auth enable jwt
 vault auth enable oidc
 
-#Policy 
+#Policy, if not done by UI
 cd vault/config
 vault policy write jwt-role-demo jwt-role-demo.hcl
 vault policy write oidc-role-myrole oidc-role-myrole-policy.hcl
