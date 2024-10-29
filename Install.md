@@ -48,8 +48,9 @@ cp oauth2_admin.conf.sample oauth2_admin.conf
 
 
 ```
-docker compose build
+cd ../../../
 
+docker compose build
 docker compose up -d
 ```
 
