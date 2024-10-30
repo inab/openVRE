@@ -22,7 +22,8 @@ Several research projects have adopted openVRE as the framework for rapidly prot
 | OpenEBench  | ELIXIR Benchmarking Platform | https://openebench.bsc.es/vre | [Code](https://github.com/inab/openEBench_vre) |
 | euCanSHare  | Computational environment for cardiovascular research | https://vre.eucanshare.bsc.es/ | [Code](https://github.com/euCanSHare/vre/) |
 | IPC         | Individualized Paediatric Cancer Analysis Platform | https://vre.ipc-project.bsc.es/ |  [Code](https://gitlab.bsc.es/inb/ipc/openvre) |
-| euCanImage  | Cancer imaging analysis platform enhanced by Artificial Intelligence| https://vre.eucanimage.eu/ |[Code](https://gitlab.bsc.es/inb/eucanimage/vre) | 
+| euCanImage  | Cancer imaging analysis platform enhanced by Artificial Intelligence| https://vre.eucanimage.eu/ |[Code](https://gitlab.bsc.es/inb/eucanimage/vre) |
+| Disc4All    | Computational simulations in translational medicine, applied to intervertebral disc degeneration.|https://vre.disc4all.eu/ |[Code](https://gitlab.bsc.es/inb/eucanimage/vre) |
 
 
 
