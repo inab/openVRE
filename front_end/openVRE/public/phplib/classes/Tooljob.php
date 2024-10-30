@@ -15,6 +15,8 @@ class Tooljob {
     public $cloudName;         // Cloud name where tool should be executed. Available clouds set in GLOBALS['clouds']
     public $root_dir_host;
     public $pub_dir_host;
+    public $root_dir_volumes;              
+    public $pub_dir_volumes; 
     public $description;
     public $working_dir;
     public $output_dir;
@@ -94,12 +96,14 @@ class Tooljob {
             #case "docker_SGE":
                 #$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
 	    case "docker_SGE":
-                #$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
-		$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
-                $this->root_dir_mug     = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
+                $this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_host']. "/".$_SESSION['User']['id'];
+		#$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
+                $this->root_dir_mug     = $GLOBALS['clouds'][$this->cloudName]['dataDir_host'];
         	#$this->root_dir_intern  = rtrim($this->root_dir_virtual,"/")."_tmp";
-                $this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
-    		$this->pub_dir_intern   = rtrim($this->pub_dir_virtual,"/"). "_tmp";
+                $this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_host'];
+		$this->pub_dir_volumes  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
+		$this->root_dir_volumes  = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
+		$this->pub_dir_intern   = rtrim($this->pub_dir_virtual,"/"). "_tmp";
 		    
 		break;
 	    case "PMES":
@@ -1207,8 +1211,8 @@ EOF;
 
                 $cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d " .
 			" ". $cmd_envs .
-                        " -v " . $this->pub_dir_virtual . ":" . $GLOBALS['shared']."public_tmp/ " .
-                        " -v " . $this->root_dir_virtual. ":" .$GLOBALS['shared']."userdata_tmp/{$_SESSION['User']['id']}" .
+                        " -v " . $this->pub_dir_volumes . ":" . $GLOBALS['shared']."public_tmp/ " .
+                        " -v " . $this->root_dir_volumes . ":" .$GLOBALS['shared']."userdata_tmp/{$_SESSION['User']['id']}" .
                         " ".$tool['infrastructure']['container_image'] . " $cmd_vre" ;
         }
         return $cmd;
