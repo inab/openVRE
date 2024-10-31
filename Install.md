@@ -362,11 +362,10 @@ sudo timedatectl set-timezone Europe/Madrid
 
     - Another solution you can use (can change based on the operating system), is commenting or deleting the line **:rshared** in the *docker-compose.yml* **sgecore** Volumes section. 
 
-4. After setting up the *docker-compose up* command, and trying to connect to the front_end via web, the error **Data is not accessible** comes out:
-    - In your system, you will have to change permissions of the *dockerized_vre/volumes/* dir permission:
+4. **Data is not accessible**
+    - After setting up the *docker-compose up* command, and trying to connect to the *front_end* via web, the error **Data is not accessible** comes out. In your system, you will have to change permissions of the *dockerized_vre/volumes/* dir permission:
     ```
     chmod 777 volumes/shared/data
     ```
-5. After setting up the *docker-compose up* command, from the *front_end* container errors (coming from running *docker logs front_end*) this is the error appearing **$FQDN_HOST port 272017 already in use**:
-
-    - Change the value for port configuration for $MONGO_PORT in the *.env* file, as well as in *dockerized_vre/front_end/openVRE/config/mongo.conf* corresponding port value.
+5. **$FQDN_HOST port 272017 already in use**
+    - After setting up the *docker-compose up* command, from the *front_end* container errors (coming from running *docker logs front_end*) and this is the error appearing, it would be needed to change the value for port configuration for *$MONGO_PORT* in the *.env* file, as well as in *dockerized_vre/front_end/openVRE/config/mongo.conf* corresponding port value.
