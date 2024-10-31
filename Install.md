@@ -340,6 +340,8 @@ vault secrets enable -path=secret/mysecret kv-v2
 
 ## Troubleshotting
 
+### ⚠️ <p style="color: red;"><strong>Common errors</strong></p>
+
 ##### Frontend is not being build because of a Mongo dependency
 When building  `front_end` container: MongoDB occasionally moves or updates their GPG key. You can to replace the original `RUN` line in `frontend/Dockerfile` by an equivalent line using another URL instead:
 ```
