@@ -338,20 +338,35 @@ vault secrets enable -path=secret/mysecret kv-v2
 
 ```
 
-## Troubleshotting
+## Troubleshotting ⚠️
 
-### ⚠️ <p style="color: red;"><strong>Common errors</strong></p>
+1. **Frontend is not being build because of a Mongo dependency**
+    -  When building  `front_end` container: MongoDB occasionally moves or updates their GPG key. You can to replace the original `RUN` line in `frontend/Dockerfile` by an equivalent line using another URL instead:
 
-##### Frontend is not being build because of a Mongo dependency
-When building  `front_end` container: MongoDB occasionally moves or updates their GPG key. You can to replace the original `RUN` line in `frontend/Dockerfile` by an equivalent line using another URL instead:
 ```
 RUN curl -fsSL https://pgp.mongodb.com/server-4.2.asc | apt-key add -
 ```
 
-##### Authentication failes because token expiration
-When connecting to an external Keycloak service, make sure that both systems have the right date and time. 
-
+2. **Authentication failes because token expiration**
+    - When connecting to an external Keycloak service, make sure that both systems have the right date and time. 
 ```
 #Updating timezone
 sudo timedatectl set-timezone Europe/Madrid
 ```
+
+3. **Error response from daemon: path /home/jmfernandez/TEMP/dockerized_vre/volumes/shared_data is mounted on / but it is not a shared mount**
+    - You can solve this problem running this command:
+    ```
+    sudo mount --make-shared /
+    ```
+
+    - Another solution you can use (can change based on the operating system), is commenting or deleting the line **:rshared** in the *docker-compose.yml* **sgecore** Volumes section. 
+
+4. After setting up the *docker-compose up* command, and trying to connect to the front_end via web, the error **Data is not accessible** comes out:
+    - In your system, you will have to change permissions of the *dockerized_vre/volumes/* dir permission:
+    ```
+    chmod 777 volumes/shared/data
+    ```
+5. After setting up the *docker-compose up* command, from the *front_end* container errors (coming from running *docker logs front_end*) this is the error appearing **$FQDN_HOST port 272017 already in use**:
+
+    - Change the value for port configuration for $MONGO_PORT in the *.env* file, as well as in *dockerized_vre/front_end/openVRE/config/mongo.conf* corresponding port value.
