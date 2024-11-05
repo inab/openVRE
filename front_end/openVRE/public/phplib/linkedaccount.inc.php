@@ -18,22 +18,22 @@ function addUserLinkedAccount($accountType, $action, $postData) {
         	case "euBI":
            		handleEuBIAccount($action, $postData);
             		break;
-		case "MN":
+		case "SSH":
 			if (isset($_POST["submitOption"])) {
                                 $submitOption = $_POST["submitOption"];
                                 if ($submitOption === "clearAccount") {
                                         // Handle clearing account
-					handleMNAccount("delete",$postData);
+					handleSSHAccount("delete",$postData);
 					break;
 				} elseif ($submitOption === "updateAccount") {
-					handleMNAccount("update", $postData);
+					handleSSHAccount("update", $postData);
 					break;
 				} else {
-		            		handleMNAccount($action, $postData);
+		            		handleSSHAccount($action, $postData);
 					break;
 				}
 			} else {
-				handleMNAccount($action, $postData);
+				handleSSHAccount($action, $postData);
 				break;
 			}
 		case "objectstorage":
@@ -174,7 +174,7 @@ function handleMNAccount($action, $postData) {
  */
 
 
-function handleMNAccount($action, $postData){
+function handleSSHAccount($action, $postData){
 	
 	$data = [];
 	if ($action === "new") {

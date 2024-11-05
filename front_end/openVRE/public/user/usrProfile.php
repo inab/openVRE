@@ -391,20 +391,20 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
 						<!-- HPC ACCOUNT -->
 						<hr>
 						<img src="https://cdn-icons-png.flaticon.com/512/5225/5225347.png"/ style="float: right; height: 50px; margin: 0 50px;">
-						<h4>MareNostrum resources access (via SSH)</h4>
+						<h4>HPC resources access (via SSH)</h4>
 
 						<div style="padding-left: 15px;border-left: 2px solid lightgray;">
 					<?php
 					if (! isset($_SESSION['User']['linked_accounts']['mn'])){?>
 						<p>
 						  <span style="color: #666;font-weight: bold;">
-						  Do you have an account to the MN HPC facility?
+						  Do you have an account to an HPC facility?
 						  </span>
 						  Link it and you'll be able to launch jobs there. Data will be transferred via SSH, from/to your HPC home directory. 
 						</p>
 						<div class="row" style="margin-left:30px;">
 				    		    <div class="col-md-6">
-						     <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=MN&action=new" class="btn green"><i class="fa fa-plus"></i> &nbsp; Link your account</a>
+						     <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=SSH&action=new" class="btn green"><i class="fa fa-plus"></i> &nbsp; Link your account</a>
 						    </div>
 				    		    <div class="col-md-6">
 							<a href="https://bsc.es/es/marenostrum/marenostrum" target="_blank" ><i class="fa fa-sign-in"></i> Learn more on Marenostrum 4</a>

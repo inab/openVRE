@@ -328,7 +328,7 @@ require "../htmlib/header.inc.php";?>
 
 		    <!--  marenostrum FORM     -->
 		 
-		    <?php } elseif ($_REQUEST['account'] == "MN"){
+		    <?php } elseif ($_REQUEST['account'] == "SSH"){
 
 		    	// set form default values
 
@@ -350,17 +350,17 @@ require "../htmlib/header.inc.php";?>
 
                             <div class="portlet-title">
                                 <div class="caption">
-                                    <div style="float:left;margin-right:20px;"> <i class="fa fa-link"></i> HPC: Mare Nostrum</div>
+                                    <div style="float:left;margin-right:20px;"> <i class="fa fa-link"></i> SSH Credentials for Computational Environments</div>
                                 </div>
 			   </div>
                             <div class="portlet-body form">
                                 <div class="form-body">
-				<p>Enable the use public key authentication for your account in 'High Performance Computer: Mare Nostrum'</p>
+				<p>Enable the use public key authentication for your account in 'High Performance Computer' or other Computational Environment</p>
                                     <div class="row">
                                         <div class="col-md-6"></div>
                                         <div class="col-md-6">
 					    <div class="form-group">
-						<a target="_blank" href="">Mare Nostrum Guide</a></br>
+						<a target="_blank" href="">High Performance Computer Guide</a></br>
 						<a href="javascript:openTermsOfUse();"><?php echo $GLOBALS['NAME']?> VRE terms of use</a>
                                             </div>
                                         </div>
@@ -368,7 +368,7 @@ require "../htmlib/header.inc.php";?>
 
 
 				    <h4> Stored Credentials</h4>
-				   These are the credentials currently used by VRE for tools configured to be remotely executed at external HPC resources (MareNostrum). 
+				   These are the credentials currently used by VRE for tools configured to be remotely executed at external HPC resources (MareNostrum as latest). 
                                     <div class="form-body">
                                     <div class="row">
                                         <div class="col-md-12">
@@ -399,14 +399,14 @@ require "../htmlib/header.inc.php";?>
 				    <div class="col-md-12 text-right">
 					<input type="hidden" name="save_credential" id="save_credential" value="false">
     					<button type="submit" onclick="document.getElementById('save_credential').value=true" class="btn blue"><i class="fa fa-check"></i> Accept</button>
-    					<button type="submit" name="submitOption" value="clearAccount" href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=MN&action=delete" class="btn" style="background-color: white"><i class="fa fa-plus"></i> &nbsp; Clear account</button>
-    					<button type="submit" name="submitOption" value="updateAccount" href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=MN&action=update"  class="btn" style="background-color: #d4d4d4"><i class="fa fa-plus"></i> &nbsp; Update account</button>
+    					<button type="submit" name="submitOption" value="clearAccount" href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=SSH&action=delete" class="btn" style="background-color: white"><i class="fa fa-plus"></i> &nbsp; Clear account</button>
+    					<button type="submit" name="submitOption" value="updateAccount" href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=SSH&action=update"  class="btn" style="background-color: #d4d4d4"><i class="fa fa-plus"></i> &nbsp; Update account</button>
 				   </div>
 				</div>
 
 
 				   <h4> Generate SSH Key Pair</h4>
-				   If you have a user account for 'High Performance Computer: Mare Nostrum', create an new SSH Key Pair to enable VRE access to it
+				   If you have a user account for 'High Performance Computer', create an new SSH Key Pair to enable VRE access to it
                                     <div class="form-body">
                                     <div class="row">
                                         <div class="col-md-12">
