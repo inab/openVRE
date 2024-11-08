@@ -338,6 +338,78 @@ vault secrets enable -path=secret/mysecret kv-v2
 
 ```
 
+## Graphic configuration
+
+
+Whenever you want your own version of the VRE, some steps have to be followed:
+
+1. Step 1: Update `htmlib/top.inc.php`
+
+### 1.1 Modify the Logo
+
+To update the logo in your project, follow these steps:
+
+1. Open `htmlib/top.inc.php` in your code editor.
+2. Locate the `<img>` tag that displays the logo.
+3. Update the `src` attribute to point to your project’s custom logo file.
+4. Adjust the inline style or class for the logo's size and layout as needed.
+
+#### Example Update for the Logo:
+```php
+<img src="assets/your_project_path/your-logo.png" alt="Project Logo" class="logo-default" style="width:45%;"/>
+```
+Replace *assets/your_project_path/your-logo.png* with the path to your logo file. Modify *style="width:45%;"* or add appropriate CSS classes to adjust the logo's size and layout.
+
+2. Step 2: Modify Your Theme in `assets/layouts/layout/css`
+
+To further customize the look and feel of your application, you can modify the theme-related CSS files located in **/dockerized_vre/front_end/openVRE/public/assets/layouts/layout/css**.
+
+### 2.1 Update Global Styles and Theme Settings
+
+In the `css` directory, you’ll find the CSS files that define the global styles for the entire application. You can adjust the global styles such as colors, fonts, buttons, headers, and backgrounds. By modifying these settings, you can better align the look of the application with your project's branding.
+you can add new CSS rules in these CSS files, or create a new custom stylesheet for your project (*using* **custom.css** file).
+
+
+#### Example Customizations:
+
+- **Change Primary Colors:**
+
+To change the primary color for buttons or any other elements, find the relevant CSS class and modify its color settings. For example, to change the primary button color:
+
+```css
+.btn-primary {
+    background-color: #yourPrimaryColor; /* Replace with your color */
+    border-color: #yourPrimaryColor;     /* Replace with your color */
+}
+```
+
+- **Adjust Header Styles:**
+
+You can modify styles for the header or navigation bar to match your branding. For example, changing the background color of the navbar:
+
+```css
+.navbar {
+    background-color: #yourNavbarColor;  /* Replace with your navbar color */
+}
+```
+
+- **Customize Button Styles:**
+
+If you want to change the appearance of buttons throughout the site, locate the button-related CSS classes and update them:
+
+```css
+.btn {
+    background-color: #yourButtonColor;  /* Replace with your color */
+    color: #yourTextColor;               /* Replace with your text color */
+}
+```
+
+
+
+
+
+
+
 ## Troubleshotting ⚠️
 
 1. **Frontend is not being build because of a Mongo dependency**
