@@ -1059,18 +1059,6 @@ class Tooljob {
 	# https://github.com/inab/vre_template_tool_dockerized/blob/main/template/entrypoint.sh
 
 
-	# Set VRE cmd to be executed inside the container
-	$cmd_vre = $tool['infrastructure']['executable'] .
-				#" --data "	.$this->input_dir_virtual .
-				" --data "      ."/gpfs/vre.disc4all.eu/vre/userdata_tmp/{$_SESSION['User']['id']}"."/".$this->project."/uploads/" .
-				" --port "	.$tool['infrastructure']['container_port'] .
-			        " --host "	."172.21.0.3";
-                               # " --config "         .$this->config_file_virtual .
-                               # " --in_metadata "    .$this->metadata_file_virtual .
-                               # " --out_metadata "   .$this->stageout_file_virtual ;
-                               # " --log_file "       .$this->log_file_virtual ;
-
-	 #input_dir_virtual
 	# Set ENV variables to be imported to the container
         $cmd_envs="";
         foreach ($tool['infrastructure']['container_env'][0] as $env_key=>$env_value){
@@ -1084,6 +1072,26 @@ class Tooljob {
 		# Set dynamic container name
                 $random_string = bin2hex(random_bytes(8)); // Generate a random string
 		$container_name = $tool['infrastructure']['container_image'] ."_". $random_string;
+
+
+		#Constructing Docker executable
+		#  Set VRE cmd to be executed inside the container
+		#
+		#
+	
+		if (isset($tool['infrastructure']['executable_env'])) {
+			$exec_envs="";
+			foreach ($tool['infrastructure']['executable_env'] as $key => $value) {
+				 if ($key !== 'data_dir') {
+					 $exec_envs .= " --$key $value";
+				 }
+			}
+			$cmd_vre = $tool['infrastructure']['executable'] .
+				" --data " .$GLOBALS['shared']."userdata_tmp/{$_SESSION['User']['id']}"."/".$this->project."/uploads/" .
+				$exec_envs; 
+		} else { 
+			$cmd_vre = $tool['infrastructure']['executable'];
+		}
 
 		# Get the free port using the get_open_port function
 		$free_port = shell_exec('python3 /var/www/html/openVRE/public/phplib/classes/get_free_port.py');
@@ -1102,9 +1110,7 @@ class Tooljob {
 			echo "Failed to update MongoDB or no changes made.<br>";
 		}
 
-
-
-                $cmd=<<<EOF
+		$cmd=<<<EOF
 
 # Export service to an available port (-p \$FREE_PORT:{$tool['infrastructure']['container_port']}). NOT REQUIRED when using proxy-gt
 FREE_PORT=$free_port
@@ -1148,9 +1154,9 @@ CONTAINER_ID=\$(docker run \
     -v /var/run/docker.sock:/var/run/docker.sock -d \
     --net=\$NET_NAME --name $container_name \
     $cmd_envs \
-    -v /home/ubuntu/dockerized_vre/volumes{$this->pub_dir_virtual}:{$GLOBALS['shared']}public_tmp/ \
-    -v /home/ubuntu/dockerized_vre/volumes{$GLOBALS['dataDir']}/{$_SESSION['User']['id']}:/gpfs/vre.disc4all.eu/vre/userdata_tmp/{$_SESSION['User']['id']} \
-    -p \$FREE_PORT:{$tool['infrastructure']['container_port']} {$tool['infrastructure']['container_image']} $cmd_vre);
+    -v {$this->pub_dir_volumes}:{$GLOBALS['shared']}public_tmp/ \
+    -v {$this->root_dir_volumes}/{$_SESSION['User']['id']}:{$GLOBALS['shared']}userdata_tmp/{$_SESSION['User']['id']} \
+    -p \$FREE_PORT:{$tool['infrastructure']['container_port']} {$tool['infrastructure']['container_image']} $cmd_vre); 
 
 # Check if the container is running
 if ! docker top \$CONTAINER_ID &>/dev/null; then
@@ -1190,6 +1196,8 @@ echo '# End time:' \$(date) >> $this->log_file_virtual;
 
 exit 0;
 EOF;
+
+
 		echo "CMD from setBashCmd_docker_SGE";
 		echo "<br></br>";
 		echo $cmd;
@@ -1199,10 +1207,6 @@ EOF;
 	}
 	else{
 		$cmd_vre = $tool['infrastructure']['executable'] .
-                                #" --data "     .$this->input_dir_virtual .
-                                #" --data "      ."/gpfs/vre.disc4all.eu/vre/userdata_tmp/{$_SESSION['User']['id']}"."/".$this->project."/uploads/" .
-                                #" --port "      .$tool['infrastructure']['container_port'] .
-                                #" --host "      ."172.21.0.3";
                                 " --config "         .$this->config_file_virtual .
                                 " --in_metadata "    .$this->metadata_file_virtual .
                                 " --out_metadata "   .$this->stageout_file_virtual ;
