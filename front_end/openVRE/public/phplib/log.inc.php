@@ -7,8 +7,8 @@ function timestamp() {
 }
 
 function logger($entry) {
-    if (!is_file($GLOBALS['logFile']) ||  !is_writable($GLOBALS['logFile']))  {
-    	    $_SESSION['errorData']['Error'][]="Internal error. Cannot log application's action into ".$GLOBALS['logFile'].". File not found or not writtable";
+    if (!is_file($GLOBALS['logFile']) ||  !is_writable($GLOBALS['logFile'])) {
+    	    $_SESSION['errorData']['Error'][] = "Internal error. Cannot log application's action into ".$GLOBALS['logFile'].". File not found or not writtable";
     	    return false;
     }
 

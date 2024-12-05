@@ -237,38 +237,38 @@ function createGSDirBNS_TEST($dirPath,$asRoot=0) {
 		$_SESSION['errorData']['mongoDB'][]= "No directory path given";
 		return 0;
 	}
-	list($dirPath,$r) = absolutePathGSDir($dirPath,$asRoot);
 	
-    if ($r == "0"){
-		$_SESSION['errorData']['mongoDB'][]="Cannot create $dirPath . Target not under root directory ".$_SESSION['User']['id']." ?";
+    $absoluteDirPath = absolutePathGSDir($dirPath,$asRoot);
+    if (is_null($absoluteDirPath)){
+		$_SESSION['errorData']['mongoDB'][] = "Cannot create $dirPath . Target not under root directory ".$_SESSION['User']['id']." ?";
 		return 0;
     }
 
 	//check owner
 	$owner = $_SESSION['User']['id'];
 	if ($asRoot){
-		if ( preg_match('/^'.preg_quote($GLOBALS['dataDir'], '/').'(\/)*([^\/.]+)/',$dirPath,$m) ){
+		if ( preg_match('/^'.preg_quote($GLOBALS['dataDir'], '/').'(\/)*([^\/.]+)/',$absoluteDirPath,$m) ){
 			$owner = $m[2];
-		}elseif (preg_match('/^([^\/.]+)/',$dirPath,$m) ){
+		}elseif (preg_match('/^([^\/.]+)/',$absoluteDirPath,$m) ){
 			$owner = $m[1];
 		}
 	}
 
 	// already there?
-	$r = getGSFileId_fromPath_TEST($dirPath,1); # OJO TODO: asroot=1 
+	$r = getGSFileId_fromPath_TEST($absoluteDirPath,1); # OJO TODO: asroot=1 
 	if ($r != "0"){
 		return $r;
 	}
 	
 	//check parent
-	if ( $dirPath == $_SESSION['User']['id'] ){
+	if ( $absoluteDirPath == $_SESSION['User']['id'] ){
 		$parentId = 0;
-	}elseif($asRoot && (preg_match('/^'.preg_quote($GLOBALS['dataDir'], '/').'(\/)*[^\/.]+$/',$dirPath))  ){
+	}elseif($asRoot && (preg_match('/^'.preg_quote($GLOBALS['dataDir'], '/').'(\/)*[^\/.]+$/',$absoluteDirPath))  ){
 		$parentId = 0;
-	}elseif($asRoot && (preg_match('/^[^\/.]+$/',$dirPath))  ){
+	}elseif($asRoot && (preg_match('/^[^\/.]+$/',$absoluteDirPath))  ){
 		$parentId = 0;
 	}else{
-		$parentPath = dirname($dirPath);
+		$parentPath = dirname($absoluteDirPath);
 		$parentId   = getGSFileId_fromPath_TEST($parentPath,1); # OJO TODO: asroot=1
 		if ($parentId == "0"){
 			$r = createGSDirBNS($parentPath);
@@ -289,7 +289,7 @@ function createGSDirBNS_TEST($dirPath,$asRoot=0) {
 
 	$dataDMP = array(
 			'user_id'       => $owner,
-			'file_path'     => $dirPath,
+			'file_path'     => $absoluteDirPath,
             'creation_time' => new MongoDB\BSON\UTCDateTime(strtotime("now")*1000),
             'meta_data' =>  array(
       			'size'       => 0,

@@ -1,7 +1,6 @@
 <?php
 
-function getCommunities()
-{
+function getCommunities() {
 
   $res = array();
   $data_string =
@@ -48,8 +47,7 @@ function getCommunities()
 }
 
 
-function getDatasets()
-{
+function getDatasets() {
   $data_string =
     '{ "query" : 
   "{ 

@@ -7,8 +7,7 @@ redirectToolDevOutside();
 $datatypes = getDataTypesList();
 
 $keys = array();
-foreach ($datatypes as $key => $row)
-{
+foreach ($datatypes as $key => $row) {
     $keys[$key] = $row['name'];
 }
 array_multisort($keys, SORT_ASC, $datatypes);

@@ -66,36 +66,38 @@ function getTools_ListComplete($status = 1) {
 
 // list tools
 
-function getTool_fromId($toolId,$indexByName=0) {
-        $filterfields=array();
-        $tool = $GLOBALS['toolsCol']->findOne(array('_id' => $toolId), $filterfields);
-        
-        if (empty($tool))
-                return 0;
+function getTool_fromId($toolId, $indexByName = 0) {
+	$filterFields = [];
+	$tool = $GLOBALS['toolsCol']->findOne(['_id' => $toolId], $filterFields);
+	if (empty($tool)) {
+		return 0;
+	}
 
-        if ($indexByName){
-		$toolIndexed=Array();
-                foreach ($tool as $attribute => $value){
-                        if (is_array($value)){
-			    $t=0;
-                            foreach ($value as $v){
-                                if (isset($v['name'])){
-					$t=1;
-                                        $toolIndexed[$attribute][$v['name']]=$v;
+	if ($indexByName) {
+		$toolIndexed = [];
+		foreach ($tool as $attribute => $value) {
+			if (is_array($value)) {
+				$shouldReindex = 0;
+				foreach ($value as $v) {
+					if (isset($v['name'])) {
+						$shouldReindex = 1;
+						$toolIndexed[$attribute][$v['name']] = $v;
+					}
 				}
-                            }
-			    if (!$t){
-				$toolIndexed[$attribute]=$value;
-			    }   
-                        }else{
-			    $toolIndexed[$attribute]=$value;
+
+				if (!$shouldReindex) {
+					$toolIndexed[$attribute] = $value;
+				}
+
+			} else {
+				$toolIndexed[$attribute] = $value;
 			}
-                }
+		}
+
 		$tool = $toolIndexed;
-        }      
+	}
+
 	return $tool;
-
-
 }
 
 // list visualizers
@@ -228,80 +230,74 @@ function hasTool_custom_visualizer($toolId){
 
 // launch tool - used for internal tools
  
-function launchToolInternal($toolId,$inputs=array(),$args=array(),$outs=array(),$output_dir="",$logName=""){
-
-	// Get tool.
-    $tool = getTool_fromId($toolId,1);
-    if (empty($tool)){
-        $_SESSION['errorData']['Error'][]="Tool internal not specified or not registered. Please, register '$toolId'";
+function launchToolInternal($toolId, $inputs = [], $args = [], $outs = [], $output_dir = "", $logName = ""){
+    $tool = getTool_fromId($toolId, 1);
+    if (empty($tool)) {
+        $_SESSION['errorData']['Error'][] = "Tool internal not specified or not registered. Please, register '$toolId'";
         return 0;
     }
-    if ($tool['external'] !== false){
-        $_SESSION['errorData']['Error'][]="Selected tool ($toolId) expected to be Internal but specification states: {'external':false}";
+
+    if ($tool['external'] !== false) {
+        $_SESSION['errorData']['Error'][] = "Selected tool ($toolId) expected to be Internal but specification states: {'external':false}";
         return 0;
     }
 
     // Set Tool job - tmp working dir
     $execution = 0;   // internal tool do not create a execution folder
-    $project   = 0;   // internal tool do not have an associated project
+    $project = 0;   // internal tool do not have an associated project
     $descrip = "Internal job execution of ".$tool['name'];
-
-	$jobMeta  = new Tooljob($tool,$execution,$project,$descrip,$output_dir);
-
+	$jobMeta = new Tooljob($tool, $execution, $project, $descrip, $output_dir);
     
-	// Set LogName
-	if (strlen($logName)){
+	if (strlen($logName)) {
 		$jobMeta->setLog($logName);
 	}
 
 	// Stage in (fake)  TODO
 
 	// Checking files locally
-	$files   = Array(); // distinct file Objs to stage in 
-	foreach($inputs as $inName=>$inIds){
-	    foreach($inIds as $inId){
-		$file = getGSFile_fromId($inId);
-		if (!$file){
-		        $_SESSION['errorData']['Error'][]="Input file $inId does not belong to current user or has been not properly registered. Stopping internal tool execution";
-			return 0;
-		}
-		$files[$file['_id']]=$file;
+	$files = []; // distinct file Objs to stage in 
+	foreach ($inputs as $inName => $inIds) {
+	    foreach($inIds as $inId) {
+			$file = getGSFile_fromId($inId);
+			if (!$file) {
+				$_SESSION['errorData']['Error'][] = "Input file $inId does not belong to current user or has been not properly registered. Stopping internal tool execution";
+				return 0;
+			}
+			
+			$files[$file['_id']] = $file;
 	    }
 	}
-	// Set input files
-	$jobMeta->setInput_files($inputs,array(),array());
-	if ($jobMeta->input_files == 0){
-		$_SESSION['errorData']['Error'][]="Internal tool execution has no input files defined";
-	        return 0;
+
+	$jobMeta->setInput_files($inputs, [], []);
+	if ($jobMeta->input_files == 0) {
+		$_SESSION['errorData']['Error'][] = "Internal tool execution has no input files defined";
+	    return 0;
 	}
 	
-	// Set Arguments
-	$args['working_dir']=$jobMeta->working_dir;
+	$args['working_dir'] = $jobMeta->working_dir;
+    $jobMeta->setArguments($args, $tool);
 
-    $jobMeta->setArguments($args,$tool);
-
-    // Create working_dir
 	$jobId = $jobMeta->createWorking_dir();
-	if (!$jobId){
-		$_SESSION['errorData']['Error'][]="Cannot create tool temporal working dir";
-	        return 0;
+	if (!$jobId) {
+		$_SESSION['errorData']['Error'][] = "Cannot create tool temporal working dir";
+	    return 0;
 	}
 
 	// Set outfiles metadata -- for register latter
 	$jobMeta->setStageout_data($outs);
 
 	// Setting Command line. Adding parameters
-
-	$r = $jobMeta->prepareExecution($tool,$files);
-	if($r == 0)
+	$isExecutionPrepared = $jobMeta->prepareExecution($tool, $files);
+	if($isExecutionPrepared == 0) {
 		return 0;
+	}
 
-	// Launching Tooljob
 	$pid = $jobMeta->submit($tool);
-	if($pid == 0)
-	        return 0;
+	if ($pid == 0) {
+		return 0;
+	}
 
-	addUserJob($_SESSION['User']['_id'],(array)$jobMeta,$jobMeta->pid);
+	addUserJob($_SESSION['User']['_id'], (array)$jobMeta, $jobMeta->pid);
 
 	return $jobMeta->pid;
 }
@@ -631,11 +627,11 @@ function getSites_Info($toolId) {
 	foreach ($executionSitesData as $siteData) {
 		if ($siteData['status'] === 1) {
 			$siteId = $siteData['site_id'];
-			#$_SESSION['errorData']['Error'][] = "site ID: {$siteId}";
+			//$_SESSION['errorData']['Error'][] = "site ID: {$siteId}";
 			$filterfields=array();
 			$siteDocument = $GLOBALS['sitesCol']->findOne(array('_id' => $siteId), $filterfields);
-			#$_SESSION['errorData']['Warning'][] = "Site Document: {$siteDocument}";
-			echo ("Site Document: {$siteDocument}");
+			//$_SESSION['errorData']['Warning'][] = "Site Document: {$siteDocument}";
+			//echo ("Site Document: {$siteDocument}");
 
 			if ($siteDocument) {
 				$siteDetails = [
@@ -652,7 +648,7 @@ function getSites_Info($toolId) {
 		}
 	
 	}
-	#$_SESSION['errorData']['Error'][] = "Site: " . print_r($executionSites, true);
+	//$_SESSION['errorData']['Error'][] = "Site: " . print_r($executionSites, true);
 	return $executionSites;
 
 

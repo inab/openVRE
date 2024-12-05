@@ -448,7 +448,7 @@ function checkUserLoginExists($login) {
 }
 
 function loadUser($login, $pass) {
-
+    
     // check user exists
     $user = $GLOBALS['usersCol']->findOne(array('_id' => $login));
     if (!$user['_id'] || $user['Status'] == 0) {
@@ -499,10 +499,6 @@ function loadUserWithToken($userinfo, $token,$jwt){
     $user['Token']     = $token;
     $user['JWT']       = $jwt;
     $user['TokenInfo'] = $userinfo;
-
-    #TODO: delete after testing ( MPF, LC)
-    #$user['hpc_priv_key']['mn']  = "tiriri";
-    #$user['hpc_pub_key']['mn'] = "turutu";
     
     updateUser($user);
     setUser($user,$auxlastlog);
@@ -544,28 +540,22 @@ function delUserJob($login,$pid) {
                                 //multi
 }
 
-function addUserJob($login,$data,$pid) {
-
+function addUserJob($login, $data, $pid) {
     $pid = strval($pid);
     $lastjobs = getUserJobs($login);
-
     $lastjobs[$pid] = $data;
-
     $GLOBALS['usersCol']->updateOne(array('_id' => $login),
-                                 //array('$set'  => array("lastjobs.$pid" => $data )),
                                  array('$set'   => array('lastjobs' => $lastjobs)),
                                 array('upsert' => true)
                                 );
 }
 
 function getUserJobs($login) {
-    $r = $GLOBALS['usersCol']->findOne(array('_id'  => $login,
+    $userLastJobs = $GLOBALS['usersCol']->findOne(array('_id'  => $login,
                                              'lastjobs'=> array('$exists' => true)
                                             ));
-    if (isset($r['lastjobs']))
-        return $r['lastjobs'];
-    else
-        return Array();
+    
+                                            return $userLastJobs['lastjobs'] ?? [];
 }
 
 function getAllUserJobs() {
@@ -602,5 +592,3 @@ function getUserJobPid($login,$pid) {
     else
         return Array();
 }
-
-?>

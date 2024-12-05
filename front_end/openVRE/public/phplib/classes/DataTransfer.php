@@ -8,10 +8,7 @@ class DataTransfer {
     public $execution;         // User defined. Correspond to the execution folder name
     public $project;           // User defined. Correspond to the project
     public $toolId;
-    //public $pub_dir;           // Public dir mounted to VMs. Path as seen by VRE
-    //public $root_dir;          // User dataDir. Mounted to VMs in PMES. Already there in SGE. Path as seen by VRE 
     public $root_dir_virtual;  // User dataDir. Mounted to VMs in PMES. Already there im SGE. Path as seen by VMs
-    //public $root_dir_mug;      // MuG  dataDir parent of user dataDir. Mounted to VMs in PMES. Already there im SGE. Path as seen by VMs 
     public $pub_dir_virtual;   // Public dir mounted to VMs. Path as seen by VMs  
     public $pub_dir_fs;        // Public dir on MN.
     public $root_dir_fs;       // User DataDir on MN.
@@ -255,29 +252,23 @@ class DataTransfer {
  
     
     public function getUrifrom($obj){
-	    if(!isset($obj['uri'])) {
-		    throw new Exception("URI not found in object.");
+	    if(!isset($obj['file_url'])) {
+		    $_SESSION['ErrorData']['Error'][]="URI not found in object. Expected 'uri' atribute in object File";
 	    }
-	    
 	    $array = [];
 	    $array['_id'] = $obj['_id'];
 	    $array['local_path'] = $obj['path'];
-	    $parts = explode(";",$obj['uri']);
-	    //$array['uri'] = $obj['uri'];
-	    if (count($parts) < 2) {
-		    throw new Exception("Invalid string format. Cannot split into protocol, location and path.");
-	    }
-	    $array['protocol'] = $parts[0];
-	    $array['location'] = $parts[1];
-	    $array['path'] = $parts[2];
+	    $parts = parse_url($obj['file_url']);
+	    $array['protocol'] = $parts['scheme'];
+	    $array['location'] = $parts['host'];
+	    $array['path'] = $parts['path'];
 	
 	    return $array;
     }
     
 
 
-protected function set_cloudName($tool = array())
-{
+protected function set_cloudName($tool = array()) {
     $available_clouds = array_keys($GLOBALS['clouds']);
 
     // 1, set cloudName from tool specification, the first found available
@@ -391,7 +382,7 @@ public function handleFileLocation($location, $file_path, $local_file_path, $vau
 		echo "Vault Url: $vaultUrl<br>";
 
 		$credentials = $vaultClient->retrieveDatafromVault('Swift', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $_SESSION['User']['_id'] . '_credentials.txt');
-// ($system, $clientToken, $url, $secretPath, $fileName)
+// ($system, $clientToken, $url, $secretPath, $filename)
 		echo "System <br></br>";
     		echo strtoupper("swift");
 

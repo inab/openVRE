@@ -14,7 +14,6 @@ if (!isset($_GET['code'])) {
     // Fetch the authorization URL from the provider; returns urlAuthorize and generates state
     $authorizationUrl = $provider->getAuthorizationUrl();
 
-
     header('Location: ' . $authorizationUrl);
     exit;
 	
@@ -36,7 +35,7 @@ if (!isset($_GET['code'])) {
         #$accessToken  = json_decode(json_encode($accessTokenO),true);
         $jwt          = json_encode($accessTokenO);
 	$accessToken  = json_decode($jwt,true);
-	//echo $accessTokenO; 
+    //var_dump($accessToken); 
    
     } catch (\Exception $e) {  # (IdentityProviderException $e)
 		exit("Internal login service error: cannot obtain user access token from authorization code: ".$e->getMessage());
@@ -46,6 +45,7 @@ if (!isset($_GET['code'])) {
     try {
         $resourceOwnerO = $provider->getResourceOwner($accessTokenO);
 	$resourceOwner  = array_map('trim', $resourceOwnerO->toArray());
+    //var_dump($resourceOwner); 
 	//echo $resourceOwnerO;
 
     } catch (\Exception $e) {
@@ -57,7 +57,33 @@ if (!isset($_GET['code'])) {
 	$_SESSION['errorData']['Error'][]="User is authentified, but the claims on the received OIDC token are not correct. At least 'email' attribute is expected.";
     	redirect("../home/redirect.php");
     }
-    
+
+    function base64UrlDecode($input) {
+        $remainder = strlen($input) % 4;
+        if ($remainder) {
+            $padlen = 4 - $remainder;
+            $input .= str_repeat('=', $padlen);
+        }
+        return base64_decode(strtr($input, '-_', '+/'));
+    }
+
+    $_SESSION['allowedDatasetIds'] = [];
+    if (isset($resourceOwner['ga4gh_passport_v1'])) {
+        $gh4ghPassport = $resourceOwner['ga4gh_passport_v1'];
+
+        foreach ($gh4ghPassport as $gh4ghVisaJwt) {
+            $gh4ghVisaTokenParts = explode(".", $gh4ghVisaJwt);  
+            $gh4ghTokenHeader = base64UrlDecode($gh4ghVisaTokenParts[0]);
+            $gh4ghTokenPayload = base64UrlDecode($gh4ghVisaTokenParts[1]);
+            $gh4ghJwtHeader = json_decode($gh4ghTokenHeader);
+            $gh4ghJwtPayload = json_decode($gh4ghTokenPayload);
+        
+            if ($gh4ghJwtPayload->ga4gh_visa_v1->type == "ControlledAccessGrants") {
+                array_push($_SESSION['allowedDatasetIds'], $gh4ghJwtPayload->ga4gh_visa_v1->value);
+            }
+        }
+    }
+
     // Check if user exists.
     $u = checkUserLoginExists(sanitizeString($resourceOwner['email']));
 

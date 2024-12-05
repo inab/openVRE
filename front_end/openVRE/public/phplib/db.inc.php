@@ -2,15 +2,19 @@
 
 // read credentials
 $conf = array();
-if (($F = fopen($GLOBALS['db_credentials'], "r")) !== FALSE) {
-    while (($data = fgetcsv($F, 1000, ";")) !== FALSE) {
-	foreach ($data as $a){
-        	$r = explode(":",$a);
-                if (isset($r[1])){array_push($conf,$r[1]);}
+if (($credentialsFile = fopen($GLOBALS['db_credentials'], "r")) !== FALSE) {
+	while (($credentials = fgetcsv($credentialsFile, 1000, ";")) !== FALSE) {
+		foreach ($credentials as $credentialsPair) {
+				$fields = explode(":",$credentialsPair);
+				if (isset($fields[1])) {
+					array_push($conf, $fields[1]);
+				}
+		}
 	}
-    }
-    fclose($F);
+
+	fclose($credentialsFile);
 }   
+
 
 // connect DB
 try {

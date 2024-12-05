@@ -6,7 +6,7 @@ require __DIR__."/../../config/bootstrap.php";
 use OpenStack\OpenStack;
 redirectOutside();
 
-$debug=1;
+$debug=0;
 
 $SGE_updated = getUserJobs($_SESSION['User']['id']);
 
@@ -104,11 +104,7 @@ if ($debug){
 
 
 foreach ($filesId as $fnId){
-    var_dump($fnId);
     $file = getGSFile_fromId($fnId);
-    print "</br><br/> FILE INFO: ";
-    var_dump($file);
-    print "</br><br/>";
 
     if (!$file){
         $_SESSION['errorData']['Error'][]="Input file $fnId does not belong to current user or has been not properly registered. Stopping execution";
@@ -124,7 +120,6 @@ foreach ($filesId as $fnId){
 	    }
     	$files[$assocFile['_id']]=$assocFile;
     }
-	
 }
 
 if ($debug){
@@ -160,7 +155,6 @@ if ($r == "0"){
 // Checking input_files locally
 
 foreach ($files as $fnId => $file) {
-
     $fn   = getAttr_fromGSFileId($fnId,'path');
     $_SESSION['errorData']['Error'][]="Dumping $fn";
 
@@ -183,10 +177,9 @@ foreach ($files as $fnId => $file) {
 	    
 	    
 	    $jobData = new DataTransfer($tool, $filesId, $_REQUEST['execution'], $_REQUEST['project'], $_REQUEST['description']);
-	    // var_dump($jobData);
 	    $r = $jobData->getList($filesId);
 	    $s = $jobData->checkLoc($r);
-	    
+
 	    if ($debug) {
             	print "<br/>DATA TRANSFER</br>";
 	    }
@@ -215,8 +208,6 @@ foreach ($files as $fnId => $file) {
 
 }
 
-
-
 // Set InputFilesPublic from public directory
 
 $files_pub = array();
@@ -225,8 +216,8 @@ if ($_REQUEST['input_files_public_dir']){
     //Get input_file public data  medatadata
     $files_pub  = $jobMeta->createMetadata_from_Input_files_public($_REQUEST['input_files_public_dir'],$tool);
     if ($debug){
-
-    	print "<br/>TOOL METADATA for Input_files_public are:</br>"; var_dump($files_pub);
+    	print "<br/>TOOL METADATA for Input_files_public are:</br>";
+    	var_dump($files_pub);
     }
     if (!count($files_pub)){
     	redirect($_SERVER['HTTP_REFERER']);
@@ -249,13 +240,14 @@ if ($_REQUEST['input_files_public_dir']){
 //exit(0);
 //
 // Create working_dir
-$jobId = $jobMeta->createWorking_dir();
+$workDirId = $jobMeta->createWorking_dir();
 
-if ($debug)
-	echo $jobId;
+if ($debug){
+	echo $workDirId;
 	echo "<br/></br>WD CREATED SCCESSFULLY AT: $jobMeta->working_dir<br/>";
+}
 
-if (!$jobId){
+if (!$workDirId){
     	redirect($_SERVER['HTTP_REFERER']);
 }
 
@@ -307,3 +299,5 @@ if (!isset($_SESSION['errorData']['Error'])){
         $_SESSION['errorData']['Info'][]="Notice that your current workspace belongs to project '".$projWS['name']."'. Move to '".$proj['name']."' to check out your job.";
     }
 }
+
+redirect($GLOBALS['BASEURL']."workspace/");

@@ -79,6 +79,9 @@ redirectOutside();
 										<li class="uppercase">
 											<a href="#load_from_url" data-toggle="tab"> Load file from an external URL </a>
 										</li>
+										<li class="uppercase">
+											<a href="#load_from_ega" data-toggle="tab"> Load file from EGA </a>
+										</li>
 									</ul>
 									<div class="tab-content">
 										<div class="tab-pane active" id="upload_files">
@@ -168,7 +171,46 @@ redirectOutside();
 													</div>
 
 												</form>
-											</div>
+										</div>
+										<div class="tab-pane" id="load_from_ega">
+											<p> Load data from EGA </p>
+											<?php
+												try {
+													require 'fetchEgaDatasets.php';
+												} catch (Exception $e) {
+													$_SESSION['errorData']['Error']['EGA'] = 'Failed to fetch EGA datasets: ' . $e->getMessage();
+												}
+
+												try {
+													require 'egaFiles.php';
+												} catch (Exception $e) {
+													$_SESSION['errorData']['Error']['EGA'] = 'Failed to fetch EGA files: ' . $e->getMessage();
+												}
+
+												?>
+
+											<?php
+
+											if (isset($_SESSION['errorData']) && isset($_SESSION['errorData']['Error']) && isset($_SESSION['errorData']['Error']['EGA'])) {
+												if (isset($_SESSION['errorData']['Info'])) {
+													?>
+													<div class="alert alert-info">
+													<?php
+												} else {
+													?>
+														<div class="alert alert-warning">
+														<?php } ?>
+														<?php foreach ($_SESSION['errorData'] as $subTitle => $txts) {
+															print "$subTitle<br/>";
+															foreach ($txts as $txt) {
+																print "<div style=\"margin-left:20px;\">$txt</div>";
+															}
+														}
+														unset($_SESSION['errorData']);
+														?>
+													</div>
+
+												<?php } ?>
 										</div>
 									</div>
 								</div>

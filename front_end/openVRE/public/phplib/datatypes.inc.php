@@ -29,11 +29,8 @@ function getDataTypeFromFileType($filetype) {
 }
 
 function getFileTypeFromExtension($fileExtension) {
-
-	$dt = $GLOBALS['fileTypesCol']->find(array('extension' => array('$in' => array($fileExtension))),array('_id' => 1));
-
-	return iterator_to_array($dt);
-
+	$dataType = $GLOBALS['fileTypesCol']->find(['extension' => ['$in' => [$fileExtension]], ['_id' => 1]]);
+	return iterator_to_array($dataType);
 }
 
 function getDataTypeName($datatype) {

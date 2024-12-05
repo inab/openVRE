@@ -127,13 +127,13 @@ class SwiftClient {
 	}
 
 
-	public function downlFileCommand($localPath, $containerName, $fileName) {
+	public function downlFileCommand($localPath, $containerName, $filename) {
 
-		$path = $localPath . basename($fileName);
+		$path = $localPath . $filename;
 
-		//echo "<br></br> Local Path constructed $path";
+		echo "<br></br> Local Path constructed $path";
 
-		$downCommand = "openstack object save --file $path $containerName $fileName";
+		$downCommand = "openstack object save --file $path $containerName $filename";
 		return $downCommand;
 
 	}
@@ -177,7 +177,7 @@ class SwiftClient {
 
                 //echo $listCommand;
 
-                //$downCommand = $this->downlFileCommand($localPath, $containerName, $fileName);
+                //$downCommand = $this->downlFileCommand($localPath, $containerName, $filename);
 
                 $fullCommand = "$credentialsCommand && $listCommand"; // Final combined command
 
@@ -232,7 +232,7 @@ class SwiftClient {
 			error_log("File does not exist at: $fullFilePath. Command output: $output");
 			return false;
 		}
-	
+
 	}
 
 	public function runAll($localPath, $containerName){
@@ -244,7 +244,7 @@ class SwiftClient {
 
 		echo $listCommand;
 
-		//$downCommand = $this->downlFileCommand($localPath, $containerName, $fileName);
+		//$downCommand = $this->downlFileCommand($localPath, $containerName, $filename);
                 
                 $fullCommand = "$credentialsCommand && $listCommand"; // Final combined command
 
@@ -296,8 +296,6 @@ class SwiftClient {
                 return $output;
 	
 	}
-
-
  
 	
 	public function extractTokenFromJson($jsonString) {
@@ -343,7 +341,7 @@ class SwiftClient {
 	}
 	
 	
-	public function downloadFile($authToken, $containerName, $localDirectory, $fileName) {
+	public function downloadFile($authToken, $containerName, $localDirectory, $filename) {
 		$storageUrl = "https://swift.bsc.es/v1/AUTH_f785b84b836f407ca888dd00876e9150/$containerName";  // Replace 'account' and 'containerName'
     		$url = "$storageUrl?format=json";
 
@@ -371,7 +369,7 @@ class SwiftClient {
 				}
 			
 			foreach ($fileList as $fileInfo) {
-            			if (basename($fileInfo['name']) === $fileName) {
+            			if (basename($fileInfo['name']) === $filename) {
                 			echo "<br></br>";
                 			echo "new";
                 			var_dump($fileInfo);

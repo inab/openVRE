@@ -6,7 +6,7 @@ redirectOutside();
 
 
 $resp = Array (
-	'fileName'  => "",
+	'filename'  => "",
 	'fileId'    => "", 
 	'msg'       => "",
 	'state'     => 0,
@@ -39,7 +39,7 @@ $rfn    = $GLOBALS['dataDir']."/".$fnPath;
 
 
 $resp['fileId']   = $fn;
-$resp['fileName'] = basename($fnPath);
+$resp['filename'] = basename($fnPath);
 
 if (!is_file($rfn) && !$fnFile['uri']){
 	$resp['msg'] ="Error: Cannot find file '".basename($fnPath)."' . Not stored in disk anymore.</br>";

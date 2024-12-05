@@ -16,7 +16,7 @@ if($_REQUEST){
 #	print "ERROR LOGOUT"
 #	print $e;
 #	exit(1);
-	redirect($GLOBALS['URL']);
+	redirect($GLOBALS['URL'] . 'home');
     }
     #print "KC SESSION END!";
     // End php session

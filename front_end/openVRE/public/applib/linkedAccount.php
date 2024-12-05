@@ -269,7 +269,6 @@ addUserLinkedAccount($_REQUEST['account'], $_REQUEST['action'], $_POST);
 	
 
 }
- */
 
 //redirect($_SERVER['HTTP_REFERER']);
 ?>

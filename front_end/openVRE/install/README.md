@@ -18,21 +18,124 @@
 
 Clone dockerized VRE source code in your installation directory, for instance `/home/user`.
 ```
-git clone https://github.com/Socayna/dockerized_vre.git
-cd dockerized_vre
+git clone https://gitlab.bsc.es/gdi/openVRE.git
+cd openVRE
+```
+
+### Install library dependencies
+Install PHP dependencies via composer using the following command
+```
+composer update
+```
+
+Make user PHP is able to use some extension, like CURL and GD. Install the corresponding packages and enable them at the `php.ini` uncommenting the following directives:
+
+```
+extension=curl
+extension=gd2
+
+```
+After installing the packages, restart the web server:
+
+```
+sudo apt-get install libssh2-1-dev
+sudo apt-get install php-curl php-gd php-ssh2 php-mbstring
+sudo service apache2 restart
+
+```
+
+
+### Configure web access
+
+The `public/` directory is to be accessible on the web, and the server should accept '.htaccess' files. So, the Apache2 web server is to be accordingly set. 
+Multiple configurations are possible, for instance, you can set the host files mapping using the [Alias](https://httpd.apache.org/docs/2.4/mod/mod_alias.html) directive, or you can prepare a new virtual host by which the root document points to the openVRE public folder:
+
+```
+DocumentRoot /home/user/openvre/public/
+
+<Directory "/home/user/openvre/public">
+        Options Indexes FollowSymLinks
+        AllowOverride All 
+        Require all granted
+</Directory>
+```
+
+Enabling the rewriting engine is also required:
+
+```
+sudo a2enmod rewrite
+systemctl restart apache2
+```
+
+
+### Prepare directory structure
+
+Define where VRE user's data and other data is to be stored, for instance, in `/data` . Copy the directory structure there, and give apache/nginx user permissions to it:
+
+```
+cp -r install/data/* /data/
+chown -R  www-data:www-data /data/
+```
+
+For some visualizers, direct access to this data is required. So, if you latter plan to install one of these visualizers (e.g. NGL), add theses soft links:
+
+```
+cd public
+ln -s /data/userdata/ files  
+ln -s /data/public/refGenomes/ refGenomes  # obsolete
+ln -s /data/tool_schemas/son* json* # obsolete
+```
+
+### Create and populate mongo DB
+
+Create a new database to Mongo, here `dbname`, and populate it with the structural collections:
+
+```
+for f in install/database/*.json; do mongoimport --db dbname -u myAdmin -p XXXX --authenticationDatabase admin $f; done
 ```
 
 ### Configure application settings
 
-Most of the VRE settings are parameterized at  `config/globals.inc.php`. Read through it to configure arguments like the data path, the URL, the database, etc.
+Most of the VRE settings are parameterized at  `config/globals.inc.php`. Copy the template and read through it to configure arguments like the data path, the URL, the database, etc.
 
+```
+cp config/globals.inc.php.sample config/globals.inc.php
+```
 Each parameter is briefly introduced, yet most of them are self-explanatory. Some of these configurations require extra settings or auxiliary files. These are listed below:
 
+
+##### *logFile*: Configure log file
+
+Configure the appropiate path in `config/globals.inc.php`, and make sure it exists and is writabble by Apache's user:
+```
+mkdir -p /home/user/openvre/logs/
+touch /home/user/openvre/logs/application.log
+sudo chown -R www-data:www-data  /home/user/openvre/logs/application.log
+
+```
+
 ##### *mail_credentials* : Configure SMTP mail account
+Copy the conf template, set the credentials in there and parameterize `config/globals.inc.php` accordingly
+
+```
+cp config/mail.conf.sample config/mail.conf 
+```
+
+##### *db_credentials*: Configure Mongo DB access
+
+Copy the conf template, set the credentials in there and parameterize `config/globals.inc.php` accordingly. VRE will use the PHP MongoDB driver to connect to the database.
+
+```
+cp config/mongo.conf.sample config/mongo.conf 
+```
 
 ##### *auth_credentials*: Configure Oauth2 client
 If you don't want to use the default Keycloak, copy the conf template, set the credentials in there and parameterize `config/globals.inc.php` accordingly, including the openID endpoints. VRE uses a generic OpenID Connect Resource Provider that connects to a external identity manager server (https://www.keycloak.org/)
 
+```
+cp config/oauth2.conf.sample config/oauth2.conf 
+cp config/oauth2_admin.conf.sample config/oauth2_admin.conf 
+```
 ##### *Add Logos and FavIcon*
 
 Replace these files with your project logos
@@ -89,7 +192,13 @@ db.users.update(
 ```
 
 
-### Configure SGE
+### Configure SGE (possible fix on SGE error)
+
+Set the current system as a master SGE host able to submit jobs. Configure also a local queue, if you plan to install tools locally (i.e. WGET tool, BAMvalidation).
+
+```
+sudo qconf -as mail.domain.es
+```
 
 To use the dockerized SGE:
 
@@ -272,20 +381,20 @@ At the database, the 'Tools' collection should already have the 'wget' tool entr
 ```
   "infrastructure": {
     "memory": 12,
-    "container_image": "nlp_vre",
+    "container_image": "wget_vre",
     "cpus": 4,
-    "executable": "/home/wp3_nlp_pipelines/vre_template_tool/VRE_RUNNER",
+    "executable": "/ABSOLUTE/PATH/TO/VRE/DATA/apps/internalTools/wget/wget.sh",
     "clouds": {
       "my_on_premises_cloud": {
         "launcher": "docker_SGE",
-        "queue": "testq"
+        "queue": "local.q"
 }
 
 ```
 - launcher: "docker_SGE" if the tool is dockerized
 - container_image if the tool is dockerized
 - 'executable' : Point it to your 'apps' folder. Should have been installed in your VRE data directory as part of the data distributed in `install/data/apps`
-- 'mug-bsc' : Name of your cloud as set in `install/globals`
+- 'my_on_premises_cloud' : Name of your cloud as set in `install/globals`
 - 'queue': Name of the queue configured in the host where the executable is found
 
 

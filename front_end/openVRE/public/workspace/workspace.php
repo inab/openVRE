@@ -65,7 +65,7 @@ if (isset($_REQUEST['op'])){
 			if($v !== 'undefined'){
 				$filePath2 = getAttr_fromGSFileId($v,'path'); 
 				$relpath = implode("/", array_slice(explode('/',$filePath2), 0, -1));
-				$filnam = end(split('/',$filePath2));
+				$filnam = end(explode('/',$filePath2));
 				$rfn2      = $GLOBALS['dataDir']."/$relpath";
 				$fls .= "-C $rfn2 $filnam ";
 				
@@ -91,16 +91,16 @@ if (isset($_REQUEST['op'])){
 			$_SESSION['errorData']['Error'][] = "Cannot tar ".$_REQUEST['fn']." File is not a directory";
 			break;
 		}
-		#if (trim($rfn,"/") == trim($GLOBALS['dataDir'],"/")){
-		#	$_SESSION['errorData']['Error'][] = "Cannot tar ".$_REQUEST['fn']." . Make sure your user session is active.";
-		#	break;
-		#}
+		if (trim($rfn,"/") == trim($GLOBALS['dataDir'],"/")){
+			$_SESSION['errorData']['Error'][] = "Cannot tar ".$_REQUEST['fn']." . Make sure your user session is active.";
+			break;
+		}
 		$newName= $_REQUEST['fn'].".tar.gz";
 		$tmpZip = $GLOBALS['dataDir']."/".$userPath."/".$GLOBALS['tmpUser_dir']."/".basename($newName); 
 
 		$cmd = "/bin/tar -czf $tmpZip -C $rfn . 2>&1";
 	        #$cmd = "/bin/tar -czf $tmpZip -C $rfn .  2>&1"; # TODO ORIGEN of INFINITE TARS?
-		#logger("workspace/workspace.php:103 -- TAR CMD: ".$cmd);
+		logger("workspace/workspace.php:103 -- TAR CMD: ".$cmd);
 
 		exec($cmd,$output);
 		if ( !is_file($tmpZip) ){
@@ -262,7 +262,7 @@ if (isset($_REQUEST['op'])){
 
 	case 'cancelJobSure':
 		
-	$r = delJob($_REQUEST['pid']);
+		$r = delJob($_REQUEST['pid']);
         if (!$r){
             $_SESSION['errorData']['Error'][]= "Cannot cancel task. Unsuccessfully exit of 'deljob' for job $pid.";
         }
@@ -277,8 +277,7 @@ if (isset($_REQUEST['op'])){
 		if (count($jobData)){
 	  	    foreach ($jobData as $jobId =>$data){
 			    if ($data['output_dir'] == $rfn){
-				    $r = delJob($jobId);
-				    die(0); ###### OJOOO ###
+                    $r = delJob($jobId);
                     if (!$r){
                         $_SESSION['errorData']['Error'][]= "Cannot cancel '".$jobData["execution"]."' task. Unsuccessfully exit of 'deljob' for job $pid.";
                         $delJobs_ok=0;

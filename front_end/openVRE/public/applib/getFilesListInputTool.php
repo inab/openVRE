@@ -11,14 +11,9 @@ $ft_list = json_decode($_REQUEST["ft_list"]);
 $multiple = json_decode($_REQUEST["multiple"]);
 $file_selected = json_decode($_REQUEST["file_selected"]);
 
-$files_list = getGSFiles_filteredBy(array("data_type" => array('$in' => $dt_list),"format" => array('$in' => $ft_list), "visible"   => true));
-
+$files_list = getGSFiles_filteredBy(["data_type" => ['$in' => $dt_list], "format" => ['$in' => $ft_list], "visible" => true]);
 
 //$files_list = getFilesFromDT($dt_list);
-
-/*foreach ($files_list as $file) {
-	var_dump($file["_id"]);
-}*/
 
 $list = [];
 $file_arr = [];
@@ -31,33 +26,32 @@ $execution_arr = [];
 //var_dump($files_list);
 
 foreach ($files_list as $file) {
-
 	$path = getAttr_fromGSFileId($file["_id"], 'path');
-	$p = explode("/", $path);
+	$pathSplit = explode("/", $path);
 
-	$a = [];
-	$a["id"]       = $file["_id"];
-	$a["execution"]= $p[2];
-	$a["file"]     = $p[3];
-	$a["description"] = $file["description"];
+	$fileFeatures = [];
+	$fileFeatures["id"]       = $file["_id"];
+	$fileFeatures["execution"] = $pathSplit[2];
+	$fileFeatures["file"]     = end($pathSplit);
+	$fileFeatures["description"] = $file["description"];
 	$dt = $GLOBALS['dataTypesCol']->findOne(array('_id' => $file["data_type"]));
-	$a["data_type"] = $dt['name'];
+	$fileFeatures["data_type"] = $dt['name'];
     
-	$proj_code = $p[1];
+	$proj_code = $pathSplit[1];
     $project   = getProject($proj_code);
 
     if (isset($project['name'])){
-    	$a["project_name"]  = $project['name'];
+    	$fileFeatures["project_name"]  = $project['name'];
     }else{
-    	$a["project_name"]  = "Foo project";
+    	$fileFeatures["project_name"]  = "Foo project";
     }
 
-	$list[] = $a;
+	$list[] = $fileFeatures;
 	// Alejandro: Select All fn -> Create individual lists.
-	$file_arr[] = $a["file"];	
-	$project_arr[] = $a["project_name"];
-	$id_arr[] = $a["id"];
-	$execution_arr[] = $a["execution"];
+	$file_arr[] = $fileFeatures["file"];	
+	$project_arr[] = $fileFeatures["project_name"];
+	$id_arr[] = $fileFeatures["id"];
+	$execution_arr[] = $fileFeatures["execution"];
 }
 
 // Alejandro: Select All fn -> Implode for creating a unique string from an array.
@@ -121,7 +115,7 @@ $html = '<table id="workspace_st2" class="display" cellspacing="0" width="100%">
 				$file_sel = "checked";
 
 				$a = [];
-				$a["fileName"] = $file["file"];
+				$a["filename"] = $file["file"];
 				$a["fileID"] = $file["id"];
 				$a["filePath"] = $file["project_name"]. ' / '.$file["execution"];
 

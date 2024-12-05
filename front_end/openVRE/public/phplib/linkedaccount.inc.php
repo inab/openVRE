@@ -58,6 +58,26 @@ function addUserLinkedAccount($accountType, $action, $site_id, $postData) {
 		case "molgenis":
             		handleMolgenisAccount($action, $postData);
             		break;
+case "ega":
+			if (isset($_POST["submitOption"])) {
+				$submitOption = $_POST["submitOption"];
+				//var_dump($postData);
+				if ($submitOption === "clearAccount") {
+					// Handle clearing account
+					handleEGAAccount("delete", $postData);
+					break;
+				} elseif ($submitOption === "updateAccount") {
+					// Handle updating account
+					handleEGAAccount("update", $postData);
+					break;
+				} else {
+					handleEGAAccount($action, $postData);
+					break;
+				}
+			} else {
+				handleEGAAccount($action, $postData);
+				break;
+			}
         	default:
             		$_SESSION['errorData']['Error'][] = "Account of type '$accountType' is not yet supported.";
             		redirect($_SERVER['HTTP_REFERER']);
@@ -423,6 +443,82 @@ function handleObjectStorageAccount($action, $postData){
 	redirect($_SERVER['HTTP_REFERER']);		
 }
 
+function handleEGAAccount($action, $postData) {
+	$data = [];
+	if ($action === "new") {
+		$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
+		if (isset($postData['username'], $postData['password'])) {
+			$_SESSION['errorData']['Info'][] = "Credentials are already saved, update the credentials if needed.";
+
+		} elseif (isset($postData['save_credential']) && $postData['save_credential'] == 'true') {
+			$data['data']['EGA'] = [];
+			$data['data']['EGA']['username'] = $postData['username']; // Modify this
+			$data['data']['EGA']['password'] = $postData['password']; // Modify this
+
+			$data['data']['EGA']['_id'] = $postData['_id'];
+
+		}
+
+	} elseif ($action === "update") {
+		$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
+		// Add logic for handling MN account and uploading credentials to Vault for "update" action
+
+
+		if (!empty($postData['username']) && !empty($postData['password'])) {
+			$data['data']['EGA'] = [];
+			$data['data']['EGA']['username'] = $postData['username']; // Modify this
+			$data['data']['EGA']['password'] = $postData['password']; // Modify this
+
+
+			$data['data']['EGA']['_id'] = $postData['_id'];
+			$_SESSION['errorData']['Info'][] = "Credentials updated!";
+		} else {
+			// Handle the case where app_id or app_secret is empty
+			$_SESSION['errorData']['Error'][] = "Please provide both username and password.";
+			$_SESSION['formData'] = $postData;
+			redirect($_SERVER['HTTP_REFERER']);
+		}
+
+	} elseif ($action === "delete") {
+		// Reset data for "delete" action
+		$data = [];
+		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
+	} else {
+		handleInvalidAction();
+	}
+
+	//var_dump($_SESSION['User']['Vault']['vaultKey']);
+
+	//var_dump($data);
+	//var_dump($accessToken);
+
+	
+	$vaultClient = new VaultClient(
+		$_SESSION['User']['Vault']['vaultUrl'],
+		$_SESSION['User']['Vault']['vaultToken'],
+		$accessToken,
+		$_SESSION['User']['Vault']['vaultRolename'],
+		$postData['username']
+	);
+
+	//var_dump($data);
+	$key = $vaultClient->uploadKeystoVault($data);
+	//var_dump($key);
+	// Update user data with vault key
+	$_SESSION['User']['Vault']['vaultKey'] = $key;
+	updateUser($_SESSION['User']);
+	if (!$key) {
+		$_SESSION['errorData']['Info'][] = "";
+		$_SESSION['errorData']['Error'][] = "Failed to link EGA account";
+		$_SESSION['formData'] = $postData;
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+
+	$_SESSION['errorData']['Info'][] = "EGA account successfully linked.";
+	redirect($_SERVER['HTTP_REFERER']);
+}
+
+
 function handleInvalidData() {
     $_SESSION['errorData']['Error'][] = "Not receiving expected fields. Please submit the data again.";
     $_SESSION['formData'] = $postData;
@@ -464,9 +560,9 @@ function generate_RSA_keys($username, $server, $account) {
 
     	// Extract the public key
 	$publicKeyDetails = openssl_pkey_get_details($res);
-	$publicKey =  $publicKeyDetails['key'];
+	$publicKey = $publicKeyDetails['key'];
 	$publicKey = str_replace(["-----BEGIN PUBLIC KEY-----", "-----END PUBLIC KEY-----", "\n", "\r"], '', $publicKey);
-    	$publicKey = "ssh-rsa " . trim($publicKey) . " " . $username. "@". $server;
+	$publicKey = "ssh-rsa " . trim($publicKey) . " " . $username . "@" . $server;
 
     	// Save or use the keys as needed
     	// For example, you might want to save them in your database
@@ -479,6 +575,86 @@ function generate_RSA_keys($username, $server, $account) {
         	'private_key' => $formattedPrivateKey,
         	'public_key' => $publicKey,
     	);
+}
+
+
+function generateSSHKeyPair($username) {
+	// Temporary directory to store key files
+	$tempDir = sys_get_temp_dir();
+	$privateKeyPath = $tempDir . '/id_ed25519_' . $username;
+	$publicKeyPath = $tempDir . '/id_ed25519_' . $username . '.pub';
+	
+	// Generate the key pair using ssh-keygen and store it temporarily
+	shell_exec("ssh-keygen -t ed25519 -f " . escapeshellarg($privateKeyPath) . " -N ''");
+
+    $privateKey = file_get_contents($privateKeyPath);
+    $publicKey = file_get_contents($publicKeyPath);
+
+	// Clean up the temporary key files
+	unlink($privateKeyPath);
+	unlink($publicKeyPath);
+
+	return [
+		'privateKey' => base64_encode($privateKey),
+		'publicKey' => $publicKey
+	];
+}
+
+
+function registerEgaPubKey($pubKey, $username, $vaultClient, $vaultKey) {
+	$egaTempKeysEndpoint = $GLOBALS['EGA_EPHEMERAL_KEYS_ENDPOINT'] . "/$username";
+	$validFor = "1 hour";
+
+	$data = json_encode([
+		"pubkey" => $pubKey,
+		"valid_for" => $validFor
+        ]);
+
+	// Initialize cURL session
+	$ch = curl_init();
+
+	// Set cURL options
+	curl_setopt($ch, CURLOPT_URL, $egaTempKeysEndpoint);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, [
+		'Content-Type: application/json'
+	]);
+
+
+	$vaultUrl = $_SESSION['User']['Vault']['vaultUrl'];
+	$credentials = $vaultClient->retrieveDatafromVault('ega', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $GLOBALS['bscEgaCredentialsFilename']);
+	if (is_null($credentials)) {
+		$_SESSION['errorData']['Error'][] = "Internal error. Failed to retrieve BSC-EGA credentials.";
+		return false;
+	}
+	
+	$egaKeyEndpointUser = $credentials['username'];
+	$egaKeyEndpointPassword = $credentials['password'];
+	curl_setopt($ch, CURLOPT_USERPWD, "$egaKeyEndpointUser:$egaKeyEndpointPassword");
+	curl_setopt($ch, CURLOPT_POST, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+	
+	$response = curl_exec($ch);
+
+	if (curl_errno($ch)) {
+		$error_msg = curl_error($ch);
+	}
+
+	curl_close($ch);
+
+	if (isset($error_msg)) {
+		$_SESSION['errorData']['Error'][] = "Error: $error_msg";
+		return false;
+	}
+
+	$responseData = json_decode($response, true);
+
+	if (isset($responseData['result']) && $responseData['result'] === 'ok') {
+		return true;
+    } else {
+		$_SESSION['errorData']['Error'][] = "Request failed. Response: " . $response;
+		return false;
+        }
 }
 
 function generateSSHButtons() {
@@ -565,7 +741,6 @@ function getSiteCredentials($siteId) {
     }
     return null;
 }
-
 
 
 ?>

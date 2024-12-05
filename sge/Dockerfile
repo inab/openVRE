@@ -34,18 +34,23 @@ RUN apt-get update -y && apt-get install -y gridengine-exec gridengine-master gr
 
 # Create a new user 'application' and set password
 RUN useradd -m application \
-    && echo "application:application" | chpasswd \
-    && usermod -aG docker root
+    && echo "application:application" | chpasswd
+
+# Make sure host and container share the same GID for group 'docker', bc it has reading permissions to the socket file
+ARG DOCKER_GROUP
+RUN groupmod -g $DOCKER_GROUP docker
+RUN usermod -aG docker application
 
 # Add setup script and set permissions
 ADD setup_gridengine.sh /usr/local/bin/setup_gridengine.sh
+ADD setup_submitter.sh  /usr/local/bin/setup_submitter.sh
 RUN chmod +x /usr/local/bin/setup_gridengine.sh
+RUN chmod +x /usr/local/bin/setup_submitter.sh
 
-# Add entry to /etc/hosts
-#RUN echo "172.21.0.14 front_end.dockerized_vre_open-vre" >> /etc/hosts
-#RUN echo "172.21.0.14 front_end" >> /etc/hosts
+ARG SUBMITTER_HOSTNAME
+RUN echo "$SUBMITTER_HOSTNAME" > /home/application/submit_hosts.list
+RUN cat /home/application/submit_hosts.list
 
-#USER application
 
-CMD /usr/local/bin/setup_gridengine.sh && qconf -as front_end.dockerized_vre_local_net && qconf -mconf  && tail -f /var/spool/gridengine/qmaster/messages
+CMD /usr/local/bin/setup_gridengine.sh && cat /home/application/submit_hosts.list && /usr/local/bin/setup_submitter.sh /home/application/submit_hosts.list && qconf -mconf  && tail -f /var/spool/gridengine/qmaster/messages
 

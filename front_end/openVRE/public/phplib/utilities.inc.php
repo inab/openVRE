@@ -449,70 +449,83 @@ function setVREfile_fromScratch($file_data=array()){
     return array($file,$metadata);
 }
 
-function getVREfile_fromFile($mugfile){
-	$file     = Array();
-	$metadata = Array();
+function getVREfile_fromFile($mugfile) {
+	$file     = [];
+	$metadata = [];
 
 	//set file
-    if (isset($mugfile['_id'])){
-        $file['_id']= $mugfile['_id'];
+    if (isset($mugfile['_id'])) {
+        $file['_id'] = $mugfile['_id'];
     }
-	if (isset($mugfile['type'])){
-		$file['type']= $mugfile['type'];
+
+	if (isset($mugfile['type'])) {
+		$file['type'] = $mugfile['type'];
 		unset($mugfile['type']);
 	}
-	if (isset($mugfile['file_path'])){
-		$file['path']= $mugfile['file_path'];
+
+	if (isset($mugfile['file_path'])) {
+		$file['path'] = $mugfile['file_path'];
 		unset($mugfile['file_path']);
 	}
-	if (isset($mugfile['creation_time'])){
-		$file['mtime']= $mugfile['creation_time'];
+
+	if (isset($mugfile['creation_time'])) {
+		$file['mtime'] = $mugfile['creation_time'];
 		unset($mugfile['creation_time']);
 	}
-	if (isset($mugfile['user_id'])){
-		$file['owner']= $mugfile['user_id'];
+
+	if (isset($mugfile['user_id'])) {
+		$file['owner'] = $mugfile['user_id'];
 		unset($mugfile['user_id']);
-	}else{
-		$file['owner']= $_SESSION['User']['id'];
+	} else {
+		$file['owner'] = $_SESSION['User']['id'];
 	}
-	if (isset($mugfile['meta_data']['expiration'])){
-		$file['expiration']= $mugfile['meta_data']['expiration'];
+
+	if (isset($mugfile['meta_data']['expiration'])) {
+		$file['expiration'] = $mugfile['meta_data']['expiration'];
 		unset($mugfile['meta_data']['expiration']);
 	}
-	if (isset($mugfile['meta_data']['files'])){
-		$file['files']= $mugfile['meta_data']['files'];
+
+	if (isset($mugfile['meta_data']['files'])) {
+		$file['files'] = $mugfile['meta_data']['files'];
 		unset($mugfile['meta_data']['files']);
 	}
-	if (isset($mugfile['meta_data']['parentDir'])){
-		$file['parentDir']= $mugfile['meta_data']['parentDir'];
+
+	if (isset($mugfile['meta_data']['parentDir'])) {
+		$file['parentDir'] = $mugfile['meta_data']['parentDir'];
 		unset($mugfile['meta_data']['parentDir']);
 	}
 
 	//set metadata
-    if (isset($mugfile['_id'])){
-        $metadata['_id']= $mugfile['_id'];
+    if (isset($mugfile['_id'])) {
+        $metadata['_id'] = $mugfile['_id'];
 		unset($mugfile['_id']);
     }
-	if (isset($mugfile['meta_data'])){
-		foreach ($mugfile['meta_data'] as $k => $v){
-			$mugfile[$k]=$v;
+
+	if (isset($mugfile['meta_data'])) {
+		foreach ($mugfile['meta_data'] as $key => $value){
+			$mugfile[$key] = $value;
 		}
+
 		unset($mugfile['meta_data']);
 	}
-	if (isset($mugfile['file_type'])){
+
+	if (isset($mugfile['file_type'])) {
 		$metadata['format'] = $mugfile['file_type'];
 		unset($mugfile['file_type']);
 	}
-	if (isset($mugfile['assembly'])){
+
+	if (isset($mugfile['assembly'])) {
 		$metadata['refGenome'] = $mugfile['assembly'];
 		unset($mugfile['assembly']);
 	}
-	foreach ($mugfile as $k=>$v){
-		$metadata[$k]=$v;
+
+	foreach ($mugfile as $key => $value) {
+		$metadata[$key] = $value;
 	}
 
-	return Array($file,$metadata);
+	return [$file, $metadata];
 }
+
 
 //formats and completes mongo file metadata from $meta and $lastjob
 function prepMetadataResult($meta,$fnPath=0,$lastjob=Array() ){
@@ -620,56 +633,45 @@ function prepMetadataLog($metaOutfile,$logPath=0){
 }
 
 
-function validateMugFile($file,$is_output=false){
-
-    $val_score=0; # 0 = no valid file; 1 = no valid but remediable; 2 = valid file
-
-	if (!isset($file['type']))
-		$file['type']= "file";
-
-	if ($file['type']=="dir"){
-		if (!isset($file['meta_data']['files'])){
-			$file['meta_data']['files']=Array();
-			//$_SESSION['errorData']['Error'][]= "Invalid MuG Directory. Attribute 'meta_data->files' is required when 'type=dir'.";	
-			//return array($val_score, $file);
+function validateMugFile($file, $is_output = false){
+    $val_score = 0; # 0 = no valid file; 1 = no valid but remediable; 2 = valid file
+    $file['type'] ??= 'file';
+	if ($file['type'] == "dir") {
+		if (!isset($file['meta_data']['files'])) {
+			$file['meta_data']['files'] = [];
 		}
-	}elseif($file['type']=="file" ){
-		if (!isset($file['file_path']) || !isset($file['file_type']) || !isset($file['data_type']) ){
-			$_SESSION['errorData']['Error'][]= "Invalid File. Attributes 'file_path','file_type' and 'data_type' are required.";
-			return array($val_score, $file);
+	} elseif ($file['type'] == "file") {
+		if (!isset($file['file_path']) || !isset($file['file_type']) || !isset($file['data_type'])) {
+			$_SESSION['errorData']['Error'][] = "Invalid File. Attributes 'file_path','file_type' and 'data_type' are required.";
+			return [$val_score, $file];
 		}
 	}
 
-	if (!isset($file['meta_data']))
-		$file['meta_data']=Array();
-
-	if (!isset($file['compressed']))
-		$file['compressed']=false;
-	
-	if (!isset($file['sources'])){
-		if (isset($file['meta_data']['tool'])){
-	         	$_SESSION['errorData']['Warning'][]="Invalid File. Attribute 'sources' required if metadata 'tool' is set";
-			$val_score= 1;
-			return array($val_score, $file);
-		}else{
-			$file['sources']=Array(0);
+    $file['meta_data'] ??= [];
+    $file['compressed'] ??= false;
+	if (!isset($file['sources'])) {
+		if (isset($file['meta_data']['tool'])) {
+	        $_SESSION['errorData']['Warning'][] = "Invalid File. Attribute 'sources' required if metadata 'tool' is set";
+			$val_score = 1;
+			return [$val_score, $file];
+		} else {
+			$file['sources'] = [0];
 		}
 	}
-	if (!isset($file['meta_data']['visible']))
-		$file['meta_data']['visible']=true;
-	
-	if ($is_output){
-            if (!isset($file['meta_data']['tool'])){
+
+	$file['meta_data']['visible'] ??= true;	
+	if ($is_output) {
+        if (!isset($file['meta_data']['tool'])) {
 		//TODO tool value is a valid tool_id
-		$_SESSION['errorData']['Error'][]= "Invalid File. Attribute 'meta_data->tool' required if file is a tool output";
-           	$val_score= 1;
-		return array($val_score, $file);
+		$_SESSION['errorData']['Error'][] = "Invalid File. Attribute 'meta_data->tool' required if file is a tool output";
+        $val_score = 1;
+		return [$val_score, $file];
 	    }
-	    if (!isset($file['meta_data']['validated'])){
-            	$file['meta_data']['validated']=true;
-            }
+
+        $file['meta_data']['validated'] ??= true;
 	}
-	return array(2,$file);
+
+	return [2, $file];
 }
 
 
@@ -744,35 +746,38 @@ function getCurrentCloud (){
 }
 
 // HTTP post
-function post($data,$url,$headers=array(),$auth_basic=array()){
-
+function post($data, $url, $headers = [], $auth_basic = []) {
 		$c = curl_init();
 		curl_setopt($c, CURLOPT_URL, $url);
 		curl_setopt($c, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
 		curl_setopt($c, CURLOPT_POST, 1);
-		#curl_setopt($c, CURLOPT_TIMEOUT, 7);
 		curl_setopt($c, CURLOPT_CUSTOMREQUEST, "POST");
 		curl_setopt($c, CURLOPT_POSTFIELDS, $data);
         curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
-        if (count($headers))
+        if (count($headers)) {
             curl_setopt($c, CURLOPT_HTTPHEADER, $headers);
-        if (isset($auth_basic['user']) && isset($auth_basic['pass']))
-            curl_setopt($c, CURLOPT_USERPWD, $auth_basic['user'].":".$auth_basic['pass']);
+        }
             
-		$r = curl_exec ($c);
+        if (isset($auth_basic['user']) && isset($auth_basic['pass'])) {
+            curl_setopt($c, CURLOPT_USERPWD, $auth_basic['user'].":".$auth_basic['pass']);
+        }
+        
+		$requestResult = curl_exec ($c);
         $info = curl_getinfo($c);
 
-		if ($r === false){
+		if ($requestResult === false) {
 			$errno = curl_errno($c);
 			$msg = curl_strerror($errno);
             $err = "POST call failed. Curl says: [$errno] $msg";
-		    $_SESSION['errorData']['Error'][]=$err;	
-			return array(0,$info);
+		    $_SESSION['errorData']['Error'][] = $err;	
+			return [0, $info];
 		}
+
 		curl_close($c);
 
-		return array($r,$info);
+		return [$requestResult, $info];
 }
+
 
 // HTTP get
 function get($url,$headers=array(),$auth_basic=array()){
@@ -860,38 +865,34 @@ function fromTaxonID2TaxonName($taxon_id){
     }
 }
 
-function getFileExtension($fnPath){
-    $fileExtension  = ""; // extensions are registered in file_types collection (i.e. FA)
+function getFileExtension($filePath) {
+    $fileExtension = ""; // extensions are registered in file_types collection (i.e. FA)
     $fileCompression = 0; // 0 or compression type as appear in keys(GLOBALS[compression]) (i.e. 'TAR.GZ')
-    $fileBaseName  = "";  // basename after removing extension/s (.i.e 'myfolder' from 'myfolder.tar.gz')
-
-    $fileInfo = pathinfo($fnPath);
+    $fileBaseName = "";  // basename after removing extension/s (.i.e 'myfolder' from 'myfolder.tar.gz')
+    $fileInfo = pathinfo($filePath);
     $fileExtension = $fileInfo['extension'];
     $fileBaseName = $fileInfo['filename'];
 
-    if (isset($fileExtension)){
+    if (isset($fileExtension)) {
+        $fileExtension_ori = $fileExtension;
+        $fileExtension = preg_replace('/_\d$/', "", strtoupper($fileExtension_ori));
+        $compressExtensions = preg_filter('/^/',".",array_map('strtoupper', array_keys($GLOBALS['compressions'])));
 
-	$fileExtension_ori = $fileExtension;
-	$fileExtension     = preg_replace('/_\d$/',"",strtoupper($fileExtension_ori));
-
-	$compressExtensions = preg_filter('/^/',".",array_map('strtoupper', array_keys($GLOBALS['compressions'])));
-
-	if (in_array(".".$fileExtension, $compressExtensions )){
-
-    		$fileCompression    = $fileExtension;
-		// get real fileExtension (sql.gz)
-		$fnPath2            = str_replace(".".$fileExtension_ori,"",$fnPath);
-		$fileExtension2_ori = pathinfo($fnPath2, PATHINFO_EXTENSION);
-		$fileBaseName       = pathinfo($fnPath2, PATHINFO_FILENAME);
-		$fileExtension      = preg_replace('/_\d$/',"",strtoupper($fileExtension2_ori));
-		
-		// if real fileExtension is also a compression type, append it to fileCompression (tar.gz)
-		if (in_array(".".$fileExtension,$compressExtensions )){
-			$fileCompression = "$fileExtension.$fileCompression";
-		}
-	}
+        if (in_array(".{$fileExtension}", $compressExtensions)) {
+            $fileCompression = $fileExtension;
+            $filePath2 = str_replace(".{$fileExtension_ori}", "", $filePath);
+            $fileExtension2_ori = pathinfo($filePath2, PATHINFO_EXTENSION);
+            $fileBaseName = pathinfo($filePath2, PATHINFO_FILENAME);
+            $fileExtension = preg_replace('/_\d$/', "", strtoupper($fileExtension2_ori));
+            
+            // if real fileExtension is also a compression type, append it to fileCompression (tar.gz)
+            if (in_array(".{$fileExtension}", $compressExtensions)) {
+                $fileCompression = "$fileExtension.$fileCompression";
+            }
+        }
     }
-    return array($fileExtension,strtolower($fileCompression),$fileBaseName);
+
+    return [$fileExtension, strtolower($fileCompression), $fileBaseName];
 }
 
 function indexFiles_zip($zip_rfn){

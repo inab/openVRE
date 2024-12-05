@@ -244,8 +244,7 @@ class SwiftClientaaa {
 	
 
 
-	public function setContainer($token, $containerName)
-	{
+	public function setContainer($token, $containerName) {
 		echo "<br></br> TOKEN TOKEN <br></br>";
 		echo $token;
         	$this->containerName = $containerName;
@@ -323,8 +322,7 @@ class SwiftClientaaa {
 
 
 
-	public function retrieveEndpoints()
-	{
+	public function retrieveEndpoints() {
 		$endpoints = $this->keystoneSession->auth['catalog'];
 		foreach ($endpoints as $service) {
 			$serviceType = $service['type'];
@@ -388,8 +386,7 @@ class SwiftClientaaa {
     		}
 	}
 
-	public function getObjectContent($containerName, $objectName)
-	{
+	public function getObjectContent($containerName, $objectName) {
         	$container = $this->objectStore->getContainer($containerName);
         	$object = $container->getObject($objectName);
         	return $object->getContent();

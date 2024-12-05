@@ -42,7 +42,7 @@ jQuery(document).ready(function() {
 	// Optimalisation: Store the references outside the event handler:
     var $window = $(window);
 
-	setInterval(checkSessionState, 5000);
+	setInterval(checkSessionState, 30000);
 	
 	var menu_toggler = false;
 

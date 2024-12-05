@@ -11,100 +11,84 @@ class ProcessPMES{
     private $stderr;
 
 
-	public function __construct($cloudName="local",$data=array(),$service=false){
-
-		//get infrastructure info
-		if ($cloudName == "local"){
+	public function __construct($cloudName = "local", $data = [],$service = false) {
+		if ($cloudName == "local") {
 			$this->cloud = $this->getCurrentCloud();
-			if ($this->cloud == "0")
-				$cloudName="mug-bsc";
-		}elseif(!in_array($cloudName,array_keys($GLOBALS['clouds'])) ){
-			$_SESSION['errorData']['Warning'][]="No MuG cloud named '$cloudName' is registered. Instead, attempting 'mug-bsc' infrastructure";
-			$cloudName="mug-bsc";
-		}else{
+			if ($this->cloud == "0") {
+                $cloudName = "mug-bsc";
+            }
+		} elseif (!in_array($cloudName, array_keys($GLOBALS['clouds']))) {
+			$_SESSION['errorData']['Warning'][] = "No MuG cloud named '$cloudName' is registered. Instead, attempting 'mug-bsc' infrastructure";
+			$cloudName = "mug-bsc";
+		} else {
 			$this->cloud = $GLOBALS['clouds'][$cloudName];
 		}
+
         logger("PMES invocation in $cloudName");
-
-		//PMES url server
 		$this->server = "http://".$this->cloud['PMESserver_domain'].":".$this->cloud['PMESserver_port']."/".$this->cloud['PMESserver_address'];
-
-		//test server access
-        $test = get_headers($this->server.$this->APIroot,1);
-        if (!$test[0]){
-            $this->stderr = "Cannot connect to ".$this->server.$this->APIroot;
-            return 0;
+        $test = get_headers("{$this->server}{$this->APIroot}", 1);
+        if (!$test[0]) {
+            $this->stderr = "Cannot connect to {$this->server}{$this->APIroot}";
+            return;
         }
+
 		if (preg_match('/404/', $test[0])){
 			$this->stderr = $test[0];
-			return 0;
+			return;
 		}
-		$this->listening   = true;
-		$this->lastCall = $test;
-		$this->lastCall['url'] = $this->server.$this->APIroot;
 
-		//if data, post it
-		if ($service === true && $data){
-			$r = $this->post($data,$service);
-			return $r;
+		$this->listening = true;
+		$this->lastCall = $test;
+		$this->lastCall['url'] = "{$this->server}{$this->APIroot}";
+
+		if ($service === true && $data) {
+			$this->post($data, $service); // TODO: check if answer should be read
 		}
-		return 1;
     }
 
 
-    private function post($data,$service){
-
-		$url = $this->server.$this->APIroot.$service;
+    private function post($data, $service) {
+        $url = "{$this->server}{$this->APIroot}{$service}";
 		logger("PMES POST call. URL = '$url'");
-
-		$data_string = json_encode($data);
-	
-		//print "<br>POST DATA IS <br>";
-        //print "<pre>".json_encode($data, JSON_PRETTY_PRINT)."</pre>";
-		
-	
-		if (!strlen($data_string)){
-		    $_SESSION['errorData']['Error'][]="Curl: cannot POST request. Data to send is empty";
+		$data_string = json_encode($data);	
+		if (!strlen($data_string)) {
+		    $_SESSION['errorData']['Error'][] = "Curl: cannot POST request. Data to send is empty";
 		    return 0;
 		}
+
 		logger("PMES POST call. POST_DATA = '".json_encode($data). "'");
         logger("curl -H \"Content-Type: application/json\" -H \"Content-Length: ".strlen($data_string)."\" -X POST -d '".json_encode($data)."'  $url");
         
-        $headers = array(
+        $headers = [
             'Content-Type: application/json',
             'Content-Length: '. strlen($data_string)
-        );
+        ];
 
-        list($r,$info) = post($data_string,$url,$headers);
-
-		logger("RESPONSE => ".json_encode($r). "'");
-
-
-        if ($r == "0"){
-            if ($_SESSION['errorData']['Error']){
+        [$requestResult, $info] = post($data_string, $url, $headers);
+		logger("RESPONSE => ".json_encode($requestResult). "'");
+        if ($requestResult == "0") {
+            if ($_SESSION['errorData']['Error']) {
     			$err = array_pop($_SESSION['errorData']['Error']);
-                logger("ERROR:" .$err);
+                logger("ERROR: {$err}");
             }
-            if ($info['http_code'] != 200){
+
+            if ($info['http_code'] != 200) {
                 logger("ERROR: Unexpected http code. HTTP code: ".$info['http_code']);
-                logger("ERROR: calling PMES. POST_RESPONSE = '".strip_tags($r). "'");
+                logger("ERROR: calling PMES. POST_RESPONSE = '".strip_tags($requestResult). "'");
             }
+
             return 0;
         }
 
-		//print "<br>AFTER CURL EXEC RETURNS<br>";
-		//var_dump($r);
-
-		return $r;
-
+		return $requestResult;
     }
 
-	public function runPMES($data){
-		$service= "createActivity";
-		$r = $this->post($data,$service);
+	public function runPMES($data) {
+		$service = "createActivity";
+		$requestResult = $this->post($data,$service);
 
-		if ($r != "0"){
-			$jobids      = json_decode($r);
+		if ($requestResult != 0) {
+			$jobids = json_decode($requestResult);
 			$this->jobid = $jobids[0];
 		}
 

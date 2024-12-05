@@ -32,7 +32,7 @@ if ( $_SESSION['User']['Type'] == 1){
 if ($_REQUEST['export'] == 1){
     
     // set CSV name
-    $fileName='VRE_jobstats_'.date('m-d-Y').".csv";
+    $filename='VRE_jobstats_'.date('m-d-Y').".csv";
 
     // print job entry per line
     ob_start();
@@ -43,7 +43,7 @@ if ($_REQUEST['export'] == 1){
     header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
     header('Cache-Control: private', false);
     header('Content-Type: text/csv');
-    header('Content-Disposition: attachment;filename=' . $fileName); 
+    header('Content-Disposition: attachment;filename=' . $filename); 
 
     printCSVJobLogs($jobs,'php://output');
 
