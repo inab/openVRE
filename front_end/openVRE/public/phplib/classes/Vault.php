@@ -148,8 +148,8 @@ class VaultClient {
 
         // Check for the PKCS#1 header and footer
 	    
-	    $header = '-----BEGIN RSA PRIVATE KEY-----';
-    	    $footer = '-----END RSA PRIVATE KEY-----';
+	    $header = '-----BEGIN OPENSSH PRIVATE KEY-----';
+    	    $footer = '-----END OPENSSH PRIVATE KEY-----';
 
 	
 	    if (strpos($key, $header) !== 0 || strpos($key, $footer) === false) {
@@ -175,11 +175,47 @@ class VaultClient {
 	    echo ("Decode");
 	    echo ($decodedKey);   
         // Ensure the decoded key is in valid DER format
-	    
-	    if ($decodedKey === false || !$this->isValidDERFormat($decodedKey)) {
-		     echo "Key is not in valid DER format.\n";
+	    if (!$this->isValidDERFormat($decodedKey)) {
+		    echo "Key is not in valid DER format.\n";
 		    return false;
-    	    }
+	    }
+	    
+	    echo "Key is valid.\n";
+	    return true;    
+    
+    }
+
+    private function validateOpenSSHPrivateKey($key) {
+	    // Check for OpenSSH Private Key headers
+	    
+	    if (strpos($key, '-----BEGIN OPENSSH PRIVATE KEY-----') === false ||
+		    strpos($key, '-----END OPENSSH PRIVATE KEY-----') === false) {
+		    echo "Invalid OpenSSH private key headers.\n";
+		    return false;
+	    }
+
+	    $keyBody = str_replace(
+		    ["-----BEGIN OPENSSH PRIVATE KEY-----", "-----END OPENSSH PRIVATE KEY-----", "\r", "\n"],
+		    "",
+		    $key
+	    );
+
+	    // Decode the Base64 body
+	 
+	    $decodedKey = base64_decode($keyBody, true);
+	
+	    if ($decodedKey === false) {
+		    echo "Base64 decoding failed. The key body might be corrupted.\n";
+		    return false;
+	    }
+
+	    // Check if the decoded key starts with the OpenSSH magic header
+	    if (substr($decodedKey, 0, 15) !== "openssh-key-v1\0") {
+		    echo "Invalid OpenSSH key format.\n";
+		    return false;
+	
+	    }
+	    echo "The key is a valid OpenSSH private key.\n";
 	    return true;
     }
 
@@ -210,13 +246,14 @@ class VaultClient {
     private function isValidDERFormat($der) {
         // Perform basic DER format validation
         // PKCS#1 DER format starts with 0x30 (SEQUENCE)
-        if (ord($der[0]) != 0x30) {
-		echo "DER format does not start with 0x30.\n";
-		return false;
-        }
-
+        // if (ord($der[0]) != 0x30) {
+	//	echo "DER format does not start with 0x30.\n";
+	//	return false;
+        //}
+	
+	return substr($decodedKey, 0, 1) === "\x30";
         // More advanced checks can be added here
-        return true;
+        //return true;
     
     }
     
@@ -400,7 +437,7 @@ class VaultClient {
 
 
     public function uploadKeystoVault($data){
-	    #var_dump($data);
+	    var_dump($data);
 	    if (isset($data['data']['SSH'])){
 		    $publicKey = $data['data']['SSH']['public_key'];
 		    $privateKey = $data['data']['SSH']['private_key'];
@@ -409,11 +446,12 @@ class VaultClient {
 			    echo "Invalid SSH public key format.";
 		    }
 		    // Validate the private key
-		    if (!$this->isValidSSHPrivateKey($privateKey)) {
+		    //if (!$this->isValidSSHPrivateKey($privateKey)) {
+		    if (!$this->validateOpenSSHPrivateKey($privateKey)) {	
 			    echo "Invalid SSH private key format.";
 		    }
 
-		    if ($this->isValidSSHPublicKey($publicKey) && $this->isValidSSHPrivateKey($privateKey)) {
+		    if ($this->isValidSSHPublicKey($publicKey) && $this->validateOpenSSHPrivateKey($privateKey)) {
 			    echo "SSH keys are set and have the correct format.";
 
 			try {
@@ -421,6 +459,7 @@ class VaultClient {
 				$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
 				$responseArray = $token["response"];
 				$respondeData = json_decode($responseArray, true);
+				var_dump($respondeArray);
 				$vaultToken = $respondeData["auth"]["client_token"];
 //				$tokenTime = $this->getTokenExpirationTime($vaultUrl, $vaultToken);	
 					
@@ -586,7 +625,7 @@ class VaultClient {
             if (isset($data['data']['SSH'])){
                 if ($this->isValidSSHPublicKey($data['data']['SSH']['public_key'])){
                         //echo "SSH keys are set and have the correct format.";
-			if ($this->isValidSSHPrivateKey($data['data']['SSH']['private_key'])) {
+			if ($this->validateOpenSSHPrivateKey($data['data']['SSH']['private_key'])) {
                         	try {
                                 // First access the Vault with the Token provided by Keycloak
                                 	$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);

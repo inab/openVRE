@@ -192,17 +192,18 @@ function handleSSHAccount($action, $site_id, $postData){
 				// Check if the timestamp is more than 2 hours old (validity check)
 				if (($currentTime - $savedTime) > 7200) {
 					$_SESSION['errorData']['Warning'][] = "Credentials were saved more than 2 hours ago. Please update them.";
-					$accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
+					$accessToken = $_SESSION['User']['Token']['access_token'];
 				} else {
 					$_SESSION['errorData']['Info'][] = "Credentials are already saved and still valid.";
-					$accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
+					$accessToken = $_SESSION['User']['Token']['access_token'];
 					return; 
 				}
 			}
 			
                 } elseif (isset($postData["save_credential"]) && $postData["save_credential"] == "true") {
-			
-			$accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
+
+
+			$accessToken = $_SESSION['User']['Token']['access_token'];
 
                         $data['data']['SSH'] = [];
                         $data['data']['SSH']['private_key'] = $postData['private_key'];
@@ -227,11 +228,16 @@ function handleSSHAccount($action, $site_id, $postData){
 
         } elseif ($action === "update") {
                 // Add logic for handling MN account and uploading credentials to Vault for "update" action
-		//echo $data;
+		#echo "DATA??";
+		#echo var_dump($postData);
                 if (!empty($postData['private_key']) && !empty($postData['public_key'])) {
-
-                        $accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
-                        $data['data']['SSH'] = [];
+			
+			#echo var_dump($_SESSION['User']['Token']);
+			#$accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
+			$accessToken = $_SESSION['User']['Token']['access_token'];
+			#echo $accessToken;
+			
+			$data['data']['SSH'] = [];
 		        $data['data']['SSH']['private_key'] = $postData['private_key'];
             		$data['data']['SSH']['public_key'] = $postData['public_key'];
 			$data['data']['SSH']['username'] = $postData['username'];
@@ -252,7 +258,6 @@ function handleSSHAccount($action, $site_id, $postData){
         // Reset data for "delete" action
 		$data = [];
 		if (isset($postData['private_key'], $postData['public_key'])) {
-			echo 'AIUOOOOOOOO';
 			$postData['private_key'] = null;
 			$postData['public_key'] = null;
 			$postData['username'] = null;
@@ -260,11 +265,11 @@ function handleSSHAccount($action, $site_id, $postData){
 		$postData['timestamp'] = null;
 		$postData['_id'] = null;
 
-		var_dump($postData);
+		#var_dump($postData);
 		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
 
 		if (isset($site_id)) {  
-		    	echo 'aoooooooooooooooo';	
+		    	#echo 'aoooooooooooooooo';	
 			$updateResult = $GLOBALS['sitesCol']->updateOne(
 				['_id' => $site_id],  // Match document by siteId    
 				['$set' => [  // Use the $unset operator to remove fields
@@ -290,7 +295,6 @@ function handleSSHAccount($action, $site_id, $postData){
         }
 
         //var_dump($data);
-	//var_dump($accessToken);
 	$postData['username'] = $postData['username'] . '_' . $site_id;
         $vaultClient = new VaultClient(
                         $_SESSION['User']['Vault']['vaultUrl'],
@@ -300,7 +304,6 @@ function handleSSHAccount($action, $site_id, $postData){
                         $postData['username']
         );
 	//var_dump($data);
-	var_dump($postData['username']);
         $key = $vaultClient->uploadKeystoVault($data);
 	//echo ("key");
 	//var_dump($key);
@@ -335,14 +338,14 @@ function handleObjectStorageAccount($action, $postData){
 		
 		if (isset($postData['app_id'], $postData['app_secret'])) {
 	            // If credentials are provided, use them directly
-			$accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
-            		$_SESSION['errorData']['Info'][] = "Credentials are already saved, update the credentials if needed.";
+			$accessToken = $_SESSION['User']['Token']['access_token'];
+			$_SESSION['errorData']['Info'][] = "Credentials are already saved, update the credentials if needed.";
 		
 		} elseif (isset($postData['save_credential']) && $postData['save_credential'] == 'true') {
 
             	// Add logic for handling MN account and uploading credentials to Vault
-			$accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
-            	// You can customize this part based on how you obtain Swift credentials
+			$accessToken = $_SESSION['User']['Token']['access_token'];
+		// You can customize this part based on how you obtain Swift credentials
             		$data['data']['Swift'] = [];
 	    		$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
 			$data['data']['Swift']['app_secret'] = $postData['app_secret'];
