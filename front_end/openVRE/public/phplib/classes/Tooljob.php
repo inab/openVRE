@@ -1556,7 +1556,8 @@ EOF;
      * @param string $inputs_request _REQUEST data from inputs.php form
     */
     public function submit($tool)  {
-	    switch ($tool['infrastructure']['clouds'][$this->cloudName]['launcher']) {
+	    $jobManager = $this->getLauncher_Info($this->cloudName)['launcher']['job_manager'];
+	    switch ($jobManager ?? $tool['infrastructure']['clouds'][$this->cloudName]['launcher']) {
 			case "SGE":
 			case "ega_demo":
 			case "docker_SGE":
@@ -1572,11 +1573,18 @@ EOF;
 
     protected function enqueue($tool){
 	
-    	logger("");
-    	$memory = $tool['infrastructure']['memory'];
-    	$cpus   = $tool['infrastructure']['cpus'];
-    	$queue  = $tool['infrastructure']['clouds'][$this->cloudName]['queue'];
-    
+	logger("");
+	$launcherInfo = $this->getLauncher_Info($this->cloudName); 
+	var_dump($launcherInfo);
+	if (!$launcherInfo || empty($launcherInfo)) {
+        	$_SESSION['errorData']['Error'][] = "Launcher information is incomplete or missing.";	
+		return 0;
+	}
+	$memory = $launcherInfo['memory'] ?? $tool['infrastructure']['memory'];
+	$cpus = $launcherInfo['cpus'] ?? $tool['infrastructure']['cpus'];
+	$queue = $launcherInfo['queue'] ?? $tool['infrastructure']['clouds'][$this->cloudName]['queue'];
+	logger("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory");
+
     	list($pid,$errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file);
         if (!$pid){
             log_addError($pid,$errMesg,NULL, $this->toolId,$this->cloudName,"SGE",$cpus,$memory);
@@ -2011,10 +2019,10 @@ EOF;
 
         // Retrieve tool document from the tools collection
 //      $filterfields=array();
-        $siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-        //$_SESSION['errorData']['Error'][] = "Site: " . print_r($siteDocument, true);
+	    $siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
+	//$_SESSION['errorData']['Error'][] = "Site: " . print_r($siteDocument, true);
         if (!$siteDocument) {
-                return null;
+		return null;
 	}
 
 	$launcherInfo = [

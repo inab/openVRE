@@ -102,8 +102,8 @@ services:
         KEYCLOAK_USER: ${KEYCLOAK_USER}
         KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
         PROXY_ADDRESS_FORWARDING: "false"
-        KEYCLOAK_FRONTEND_URL: ${FQDN_HOST_PROTOCOL}://${FQDN_HOST}/auth
-        #KEYCLOAK_FRONTEND_URL: "http://172.21.0.12:8080/auth"    to use in local env.
+        # KEYCLOAK_FRONTEND_URL: ${FQDN_HOST_PROTOCOL}://${FQDN_HOST}/auth
+        KEYCLOAK_FRONTEND_URL: "http://172.21.0.12:8080/auth"   # to use in local env.
     volumes:
         - ./keycloak/realms:/opt/jboss/keycloak/imports
     command:
@@ -181,8 +181,8 @@ networks:
   open-vre:
     name: ${NETWORK_NAME}
     #Use on openStack cloud
-    driver_opts:
-     com.docker.network.driver.mtu: 1442
+    #driver_opts:
+      #com.docker.network.driver.mtu: 1442
     ipam:
       config:
             - subnet: 172.21.0.0/24

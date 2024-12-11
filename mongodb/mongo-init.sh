@@ -1,31 +1,47 @@
 #!/bin/bash
 set -e
 
+echo ">>>>>>> Starting MongoDB initialization script"
+
 mongo <<EOF
-echo ">>>>>>> trying to create database and users"
+db = db.getSiblingDB('openVRE');
 
-db=db.getSiblingDB('openVRE');
-use openVRE;
+// Check if the root user exists
+if (db.getUser("$MONGO_INITDB_ROOT_USERNAME") === null) {
+  db.createUser({
+    user: "$MONGO_INITDB_ROOT_USERNAME",
+    pwd: "$MONGO_INITDB_ROOT_PASSWORD",
+    roles: [{
+      role: "dbOwner",
+      db: "openVRE"
+    }]
+  });
+  print("Root user created.");
+} else {
+  print("Root user already exists.");
+}
 
-db.createUser({
-  user:  '$MONGO_INITDB_ROOT_USERNAME',
-  pwd: '$MONGO_INITDB_ROOT_PASSWORD',
-  roles: [{
-    role: 'dbOwner',
-    db: 'openVRE'
-  }]
-});
+// Check if the application user exists
+if (db.getUser("$MONGO_INITDB_USERNAME") === null) {
+  db.createUser({
+    user: "$MONGO_INITDB_USERNAME",
+    pwd: "$MONGO_INITDB_PASSWORD",
+    roles: [{
+      role: "readWrite",
+      db: "openVRE"
+    }]
+  });
+  print("Application user created.");
+} else {
+  print("Application user already exists.");
+}
 
-use openVRE;
-db.createUser({
-  user:  '$MONGO_INITDB_USERNAME',
-  pwd: '$MONGO_INITDB_PASSWORD',
-  roles: [{
-    role: 'readWrite',
-    db: 'openVRE'
-  }]
-});
-
-db.createCollection("VREcollection")
+// Check if the collection exists
+if (db.getCollectionNames().indexOf("VREcollection") === -1) {
+  db.createCollection("VREcollection");
+  print("Collection 'VREcollection' created.");
+} else {
+  print("Collection 'VREcollection' already exists.");
+}
 
 EOF

@@ -16,6 +16,3 @@ done
 
 # Copy userdata
 rsync -av --delete /install_data/data/userdata /shared_data
-
-
-
