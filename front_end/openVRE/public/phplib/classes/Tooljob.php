@@ -68,8 +68,6 @@ class Tooljob {
         $this->root_dir  = $GLOBALS['dataDir']."/".$_SESSION['User']['id'];
 	$this->pub_dir   = $GLOBALS['pubDir'];
 	$this->arguments_exec = $arguments_exec;
-	print "<br/>Constructor: Stored execution arguments:</br>";
-        var_dump($this->arguments_exec);
 
         // Set paths in the virtual machine
         //$this->set_cloudName($tool);
@@ -83,8 +81,6 @@ class Tooljob {
 		
 		// The second element in site_list is the launcher
 		$this->launcher = str_replace($this->cloudName . "_", "", $site_list[1]);
-		var_dump($this->launcher);
-		var_dump($this->cloudName);
     
 	} else {
 		
@@ -1575,7 +1571,6 @@ EOF;
 	
 	logger("");
 	$launcherInfo = $this->getLauncher_Info($this->cloudName); 
-	var_dump($launcherInfo);
 	if (!$launcherInfo || empty($launcherInfo)) {
         	$_SESSION['errorData']['Error'][] = "Launcher information is incomplete or missing.";	
 		return 0;

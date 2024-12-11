@@ -156,7 +156,6 @@ if ($r == "0"){
 
 foreach ($files as $fnId => $file) {
     $fn   = getAttr_fromGSFileId($fnId,'path');
-    $_SESSION['errorData']['Error'][]="Dumping $fn";
 
     // Check if the file is a directory
     $isDir = getAttr_fromGSFileId($fnId, 'is_dir');
