@@ -15,8 +15,6 @@ services:
     ports:
       - ${MONGO_PORT}:27017
     command: mongod --port ${MONGO_PORT}
-    links:
-      - keycloak
     env_file: .env
     volumes:
       - ./volumes/mongo_data:/data/db:rw
@@ -92,6 +90,7 @@ services:
   keycloak:
     container_name: keycloak
     image: quay.io/keycloak/keycloak:15.0.2
+    profiles: ["local_auth"]
     environment:
         DB_VENDOR: ${DB_VENDOR}
         DB_ADDR: ${DB_ADDR}
@@ -136,7 +135,6 @@ services:
       - DOCKER_GROUP:${DOCKER_GROUP}
     links:
       - my-mongodb
-      - keycloak
     depends_on:
       - sgecore
     ports:
