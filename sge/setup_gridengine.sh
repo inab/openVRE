@@ -24,7 +24,7 @@ qconf -as `hostname`
 
 # shell bash
 cat << EOS > /tmp/qconf-aq.txt
-qname                 testq
+qname                 local.q
 hostlist              $(hostname)
 seq_no                0
 load_thresholds       np_load_avg=1.75

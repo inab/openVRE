@@ -239,7 +239,7 @@
       "local": {
         "launcher": "docker_SGE",
         "default_cloud": true,
-        "queue": "testq",
+        "queue": "local.q",
         "executable": "/home/vre_template_tool/VRE_RUNNER",
         "executable_type": "docker"
       }
