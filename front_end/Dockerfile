@@ -1,5 +1,5 @@
 # Dockerfile
-FROM webdevops/php-apache:7.4
+FROM webdevops/php-apache:8.3
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
