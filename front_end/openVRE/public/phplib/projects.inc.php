@@ -770,7 +770,7 @@ function formatData($data) {
 		if (isset($data['files']) && !isset($data['size']) ){
 			$data['size'] = calcGSUsedSpaceDir($data['_id']);
 		}
-		if (isset($data['size'])){
+		if (isset($data['size']) && is_numeric($data['size'])) {
 			$sz = 'BKMGTP';
 			$factor = floor((strlen($data['size']) - 1) / 3);
 			$data['size']	= sprintf("%.2f %s", $data['size'] / pow(1024, $factor),@$sz[$factor]);
@@ -2124,6 +2124,7 @@ function check_key_repeats($key, $hash) {
 function return_bytes($val) {
 	$val = trim($val);
 	$last = strtolower($val[strlen($val)-1]);
+	$val = intval($val);
 	switch($last) {
 		case 'g':
 			$val *= 1024;
