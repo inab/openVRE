@@ -1821,11 +1821,6 @@ EOF;
                         'meta_data' => array(),
                         'sources'   => array(0)
                     );
-                if (preg_match('/refGenomes\/(.[^\/]+)\//',$input_value,$m)){
-                    $refGenome = $m[1];
-                    $file['meta_data']['assembly'] = $refGenome;
-                    $file['taxon_id'] =(isset($this->refGenome_to_taxon[$refGenome])?$this->refGenome_to_taxon[$refGenome]:0);
-                }
 
                 if (isset($tool['input_files_public_dir'][$input_name]['data_type']) && is_array($tool['input_files_public_dir'][$input_name]['data_type'])){
                     $file['data_type']= $tool['input_files_public_dir'][$input_name]['data_type'][0];
