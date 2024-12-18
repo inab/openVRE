@@ -43,6 +43,11 @@ $GLOBALS['caduca']          = "182"; // Expiration date for user files (days)
 $GLOBALS['project_default'] = "MyFirstProject"; // Default name for user project
 $GLOBALS['tmpUser_dir']     = ".tmp/"; // Default name for user temporal forder
 
+// Time zone
+$GLOBALS['timezone'] = "UTC";
+$GLOBALS['datetime'] = "Y.M.dd HH:mm"; // https://unicode-org.github.io/icu/userguide/format_parse/datetime/#date-field-symbol-table
+$GLOBALS['logs_datetime'] = "dd.M.Y HH:mm:ss";
+
 // Tool integration models and templates
 $GLOBALS['tool_json_schema']    = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/tool_schema.json"; // data model for tool registration
 $GLOBALS['tool_io_json_schema']  = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/tool_schema_io.json"; // data model for tool registration - only I/O definition

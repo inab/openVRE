@@ -168,7 +168,7 @@ if (isset($mt['expiration'])){
     if (is_object($mt['expiration'])){
     	$expiration_date = $mt['expiration']->toDateTime()->format('U');
         $days2expire = intval(( $expiration_date - time() ) / (24 * 3600));
-        $mt['expiration'] = strftime('%Y/%m/%d %H:%M', $expiration_date);
+        $mt['expiration'] = datefmt_format(getDateTimeFormat(), $expiration_date);
         if ($days2expire < 0 ){
             $expiration = "File/folder has not expiration date";
         }else{

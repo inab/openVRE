@@ -721,10 +721,9 @@ function formatData($data) {
 			if (is_object($data['mtime'])){
 				$data['mtime']=$data['mtime']->toDateTime()->format('U');
 			}
-			$timestamp = $data['mtime'];
-			$data['mtime'] = strftime('%Y/%m/%d %H:%M', $data['mtime']);
+			$data['mtime'] = datefmt_format(getDateTimeFormat(), $data['mtime']);
 
-			$hoursleft = (time() - $timestamp) / 3600;
+			$hoursleft = (time() - (int) $data['mtime']) / 3600;
 
 			//if($hoursleft < 1) $data['lastuploaded'] = '<i class="fa fa-star-o font-green" style="margin-left:3px;" title="File recently added"></i>';
 			if($hoursleft < 1) $data['lastuploaded'] = '<span class="badge badge-info" title="File recently added"> new </span>';
@@ -739,7 +738,7 @@ function formatData($data) {
 		if (isset($data['atime'])){
 			if (is_object($data['atime']))
 				$data['atime'] =$data['atime']->toDateTime()->format('U');
-			$data['atime'] = strftime('%Y/%m/%d %H:%M', $data['atime']);
+			$data['atime'] = datefmt_format(getDateTimeFormat(), $data['atime']);
 			$data['mtime'] = $data['atime'];
 		}
 		//format
@@ -757,7 +756,7 @@ function formatData($data) {
 					$data['expiration'] =$data['expiration']->toDateTime()->format('U');
 
 				$days2expire = intval(( $data['expiration']  - time() ) / (24 * 3600));
-				$data['expiration'] = strftime('%Y/%m/%d %H:%M', $data['expiration']);
+				$data['expiration'] = datefmt_format(getDateTimeFormat(), $data['expiration']);
 				if ($days2expire < 7)
 					$data['expiration'] =$data['expiration'] ."( in <span style=\"color:#b30000;font-weight:bold;\">".$days2expire."</span> days)";
 				else

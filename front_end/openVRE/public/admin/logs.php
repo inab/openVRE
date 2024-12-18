@@ -193,7 +193,7 @@ if ($_REQUEST['export'] == 1){
 				<?php } ?>
 
                 <td nowrap class="denser">
-                    <?php echo strftime('%d/%m/%Y %H:%M', $logEvent['date']->toDateTime()->format('U')); ?>
+                    <?php echo datefmt_format(getLogsDateTimeFormat(), $logEvent['date']->toDateTime()->format('U')); ?>
                 </td>
                 <td class="denser">
                     <?php if($logEvent["msg"]){echo "<b>[".$logEvent['log_type']."]</b> ".str_replace("/"," /",$logEvent["msg"]);} ?>
