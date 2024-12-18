@@ -379,7 +379,7 @@ function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type, $v
 				return 0;
 			}
 			
-			if (preg_match('/uploads/', $metadata['file_path'])) {
+			if (isset($metadata['file_path']) && preg_match('/uploads/', $metadata['file_path'])) {
 				if ($verbose) {
 					$_SESSION['errorData']['Info'][]= "Sample data imported in your <strong>uploads</strong> folder. New File: '<strong>".basename($metadata['file_path'])."</strong>'";
 				}
