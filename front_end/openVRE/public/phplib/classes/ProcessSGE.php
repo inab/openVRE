@@ -1,8 +1,8 @@
 <?php
 
-define ("QSUB", "qsub -S /bin/bash" );
-define ("QDEL", "qdel ");
-define ("QSTAT", "qstat ");
+const QSUB = "qsub -S /bin/bash";
+const QDEL = "qdel ";
+const QSTAT = "qstat ";
 
 class ProcessSGE{
 	private $pid;
