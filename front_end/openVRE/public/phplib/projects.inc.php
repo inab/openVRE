@@ -650,48 +650,20 @@ function getToolsByDT($data_type, $status = 1) {
 
 	}
 
-	
-
-	$arrTools = array();
-
+	$arrTools = [];
 	foreach($tl as $tool){
-
-		$combinations = $tool["input_files_combinations_internal"];
-
-		if(isset($combinations)) {
-
-			foreach($combinations as $comb){
-
-				if(sizeof($comb) == 1) {
-
-					foreach($comb[0] as $k => $v) {
-
-						if($k == $data_type) {
-
+		if(isset($tool["input_files_combinations_internal"])) {
+			$combinations = $tool["input_files_combinations_internal"];
+			foreach ($combinations as $comb) {
+				if (sizeof($comb) == 1) {
+					foreach ($comb[0] as $k => $v) {
+						if ($k == $data_type) {
 							$aux = array($tool["_id"], $tool["name"]);
-
 							$arrTools[] = $aux;
-
 						}
-
 					}	
-
-					/*foreach($tool["input_files"] as $ti){
-
-						if(($ti["name"] == $comb[0]) && in_array($data_type, $ti["data_type"])) {
-
-							$aux = array($tool["_id"], $tool["name"]);
-
-							$arrTools[] = $aux;
-
-						}
-
-					}*/
-		
 				}
-
 			}
-
 		} else if(sizeof($tool["input_files"]) == 1) {
 
 			if(in_array($data_type, $tool["input_files"][0]["data_type"])) {
