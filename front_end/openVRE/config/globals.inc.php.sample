@@ -13,6 +13,9 @@ $GLOBALS['NAME']      = "PROJECT_NAME"; // project name
 $GLOBALS['SITETITLE'] = "PROJECT_TITLE | Virtual Research Environment"; // site title
 $GLOBALS['TIMEOUT']   = 3600; // session and cookies timeout
 $GLOBALS['host_volumes_path'] = "/your_system_path/dockerized_vre/volumes";
+$GLOBALS['vre_network_name'] = "open-vre";  //Docker vnet name - make sure consistent with Docker Compose file
+
+
 
 // Email
 $GLOBALS['mail_credentials'] = __DIR__."/mail.conf"; // SMTP credentials
@@ -42,6 +45,11 @@ $GLOBALS['MAXSIZEUPLOAD']   = 4000; // Maximum upload file size (MB)
 $GLOBALS['caduca']          = "182"; // Expiration date for user files (days)
 $GLOBALS['project_default'] = "MyFirstProject"; // Default name for user project
 $GLOBALS['tmpUser_dir']     = ".tmp/"; // Default name for user temporal forder
+
+// Time
+$GLOBALS['timezone'] = "UTC";
+$GLOBALS['datetime'] = "Y/M/dd HH:mm"; // https://unicode-org.github.io/icu/userguide/format_parse/datetime/#date-field-symbol-table
+$GLOBALS['logs_datetime'] = "dd/M/Y HH:mm:ss";
 
 // Tool integration models and templates
 $GLOBALS['tool_json_schema']    = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/tool_schema.json"; // data model for tool registration
