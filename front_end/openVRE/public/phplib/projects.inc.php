@@ -984,6 +984,11 @@ function formatData($data) {
 			if (count($ins)){
 				foreach ($ins as $in){
 				    $f = getGSFile_fromId($in);	
+					if ($f == 0) {
+						error_log("File $in not found");
+						continue;
+					}
+					
 				    $data['input_files'].= "<div>";
 				    $inFolders=explode("/",dirname($f['path']));
 				    for ($i=count($inFolders)-1;$i>=1;$i--){
