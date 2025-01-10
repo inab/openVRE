@@ -660,9 +660,6 @@ function registerEgaPubKey($pubKey, $username, $vaultClient, $vaultKey) {
 function generateSSHButtons() {
     // Check if $GLOBALS['sitesCol'] is set
     if (isset($GLOBALS['sitesCol'])) {
-        // Debugging: Add a log statement to confirm the function is called
-        $_SESSION['errorData']['Debug'][] = "generateSSHButtons() function called.";
-
         // Fetch the documents that have "SSH" in the "accessible_via" array
         $documents = $GLOBALS['sitesCol']->find([
             'launcher.accessible_via' => 'SSH'  // Filter condition
@@ -681,8 +678,6 @@ function generateSSHButtons() {
             $siteId = (string) $document['_id'];
             //$siteSigla = isset($document['sigla']) ? htmlspecialchars($document['_id']) : 'N/A'; 
 	    $siteSigla = (string) $document['sigla'];
-	    // Debugging: Log the site ID and name being processed
-            $_SESSION['errorData']['Debug'][] = "Processing site: $siteId - $siteName";
 
             // Create the button for each site
             $buttonsHTML .= '
