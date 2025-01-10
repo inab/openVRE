@@ -14,6 +14,14 @@ class ProcessSGE{
 	private $logFile="job_output.log";
 	private $errFile="job_error.log";
 
+	private $jobname;
+
+	private $fullcommand;
+
+	private $stdout;
+
+	private $stderr;
+
 	private $username; //may change depending on FS needs. IRB=www-data. BSC=vre
 
 	private $jobState = Array (

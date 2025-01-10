@@ -24,6 +24,12 @@ class Tooljob {
     public $imageType;
     public $arguments_exec;
 
+	public $root_dir_mug;
+
+	public $pub_dir_intern;
+
+	public $container_image;
+
     // Paths to files genereted during ToolJob execution
     public $config_file;
     public $input_dir_virtual;
