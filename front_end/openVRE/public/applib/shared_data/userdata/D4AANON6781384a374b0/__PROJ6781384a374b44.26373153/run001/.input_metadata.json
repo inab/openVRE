@@ -1,0 +1,32 @@
+[
+    {
+        "_id": "D4AANON6781384a374b0_67813856b17525.81902748",
+        "file_path": "/home/ubuntu/dockerized_vre/volumesshared_data/userdata/D4AANON6781384a374b0/__PROJ6781384a374b44.26373153/uploads/MY155.obj",
+        "file_type": "OBJ",
+        "data_type": "3d_simulation",
+        "data_source": null,
+        "compressed": 0,
+        "sources": [],
+        "user_id": "D4AANON6781384a374b0",
+        "creation_time": {
+            "$date": {
+                "$numberLong": "1736521814000"
+            }
+        },
+        "taxon_id": 0,
+        "meta_data": {
+            "expiration": {
+                "$date": {
+                    "$numberLong": "1752246614000"
+                }
+            },
+            "parentDir": "/home/ubuntu/dockerized_vre/volumesshared_data/userdata/D4AANON6781384a374b0/D4AANON6781384a374b0/__PROJ6781384a374b44.26373153/uploads",
+            "project": "__PROJ6781384a374b44.26373153",
+            "size": 5885173,
+            "validated": 1,
+            "description": "",
+            "taxon_id": 0,
+            "visible": true
+        }
+    }
+]

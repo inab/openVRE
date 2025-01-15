@@ -1,0 +1,40 @@
+{
+    "input_files": [
+        {
+            "name": "object_file",
+            "value": "D4AANON6781384a374b0_67813856b17525.81902748",
+            "required": true,
+            "allow_multiple": false
+        }
+    ],
+    "arguments": [
+        {
+            "name": "execution",
+            "value": "/home/ubuntu/dockerized_vre/volumesshared_data/userdata/D4AANON6781384a374b0/__PROJ6781384a374b44.26373153/run001"
+        },
+        {
+            "name": "project",
+            "value": "/home/ubuntu/dockerized_vre/volumesshared_data/userdata/D4AANON6781384a374b0/__PROJ6781384a374b44.26373153/run001"
+        },
+        {
+            "name": "description",
+            "value": null
+        }
+    ],
+    "output_files": [
+        {
+            "name": "output",
+            "required": true,
+            "allow_multiple": false,
+            "file": {
+                "file_type": "TXT",
+                "data_type": "variants",
+                "meta_data": {
+                    "visible": true,
+                    "description": "TXT file containing the variants/genomic ids correlated to the disease.",
+                    "tool": "vtk_viewer"
+                }
+            }
+        }
+    ]
+}

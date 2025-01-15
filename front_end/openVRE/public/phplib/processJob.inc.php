@@ -8,9 +8,35 @@
 function execJob ($workDir,$shFile,$queue,$cpus=1,$mem=0,$logFile="job_output.log",$errFile="job_error.log") {
     logger("Start job submission via SGE");
 
+    if (!isset($_SESSION['User']['id'])) {
+        $_SESSION['errorData']['Error'][] = "User ID not found in session.";
+        return [0, "User ID not found in session."];
+    }
+
+    // Validate shell script file
+    if (!file_exists($shFile)) {
+        $_SESSION['errorData']['Error'][] = "Shell script file does not exist: $shFile";
+        return [0, "Shell script file does not exist: $shFile"];
+    }
+
+    // Validate working directory
+    if (!is_dir($workDir)) {
+        $_SESSION['errorData']['Error'][] = "Working directory does not exist: $workDir";
+        return [0, "Working directory does not exist: $workDir"];
+    }
+
+    // Validate queue
+    $queue = $queue ?: ($GLOBALS['queueTask'] ?? null);
+    if (!$queue) {
+        $_SESSION['errorData']['Error'][] = "Queue not provided.";
+        return [0, "Queue not provided."];
+    }
+
+    
     $queue   = (isset($queue)? $queue:$GLOBALS['queueTask']);
     $jobname = $_SESSION['User']['id']."#".basename($shFile);
-
+	
+    //
     // Start SGE process
     $process = new ProcessSGE($shFile,$workDir,$queue,$jobname,$cpus,$mem,$logFile,$errFile);
 
@@ -22,7 +48,8 @@ function execJob ($workDir,$shFile,$queue,$cpus=1,$mem=0,$logFile="job_output.lo
         logger($errMesg);
         return array(0,$errMesg);
     }
-
+	
+    $_SESSION['errorData']['Error'][] = "Process started successfully: PID = $pid";
     logger("The process $cmd is currently running PID = $pid");
     return array($pid,"");
 }
@@ -247,7 +274,7 @@ function delJob($pid,$launcherType=NULL,$cloudName="local",$login=NULL){
     // guess launcher
     if(!$launcherType){
         if (is_numeric($pid)){
-            $launcherType = "SGE";
+            $launcherType = "docker_SGE";
          } else {
 		$launcherType = "PMES";
 	}
@@ -282,15 +309,16 @@ function delJob($pid,$launcherType=NULL,$cloudName="local",$login=NULL){
     $jobUser = $_SESSION['User']['lastjobs'][$pid];
 
     if($jobUser && $jobUser['job_type'] == "interactive"){
+	    //$_SESSION['errorData']['Error'][]="Job is interactive";
 	    // Get info from Interactive tool
 	    list($proxy_tool_url,$proxy_tool_headers,$autorefresh) = get_url_interactive_tool($pid);
-	    
+
 	    $jobUser = $_SESSION['User']['lastjobs'][$pid];
 	    // Stop the Docker container
 	    $containerName = $jobUser['interactive_tool']['container_name'];
 	    // Obtain rdata and history before stopping the Docker container
 	    $dockerExecCommand = "docker exec $containerName Rscript -e 'save.image(\"./RData\"); savehistory(file = \".Rhistory\")'";
-	    $dockerExecProcess = new ProcessSGE($dockerExecCommand,"/tmp/","local.q","$pid-save-history",1,0,"$pid-save-history.out","$pid-save-history.err");
+	    $dockerExecProcess = new ProcessSGE($dockerExecCommand,"/tmp/","testq","$pid-save-history",1,0,"$pid-save-history.out","$pid-save-history.err");
 
 	    return false;
 	    //die(0);

@@ -14,8 +14,8 @@ class Tooljob {
     public $cloudName;         // Cloud name where tool should be executed. Available clouds set in GLOBALS['clouds']
     public $root_dir_host;
     public $pub_dir_host;
-	public $scripts_dir_host;
-	public $root_dir_volumes;              
+    public $scripts_dir_host;
+    public $root_dir_volumes;              
     public $pub_dir_volumes; 
     public $description;
     public $working_dir;
@@ -36,8 +36,8 @@ class Tooljob {
     public $log_file;
     public $log_file_virtual;
     public $logName;
-	public $stdout_file;
-	public $stderr_file;
+    public $stdout_file;
+    public $stderr_file;
 
     public $stageout_data   = [];
     public $input_files     = [];
@@ -92,12 +92,12 @@ class Tooljob {
         switch ($this->launcher){
             case "SGE":
 	    case "docker_SGE":
-			$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
-					$this->root_dir_mug     = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
-					$this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
-			$this->pub_dir_volumes  = $GLOBALS['clouds'][$this->cloudName]['pubDir_host'];
-			$this->root_dir_volumes  = $GLOBALS['clouds'][$this->cloudName]['dataDir_host']. "/".$_SESSION['User']['id'];
-			$this->pub_dir_intern   = rtrim($this->pub_dir_virtual,"/"). "_tmp";
+		    $this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
+		    $this->root_dir_mug     = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
+		    $this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
+		    $this->pub_dir_volumes  = $GLOBALS['clouds'][$this->cloudName]['pubDir_host'];
+		    $this->root_dir_volumes  = $GLOBALS['clouds'][$this->cloudName]['dataDir_host']. "/".$_SESSION['User']['id'];
+    		    $this->pub_dir_intern   = rtrim($this->pub_dir_virtual,"/"). "_tmp";
 	    case "ega_demo":
                 $this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual']. "/".$_SESSION['User']['id'];
                 $this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
@@ -866,6 +866,7 @@ class Tooljob {
 
 				case "docker_SGE":
 					$cmd  = $this->setBashCmd_docker_SGE($tool);
+					#$_SESSION['errorData']['Error'][] = "CMD3 " . $cmd;
 					if (!$cmd) {
 						return 0;
 					}
@@ -1049,7 +1050,8 @@ class Tooljob {
 	# Build the FULL command for running the interactive Docker containers
 	if (isset($tool['infrastructure']['interactive'])) {
 		$this->job_type = "interactive";
-
+		
+		
 		# Set dynamic container name
                 $random_string = bin2hex(random_bytes(8)); // Generate a random string
 		$container_name = $tool['infrastructure']['container_image'] ."_". $random_string;
@@ -1060,9 +1062,9 @@ class Tooljob {
 		#
 		#
 	
-		if (isset($tool['infrastructure']['executable_env'])) {
+		if (isset($tool['infrastructure']['container_env'])) {
 			$exec_envs="";
-			foreach ($tool['infrastructure']['executable_env'] as $key => $value) {
+			foreach ($tool['infrastructure']['container_env'] as $key => $value) {
 				 if ($key !== 'data_dir') {
 					 $exec_envs .= " --$key $value";
 				 }
@@ -1077,18 +1079,16 @@ class Tooljob {
 		# Get the free port using the get_open_port function
 		$free_port = shell_exec('python3 /var/www/html/openVRE/public/phplib/classes/get_free_port.py');
 		#$tool['infrastructure']['free_port'] = $free_port;
-		
-		#echo "Free Port: " . $tool['infrastructure']['free_port'] . "<br>";
-			
+
 		$updateResult = $GLOBALS['toolsCol']->updateOne(
-			['_id' => $tool],   // Find the tool by ID
+			['_id' => $tool["_id"]],   // Find the tool by ID
 			['$set' => ['infrastructure.free_port' => $free_port]]  // Save the free port
 		);
 
 		if ($updateResult->getModifiedCount() > 0) {       
-			echo "Successfully saved free port to MongoDB: " . $free_port . "<br>";
+			$_SESSION['errorData']['Info'][] = "Successfully saved free port to MongoDB: " . $free_port . "<br>";
 		} else {
-			echo "Failed to update MongoDB or no changes made.<br>";
+			$_SESSION['errorData']['Info'][] = "Failed to update MongoDB or no changes made.<br>";
 		}
 
 		$cmd=<<<EOF
@@ -1102,6 +1102,7 @@ current_user=\$(whoami)
 current_groups=\$(groups)
 docker_socket_permissions=\$(ls -l /var/run/docker.sock)
 
+echo "Free port: \$FREE_PORT"
 echo "Current user: \$current_user"
 echo "Groups: \$current_groups"
 echo "Docker socket permissions: \$docker_socket_permissions"
@@ -1123,9 +1124,7 @@ fi
 
 
 # Create or retrieve the network ID for the openVRE_net network. Required when using proxy-gt
-#NET_NAME="openvre_net";
 NET_NAME={$GLOBALS['vre_network_name']};
-ROOT_DIR={$GLOBALS['localVolumes']};
 NET_ID=\$(docker network inspect \$NET_NAME --format "{{.Id}}" 2>/dev/null || docker network create --driver bridge "\$NET_NAME");
 
 # Run the Docker container with necessary options and configurations
@@ -1136,7 +1135,7 @@ CONTAINER_ID=\$(docker run \
     --net=\$NET_NAME --name $container_name \
     $cmd_envs \
     -v {$this->pub_dir_volumes}:{$GLOBALS['shared']}public_tmp/ \
-    -v {$this->root_dir_volumes}/{$_SESSION['User']['id']}:{$GLOBALS['shared']}userdata_tmp/{$_SESSION['User']['id']} \
+    -v {$this->root_dir_volumes}:{$GLOBALS['shared']}userdata_tmp/{$_SESSION['User']['id']} \
     -p \$FREE_PORT:{$tool['infrastructure']['container_port']} {$tool['infrastructure']['container_image']} $cmd_vre); 
 
 # Check if the container is running
@@ -1179,11 +1178,6 @@ exit 0;
 EOF;
 
 
-		echo "CMD from setBashCmd_docker_SGE";
-		echo "<br></br>";
-		echo $cmd;
-		echo "<br></br>";
-		echo $cmd_vre;
 
 	}
 	else{
@@ -1586,7 +1580,7 @@ EOF;
             $_SESSION['errorData']['Error'][]="Internal error. Cannot enqueue job.";
             return 0;
         }
-        logger("USER:".$_SESSION['User']['_id'].", ID:".$_SESSION['User']['id'].", LAUNCHER:SGE, TOOL:".$this->toolId.", PID:$pid");
+	logger("USER:".$_SESSION['User']['_id'].", ID:".$_SESSION['User']['id'].", LAUNCHER:SGE, TOOL:".$this->toolId.", PID:$pid");
         log_addSubmission($pid,$this->toolId,$this->cloudName,"SGE",$cpus,$memory,$this->working_dir);
     
     	$this->pid = $pid;
@@ -2025,7 +2019,6 @@ EOF;
 		'name' => $siteDocument['name'],
 		'launcher' => $siteDocument['launcher']
 	];
-	$_SESSION['errorData']['Info'][] = "Launcher Info: " . print_r($launcherInfo, true);
 	return $launcherInfo;
 
     }

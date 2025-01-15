@@ -20,7 +20,7 @@ services:
       - ./volumes/mongo_data:/data/db:rw
       - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
     networks:
-        open-vre:
+        net_vre:
             ipv4_address: 172.21.0.10
 
   mongo_seed:
@@ -46,7 +46,7 @@ services:
     command:
       /mongo-seed/import.sh
     networks:
-      - open-vre
+      - net_vre
     depends_on:
       - my-mongodb
 
@@ -70,7 +70,7 @@ services:
       - IPC_LOCK
     entrypoint: vault server -config /vault/config/vault.json
     networks:
-             open-vre:
+             net_vre:
                 ipv4_address: 172.21.0.18
     restart: always
 
@@ -83,7 +83,7 @@ services:
        POSTGRES_USER: ${POSTGRES_USER}
        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
-      open-vre:
+      net_vre:
         ipv4_address: 172.21.0.13
 
 
@@ -113,7 +113,7 @@ services:
         - postgres
     hostname: keycloak
     networks:
-      open-vre:
+      net_vre:
         ipv4_address: 172.21.0.12
     depends_on:
       - postgres
@@ -140,7 +140,7 @@ services:
     ports:
       - "${FRONTEND_PORT}:80"
     networks:
-      open-vre:
+      net_vre:
         ipv4_address: 172.21.0.14
 
   sgecore:
@@ -170,13 +170,13 @@ services:
         - apparmor:unconfined
     stdin_open: true
     networks:
-      - open-vre
+      - net_vre
     ports:
       - 6444:6444
     restart: always
 
 networks:
-  open-vre:
+  net_vre:
     name: ${NETWORK_NAME}
     #Use on openStack cloud
     #driver_opts:
