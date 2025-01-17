@@ -1100,11 +1100,13 @@ FREE_PORT=$free_port
 #Docker permissions
 current_user=\$(whoami)
 current_groups=\$(groups)
+checking=\$(getent group | grep docker)
 docker_socket_permissions=\$(ls -l /var/run/docker.sock)
 
 echo "Free port: \$FREE_PORT"
 echo "Current user: \$current_user"
 echo "Groups: \$current_groups"
+echo "Checking: \$checking"
 echo "Docker socket permissions: \$docker_socket_permissions"
 
 if echo "\$current_groups" | grep -q "docker"; then

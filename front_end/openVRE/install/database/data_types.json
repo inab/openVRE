@@ -21,7 +21,3 @@
     "TXT"
   ]
 }
-{"_id":"3d_simulation","name":"3D Simulation","file_types":["PTH"],"assembly":[]}
-{"_id":"vertebral_disc_coordinates","name":"Vertebral Disc Coordinates","file_types":["OBJ"],"assembly":[]}
-{"_id":"test_alya_dir","name":"Testing Alya directory","file_types":["DIR"],"assembly":[]}
-
