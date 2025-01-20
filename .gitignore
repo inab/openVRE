@@ -5,3 +5,5 @@ front_end/openVRE/config/*.conf
 vault/config/public-key.pem
 vendor/
 composer.lock
+volumes/shared_data/userdata
+

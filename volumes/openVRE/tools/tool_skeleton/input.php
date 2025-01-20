@@ -143,12 +143,11 @@ $sites = getSites_Info($toolId);
 		     <div class="portlet-title">
 			 <div class="caption">
 			  <i class="fa fa-cogs" ></i> Tool settings
-			 </div>
+				</div>
 		     </div>
-		      <div class="portlet-body form form-block" id="form-block1">
-                         <div class="form-body">
-                                <h4 class="form-section" style="font-weight:500;">Tool Name: Template Tool</h4>
-                                <!--
+		     <div class="portlet-body form form-block" id="form-block1">
+			 <div class="form-body">
+				<!--
                                 <div class="col-md-6">
                                         <div class="form-group">
                                                 <label class="control-label">Available Analysis methods</label>
@@ -160,30 +159,28 @@ $sites = getSites_Info($toolId);
                                         </div>
                                 </div>
                                 -->
+				<h4 class="form-section">Execution Location</h4>
+                           <div class="row">
+                               <div class="col-md-6">
+                                   <div class="form-group">
+                                        <label class="control-label">Available locations in the network (default: all active sites)</label>
+                                        <select id="siteDropdown" name="arguments_exec[site_list][]" class="form-control">
+                                                <?php echo InputTool_generateLocationOptions($sites); ?>
+                                        </select>
+                                   </div>
+                               </div>
                                 <div class="col-md-6">
-                                        <div class="form-group">
-                                        <label class="control-label">Available sites in the network (default: all active sites)</label>
-                                                <select name="arguments_exec[site_list][]" class="form-control" multiple size="8">
-                                                        <?php foreach ($sites as $site) {
-                                                                $op = ($site['_id'] == $selectedSiteId && $site['status'] == '1') ? 'selected' : 'disabled';
-                                                        ?>
-                                                        <option <?php echo $op; ?> value="<?php echo $site['_id']; ?>"> <?= $site['_id']; ?> - <?= $site['name']; ?> </option>
-                                                        <?php } ?>
-                                                </select>
+                                   <div class="form-group">
+                                        <label class="control-label">Available Launcher</label>
+					<select id="launcherDropdown" name="arguments_exec[site_list][]" class="form-control">
+						<?php echo InputTool_generateLauncherOptions($sites); ?>
+                                        </select>
+                                   </div>
                                         </div>
-                                </div>
-                                <div class="col-md-6">
-                                        <div class="form-group">
-                                        <label class="control-label">Launcher Information</label>
-                                                <select name="launcherInfo" class="form-control" id="launcherInfoDropdown">
-                                                <!-- This dropdown will be dynamically populated based on the selection in the first dropdown -->
-                                                </select>
-                                        </div>
-                                </div>
-                        </div>
+                           </div>
 
-		     <div class="portlet-body form form-block" id="form-block1">
-			 <div class="form-body">
+
+				<!-- PRINT TOOL INPUT FILES-->
 
     				<!-- PRINT TOOL INPUT FILES -->
 			     <h4 class="form-section">File inputs</h4>
@@ -261,11 +258,14 @@ $sites = getSites_Info($toolId);
     // Get the sites data from PHP and convert it to a JavaScript object
     var sitesData = <?php echo json_encode($sites); ?>;
 
+
     // Function to generate launcher options based on the selected site and job manager
     function updateLauncherOptions(selectedSiteId, selectedJobManager) {
-        console.log('Updating launcher options. Selected Site:', selectedSiteId, 'Selected Job Manager:', selectedJobManager);
-        var launcherOptions = '';
-        var selectedSite = sitesData.find(site => site.site_id === selectedSiteId);
+	    console.log('Current sitesData:', sitesData); 
+	    var launcherOptions = '';
+	    var selectedSite = sitesData.find(site => site.site_id === selectedSiteId);
+	    console.log('Received selectedSiteId:', selectedSiteId);
+	    console.log('Received selectedJobManager:', selectedJobManager);
 
         if (selectedSite && selectedSite.launcher) {
             console.log('Selected Site Data:', selectedSite);
@@ -303,7 +303,6 @@ $sites = getSites_Info($toolId);
     }
 
     // Initial update based on the default selected site (if any)
-    updateLauncherOptions($('#siteDropdown').val(), '');
 
     // Event handler for the site dropdown change
     $('#siteDropdown').on('change', function () {
@@ -325,7 +324,7 @@ $sites = getSites_Info($toolId);
     $('#siteDropdown').on('change', function () {
         // Your existing logic to determine selectedSiteId
 
-        // Set the selected job manager based on your logic
+	    // Set the selected job manager based on your logic
         $('#hiddenJobManager').val('SelectedJobManagerValue');
     });
 </script>

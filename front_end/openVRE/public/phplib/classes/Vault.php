@@ -483,8 +483,8 @@ class VaultClient {
 				$respondeData = json_decode($responseArray, true);
 				$vaultToken = $respondeData["auth"]["client_token"];
 
-				//              echo "client token:";
-				//             echo  $responseArray;
+				echo "client token:";
+		   		echo  $responseArray;
 
 				$secretPath = 'secret/mysecret/data/';
 				if (isset($data['data']['Swift']['_id'])) {
