@@ -1,83 +1,3 @@
-{
-    "_id": "wget",
-    "title": "Remote file retrieving from URLs",
-    "name": "Get remote file",
-    "short_description": "Implementation of a the remote file retriever WGET.",
-    "url": "https://www.gnu.org/software/wget/",
-    "owner": {
-      "institution": "Barcelona Supercomputing Center",
-      "author": "Laia Codo",
-      "contact": "laia.codo@bsc.es",
-      "url": "",
-      "user": "laia.codo@bsc.es"
-    },
-    "external": false,
-    "keywords": [],
-    "infrastructure": {
-      "memory": "",
-      "cpus": 1,
-      "executable": "/ABSOLUTE/PATH/TO/VRE/DATA/apps/localTools/wget/wget.sh",
-      "clouds": {
-        "mug-bsc": {
-          "launcher": "SGE",
-          "queue": "local.q"
-        }
-      }
-    },
-    "input_files": [],
-    "arguments": [
-      {
-        "name": "url",
-        "description": "URL of the file to be downloaded",
-        "help": "URL",
-        "type": "string",
-        "required": true,
-        "allow_multiple": true
-      },
-      {
-        "name": "output",
-        "description": "Name of the output file",
-        "help": "Name of the output file",
-        "type": "string",
-        "allow_multiple": false,
-        "default": ""
-      },
-      {
-        "name": "working_dir",
-        "description": "Temporal dir",
-        "help": "",
-        "type": "string",
-        "allow_multiple": false,
-        "default": ""
-      },
-      {
-        "name": "untar",
-        "description": "Untar output file if ",
-        "help": "",
-        "type": "string",
-        "allow_multiple": false,
-        "default": ""
-      }
-    ],
-    "control_file": ".summary.json",
-    "output_files": [
-      {
-        "name": "file",
-        "required": true,
-        "allow_multiple": false,
-        "file_type": "",
-        "data_type": "",
-        "file": {
-          "meta_data": {
-            "validated": false,
-            "description": "Data imported from URL",
-            "tool": "wget",
-            "visible": true
-          }
-        }
-      }
-    ]
-  }
   {
     "_id": "tool_skeleton",
     "name": "Tool Skeleton",
@@ -96,24 +16,20 @@
     "keywords": ["next gen seq", "dna"],
     "keywords_tool": ["Tool skeleton", "Sample keyword"],
     "infrastructure": {
-      "memory": 12.0,
-      "cpus": 4.0,
-      "executable": "/remote/host/path/for/dummy/tool_skeleton/wrapper.py",
-      "clouds": {
-        "life-bsc": {
-          "launcher": "SGE",
-          "queue": "default.q"
-        },
-        "life-bsc2": {
-          "launcher": "PMES",
-          "workflowType": "COMPSs",
-          "minimumVMs": 1.0,
-          "initialVMs": 1.0,
-          "imageName": "uuid_tool_skeleton_image_00",
-          "default_cloud": false
-        }
+    "memory": 12,
+    "cpus": 1,
+    "executable": "/home/vre_template_tool/VRE_RUNNER",
+    "container_image": "dockerhub/tool-skeleton:latest",
+    "clouds": {
+      "local": {
+        "launcher": "docker_SGE",
+        "default_cloud": true,
+        "queue": "testq",
+        "executable": "/home/vre_template_tool/VRE_RUNNER",
+        "executable_type": "docker"
       }
-    },
+    }
+  },
     "input_files": [
       {
         "name": "fasta1",
@@ -207,106 +123,11 @@
           }
         }
       }
-    ]
-  }
-  {
-  "_id": "seqio_tool",
-  "name": "SEQIO Tool",
-  "title": "SEQIO Tool for FASTA Extraction",
-  "short_description": "A tool for extracting sequences from FASTA files based on IDs.",
-  "long_description": "SEQIO Tool is designed to extract specific sequences from a FASTA file using a list of IDs provided in a separate text file.",
-  "url": "https://example.com/seqio_tool",
-  "publication": "",
-  "owner": {
-    "author": "Maria Paola Ferri",
-    "institution": "Barcelona Supercomputing Center",
-    "contact": "maria.ferri@bsc.es",
-    "url": ""
-  },
-  "status": 1,
-  "external": true,
-  "keywords": [
-    "fasta",
-    "extraction",
-    "sequence"
-  ],
-  "infrastructure": {
-    "memory": 12,
-    "cpus": 1,
-    "executable": "/home/vre_template_tool/VRE_RUNNER",
-    "container_image": "mapoferri/techton-seq-tool:latest",
-    "clouds": {
-      "local": {
-        "launcher": "docker_SGE",
-        "default_cloud": true,
-        "queue": "local.q",
-        "executable": "/home/vre_template_tool/VRE_RUNNER",
-        "executable_type": "docker"
-      }
-    }
-  },
-  "input_files": [
-    {
-      "name": "input_fasta",
-      "description": "Input FASTA file containing sequences.",
-      "help": "Provide the FASTA file from which to extract sequences.",
-      "file_type": [
-        "FASTA"
-      ],
-      "data_type": [
-        "sequence_data"
-      ],
-      "required": true,
-      "allow_multiple": false
-    },
-    {
-      "name": "ids_txt",
-      "description": "Text file containing the IDs of sequences to extract.",
-      "help": "Provide a text file with sequence IDs, one per line.",
-      "file_type": [
-        "TXT"
-      ],
-      "data_type": [
-        "id_list"
-      ],
-      "required": true,
-      "allow_multiple": false
-    }
-  ],
-  "input_files_public_dir": [],
-  "input_files_combinations": [],
-  "arguments": [
-    {
-      "name": "min_lenght",
-      "description": "Minimum length for sequences to be extracted.",
-      "help": "Specify a number between 30 and 100.",
-      "type": "string",
-      "min": 30,
-      "max": 100
-    }
-  ],
-  "has_custom_viewer": false,
-  "output_files": [
-    {
-      "name": "output_fasta",
-      "required": true,
-      "allow_multiple": false,
-      "file": {
-        "file_type": "FASTA",
-        "data_type": "extracted_sequences",
-        "meta_data": {
-          "visible": true,
-          "description": "FASTA file containing the extracted sequences based on the provided IDs.",
-          "tool": "seqio_tool"
-        },
-        "file_path": "output_fasta.fasta"
-      }
-    }
-  ],
+    ],
   "sites": [
     {
       "site_id": "local",
       "status": 1
-    }
+    }   
   ]
-}
+  }

@@ -265,7 +265,8 @@ if($r == 0){
 //
 // Launching Tooljob
 
-$pid = $jobMeta->submit($tool);		
+$pid = $jobMeta->submit($tool);	
+
 
 if ($debug)
 	echo "<br/></br>JOB SUBMITTED. PID = $pid<br/>";

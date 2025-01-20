@@ -291,8 +291,123 @@ require "../htmlib/header.inc.php"; ?>
             </div>
         </div>
     </div>
-			<?php } ?>
 
+		   <!--  OPENSTACK FORM    -->
+                   <?php } elseif ($_REQUEST['account'] == "objectstorage"){
+
+
+                        // set form default values
+
+                        $defaults = array();
+                        if (isset($_SESSION['formData'])){
+                                $defaults = $_SESSION['formData'];
+                                unset($_SESSION['formData']);
+                        }elseif($_REQUEST['action'] == 'update'){
+                                $defaults['app_id'] = $_SESSION['User']['linked_accounts']['Swift']['app_id'];
+                                //$defaults['app_secret']      = $_SESSION['User']['linked_accounts']['Swift']['app_secret'];
+                        }
+                        ?>
+
+                    <div class="portlet box blue-oleo">
+                            <div class="portlet-title">
+                                <div class="caption">
+                                    <div style="float:left;margin-right:20px;"> <i class="fa fa-link"></i> Structured Data Access</div>
+                                </div>
+                            </div>
+                            <div class="portlet-body form">
+                                <div class="form-body">
+                                <p>OpenStack provides different way of authenticta, but in this case it is requires the <strong>Application Credentials authentication</strong>, to allow external applications to <strong>authenticate a session on your behalf</strong> for a limited period of time. If your are sure you want to allow <?php echo $GLOBALS['NAME']?> VRE access, fill in the following form.</p>
+                                    <div class="row">
+                                        <div class="col-md-6"></div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                        <a target="_blank" href="https://docs.openstack.org/keystone/queens/user/application_credentials.html">How to generate Application Credentials?</a><br/>
+                                                        <a target="_blank" href="https://ncloud.bsc.es/dashboard/auth/login/?next=/dashboard/project/instances/">Go to OpenStack by BSC OpenID Connect</a></br>
+                                                <a href="javascript:openTermsOfUse();"><?php echo $GLOBALS['NAME']?>VRE terms of use</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label">Application Credential ID</label>
+                                                <input type="text" name="app_id" id="app_id" class="form-control" value="<?php echo $defaults['app_id'];?>">
+					    </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label">Application Credential Secret</label>
+                                                <input type="text" name="app_secret" id="app_secret" class="form-control" value="<?php echo $defaults['app_secret'];?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label">Project Name</label>
+                                                <input type="text" name="projectName" id="projectName" class="form-control" value="<?php echo $defaults['projectName'];?>">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label">Project Id</label>
+                                                <input type="text" name="projectId" id="projectId" class="form-control" value="<?php echo $defaults['projectId'];?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label">Domain Name</label>
+                                                <input type="text" name="domainName" id="domainName" class="form-control" value="<?php echo $defaults['domainName'];?>">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label">Domain Id</label>
+                                                <input type="text" name="projectDomainId" id="projectDomainId" class="form-control" value="<?php echo $defaults['projectDomainId'];?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label">Region Name</label>
+                                                <span  class="form-control" readonly>RegionOne</span>
+                                            </div>
+                                        </div>
+                                    </div>
+					 <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label">Interface</label>
+                                                <span  class="form-control" readonly>Public</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label">Authorization Type</label>
+                                                <span  class="form-control" readonly>v3applicationcredential</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 text-right">
+                                                <input type="hidden" name="save_credential" id="save_credential" value="false">
+                                                <button type="submit" onclick="document.getElementById('save_credential').value=true" class="btn blue"><i class="fa fa-check"></i> Accept</button>
+                                                <button type="submit" name="submitOption" value="clearAccount" href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=objectstorage&action=delete" class="btn" style="background-color: white"><i class="fa fa-plus"></i> &nbsp; Clear account</button>
+                                                <button type="submit" name="submitOption" value="updateAccount" href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=objectstorage&action=update"  class="btn" style="background-color: #d4d4d4"><i class="fa fa-plus"></i> &nbsp; Update account</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+	    <?php } ?>
 
             </form>
 

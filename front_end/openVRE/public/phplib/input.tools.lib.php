@@ -477,10 +477,8 @@ function InputTool_generateLocationOptions($sites) {
 function InputTool_generateLauncherOptions($sites) {
     $options = '';
     foreach ($sites as $site) {
-        foreach ($site['launcher'] as $launcher) {
             $op = ($site['status'] == '1') ? 'selected' : '';
-            $options .= "<option {$op} value=\"{$site['site_id']}_{$launcher['job_manager']}\"> {$launcher} </option>\n";
-        }
+            $options .= "<option {$op} value=\"{$site['site_id']}_{$site['launcher']['job_manager']}\"> {$site['launcher']['job_manager']} </option>\n";
     }
     return $options;
 }
