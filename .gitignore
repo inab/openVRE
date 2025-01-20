@@ -3,3 +3,4 @@ demo.hcl
 front_end/openVRE/config/globals.inc.php
 front_end/openVRE/config/*.conf
 vault/config/public-key.pem
+vendor/
