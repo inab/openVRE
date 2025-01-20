@@ -1228,7 +1228,7 @@ EOF;
 
 		$userEmail = $_SESSION['User']['Email'];
 		$vaultKey = $_SESSION['User']['Vault']['vaultKey'];
-		$vaultAddress = $GLOBALS['vaultDockerUrl'] . $GLOBALS['vaultVersion'] . "/" . $GLOBALS['secretPath'] . $userEmail . $GLOBALS['vaultCredentialsSuffix'];
+		$vaultAddress = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $userEmail . $GLOBALS['vaultCredentialsSuffix'];
 		$userFolder = "/shared_data/userdata/" . $_SESSION['User']['id'];
 		$configFilePath = $userFolder . '/env.yml';
 		$configContent = "VAULT_TOKEN={$vaultKey}\nVAULT_ADDRESS={$vaultAddress}\n";
