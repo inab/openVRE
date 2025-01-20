@@ -471,7 +471,6 @@ function handleEGAAccount($action, $postData) {
 
 
 			$data['data']['EGA']['_id'] = $postData['_id'];
-			$_SESSION['errorData']['Info'][] = "Credentials updated!";
 		} else {
 			// Handle the case where app_id or app_secret is empty
 			$_SESSION['errorData']['Error'][] = "Please provide both username and password.";
@@ -503,6 +502,7 @@ function handleEGAAccount($action, $postData) {
 
 	//var_dump($data);
 	$key = $vaultClient->uploadKeystoVault($data);
+	
 	//var_dump($key);
 	// Update user data with vault key
 	$_SESSION['User']['Vault']['vaultKey'] = $key;
@@ -635,7 +635,7 @@ function registerEgaPubKey($pubKey, $username, $vaultClient, $vaultKey) {
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 	
 	$response = curl_exec($ch);
-
+	
 	if (curl_errno($ch)) {
 		$error_msg = curl_error($ch);
 	}
@@ -643,6 +643,7 @@ function registerEgaPubKey($pubKey, $username, $vaultClient, $vaultKey) {
 	curl_close($ch);
 
 	if (isset($error_msg)) {
+		error_log("Error message: " . $error_msg);
 		$_SESSION['errorData']['Error'][] = "Error: $error_msg";
 		return false;
 	}

@@ -401,7 +401,6 @@ class VaultClient {
 
 
     public function uploadKeystoVault($data){
-	    var_dump($data);
 	    if (isset($data['data']['SSH'])){
 		    $publicKey = $data['data']['SSH']['public_key'];
 		    $privateKey = $data['data']['SSH']['private_key'];
@@ -430,11 +429,9 @@ class VaultClient {
 					//	echo  $responseArray;	
 
 					if ($this->isTokenExpired($this->vaultUrl, $vaultToken)) {
-						echo 'The Vault token has expired.';
 						$_SESSION['errorData']['Error'][] = "The Vault token has expired.";
 
 					} else {
-						echo 'The Vault token is still valid.';
 						$_SESSION['errorData']['Error'][] = "The Vault token is still valid.";
 
 					}
@@ -500,14 +497,7 @@ class VaultClient {
 				// uploadFileToVault($url, $secretPath, $username, $token, $data)
 
 				$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
-				var_dump($rz);
-				echo json_encode($rz, JSON_PRETTY_PRINT);
-				//$rx = $this->listSecretsInVault($clientToken, $this->vaultUrl, $secretPath, $filename);
-				//echo json_encode($rx, JSON_PRETTY_PRINT);
-				//$system = 'SSH';
-				//echo 'BHOOOOOOOOOO';
-				//$xx = $this->retrieveDatafromVault($system, $clientToken, $this->vaultUrl, $secretPath, $filename);
-				//var_dump($xx);
+
 				return $vaultToken;
 
 			} catch (Exception $e) {
@@ -722,10 +712,8 @@ class VaultClient {
 			// Call the function to renew the token
 			//$_SESSION['errorData']['Error'][] = "Check the Token User permission.";
 			if ($this->isTokenExpired($url, $vaultToken)) {
-				echo 'The Vault token has expired.';
 				$_SESSION['errorData']['Error'][] = "The Vault token has expired, need to refresh it in the User section.";
 			} else {
-				echo 'The Vault token is still valid.';
 				$_SESSION['errorData']['Error'][] = "The Vault token is still valid.";
 			}
 
@@ -743,7 +731,6 @@ class VaultClient {
 		$data = json_decode($response, true);
 		// Check if the JSON decoding was successful
 		if ($data === null) {
-			echo 'Error decoding JSON';
 			return null;
 		}
 		if ($system == 'Swift') {
