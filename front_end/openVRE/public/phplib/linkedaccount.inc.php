@@ -317,7 +317,7 @@ function handleSSHAccount($action, $site_id, $postData){
         //var_dump($data);
 	$postData['username'] = $postData['username'] . '_' . $site_id;
         $vaultClient = new VaultClient(
-                        $_SESSION['User']['Vault']['vaultUrl'],
+                        $GLOBALS['vaultUrl'],
                         $_SESSION['User']['Vault']['vaultToken'],
                         $accessToken,
                         $_SESSION['User']['Vault']['vaultRolename'],
@@ -419,7 +419,7 @@ function handleObjectStorageAccount($action, $postData){
 	#echo 'Vabbuo';
 	#var_dump($_SESSION['User']);
 	$vaultClient = new VaultClient(
-                	$_SESSION['User']['Vault']['vaultUrl'],
+                	$GLOBALS['vaultUrl'],
                 	$_SESSION['User']['Vault']['vaultToken'],
                 	$accessToken,
                 	$_SESSION['User']['Vault']['vaultRolename'],
@@ -493,7 +493,7 @@ function handleEGAAccount($action, $postData) {
 
 	
 	$vaultClient = new VaultClient(
-		$_SESSION['User']['Vault']['vaultUrl'],
+		$GLOBALS['vaultUrl'],
 		$_SESSION['User']['Vault']['vaultToken'],
 		$accessToken,
 		$_SESSION['User']['Vault']['vaultRolename'],
@@ -621,7 +621,7 @@ function registerEgaPubKey($pubKey, $username, $vaultClient, $vaultKey) {
 	]);
 
 
-	$vaultUrl = $_SESSION['User']['Vault']['vaultUrl'];
+	$vaultUrl = $GLOBALS['vaultUrl'];
 	$credentials = $vaultClient->retrieveDatafromVault('ega', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $GLOBALS['bscEgaCredentialsFilename']);
 	if (is_null($credentials)) {
 		$_SESSION['errorData']['Error'][] = "Internal error. Failed to retrieve BSC-EGA credentials.";
