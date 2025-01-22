@@ -30,7 +30,6 @@
     "launcher": {
       "accessible_via": null,
       "job_manager": "docker_SGE",
-      "container": "Docker",
-      "executable": "/home/user/vre_template_tool/VRE_RUNNER"
+      "container": "Docker"
     }
   }
