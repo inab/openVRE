@@ -49,7 +49,7 @@ function execJob ($workDir,$shFile,$queue,$cpus=1,$mem=0,$logFile="job_output.lo
         return array(0,$errMesg);
     }
 	
-    $_SESSION['errorData']['Error'][] = "Process started successfully: PID = $pid";
+    error_log("Process started successfully: PID = $pid");
     logger("The process $cmd is currently running PID = $pid");
     return array($pid,"");
 }
