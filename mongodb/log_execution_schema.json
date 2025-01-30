@@ -1,0 +1,41 @@
+{
+    "$schema": "https://json-schema.org/draft-04/schema#",
+    "id": "logExecution",
+    "title": "Log execution",
+    "description": "",
+    "type": "object",
+    "properties": {
+        "message": {
+            "type": "string",
+            "minLength": 1
+        },
+        "status": {
+            "type": "string",
+            "minLength": 1
+        },
+        "success": {
+            "type": "boolean"
+        },
+        "timestamp": {
+            "type": "string",
+            "minLength": 1
+        },
+        "toolName": {
+            "type": "string",
+            "minLength": 1
+        },
+        "user": {
+            "type": "string",
+            "minLength": 1
+        }
+    },
+    "required": [
+        "message",
+        "status",
+        "success",
+        "timestamp",
+        "toolName",
+        "user"
+    ],
+    "additionalProperties": false
+}

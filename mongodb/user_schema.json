@@ -1,0 +1,45 @@
+{
+    "$schema": "https://json-schema.org/draft-04/schema#",
+    "id": "user",
+    "title": "User",
+    "description": "User's information",
+    "type": "object",
+    "properties": {
+        "email": {
+            "type": "string",
+            "minLength": 1
+        },
+        "firstName": {
+            "type": "string",
+            "minLength": 1
+        },
+        "lastLogin": {
+            "type": "string",
+            "minLength": 1
+        },
+        "lastName": {
+            "type": "string",
+            "minLength": 1
+        },
+        "projects": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "minLength": 1
+            }
+        },
+        "registrationDate": {
+            "type": "string",
+            "minLength": 1
+        }
+    },
+    "required": [
+        "email",
+        "firstName",
+        "lastLogin",
+        "lastName",
+        "projects",
+        "registrationDate"
+    ],
+    "additionalProperties": false
+}
