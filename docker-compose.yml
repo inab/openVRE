@@ -78,6 +78,7 @@ services:
   postgres:
     container_name: postgres
     image: postgres
+    profiles: ["local_auth"]
     environment:
        POSTGRES_DB: ${POSTGRES_DB}
        POSTGRES_USER: ${POSTGRES_USER}
