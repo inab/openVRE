@@ -138,6 +138,25 @@ function setUserWorkSpace($homeDir,$projectDir,$sampleData="",$projectData,$verb
     			mkdir("$dataDirP/repository", 0775);
 	}
 
+	    //creating rstudio directory
+    if ($sampleData != "0"){
+			$repDirId  = createGSDirBNS($dataDir."/rstudio",1);
+		if ($verbose)
+					$_SESSION['errorData']['Info'][] = "Creating  rstudio directory: $dataDir/rstudio ($repDirId)";
+			if ($repDirId == "0" ){
+					$_SESSION['errorData']['Error'][] = "Cannot create repository directory in $dataDir ($dataDirId) ";
+					return 0;
+			}
+			$r = addMetadataBNS($repDirId,Array("expiration" => -1,
+											   "description"=> "RStudio personal data"));
+			if ($r == "0"){
+					$_SESSION['errorData']['Error'][] = "Cannot set rstudio directory $dataDir/rstudio";
+						return 0;
+			}
+			if (!is_dir("$dataDirP/rstudio"))
+					mkdir("$dataDirP/rstudio", 0775);
+	}
+
 	// creating other directories not registered in mongo
 
 		if (!is_dir("$dataDirP/.jbrowse") || !is_dir("$dataDirP/.tadkit") || !is_dir("$dataDirP/.dev") || !is_dir($dataDirP."/".$GLOBALS['tmpUser_dir']) ){
@@ -546,7 +565,11 @@ function printTable($filesAll=Array() ) {
 		}
 	    // is job
 			}elseif(isset($r['pending'])){
+				if ($r['pending'] == "ACTIVE SESSION"){
+					print parseTemplate(formatData($r), getTemplate('/TreeTblworkspace/TR_fileInteractive.htm'));
+				}else{
 					print parseTemplate(formatData($r), getTemplate('/TreeTblworkspace/TR_filePending.htm'));
+				}
 		    $autorefresh=1;
 	    // is file
 			}elseif(isset($r['_id'])){
