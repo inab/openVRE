@@ -1,4 +1,7 @@
 <?php
+
+require dirname(__FILE__)."/../../config/globals.inc.php";
+
 function get_url_interactive_tool($pid, $login="session") {
 
         $proxy_tool_url     = "";
@@ -72,7 +75,7 @@ function get_url_interactive_tool($pid, $login="session") {
         if ($ok_service){
                 // Build IP from port (md5)
                 $url_proxy_path = 'rstudio_'.md5($tool_port);
-                $proxy_tool_url = "http://vre.disc4all.eu/$url_proxy_path/";
+                $proxy_tool_url = $GLOBALS['interactive_server'] . "/" . "$url_proxy_path/";
 
                 // TODO: set gdx proxy headers
                 $_SESSION['errorData']['Info'][]="Interactive session successfully established. Active session accessible at URL = <a target=_blank href='$proxy_tool_url'>$proxy_tool_url</a> .";
