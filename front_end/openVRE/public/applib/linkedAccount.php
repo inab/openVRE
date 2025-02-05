@@ -13,6 +13,8 @@ if(!$_REQUEST){
 	redirect($_SERVER['HTTP_REFERER']);
 }
 
-addUserLinkedAccount($_REQUEST['account'], $_REQUEST['action'], $_REQUEST['site_id'], $_POST);
+$siteId = $_REQUEST['site_id'] ?? null;
+
+addUserLinkedAccount($_REQUEST['account'], $_REQUEST['action'], $siteId, $_POST);
 
 ?>
