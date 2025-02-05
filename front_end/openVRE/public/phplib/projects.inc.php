@@ -1214,6 +1214,10 @@ function processPendingFiles($sessionId,$files=array()){
             'job_type'    => $job['job_type']
 	   	);
 
+	    if ($jobProcess['state']=="RUNNING" && $job['job_type']=="interactive"){
+		    $fileDummy['pending'] = "ACTIVE SESSION";
+	    }
+
 	    //list job in workspace
 	    $filesPending[$dummyId] = $fileDummy;
 
