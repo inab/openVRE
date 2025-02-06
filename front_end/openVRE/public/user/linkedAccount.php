@@ -155,28 +155,28 @@ require "../htmlib/header.inc.php"; ?>
             <!--  SSH FORM     -->
 
         <?php } elseif ($_REQUEST['account'] == "SSH"){
-		    	if (isset($_REQUEST['site_id'])) {
-				$siteId = $_REQUEST['site_id'];
-
-				if ($siteId) {
-					// Fetch site data from the collection based on site_id    
-					$site = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-					if ($site) {
-						// If site is found, extract the values (you can add more values depending on the structure)
-					$siteName = htmlspecialchars($site['name']);
-					$siteAcronym = isset($site['sigla']) ? htmlspecialchars($site['sigla']) : 'N/A';
-					$privKey = isset($site['launcher']['access_credentials']['private_key']) ? htmlspecialchars($site['launcher']['access_credentials']['private_key']) : '';
-					$pubKey = isset($site['launcher']['access_credentials']['public_key']) ? htmlspecialchars($site['launcher']['access_credentials']['public_key']) : '';
-					$hpcUsername = isset($site['launcher']['access_credentials']['username']) ? htmlspecialchars($site['launcher']['access_credentials']['username']) : '';
-					}
+		    	
+                if (isset($_REQUEST['site_id'])) {
 				
-				} else {
-			    	    // If no site_id is passed or site not found, handle this error accordingly
-					echo "No valid site ID provided.";
-					exit;
-				}
+                    $siteId = $_REQUEST['site_id'];
+                    if ($siteId) {
+                        // Fetch site data from the collection based on site_id    
+                        $site = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
+                        if ($site) {
+                            // If site is found, extract the values (you can add more values depending on the structure)
+                        $siteName = htmlspecialchars($site['name']);
+                        $siteAcronym = isset($site['sigla']) ? htmlspecialchars($site['sigla']) : 'N/A';
+                        $privKey = isset($site['launcher']['access_credentials']['private_key']) ? htmlspecialchars($site['launcher']['access_credentials']['private_key']) : '';
+                        $pubKey = isset($site['launcher']['access_credentials']['public_key']) ? htmlspecialchars($site['launcher']['access_credentials']['public_key']) : '';
+                        $userKey = isset($site['launcher']['access_credentials']['user_key']) ? htmlspecialchars($site['launcher']['access_credentials']['user_key']) : '';
+                        }
+                    
+                    } else {
+                            // If no site_id is passed or site not found, handle this error accordingly
+                        echo "No valid site ID provided.";
+                        exit;
+                    }
 				//echo generateSSHForm($siteId);
-			
 			}
 
 			?>
@@ -225,15 +225,16 @@ require "../htmlib/header.inc.php"; ?>
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="control-label">HPC Account Username</label>
-                                <input type="text" name="username" id="username" class="form-control" value="<?php echo $hpcUsername; ?>">
+                                <input type="text" name="user_key" id="user_key" class="form-control" value="<?php echo $userKey; ?>">
                             </div>
                         </div>
                     </div>
+                    
 
                     <!-- Submit and action buttons -->
                     <div class="col-md-12 text-right">
-			<input type="hidden" name="save_credential" id="save_credential" value="false">
-			<input type="hidden" name="site_id" value="<?php echo htmlspecialchars($siteId); ?>">
+			            <input type="hidden" name="save_credential" id="save_credential" value="false">
+			            <input type="hidden" name="site_id" value="<?php echo htmlspecialchars($siteId); ?>">
                         <button type="submit" onclick="document.getElementById('save_credential').value=true" class="btn blue">
                             <i class="fa fa-check"></i> Accept
                         </button>
@@ -267,7 +268,7 @@ require "../htmlib/header.inc.php"; ?>
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="control-label">HPC Account Username</label>
-                                <input type="text" name="username" id="username" class="form-control" value="<?php echo $hpcUsername; ?>">
+                                <input type="text" name="hpc_username" id="hpc_username" class="form-control" value="<?php echo $hpcUsername; ?>">
                             </div>
                         </div>
                     </div>
@@ -295,19 +296,33 @@ require "../htmlib/header.inc.php"; ?>
 		   <!--  OPENSTACK FORM    -->
                    <?php } elseif ($_REQUEST['account'] == "objectstorage"){
 
+                    $siteId = $_REQUEST['account'];
 
-                        // set form default values
-
-                        $defaults = array();
-                        if (isset($_SESSION['formData'])){
-                                $defaults = $_SESSION['formData'];
-                                unset($_SESSION['formData']);
-                        }elseif($_REQUEST['action'] == 'update'){
-                                $defaults['app_id'] = $_SESSION['User']['linked_accounts']['Swift']['app_id'];
-                                //$defaults['app_secret']      = $_SESSION['User']['linked_accounts']['Swift']['app_secret'];
+                    if ($siteId) {
+                        $site = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
+                        if (isset($site['type']) && $site['type'] === 1) {
+                            $siteName = htmlspecialchars($site['name']);
+                            $siteAcronym = isset($site['sigla']) ? htmlspecialchars($site['sigla']) : 'N/A';
+                            $appId = isset($site['access_credentials']['app_id']) ? htmlspecialchars($site['access_credentials']['app_id']) : '';
+                            $appSecret = isset($site['access_credentials']['app_secret']) ? htmlspecialchars($site['access_credentials']['app_secret']) : '';
+                            $authorizationType = isset($site['access_credentials']['authorization_type']) ? htmlspecialchars($site['access_credentials']['authorization_type']) : '';
+                            $domainName = isset($site['access_credentials']['domainName']) ? htmlspecialchars($site['access_credentials']['domainName']) : '';
+                            $interface = isset($site['access_credentials']['interface']) ? htmlspecialchars($site['access_credentials']['interface']) : '';
+                            $projectDomainId = isset($site['access_credentials']['projectDomainId']) ? htmlspecialchars($site['access_credentials']['projectDomainId']) : '';
+                            $projectId = isset($site['access_credentials']['projectId']) ? htmlspecialchars($site['access_credentials']['projectId']) : '';
+                            $projectName = isset($site['access_credentials']['projectName']) ? htmlspecialchars($site['access_credentials']['projectName']) : '';
+                            $userKey = isset($site['access_credentials']['user_key']) ? htmlspecialchars($site['access_credentials']['user_key']) : '';
+                            $regionName = isset($site['access_credentials']['region_name']) ? htmlspecialchars($site['access_credentials']['region_name']) : 'RegionOne';
+                        } else {
+                            $_SESSION['errorData']['Error'][] = "Site status is not valid for this operation.";
+                            exit;
                         }
-                        ?>
-
+                    } else {
+                        $_SESSION['errorData']['Error'][] = "No site found for the provided site ID.";
+                        exit;
+                    }
+    
+                ?>
                     <div class="portlet box blue-oleo">
                             <div class="portlet-title">
                                 <div class="caption">
@@ -331,7 +346,7 @@ require "../htmlib/header.inc.php"; ?>
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label class="control-label">Application Credential ID</label>
-                                                <input type="text" name="app_id" id="app_id" class="form-control" value="<?php echo $defaults['app_id'];?>">
+                                                <input type="text" name="app_id" id="app_id" class="form-control" value="<?php echo $appId;?>">
 					    </div>
                                         </div>
                                     </div>
@@ -339,7 +354,7 @@ require "../htmlib/header.inc.php"; ?>
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label class="control-label">Application Credential Secret</label>
-                                                <input type="text" name="app_secret" id="app_secret" class="form-control" value="<?php echo $defaults['app_secret'];?>">
+                                                <input type="text" name="app_secret" id="app_secret" class="form-control" value="<?php echo $appSecret;?>">
                                             </div>
                                         </div>
                                     </div>
@@ -347,13 +362,13 @@ require "../htmlib/header.inc.php"; ?>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label class="control-label">Project Name</label>
-                                                <input type="text" name="projectName" id="projectName" class="form-control" value="<?php echo $defaults['projectName'];?>">
+                                                <input type="text" name="projectName" id="projectName" class="form-control" value="<?php echo $projectName;?>">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label class="control-label">Project Id</label>
-                                                <input type="text" name="projectId" id="projectId" class="form-control" value="<?php echo $defaults['projectId'];?>">
+                                                <input type="text" name="projectId" id="projectId" class="form-control" value="<?php echo $projectId;?>">
                                             </div>
                                         </div>
                                     </div>
@@ -361,13 +376,21 @@ require "../htmlib/header.inc.php"; ?>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label class="control-label">Domain Name</label>
-                                                <input type="text" name="domainName" id="domainName" class="form-control" value="<?php echo $defaults['domainName'];?>">
+                                                <input type="text" name="domainName" id="domainName" class="form-control" value="<?php echo $domainName;?>">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label class="control-label">Domain Id</label>
-                                                <input type="text" name="projectDomainId" id="projectDomainId" class="form-control" value="<?php echo $defaults['projectDomainId'];?>">
+                                                <input type="text" name="projectDomainId" id="projectDomainId" class="form-control" value="<?php echo $projectDomainId;?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label">Account Username</label>
+                                                <input type="text" name="user_key" id="user_key" class="form-control" value="<?php echo $userKey; ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -406,9 +429,7 @@ require "../htmlib/header.inc.php"; ?>
                                 </div>
                             </div>
                         </div>
-
-	    <?php } ?>
-
+                  <?php } ?>
             </form>
 
 

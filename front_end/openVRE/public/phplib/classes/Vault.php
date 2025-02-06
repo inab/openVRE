@@ -36,9 +36,9 @@ class VaultClient {
 		$url = $this->vaultUrl . "auth/jwt/login";
 		//$url = $this->vaultUrl . "vault/auth/oidc/oidc/callback";
 
-		// echo "Authentication URL: " . $url . "\n";
-		// echo "Request Payload: " . $jwtToken . "\n";
-		// echo "Role" .$roleName . "\n";
+		echo "Authentication URL: " . $url . "\n";
+// 		echo "Request Payload: " . $jwtToken . "\n";
+// 		echo "Role" .$roleName . "\n";
 
 		$data = [
 			'role' => $roleName,
@@ -236,7 +236,7 @@ class VaultClient {
 	//	return false;
         //}
 	
-	return substr($decodedKey, 0, 1) === "\x30";
+		return substr($decodedKey, 0, 1) === "\x30";
         // More advanced checks can be added here
         //return true;
     
@@ -470,34 +470,42 @@ class VaultClient {
 			}
 		} elseif (isset($data['data']['Swift'])) {
 			try {
-				echo "hello?";
+				
 				// First access the Vault with the Token provided by Keycloak
-				echo $this->vaultUrl;
-				echo $this->jwtToken;
-				echo $this->roleName;
-				echo "token";
-				$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
-				print "Token1";
-				echo $token;
-				$responseArray = $token["response"];
-				$respondeData = json_decode($responseArray, true);
-				$vaultToken = $respondeData["auth"]["client_token"];
+				//echo "Vault URL: " . $this->vaultUrl . "\n";
+				//echo "JWT Token: " . $this->jwtToken . "\n";
+				//echo "Role Name: " . $this->roleName . "\n";
 
-				echo "client token:";
-		   		echo  $responseArray;
+
+	
+				$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
+				//print "Token1";
+				//echo $token;
+				//echo "Token response: " . print_r($token, true) . "\n";
+
+				$responseArray = $token["response"];
+				//echo "Response Array: " . $responseArray . "\n";
+				$respondeData = json_decode($responseArray, true);
+				//echo "Decoded Response Data: " . print_r($respondeData, true) . "\n";
+
+				$vaultToken = $respondeData["auth"]["client_token"];
+				//echo "Vault Client Token: " . $vaultToken . "\n";
 
 				$secretPath = 'secret/mysecret/data/';
+				//echo "Swift Data: " . print_r($data['data']['Swift'], true) . "\n";
+
 				if (isset($data['data']['Swift']['_id'])) {
 					$filename = $data['data']['Swift']['_id'] . '_credentials.txt';
 				} elseif (isset($data['data']['Swift']['_id'])) {
 					$filename = $data['data']['Swift']['_id'] . '_credentials.txt';
 				}
 
+				//echo "Filename: " . $filename . "\n";
 				// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
 				// uploadFileToVault($url, $secretPath, $username, $token, $data)
 
 				$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
-
+				//echo "Upload Result: " . print_r($rz, true) . "\n";
 				return $vaultToken;
 
 			} catch (Exception $e) {
