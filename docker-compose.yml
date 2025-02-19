@@ -3,7 +3,6 @@ services:
     hostname: my-mongodb
     image: mongo:4.4
     container_name: my-mongodb
-      #user: ${UID}:${GID}
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -27,7 +26,6 @@ services:
     container_name: mongo_seed
     image: mongo:4.4
     profiles: ["populate_DB"]
-    #user: ${UID}:${GID}
     links:
       - my-mongodb
     env_file: .env
@@ -182,7 +180,7 @@ services:
 networks:
   net_vre:
     name: ${NETWORK_NAME}
-    #Use on openStack cloud
+  # Use this driver_opts on openStack cloud
     #driver_opts:
       #com.docker.network.driver.mtu: 1442
     ipam:
