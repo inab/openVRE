@@ -145,12 +145,13 @@ services:
         ipv4_address: 172.21.0.14
 
   sgecore:
+    pull_policy: never
     image: sgecore
     build:
-          context: ./sge
-          args:
-              SUBMITTER_HOSTNAME: "${FRONTEND_HOSTNAME}"
-              DOCKER_GROUP: "${DOCKER_GROUP}"
+      context: ./sge
+      args:
+          SUBMITTER_HOSTNAME: "${FRONTEND_HOSTNAME}"
+          DOCKER_GROUP: "${DOCKER_GROUP}"
     container_name: sgecore
     hostname: sgecore
     extra_hosts:
