@@ -78,7 +78,7 @@ $GLOBALS['vaultRolename'] = 'demo';
 $GLOBALS['secretPath'] = 'secret/mysecret/data/';
 
 // Google Analytics
-$GLOBALS['GA_TAG']; // if used, set the id for: https://www.googletagmanager.com/gtag/js?id=
+#$GLOBALS['GA_TAG']; // if used, set the id for: https://www.googletagmanager.com/gtag/js?id=
 
 
 /************************
