@@ -216,8 +216,6 @@ function aggregateJobLogs($filters=array()){
                 unset($jobs[$pid]["log_type"]);
                 unset($jobs[$pid]["date"]);
 
-                datefmt_format(getLogsDateTimeFormat(), $logEvent['date']->toDateTime()->format('U'));
-
                 $jobs[$pid]["date_start"] = datefmt_format(getLogsDateTimeFormat(), $logEvent['date']->toDateTime()->format('U'));
                 $jobs[$pid]["timestamp_start"] = $logEvent['date']->toDateTime()->format('U');
                 $jobs[$pid]["work_dir"] = fromAbsPath_toPath($logEvent['work_dir']);
