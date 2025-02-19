@@ -83,6 +83,8 @@ services:
        POSTGRES_DB: ${POSTGRES_DB}
        POSTGRES_USER: ${POSTGRES_USER}
        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./volumes/keycloak_data:/var/lib/postgresql/data
     networks:
       net_vre:
         ipv4_address: 172.21.0.13
