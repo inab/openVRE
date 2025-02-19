@@ -8,3 +8,8 @@ do
     echo "Adding new submit host: " $S_HOST
     qconf -as $S_HOST
 done < $1
+
+
+echo "Finished adding submit hosts"
+qconf -sconf
+qconf -ssconf
