@@ -1082,9 +1082,12 @@ class Tooljob {
 			$cmd_vre = $tool['infrastructure']['executable'];
 		}
 
+		$networkIP = $GLOBALS['NETWORK_IP'];
+		$start_port = $GLOBALS['interactive_range_start_port'];
+		$end_port = $GLOBALS['interactive_range_end_port'];
+
 		# Get the free port using the get_open_port function
-		$free_port = shell_exec('python3 /var/www/html/openVRE/public/phplib/classes/get_free_port.py');
-		#$tool['infrastructure']['free_port'] = $free_port;
+		$free_port = shell_exec("python3 /var/www/html/openVRE/public/phplib/classes/get_port.py $networkIP $start_port $end_port");
 
 		$updateResult = $GLOBALS['toolsCol']->updateOne(
 			['_id' => $tool["_id"]],   // Find the tool by ID

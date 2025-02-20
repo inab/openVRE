@@ -51,6 +51,14 @@ $GLOBALS['timezone'] = "UTC";
 $GLOBALS['datetime'] = "Y.M.dd HH:mm"; // https://unicode-org.github.io/icu/userguide/format_parse/datetime/#date-field-symbol-table
 $GLOBALS['logs_datetime'] = "dd.M.Y HH:mm:ss";
 
+
+// Interactive tools
+$GLOBALS['NETWORK_IP'] = "0.0.0.0";
+$GLOBALS['interactive_range_start_port'] = "9001";
+$GLOBALS['interactive_range_end_port'] = "9010";
+
+
+
 // Tool integration models and templates
 $GLOBALS['tool_json_schema']    = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/tool_schema.json"; // data model for tool registration
 $GLOBALS['tool_io_json_schema']  = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/tool_schema_io.json"; // data model for tool registration - only I/O definition
