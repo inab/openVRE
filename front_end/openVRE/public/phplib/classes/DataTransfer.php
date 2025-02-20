@@ -377,7 +377,7 @@ public function handleFileLocation($location, $file_path, $local_file_path, $vau
 		//
 		//Assuming location is the same for all files
 		$vaultKey = $_SESSION['User']['Vault']['vaultKey'];
-		$vaultUrl = $_SESSION['User']['Vault']['vaultUrl'];
+		$vaultUrl = $GLOBALS['vaultUrl'];
 		echo "Vault Key: $vaultKey<br>";
 		echo "Vault Url: $vaultUrl<br>";
 

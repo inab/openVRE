@@ -23,7 +23,7 @@ if (!isset($project['name'])){
 //format project atime time
 if (is_object($project['atime']))
        $project['atime'] =$project['atime']->toDateTime()->format('U');
-$project['atime'] = strftime('%Y/%m/%d %H:%M', $project['atime']);
+$project['atime'] = datefmt_format(getDateTimeFormat(), $project['atime']);
 
 
 ?>

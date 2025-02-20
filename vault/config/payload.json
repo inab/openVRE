@@ -1,4 +1,0 @@
-{
-  "oidc_discovery_url": "https://inb.bsc.es/auth/realms/disc4all/",
-  "bound_issuer": "https://inb.bsc.es/auth/realms/disc4all/"
-}

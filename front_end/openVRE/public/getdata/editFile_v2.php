@@ -75,7 +75,7 @@ redirectOutside();
                 $file['size'] = byteConvert($file['size']);
                 
                 $file['mtime'] = $file['mtime']->toDateTime()->format('U');
-                $file['mtime'] = strftime('%Y/%m/%d %H:%M', $file['mtime']);                
+                $file['mtime'] = datefmt_format(getDateTimeFormat(), $file['mtime']);             
         ?>
  
             <label class="mt-radio mt-radio-outline block">

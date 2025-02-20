@@ -3,30 +3,6 @@
  * 
  */
 
-// get chr names from ref genome description file
-function get_chrNames($ref){
-    $names=Array();
-    //$chrFile= $GLOBALS['refGenomes']. "/$ref/$ref.fa.chrom.sizes";
-    //$chrFile= glob($GLOBALS['refGenomes']. "/*/$ref/$ref.fa.chrom.sizes")[0];
-    $chrFile= $GLOBALS['refGenomes']. "/$ref/$ref.fa.chrom.sizes";
-    //$_SESSION['errorData']['Info'][]="Reference names are found in  $chrFile ";
-    if (! is_file($chrFile)){
-	//$_SESSION['errorData']['error'][]="Cannot find file with chromosome information names '$chrFile'";
-	$_SESSION['errorData']['error'][]="Cannot find file with chromosome information names ".$GLOBALS['refGenomes']."/$ref/$ref.fa.chrom.sizes";
-        return $names;
-    }
-    $stdOut;
-    $stdErr;
-    $cmd = "cut -f1 $chrFile";
-    subprocess($cmd,$stdOut,$stdErr);
-    if ($stdErr){
-        $_SESSION['errorData']['error'][]="Error extracting reference Genome chromosomes from $chrFile: $stdErr";
-        return $names;
-    }
-    $names  = explode(PHP_EOL, $stdOut);
-
-    return $names;
-}
 
 // get chr possible alternative names
 function get_chrAlternatives(){ 
@@ -644,86 +620,6 @@ function processUPLOAD($inId){
 	return true;
 }
 
-
-function convert2BW_getCmd($input,$bw,$refGenome){
-	$chrSizes= glob($GLOBALS['refGenomes']. "/*/$refGenomes/$refGenome.fa.chrom.sizes")[0];
-    $dirTmp   = $GLOBALS['dataDir']."/".$_SESSION['User']['id']."/".$_SESSION['User']['activeProject']."/".$GLOBALS['tmpUser_dir'];
-	$dirExe  = $GLOBALS['appsDir']."/UCSC/";
-	$ext = pathinfo($input, PATHINFO_EXTENSION);
-	$ext = preg_replace('/_\d+$/',"",$ext);
-
-	if (preg_match('/wig/i',$ext)){
-		$exe  = $dirExe."/wigToBigWig";
-	}elseif (preg_match('/wig/i',$ext)){
-		$exe  = $dirExe."/bedGraphToBigWig";
-	}else{
-		$_SESSION['errorData']['error'][]= "Cannot convert $input to BIGWIG. Cannot guess file format. Expected .wig or .bedgraph";
-		return (false);
-	}
-	
-	if (! is_file($chrSizes)){
-		$_SESSION['errorData']['error'][]="No file with chromosome sizes given to the UCSC script. File $chrSizes not found.";
-		return (false);
-	}
-	$cmd = "$exe $input $chrSizes $bw";
-	return $cmd;
-}
-
-function convert2BW($fn,$BW,$refGenome,$format){
-	//$chrSizes= $GLOBALS['refGenomes']. "/$refGenome/$refGenome.fa.chrom.sizes";
-	$chrSizes= glob($GLOBALS['refGenomes']. "/*/$refGenomes/$refGenome.fa.chrom.sizes")[0];
-    $dirTmp   = $GLOBALS['dataDir']."/".$_SESSION['User']['id']."/".$_SESSION['User']['activeProject']."/".$GLOBALS['tmpUser_dir'];
-	$dirExe  = $GLOBALS['appsDir']."/UCSC/";
-
-	$input  = $GLOBALS['dataDir']."/".$fn;
-	$BWfn   = $GLOBALS['dataDir']."/".$BW;
-
-	if ($format == "WIG"){
-		$exe  = $dirExe."/wigToBigWig";
-	}elseif ($format == "BEDGRAPH"){
-		$exe  = $dirExe."/bedGraphToBigWig";
-	}elseif ($format == "BED"){
-		$exe  = $dirExe."/bedToBigWig";
-	}else{
-		$_SESSION['errorData']['error'][]= "Cannot convert $input from format $format. Expected wig or bedgraph";
-		return (false);
-	}
-	
-	if (! is_file($chrSizes)){
-		$_SESSION['errorData']['error'][]="No file with chromosome sizes given to the UCSC script. File $chrSizes not found.";
-		return (false);
-	}
-	$cmd = "$exe $input $chrSizes $BWfn";
-	$stdOut  = "";
-	$stdErr  = "";
-	subprocess($cmd,$stdOut,$stdErr,$dirTmp);
-	if ($stdErr){
-		$_SESSION['errorData']['error'][]="Error while converting $fn to BIGWIG.<br/><u>CMD</u>: $cmd<br/><u>ERR</u>: $stdErr";
-		return (false);
-	}
-	if (! is_file($BWfn) ){
-		$_SESSION['errorData']['error'][]="Error while converting $fn to BIGWIG.<br/><u>CMD</u>: $cmd<br/><u>ERR</u>: Expected outfile not created!";
-		return (false);
-	}
-	$insertData=array(
-	       '_id'   => $BW,
-	       'owner' => $_SESSION['userId'],
-	       'size'  => filesize($BWfn),
-	       'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($BWfn)*1000)
-	);
-	$fileMeta = $GLOBALS['filesMetaCol']->findOne(array('_id' => $fn));
-	$r = uploadGSFileBNS($BW, $BWfn, $insertData,$fileMeta,FALSE);
-	if ($r == 0)
-		return (false);
-
-	#clean original wig
-	$r = deleteGSFileBNS($fn);
-    if ($r == 0)
-    	return false;
-	unlink ($input);	
-
-	return (true);
-}
 
 /*
 //adds regular metadata

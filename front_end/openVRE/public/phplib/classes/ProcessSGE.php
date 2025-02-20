@@ -1,8 +1,8 @@
 <?php
 
-define ("QSUB", "qsub -S /bin/bash" );
-define ("QDEL", "qdel ");
-define ("QSTAT", "qstat ");
+const QSUB = "qsub -S /bin/bash";
+const QDEL = "qdel ";
+const QSTAT = "qstat ";
 
 class ProcessSGE{
 	private $pid;
@@ -13,6 +13,14 @@ class ProcessSGE{
 	private $mem=0;
 	private $logFile="job_output.log";
 	private $errFile="job_error.log";
+
+	private $jobname;
+
+	private $fullcommand;
+
+	private $stdout;
+
+	private $stderr;
 
 	private $username; //may change depending on FS needs. IRB=www-data. BSC=vre
 

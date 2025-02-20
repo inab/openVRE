@@ -74,7 +74,7 @@ function get_url_interactive_tool_333332($pid, $login="session") {
 	if ($ok_service){
 		// Build IP from port (md5)
 		$url_proxy_path = 'rstudio_'.md5($tool_port);
-		$proxy_tool_url = "http://vre.disc4all.eu/$url_proxy_path/";
+		$proxy_tool_url = $GLOBALS['interactive_server'] . "/" . "$url_proxy_path/";
 
 		// TODO: set gdx proxy headers
 		$_SESSION['errorData']['Info'][]="Interactive session successfully established. Active session accessible at URL = <a target=_blank href='$proxy_tool_url'>$proxy_tool_url</a> .";
@@ -265,11 +265,11 @@ list($proxy_tool_url,$proxy_tool_headers,$autorefresh) = get_url_interactive_too
 
 
 	<?php
-	$proxy_url = 'http://vre.disc4all.eu/tool-proxy/'; 
+	$proxy_url = $GLOBALS['interactive_server'] . "/" . "tool-proxy/";; 
 	$headers = array(
 		'x-interactive-tool-host: RStudio_b04cbeb0bc6f0e70',
 		'x-interactive-tool-port: 8787',
-		'Host: http://vre.disc4all.eu/tool-proxy/',
+		'Host: $proxy_url',
 		'X-RStudio-Root-Path: /tool-proxy',
 		'X-Forwarded-Proto: https'
 	);

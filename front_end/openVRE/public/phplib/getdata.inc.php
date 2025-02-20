@@ -26,99 +26,97 @@ function getData_fromLocal() {
 
 	$fileIds = [];
 	// upload each source file	
-	for ($i = 0; $i < count($_FILES['file']['tmp_name']); ++$i) {
-        $errorCode = $_FILES['file']['error'];
-		if ($errorCode) { 
-            $errMsg = [
-                0 => "[UPLOAD_ERR_OK]:  There is no error, the file uploaded with success",
-                1 => "[UPLOAD_ERR_INI_SIZE]: The uploaded file exceeds the upload_max_filesize directive in php.ini",
-                2 => "[UPLOAD_ERR_FORM_SIZE]: The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
-                3 => "[UPLOAD_ERR_PARTIAL]: The uploaded file was only partially uploaded",
-                4 => "[UPLOAD_ERR_NO_FILE]: No file was uploaded",
-                6 => "[UPLOAD_ERR_NO_TMP_DIR]: Missing a temporary folder",
-                7 => "[UPLOAD_ERR_CANT_WRITE]: Failed to write file to disk",
-                8 => "[UPLOAD_ERR_EXTENSION]: File upload stopped by extension"
-            ];
+    $errorCode = $_FILES['file']['error'];
+    if ($errorCode) { 
+        $errMsg = [
+            0 => "[UPLOAD_ERR_OK]:  There is no error, the file uploaded with success",
+            1 => "[UPLOAD_ERR_INI_SIZE]: The uploaded file exceeds the upload_max_filesize directive in php.ini",
+            2 => "[UPLOAD_ERR_FORM_SIZE]: The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
+            3 => "[UPLOAD_ERR_PARTIAL]: The uploaded file was only partially uploaded",
+            4 => "[UPLOAD_ERR_NO_FILE]: No file was uploaded",
+            6 => "[UPLOAD_ERR_NO_TMP_DIR]: Missing a temporary folder",
+            7 => "[UPLOAD_ERR_CANT_WRITE]: Failed to write file to disk",
+            8 => "[UPLOAD_ERR_EXTENSION]: File upload stopped by extension"
+        ];
 
-			if (isset($errMsg[$errorCode])) {
-				$_SESSION['errorData']['upload'][] = "ERROR [code $errorCode] ".$errMsg[$errorCode];
-				die("ERROR [code $errorCode] ".$errMsg[$errorCode]."0");
-			}
-
-            $_SESSION['errorData']['upload'][] = "Unknown upload error";
-			die("Unknown upload error 0");
-		}
-
-        $size = $_FILES['file']['size'];
-		if (!$size || $size == 0) {
-			$_SESSION['errorData']['upload'][] = "ERROR: ".$_FILES['file']['name']." file size is zero";
-			die("ERROR: ".$_FILES['file']['name']." file size is zero 0");
-		}
-
-		if ($size > return_bytes(ini_get('upload_max_filesize')) || $size > return_bytes(ini_get('post_max_size'))) {
-			$_SESSION['errorData']['upload'][] = "ERROR: File size $size larger than UPLOAD_MAX_FILESIZE (".ini_get('upload_max_filesize').") ";
-			die("ERROR: File size $size larger than UPLOAD_MAX_FILESIZE (".ini_get('upload_max_filesize').") 0");
-		}
-
-		$usedDisk = (int) getUsedDiskSpace();
-		$diskLimit = (int) $_SESSION['User']['diskQuota'];
-		if ($size > ($diskLimit - $usedDisk)) {
-			$_SESSION['errorData']['upload'][] = "ERROR: Cannot upload file. Not enough space left in the workspace";
-			die("ERROR: Cannot upload file. Not enough space left in the workspace");
-		}
-        
-        $filePath = "$workingDir/".cleanName($_FILES['file']['name']);
-		//do not overwrite, rename
-		if (is_file($filePath)) {
-			foreach (range(1, 99) as $N) { // TODO: should be changed
-				if ($pos = strrpos($filePath, '.')) {
-					$name = substr($filePath, 0, $pos);
-					$extension = substr($filePath, $pos);
-				} else {
-					$name = $filePath;
-				}
-
-				$tmpFilePath = $name .'_'. $N . $extension;
-				if (!is_file($tmpFilePath)) {
-					$filePath = $tmpFilePath;
-					break;
-				}
-			}
-		}
-
-		//actual upload
-		if ($_FILES['file']['tmp_name']) {
-			if (!move_uploaded_file($_FILES['file']['tmp_name'], $filePath)) {
-                $_SESSION['errorData']['upload'] = "Error occurred while moving the uploaded file";
-                die("Error occurred while moving the uploaded file");
-            };
-		}
-
-        if (!is_file($filePath)) {
-			$_SESSION['errorData']['upload'][] = "Uploaded file not correctly stored";
-			die("Uploaded file not correctly stored");
+        if (isset($errMsg[$errorCode])) {
+            $_SESSION['errorData']['upload'][] = "ERROR [code $errorCode] ".$errMsg[$errorCode];
+            die("ERROR [code $errorCode] ".$errMsg[$errorCode]."0");
         }
 
-        chmod($filePath, 0666);
-        $fileBasename = basename($filePath);
-        $insertData = [
-            'owner' => $_SESSION['User']['id'],
-            'size'  => filesize($filePath),
-            'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($filePath) * 1000)
-        ];
+        $_SESSION['errorData']['upload'][] = "Unknown upload error";
+        die("Unknown upload error 0");
+    }
 
-        $metaData = [
-            'validated' => FALSE
-        ];
+    $size = $_FILES['file']['size'];
+    if (!$size || $size == 0) {
+        $_SESSION['errorData']['upload'][] = "ERROR: ".$_FILES['file']['name']." file size is zero";
+        die("ERROR: ".$_FILES['file']['name']." file size is zero 0");
+    }
+
+    if ($size > return_bytes(ini_get('upload_max_filesize')) || $size > return_bytes(ini_get('post_max_size'))) {
+        $_SESSION['errorData']['upload'][] = "ERROR: File size $size larger than UPLOAD_MAX_FILESIZE (".ini_get('upload_max_filesize').") ";
+        die("ERROR: File size $size larger than UPLOAD_MAX_FILESIZE (".ini_get('upload_max_filesize').") 0");
+    }
+
+    $usedDisk = (int) getUsedDiskSpace();
+    $diskLimit = (int) $_SESSION['User']['diskQuota'];
+    if ($size > ($diskLimit - $usedDisk)) {
+        $_SESSION['errorData']['upload'][] = "ERROR: Cannot upload file. Not enough space left in the workspace";
+        die("ERROR: Cannot upload file. Not enough space left in the workspace");
+    }
     
-        $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData, FALSE);
-        if ($fileId == "0") {
-            $_SESSION['errorData']['upload'] = "Error occurred while registering the uploaded file";
-            die("Error occurred while registering the uploaded file");
-        }
+    $filePath = "$workingDir/".cleanName($_FILES['file']['name']);
+    //do not overwrite, rename
+    if (is_file($filePath)) {
+        foreach (range(1, 99) as $N) { // TODO: should be changed
+            if ($pos = strrpos($filePath, '.')) {
+                $name = substr($filePath, 0, $pos);
+                $extension = substr($filePath, $pos);
+            } else {
+                $name = $filePath;
+            }
 
-        array_push($fileIds, $fileId);
-	}
+            $tmpFilePath = $name .'_'. $N . $extension;
+            if (!is_file($tmpFilePath)) {
+                $filePath = $tmpFilePath;
+                break;
+            }
+        }
+    }
+
+    //actual upload
+    if ($_FILES['file']['tmp_name']) {
+        if (!move_uploaded_file($_FILES['file']['tmp_name'], $filePath)) {
+            $_SESSION['errorData']['upload'] = "Error occurred while moving the uploaded file";
+            die("Error occurred while moving the uploaded file");
+        };
+    }
+
+    if (!is_file($filePath)) {
+        $_SESSION['errorData']['upload'][] = "Uploaded file not correctly stored";
+        die("Uploaded file not correctly stored");
+    }
+
+    chmod($filePath, 0666);
+    $fileBasename = basename($filePath);
+    $insertData = [
+        'owner' => $_SESSION['User']['id'],
+        'size'  => filesize($filePath),
+        'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($filePath) * 1000)
+    ];
+
+    $metaData = [
+        'validated' => FALSE
+    ];
+
+    $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData, FALSE);
+    if ($fileId == "0") {
+        $_SESSION['errorData']['upload'] = "Error occurred while registering the uploaded file";
+        die("Error occurred while registering the uploaded file");
+    }
+
+    array_push($fileIds, $fileId);
 
 	print implode(",", $fileIds);
 }

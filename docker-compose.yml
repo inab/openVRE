@@ -78,6 +78,7 @@ services:
   postgres:
     container_name: postgres
     image: postgres
+    profiles: ["local_auth"]
     environment:
        POSTGRES_DB: ${POSTGRES_DB}
        POSTGRES_USER: ${POSTGRES_USER}
@@ -101,8 +102,8 @@ services:
         KEYCLOAK_USER: ${KEYCLOAK_USER}
         KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
         PROXY_ADDRESS_FORWARDING: "false"
-          #KEYCLOAK_FRONTEND_URL: ${FQDN_HOST_PROTOCOL}://${FQDN_HOST}/auth
-        KEYCLOAK_FRONTEND_URL: "http://172.21.0.12:8080/auth"   # to use in local env.
+        KEYCLOAK_FRONTEND_URL: "http://172.21.0.12:8080/auth" # temporary hack for this keycloak version
+        #KEYCLOAK_FRONTEND_URL: ${FQDN_HOST_PROTOCOL}://${FQDN_HOST}/auth
     volumes:
         - ./keycloak/realms:/opt/jboss/keycloak/imports
     command:
@@ -144,12 +145,13 @@ services:
         ipv4_address: 172.21.0.14
 
   sgecore:
+    pull_policy: never
     image: sgecore
     build:
-          context: ./sge
-          args:
-              SUBMITTER_HOSTNAME: "${FRONTEND_HOSTNAME}"
-              DOCKER_GROUP: "${DOCKER_GROUP}"
+      context: ./sge
+      args:
+          SUBMITTER_HOSTNAME: "${FRONTEND_HOSTNAME}"
+          DOCKER_GROUP: "${DOCKER_GROUP}"
     container_name: sgecore
     hostname: sgecore
     extra_hosts:

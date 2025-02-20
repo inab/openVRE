@@ -216,7 +216,7 @@ function aggregateJobLogs($filters=array()){
                 unset($jobs[$pid]["log_type"]);
                 unset($jobs[$pid]["date"]);
 
-                $jobs[$pid]["date_start"] = strftime('%d/%m/%Y %H:%M', $logEvent['date']->toDateTime()->format('U'));
+                $jobs[$pid]["date_start"] = datefmt_format(getLogsDateTimeFormat(), $logEvent['date']->toDateTime()->format('U'));
                 $jobs[$pid]["timestamp_start"] = $logEvent['date']->toDateTime()->format('U');
                 $jobs[$pid]["work_dir"] = fromAbsPath_toPath($logEvent['work_dir']);
 
@@ -226,7 +226,7 @@ function aggregateJobLogs($filters=array()){
     
             // from 'finished'
             }elseif ($logEvent['log_type'] == "Finished"){
-                $jobs[$pid]["date_end"] = strftime('%d/%m/%Y %H:%M', $logEvent['date']->toDateTime()->format('U'));
+                $jobs[$pid]["date_end"] = datefmt_format(getLogsDateTimeFormat(), $logEvent['date']->toDateTime()->format('U'));
                 $jobs[$pid]["timestamp_end"] = $logEvent['date']->toDateTime()->format('U');
             }
         }

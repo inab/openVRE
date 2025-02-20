@@ -24,6 +24,12 @@ class Tooljob {
     public $imageType;
     public $arguments_exec;
 
+	public $root_dir_mug;
+
+	public $pub_dir_intern;
+
+	public $container_image;
+
     // Paths to files genereted during ToolJob execution
     public $config_file;
     public $input_dir_virtual;
@@ -1218,7 +1224,7 @@ EOF;
 
 		$userEmail = $_SESSION['User']['Email'];
 		$vaultKey = $_SESSION['User']['Vault']['vaultKey'];
-		$vaultAddress = $GLOBALS['vaultDockerUrl'] . $GLOBALS['vaultVersion'] . "/" . $GLOBALS['secretPath'] . $userEmail . $GLOBALS['vaultCredentialsSuffix'];
+		$vaultAddress = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $userEmail . $GLOBALS['vaultCredentialsSuffix'];
 		$userFolder = "/shared_data/userdata/" . $_SESSION['User']['id'];
 		$configFilePath = $userFolder . '/env.yml';
 		$configContent = "VAULT_TOKEN={$vaultKey}\nVAULT_ADDRESS={$vaultAddress}\n";
@@ -1817,11 +1823,6 @@ EOF;
                         'meta_data' => array(),
                         'sources'   => array(0)
                     );
-                if (preg_match('/refGenomes\/(.[^\/]+)\//',$input_value,$m)){
-                    $refGenome = $m[1];
-                    $file['meta_data']['assembly'] = $refGenome;
-                    $file['taxon_id'] =(isset($this->refGenome_to_taxon[$refGenome])?$this->refGenome_to_taxon[$refGenome]:0);
-                }
 
                 if (isset($tool['input_files_public_dir'][$input_name]['data_type']) && is_array($tool['input_files_public_dir'][$input_name]['data_type'])){
                     $file['data_type']= $tool['input_files_public_dir'][$input_name]['data_type'][0];
