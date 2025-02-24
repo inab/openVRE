@@ -131,6 +131,7 @@ services:
       - ./volumes/openVRE/tools:/var/www/html/openVRE/public/tools
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
       - ./front_end/openVRE/config:/var/www/html/openVRE/config
+      - ./front_end/openVRE/data:/var/www/html/openVRE/data
       - ./volumes/shared_data:/shared_data
     environment:
       - DOCKER_GROUP:${DOCKER_GROUP}
