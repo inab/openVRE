@@ -36,12 +36,4 @@ if (db.getUser("$MONGO_INITDB_USERNAME") === null) {
   print("Application user already exists.");
 }
 
-// Check if the collection exists
-if (db.getCollectionNames().indexOf("VREcollection") === -1) {
-  db.createCollection("VREcollection");
-  print("Collection 'VREcollection' created.");
-} else {
-  print("Collection 'VREcollection' already exists.");
-}
-
 EOF
