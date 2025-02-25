@@ -120,6 +120,7 @@ services:
       - postgres
 
   front_end:
+    pull_policy: never
     container_name: front_end
     hostname: ${FRONTEND_HOSTNAME}
     build:
