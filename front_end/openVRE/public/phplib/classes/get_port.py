@@ -1,28 +1,26 @@
 # Import necessary modules
 import socket
-import errno
 import sys
 
-# Set of reserved ports to keep track of used ports
 
-# Function to get an open port within a specified range
-def check_port(host, port):
+def is_port_free(host, port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.settimeout(1)
-        result = sock.connect_ex((host,port))
-        return result == 0
-
-def get_port(host, start_port, end_port):
-
-    for port in range(start_port, end_port +1):
-        try: 
-            if not check_port(host, port):
-                #print(f"Port {port} is free and available.")
-                return port
-        except socket.error as error:
-            if error.errno != errno.EADDRINUSE:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow socket reuse
+        try:
+            sock.bind((host, port))
+            return True 
+        except OSError as e:
+            if e.errno == socket.errno.EADDRINUSE:
+                return False 
+            else:
                 raise
-    raise Exception('Cannot find port in the speficied range.')
+
+
+def find_free_port(host, start_port, end_port):
+    for port in range(start_port, end_port + 1):
+        if is_port_free(host, port):
+            return port
+    raise Exception("Cannot find port in the specified range.")
 
 
 if __name__ == "__main__":
