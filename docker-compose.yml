@@ -127,7 +127,6 @@ services:
     image: front_end
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./front_end/act_qmaster:/var/lib/gridengine/default/common/act_qmaster
       - ./volumes/openVRE/tools:/var/www/html/openVRE/public/tools
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
       - ./front_end/openVRE/config:/var/www/html/openVRE/config

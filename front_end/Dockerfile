@@ -58,7 +58,7 @@ EXPOSE 88 443
 #RUN useradd -m application
 #RUN echo "application:application" | chpasswd
 
-CMD /opt/docker/bin/entrypoint.sh supervisord
+CMD setup.sh && /opt/docker/bin/entrypoint.sh supervisord
 
 
 #add cleaning step adjusting the document + sistema de cues
