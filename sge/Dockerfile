@@ -12,6 +12,7 @@ RUN apt-get update -y  \
         parallel \
         g++ \
         docker.io \
+        wget \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
