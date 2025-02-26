@@ -29,7 +29,7 @@ if __name__ == "__main__":
     END_PORT = int(sys.argv[3])
 
     try: 
-        available_port = get_port(HOST_IP, START_PORT, END_PORT)
+        available_port = find_free_port(HOST_IP, START_PORT, END_PORT)
         print (available_port)
     except Exception as e:
         print (f"Error: {e}")
