@@ -1143,6 +1143,7 @@ CONTAINER_ID=\$(docker run \
     $cmd_envs \
     -v {$this->pub_dir_volumes}:{$GLOBALS['shared']}public_tmp/ \
     -v {$this->root_dir_volumes}:{$GLOBALS['shared']}userdata_tmp/{$_SESSION['User']['id']} \
+	--hostname $container_name \
     -p \$FREE_PORT:{$tool['infrastructure']['container_port']} {$tool['infrastructure']['container_image']} $cmd_vre); 
 
 # Check if the container is running
