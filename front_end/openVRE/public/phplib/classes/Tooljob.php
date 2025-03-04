@@ -1057,11 +1057,7 @@ class Tooljob {
 	if (isset($tool['infrastructure']['interactive'])) {
 		$this->job_type = "interactive";
 		
-		
-		# Set dynamic container name
-                $random_string = bin2hex(random_bytes(8)); // Generate a random string
-		$container_name = $tool['infrastructure']['container_image'] ."_". $random_string;
-
+		$container_name = $tool['infrastructure']['container_image'];
 
 		#Constructing Docker executable
 		#  Set VRE cmd to be executed inside the container
