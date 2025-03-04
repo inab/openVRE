@@ -6,7 +6,6 @@ redirectOutside();
 require "../htmlib/header.inc.php";
 
 $interactiveToolprefix = "/interactive-tool/";
-
 $autorefresh = shouldAutorefresh($_REQUEST['pid']);
 
 ?>

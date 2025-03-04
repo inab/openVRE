@@ -1100,7 +1100,6 @@ class Tooljob {
 
 		$cmd=<<<EOF
 
-# Export service to an available port (-p \$FREE_PORT:{$tool['infrastructure']['container_port']}). NOT REQUIRED when using proxy-gt
 FREE_PORT=$free_port
 
 
