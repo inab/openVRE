@@ -3,10 +3,9 @@
 require dirname(__FILE__) . "/../../config/globals.inc.php";
 
 
-$interactiveToolprefix = "/interactive-tool/";
-
 function shouldAutorefresh($pid): bool
 {
+        $interactiveToolprefix = "/interactive-tool/";
         $proxy_tool_url = "";
         $ok_service = false;
         $login = $_SESSION['User']['_id'];
@@ -56,7 +55,7 @@ function shouldAutorefresh($pid): bool
         }
 
         if ($ok_service) {
-                $proxy_tool_url = $GLOBALS['SERVER'] . "/interactive-tool/" . "paraview_image2";
+                $proxy_tool_url = $GLOBALS['SERVER'] . $interactiveToolprefix . "paraview_image2";
                 $_SESSION['errorData']['Info'][] = "Interactive session successfully established. Active session accessible at URL = <a target=_blank href='$proxy_tool_url'>$proxy_tool_url</a> .";
         }
 
