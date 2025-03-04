@@ -1096,6 +1096,8 @@ class Tooljob {
 			$_SESSION['errorData']['Info'][] = "Failed to update MongoDB or no changes made.<br>";
 		}
 
+		$container_port = $tool['infrastructure']['container_port'];
+
 		$cmd=<<<EOF
 
 # Export service to an available port (-p \$FREE_PORT:{$tool['infrastructure']['container_port']}). NOT REQUIRED when using proxy-gt
@@ -1158,18 +1160,15 @@ if ! docker inspect --format='{{.State.Running}}' \$CONTAINER_ID | grep -q true;
 fi
 
 # Report container info to VRE
-CONTAINER_NAME=\$(docker inspect --format {{.Name}} \$CONTAINER_ID | cut -d "/" -f 2);
-CONTAINER_URL=\$(docker inspect --format "{{ .NetworkSettings.Networks.\$NET_NAME.IPAddress }}:{$tool['infrastructure']['container_port']}" \$CONTAINER_ID);
+CONTAINER_URL="http://$container_name:$container_port"
 printf '%s | %s\n' "\$(date)" "ContainerID: \$CONTAINER_ID";
-printf '%s | %s\n' "\$(date)" "ContainerName: \$CONTAINER_NAME";
-printf '%s | %s\n' "\$(date)" "ContainerURL: \$CONTAINER_URL";
 printf '%s | %s\n' "\$(date)" "ExposedPort: \$FREE_PORT";
+printf '%s | %s\n' "\$(date)" "ContainerURL: \$CONTAINER_URL";
 
 docker logs -f \$CONTAINER_ID &> $this->log_file_virtual &
 
 printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
-#if timeout 420 wget --retry-connrefused -q --tries=300 --waitretry=10 --spider \$CONTAINER_URL; then
-if timeout 420 wget --retry-connrefused --tries=300 --waitretry=10 -O /dev/null \$CONTAINER_URL; then
+if timeout 420 wget --retry-connrefused --tries=10 --waitretry=100 -O /dev/null \$CONTAINER_URL; then
     printf '%s | %s\n' "\$(date)" "Service UP";
 else
     printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
