@@ -2,7 +2,10 @@
 
 require dirname(__FILE__) . "/../../config/globals.inc.php";
 
-function shouldAutorefresh($pid) : bool
+
+$interactiveToolprefix = "/interactive-tool/";
+
+function shouldAutorefresh($pid): bool
 {
         $proxy_tool_url = "";
         $ok_service = false;
@@ -53,10 +56,7 @@ function shouldAutorefresh($pid) : bool
         }
 
         if ($ok_service) {
-                $url_proxy_path = 'rstudio_' . md5($tool_port);
-                $proxy_tool_url = $GLOBALS['interactive_server'] . "/" . "$url_proxy_path/";
-
-                // TODO: set gdx proxy headers
+                $proxy_tool_url = $GLOBALS['SERVER'] . "/interactive-tool/" . "paraview_image2";
                 $_SESSION['errorData']['Info'][] = "Interactive session successfully established. Active session accessible at URL = <a target=_blank href='$proxy_tool_url'>$proxy_tool_url</a> .";
         }
 

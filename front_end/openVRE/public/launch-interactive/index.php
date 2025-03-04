@@ -5,6 +5,8 @@ redirectOutside();
 
 require "../htmlib/header.inc.php";
 
+$interactiveToolprefix = "/interactive-tool/";
+
 $autorefresh = shouldAutorefresh($_REQUEST['pid']);
 
 ?>
@@ -59,12 +61,14 @@ $autorefresh = shouldAutorefresh($_REQUEST['pid']);
 						$stdout_file = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['stdout_file'];
 						$stderr_file = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['stderr_file'];
 						$tool_port   = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['interactive_tool']['port'];
+						$toolContainerName = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['container_image'];
+						$toolUrl = $GLOBALS['SERVER'] . $interactiveToolprefix . $toolContainerName;
 						$status = ($autorefresh ? "disabled" : "");
 
 						?>
 						<br />
 
-						<a target=_blank <?php echo $status; ?> href="launch-interactive/redirectTool.php?port=<?php echo $tool_port; ?>" class="btn green"> Interactive Session </a>
+						<a target=_blank <?php echo $status; ?> href="<?php echo $toolUrl; ?>" class="btn green"> Interactive Session </a>
 						<br />
 						<br />
 						<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($stdout_file); ?>" class="btn" target="_blank"><i class="fa fa-file-text-o"></i> Job Standard Output</a>
@@ -96,25 +100,6 @@ $autorefresh = shouldAutorefresh($_REQUEST['pid']);
 
 						<iframe id="if1" src="" frameborder="1px red" style="width:100%;"></iframe>
 						<hr />
-
-
-						<?php
-						$proxy_url = $GLOBALS['interactive_server'] . "/" . "tool-proxy/";
-						$headers = array(
-							'x-interactive-tool-host: RStudio_b04cbeb0bc6f0e70',
-							'x-interactive-tool-port: 8787',
-							'Host: $proxy_url',
-							'X-RStudio-Root-Path: /tool-proxy',
-							'X-Forwarded-Proto: https'
-						);
-
-						$options = array(
-							'http' => array(
-								'header' => implode("\r\n", $headers),
-								'method' => 'GET',
-							),
-						);
-						?>
 					</div>
 				</div>
 			</div>
