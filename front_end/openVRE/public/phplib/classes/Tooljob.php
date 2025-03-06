@@ -1061,7 +1061,6 @@ class Tooljob
 	protected function setBashCommandDockerSgeInteractive($tool, $cmd_envs)
 	{
 		$this->job_type = "interactive";
-		$container_name = $tool['infrastructure']['container_image'];
 		$networkIP = $GLOBALS['NETWORK_IP'];
 		$start_port = $GLOBALS['interactive_range_start_port'];
 		$end_port = $GLOBALS['interactive_range_end_port'];
@@ -1110,11 +1109,11 @@ class Tooljob
 			--rm \
 			--privileged \
 			-v /var/run/docker.sock:/var/run/docker.sock -d \
-			--net=\$NET_NAME --name $container_name \
+			--net=\$NET_NAME --name $this->containerName \
 			$cmd_envs \
 			-v {$this->pub_dir_volumes}:{$GLOBALS['shared']}public_tmp/ \
 			-v {$this->root_dir_volumes}:{$GLOBALS['shared']}userdata_tmp/{$_SESSION['User']['id']} \
-			--hostname $container_name \
+			--hostname $this->containerName \
 			-p \$FREE_PORT:{$tool['infrastructure']['container_port']} {$tool['infrastructure']['container_image']});
 		EOF;
 
@@ -1131,7 +1130,7 @@ class Tooljob
 		EOF;
 
 		$reportContainerInfo = <<<EOF
-			CONTAINER_URL="http://$container_name:$container_port"
+			CONTAINER_URL="http://$this->containerName:$container_port"
 			printf '%s | %s\n' "\$(date)" "ContainerID: \$CONTAINER_ID";
 			printf '%s | %s\n' "\$(date)" "ExposedPort: \$FREE_PORT";
 			printf '%s | %s\n' "\$(date)" "ContainerURL: \$CONTAINER_URL";
@@ -1166,7 +1165,9 @@ class Tooljob
 			return 0;
 		}
 
-		$this->containerName = $tool['infrastructure']['container_image'];
+		$timestamp = date("Y_m_d_H_i_s");
+
+		$this->containerName = $tool['infrastructure']['container_image'] . "_" . $_SESSION['User']['id'] . "_" . $timestamp;
 		$cmd_envs = "";
 		foreach ($tool['infrastructure']['container_env'] as $env_key => $env_value) {
 			$cmd_envs .= "-e $env_key=$env_value ";
