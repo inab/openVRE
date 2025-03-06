@@ -60,7 +60,7 @@ $autorefresh = shouldAutorefresh($_REQUEST['pid']);
 						$stdout_file = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['stdout_file'];
 						$stderr_file = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['stderr_file'];
 						$tool_port   = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['interactive_tool']['port'];
-						$toolContainerName = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['container_image'];
+						$toolContainerName = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['containerName'];
 						$toolUrl = $GLOBALS['SERVER'] . $interactiveToolprefix . $toolContainerName . "/";
 						$status = ($autorefresh ? "disabled" : "");
 

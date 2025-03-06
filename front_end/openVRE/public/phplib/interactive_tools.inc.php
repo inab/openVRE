@@ -36,7 +36,7 @@ function shouldAutorefresh($pid): bool
                 }
                 if (preg_match_all('/ContainerName: (\w+)/', $stdout, $matches)) {
                         $tool_container_name = $matches[1][0];
-                        $_SESSION['User']['lastjobs'][$pid]['interactive_tool']['container_name'] =  $tool_container_name;
+                        $_SESSION['User']['lastjobs'][$pid]['interactive_tool']['containerName'] =  $tool_container_name;
                 }
 
                 if (preg_match_all('/Service UP/', $stdout, $matches)) {
@@ -54,7 +54,7 @@ function shouldAutorefresh($pid): bool
         }
 
         if ($ok_service) {
-                $toolContainerName = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['container_image'];
+                $toolContainerName = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['containerName'];
                 $proxy_tool_url = $GLOBALS['SERVER'] . $interactiveToolprefix . $toolContainerName . "/";
                 $_SESSION['errorData']['Info'][] = "Interactive session successfully established. Active session accessible at URL = <a target=_blank href='$proxy_tool_url'>$proxy_tool_url</a> .";
         }

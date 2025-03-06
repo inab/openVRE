@@ -28,7 +28,7 @@ class Tooljob {
 
 	public $pub_dir_intern;
 
-	public $container_image;
+	public $containerName;
 
     // Paths to files genereted during ToolJob execution
     public $config_file;
@@ -871,7 +871,7 @@ class Tooljob {
 					break;
 
 				case "docker_SGE":
-					$cmd  = $this->setBashCmd_docker_SGE($tool);
+					$cmd  = $this->setBashCommandDockerSge($tool);
 					#$_SESSION['errorData']['Error'][] = "CMD3 " . $cmd;
 					if (!$cmd) {
 						return 0;
@@ -970,7 +970,7 @@ class Tooljob {
 		return $cmd;
     }
 
-    protected function setBashCmd_docker_SGE_TOBEDELETED($tool){
+    protected function setBashCommandDockerSge_TOBEDELETED($tool){
         if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])){
             $_SESSION['errorData']['Internal Error'][]="Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
             return 0;
@@ -994,7 +994,7 @@ class Tooljob {
     }
 
 
-    protected function setBashCmd_docker_SGE_old($tool){
+    protected function setBashCommandDockerSge_old($tool){
 	    
 	    if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])){
 		    $_SESSION['errorData']['Internal Error'][]="Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
@@ -1028,180 +1028,152 @@ class Tooljob {
 			    " ".$tool['infrastructure']['container_image'] . " $cmd_vre";
 	    }
 
-	    echo "CMD from setBashCmd_docker_SGE";
+	    echo "CMD from setBashCommandDockerSge";
 	    echo "<br></br>";
 	    echo $cmd; 
 	    echo "<br></br>";
 	    return $cmd;
     }
 
-	protected function setBashCmd_docker_SGE($tool){
-        if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])){
-            $_SESSION['errorData']['Internal Error'][]="Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
-            return 0;
-	}
 
-	$this->container_image = $tool['infrastructure']['container_image'];
-
-	# Set the intermediary mounting points required by the entrypoint.sh (BindFS) of the VRE image
-	# https://github.com/inab/vre_template_tool_dockerized/blob/main/template/entrypoint.sh
-
-
-	# Set ENV variables to be imported to the container
-        $cmd_envs="";
-        foreach ($tool['infrastructure']['container_env'][0] as $env_key=>$env_value){
-                $cmd_envs .= "-e $env_key=$env_value ";
-        }
-
-	# Build the FULL command for running the interactive Docker containers
-	if (isset($tool['infrastructure']['interactive'])) {
+	protected function setBashCommandDockerSgeInteractive($tool, $cmd_envs) {
 		$this->job_type = "interactive";
-		
 		$container_name = $tool['infrastructure']['container_image'];
-
-		#Constructing Docker executable
-		#  Set VRE cmd to be executed inside the container
-		#
-		#
-	
-		if (isset($tool['infrastructure']['container_env'])) {
-			$exec_envs="";
-			foreach ($tool['infrastructure']['container_env'] as $key => $value) {
-				 if ($key !== 'data_dir') {
-					 $exec_envs .= " --$key $value";
-				 }
-			}
-			$cmd_vre = $tool['infrastructure']['executable'] .
-				" --data " .$GLOBALS['shared']."userdata_tmp/{$_SESSION['User']['id']}"."/".$this->project."/uploads/" .
-				$exec_envs; 
-		} else { 
-			$cmd_vre = $tool['infrastructure']['executable'];
-		}
-
 		$networkIP = $GLOBALS['NETWORK_IP'];
 		$start_port = $GLOBALS['interactive_range_start_port'];
 		$end_port = $GLOBALS['interactive_range_end_port'];
-
-		# Get the free port using the get_open_port function
-		$free_port = shell_exec("python3 /var/www/html/openVRE/public/phplib/classes/get_port.py $networkIP $start_port $end_port");
-
-		$updateResult = $GLOBALS['toolsCol']->updateOne(
-			['_id' => $tool["_id"]],   // Find the tool by ID
-			['$set' => ['infrastructure.free_port' => $free_port]]  // Save the free port
-		);
-
-		if ($updateResult->getModifiedCount() > 0) {       
-			$_SESSION['errorData']['Info'][] = "Successfully saved free port to MongoDB: " . $free_port . "<br>";
-		} else {
-			$_SESSION['errorData']['Info'][] = "Failed to update MongoDB or no changes made.<br>";
-		}
-
+		$hostPort = shell_exec("python3 /var/www/html/openVRE/public/phplib/classes/get_port.py $networkIP $start_port $end_port");
 		$container_port = $tool['infrastructure']['container_port'];
 
-		$cmd=<<<EOF
+		$checkEnvironment = <<<EOF
+			FREE_PORT=$hostPort
 
-FREE_PORT=$free_port
+			current_user=\$(whoami)
+			current_groups=\$(groups)
+			checking=\$(getent group | grep docker)
+			docker_socket_permissions=\$(ls -l /var/run/docker.sock)
 
+			echo "Free port: \$FREE_PORT"
+			echo "Current user: \$current_user"
+			echo "Groups: \$current_groups"
+			echo "Checking: \$checking"
+			echo "Docker socket permissions: \$docker_socket_permissions"
+		EOF;
 
-#Docker permissions
-current_user=\$(whoami)
-current_groups=\$(groups)
-checking=\$(getent group | grep docker)
-docker_socket_permissions=\$(ls -l /var/run/docker.sock)
+		$configureDockerGroup = <<<EOF
+			if echo "\$current_groups" | grep -q "docker"; then
+				echo "User \$current_user is already in the 'docker' group."
+			else
+				echo "User \$current_user is not in the 'docker' group. Attempting to add..."
 
-echo "Free port: \$FREE_PORT"
-echo "Current user: \$current_user"
-echo "Groups: \$current_groups"
-echo "Checking: \$checking"
-echo "Docker socket permissions: \$docker_socket_permissions"
+				sudo usermod -aG docker "\$current_user"
 
-if echo "\$current_groups" | grep -q "docker"; then
-    echo "User \$current_user is already in the 'docker' group."
-else
-    echo "User \$current_user is not in the 'docker' group. Attempting to add..."
+				if [ \$? -eq 0 ]; then
+					echo "User \$current_user has been added to the 'docker' group."
+					echo "Please log out and log back in for the group changes to take effect."
+				else
+					echo "Failed to add user \$current_user to the 'docker' group."
+				fi
+			fi
+		EOF;
 
-    sudo usermod -aG docker "\$current_user"
+		$createNetwork = <<<EOF
+			NET_NAME={$GLOBALS['vre_network_name']};
+			NET_ID=\$(docker network inspect \$NET_NAME --format "{{.Id}}" 2>/dev/null || docker network create --driver bridge "\$NET_NAME");
+		EOF;
 
-    if [ \$? -eq 0 ]; then
-        echo "User \$current_user has been added to the 'docker' group."
-        echo "Please log out and log back in for the group changes to take effect."
-    else
-        echo "Failed to add user \$current_user to the 'docker' group."
-    fi
-fi
+		$runContainer = <<<EOF
+			CONTAINER_ID=\$(docker run \
+			--rm \
+			--privileged \
+			-v /var/run/docker.sock:/var/run/docker.sock -d \
+			--net=\$NET_NAME --name $container_name \
+			$cmd_envs \
+			-v {$this->pub_dir_volumes}:{$GLOBALS['shared']}public_tmp/ \
+			-v {$this->root_dir_volumes}:{$GLOBALS['shared']}userdata_tmp/{$_SESSION['User']['id']} \
+			--hostname $container_name \
+			-p \$FREE_PORT:{$tool['infrastructure']['container_port']} {$tool['infrastructure']['container_image']});
+		EOF;
 
+		$checkContainerStatus = <<<EOF
+			if ! docker top \$CONTAINER_ID &>/dev/null; then
+				printf '%s | %s\n' "$(date)" "Container crashed unexpectedly...";
+				exit 1;
+			fi
 
-# Create or retrieve the network ID for the openVRE_net network. Required when using proxy-gt
-NET_NAME={$GLOBALS['vre_network_name']};
-NET_ID=\$(docker network inspect \$NET_NAME --format "{{.Id}}" 2>/dev/null || docker network create --driver bridge "\$NET_NAME");
+			if ! docker inspect --format='{{.State.Running}}' \$CONTAINER_ID | grep -q true; then
+				printf '%s | %s\n' "$(date)" "Container not running anymore";
+				exit 1;
+			fi
+		EOF;
 
-# Run the Docker container with necessary options and configurations
-CONTAINER_ID=\$(docker run \
-    --rm \
-    --privileged \
-    -v /var/run/docker.sock:/var/run/docker.sock -d \
-    --net=\$NET_NAME --name $container_name \
-    $cmd_envs \
-    -v {$this->pub_dir_volumes}:{$GLOBALS['shared']}public_tmp/ \
-    -v {$this->root_dir_volumes}:{$GLOBALS['shared']}userdata_tmp/{$_SESSION['User']['id']} \
-	--hostname $container_name \
-    -p \$FREE_PORT:{$tool['infrastructure']['container_port']} {$tool['infrastructure']['container_image']} $cmd_vre); 
+		$reportContainerInfo = <<<EOF
+			CONTAINER_URL="http://$container_name:$container_port"
+			printf '%s | %s\n' "\$(date)" "ContainerID: \$CONTAINER_ID";
+			printf '%s | %s\n' "\$(date)" "ExposedPort: \$FREE_PORT";
+			printf '%s | %s\n' "\$(date)" "ContainerURL: \$CONTAINER_URL";
+		EOF;
 
-# Check if the container is running
-if ! docker top \$CONTAINER_ID &>/dev/null; then
-    printf '%s | %s\n' "$(date)" "Container crashed unexpectedly...";
-    exit 1;
-fi
+		$monitorContainer = <<<EOF
+			docker logs -f \$CONTAINER_ID &> $this->log_file_virtual &
 
-if ! docker inspect --format='{{.State.Running}}' \$CONTAINER_ID | grep -q true; then
-    printf '%s | %s\n' "$(date)" "Container not running anymore";
-    exit 1;
-fi
+			printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
+			if timeout 420 wget --retry-connrefused --tries=10 --waitretry=100 -O /dev/null \$CONTAINER_URL; then
+				printf '%s | %s\n' "\$(date)" "Service UP";
+			else
+				printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
+			fi
 
-# Report container info to VRE
-CONTAINER_URL="http://$container_name:$container_port"
-printf '%s | %s\n' "\$(date)" "ContainerID: \$CONTAINER_ID";
-printf '%s | %s\n' "\$(date)" "ExposedPort: \$FREE_PORT";
-printf '%s | %s\n' "\$(date)" "ContainerURL: \$CONTAINER_URL";
+			printf '%s | %s\n' "\$(date)" "Wait while container is running...";
+			exit_code="\$(docker wait \$CONTAINER_ID)";
+			printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
 
-docker logs -f \$CONTAINER_ID &> $this->log_file_virtual &
+			echo '# End time:' \$(date) >> $this->log_file_virtual;
+		EOF;
 
-printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
-if timeout 420 wget --retry-connrefused --tries=10 --waitretry=100 -O /dev/null \$CONTAINER_URL; then
-    printf '%s | %s\n' "\$(date)" "Service UP";
-else
-    printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
-fi
-
-# Wait forever
-printf '%s | %s\n' "\$(date)" "Wait while container is running...";
-exit_code="\$(docker wait \$CONTAINER_ID)";
-printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
-
-echo '# End time:' \$(date) >> $this->log_file_virtual;
-
-exit 0;
-EOF;
-
-
-
+		return $checkEnvironment . "\n" . $configureDockerGroup . "\n" . $createNetwork . "\n" . $runContainer . "\n" . $checkContainerStatus . "\n" . $reportContainerInfo . "\n" . $monitorContainer;
 	}
-	else{
-		$cmd_vre = $tool['infrastructure']['executable'] .
-                                " --config "         .$this->config_file_virtual .
-                                " --in_metadata "    .$this->metadata_file_virtual .
-                                " --out_metadata "   .$this->stageout_file_virtual ;
-                                " --log_file "       .$this->log_file_virtual ;
 
 
-                $cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d " .
-			" ". $cmd_envs .
-                        " -v " . $this->pub_dir_volumes . ":" . $GLOBALS['shared']."public_tmp/ " .
-                        " -v " . $this->root_dir_volumes . ":" .$GLOBALS['shared']."userdata_tmp/{$_SESSION['User']['id']}" .
-                        " ".$tool['infrastructure']['container_image'] . " $cmd_vre" ;
+	protected function setBashCommandDockerSge($tool) {
+        if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])) {
+            $_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
+
+            return 0;
+		}
+
+		$this->containerName = $tool['infrastructure']['container_image'];
+		$cmd_envs = "";
+		foreach ($tool['infrastructure']['container_env'] as $env_key=>$env_value){
+				$cmd_envs .= "-e $env_key=$env_value ";
+		}
+
+		foreach ($tool['infrastructure']['volumes'] as $hostDir=>$containerDir) {
+			$userHomeDir = $GLOBALS['shared']."userdata_tmp/{$_SESSION['User']['id']}"."/".$this->project;
+			$cmd_envs .= "-v $userHomeDir" . "$hostDir:$containerDir ";
+		}
+
+		if (isset($tool['infrastructure']['interactive'])) {
+			$cmd = $this->setBashCommandDockerSgeInteractive($tool, $cmd_envs);
+			error_log("cmd: $cmd");
+		} else {
+			$cmd_vre = $tool['infrastructure']['executable'] .
+									" --config "         .$this->config_file_virtual .
+									" --in_metadata "    .$this->metadata_file_virtual .
+									" --out_metadata "   .$this->stageout_file_virtual ;
+									" --log_file "       .$this->log_file_virtual ;
+
+
+					$cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d " .
+				" ". $cmd_envs .
+							" -v " . $this->pub_dir_volumes . ":" . $GLOBALS['shared']."public_tmp/ " .
+							" -v " . $this->root_dir_volumes . ":" .$GLOBALS['shared']."userdata_tmp/{$_SESSION['User']['id']}" .
+							" ".$tool['infrastructure']['container_image'] . " $cmd_vre" ;
         }
+
         return $cmd;
 	}
+
 
     protected function setBashCmd_docker_EGA($tool) {
 	    if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])) {
