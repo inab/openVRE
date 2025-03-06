@@ -1155,7 +1155,6 @@ class Tooljob {
 
 		if (isset($tool['infrastructure']['interactive'])) {
 			$cmd = $this->setBashCommandDockerSgeInteractive($tool, $cmd_envs);
-			error_log("cmd: $cmd");
 		} else {
 			$cmd_vre = $tool['infrastructure']['executable'] .
 									" --config "         .$this->config_file_virtual .
