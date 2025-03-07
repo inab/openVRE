@@ -1058,14 +1058,35 @@ class Tooljob
 	}
 
 
-	protected function setBashCommandDockerSgeInteractive($tool, $cmd_envs)
+	protected function getFreePort()
 	{
-		$this->job_type = "interactive";
 		$networkIP = $GLOBALS['NETWORK_IP'];
 		$start_port = $GLOBALS['interactive_range_start_port'];
 		$end_port = $GLOBALS['interactive_range_end_port'];
-		$hostPort = shell_exec("python3 /var/www/html/openVRE/public/phplib/classes/get_port.py $networkIP $start_port $end_port");
+
+		for ($port = $start_port; $port <= $end_port; $port++) {
+			$connection = @fsockopen($networkIP, $port);
+			if ($connection) {
+				fclose($connection);
+				continue;
+			}
+
+			return $port;
+		}
+
+		return null;
+	}
+
+
+	protected function setBashCommandDockerSgeInteractive($tool, $cmd_envs)
+	{
+		$this->job_type = "interactive";
 		$container_port = $tool['infrastructure']['container_port'];
+		$hostPort = $this->getFreePort();
+		if ($hostPort === null) {
+			$_SESSION['errorData']['Internal Error'][] = "No free ports available to run the interactive tool.";
+			return 0;
+		}
 
 		$checkEnvironment = <<<EOF
 			FREE_PORT=$hostPort
@@ -1165,8 +1186,7 @@ class Tooljob
 			return 0;
 		}
 
-		$timestamp = date("Y_m_d_H_i_s");
-
+		$timestamp = date('Y-m-d_H-i-s');
 		$this->containerName = $tool['infrastructure']['container_image'] . "_" . $_SESSION['User']['id'] . "_" . $timestamp;
 		$cmd_envs = "";
 		foreach ($tool['infrastructure']['container_env'] as $env_key => $env_value) {
