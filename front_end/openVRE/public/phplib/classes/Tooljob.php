@@ -1061,10 +1061,10 @@ class Tooljob
 	protected function getFreePort()
 	{
 		$networkIP = $GLOBALS['NETWORK_IP'];
-		$start_port = $GLOBALS['interactive_range_start_port'];
-		$end_port = $GLOBALS['interactive_range_end_port'];
+		$startPort = $GLOBALS['interactive_range_start_port'];
+		$endPort = $startPort + $GLOBALS['max_parallel_independent_tools'];
 
-		for ($port = $start_port; $port <= $end_port; $port++) {
+		for ($port = $startPort; $port <= $endPort; $port++) {
 			$connection = @fsockopen($networkIP, $port);
 			if ($connection) {
 				fclose($connection);
