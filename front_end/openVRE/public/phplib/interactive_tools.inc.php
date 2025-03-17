@@ -3,7 +3,7 @@
 require dirname(__FILE__) . "/../../config/globals.inc.php";
 
 
-function shouldAutorefresh($pid): bool
+function checkStatus($pid)
 {
         $interactiveToolprefix = "/interactive-tool/";
         $ok_service = false;
@@ -18,7 +18,7 @@ function shouldAutorefresh($pid): bool
                         $_SESSION['errorData']['Info'] = "Tool session is not accessible anymore. Please, check the execution status.\n Page is going to be automatically reloaded.";
                 }
 
-                return true;
+                return;
         }
 
         $stdout = "";
@@ -45,12 +45,12 @@ function shouldAutorefresh($pid): bool
                 } else {
                         $_SESSION['errorData']['Info'][] = "Interactive session successfully established. Waiting for the service to respond...<br/>Page is going to be automatically reloaded.";
 
-                        return true;
+                        return;
                 }
         } else {
                 $_SESSION['errorData']['Error'][] = "Execution has produced no STDOUT. Please, double check log data";
 
-                return false;
+                return;
         }
 
         if ($ok_service) {
@@ -58,6 +58,4 @@ function shouldAutorefresh($pid): bool
                 $proxy_tool_url = $GLOBALS['SERVER'] . $interactiveToolprefix . $toolContainerName . "/";
                 $_SESSION['errorData']['Info'][] = "Interactive session successfully established. Active session accessible at URL = <a target=_blank href='$proxy_tool_url'>$proxy_tool_url</a> .";
         }
-
-        return false;
 }

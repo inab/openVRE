@@ -6,7 +6,7 @@ redirectOutside();
 require "../htmlib/header.inc.php";
 
 $interactiveToolprefix = "/interactive-tool/";
-$autorefresh = shouldAutorefresh($_REQUEST['pid']);
+checkStatus($_REQUEST['pid']);
 
 ?>
 
@@ -47,14 +47,6 @@ $autorefresh = shouldAutorefresh($_REQUEST['pid']);
 						<?php }
 						?>
 
-						<form action="#" class="horizontal-form" id="tool-input-form">
-							<input type="hidden" id="base-url" value="<?php echo $GLOBALS['BASEURL']; ?>" />
-							<?php if ($autorefresh) {
-								print "<input type=\"hidden\" id=\"autorefresh\" value=\"$autorefresh\"/>\n";
-							} ?>
-
-						</form>
-
 						<?php
 						$tool_log    = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['log_file'];
 						$stdout_file = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['stdout_file'];
@@ -62,12 +54,10 @@ $autorefresh = shouldAutorefresh($_REQUEST['pid']);
 						$tool_port   = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['interactive_tool']['port'];
 						$toolContainerName = $_SESSION['User']['lastjobs'][$_REQUEST['pid']]['containerName'];
 						$toolUrl = $GLOBALS['SERVER'] . $interactiveToolprefix . $toolContainerName . "/";
-						$status = ($autorefresh ? "disabled" : "");
-
 						?>
 						<br />
 
-						<a target=_blank <?php echo $status; ?> href="<?php echo $toolUrl; ?>" class="btn green"> Interactive Session </a>
+						<a target=_blank href="<?php echo $toolUrl; ?>" class="btn green"> Interactive Session </a>
 						<br />
 						<br />
 						<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($stdout_file); ?>" class="btn" target="_blank"><i class="fa fa-file-text-o"></i> Job Standard Output</a>
