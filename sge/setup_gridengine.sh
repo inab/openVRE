@@ -1,6 +1,7 @@
 #!/bin/bash
 
-#hostname > /var/lib/gridengine/default/common/act_qmaster
+HOSTNAME="sgecore"
+echo $HOSTNAME > /var/lib/gridengine/default/common/act_qmaster
 /etc/init.d/gridengine-master start
 /etc/init.d/gridengine-exec start
 
@@ -38,7 +39,7 @@ qtype                 BATCH INTERACTIVE
 ckpt_list             NONE
 pe_list               make
 rerun                 FALSE
-slots                 1
+slots                 10
 tmpdir                /tmp
 shell                 /bin/bash
 prolog                NONE

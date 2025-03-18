@@ -49,7 +49,7 @@ function execJob ($workDir,$shFile,$queue,$cpus=1,$mem=0,$logFile="job_output.lo
         return array(0,$errMesg);
     }
 	
-    $_SESSION['errorData']['Error'][] = "Process started successfully: PID = $pid";
+    error_log("Process started successfully: PID = $pid");
     logger("The process $cmd is currently running PID = $pid");
     return array($pid,"");
 }
@@ -309,10 +309,6 @@ function delJob($pid,$launcherType=NULL,$cloudName="local",$login=NULL){
     $jobUser = $_SESSION['User']['lastjobs'][$pid];
 
     if($jobUser && $jobUser['job_type'] == "interactive"){
-	    //$_SESSION['errorData']['Error'][]="Job is interactive";
-	    // Get info from Interactive tool
-	    list($proxy_tool_url,$proxy_tool_headers,$autorefresh) = get_url_interactive_tool($pid);
-
 	    $jobUser = $_SESSION['User']['lastjobs'][$pid];
 	    // Stop the Docker container
 	    $containerName = $jobUser['interactive_tool']['container_name'];

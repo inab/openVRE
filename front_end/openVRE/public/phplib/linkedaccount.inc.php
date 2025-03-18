@@ -20,8 +20,6 @@ function addUserLinkedAccount($accountType, $action, $site_id, $postData) {
                                 $submitOption = $_POST["submitOption"];
                                 if ($submitOption === "clearAccount") {
 					// Handle clearing account
-					echo $site_id;
-					var_dump($postData);
 					handleSSHAccount("delete", $site_id, $postData);
 					break;
 				} elseif ($submitOption === "updateAccount") {
@@ -194,14 +192,11 @@ function handleMNAccount($action, $postData) {
 
 
 function handleSSHAccount($action, $site_id, $postData){
-        //echo '<>pre<>';
-	//VAR_DUMP($site_id);	
+	
 	$data = [];
 	if ($action === "new") {
                 // Check if the credentials are already saved
-		//echo $action;
-		//var_dump($postData);
-		//echo $postData['save_credential'];
+		
                 if (isset($postData['private_key'], $postData['public_key'])) {
 			// If credentials are provided, use them directly
 			if (isset($_SESSION['User']['credentials']['timestamp'])) {
@@ -222,19 +217,16 @@ function handleSSHAccount($action, $site_id, $postData){
 			
                 } elseif (isset($postData["save_credential"]) && $postData["save_credential"] == "true") {
 
-
-			$accessToken = $_SESSION['User']['Token']['access_token'];
-
-                        $data['data']['SSH'] = [];
-                        $data['data']['SSH']['private_key'] = $postData['private_key'];
-			$data['data']['SSH']['public_key'] = $postData['public_key']; 
-			$data['data']['SSH']['username'] = $postData['username'];
-			$data['data']['SSH']['_id'] = $postData['_id'];
-
-			$_SESSION['User']['credentials'] = [
-				'timestamp' => time()  // Only store the timestamp
-			];
-			
+					$accessToken = $_SESSION['User']['Token']['access_token'];
+					$data['data']['SSH'] = [];
+                    $data['data']['SSH']['private_key'] = $postData['private_key'];
+					$data['data']['SSH']['public_key'] = $postData['public_key']; 
+					$data['data']['SSH']['user_key'] = $postData['user_key'];
+					$data['data']['SSH']['_id'] = $postData['_id'];
+					$_SESSION['User']['credentials'] = [
+						'timestamp' => time()  // Only store the timestamp
+					];
+					
 
 		
 			$_SESSION['errorData']['Info'][] = "Credentials in the system, saving to Vault...";
@@ -248,19 +240,14 @@ function handleSSHAccount($action, $site_id, $postData){
 
         } elseif ($action === "update") {
                 // Add logic for handling MN account and uploading credentials to Vault for "update" action
-		#echo "DATA??";
-		#echo var_dump($postData);
-                if (!empty($postData['private_key']) && !empty($postData['public_key'])) {
-			
-			#echo var_dump($_SESSION['User']['Token']);
-			#$accessToken = json_decode($_SESSION['User']['Token'], true)["access_token"];
+                
+		if (!empty($postData['private_key']) && !empty($postData['public_key'])) {
 			$accessToken = $_SESSION['User']['Token']['access_token'];
-			#echo $accessToken;
-			
+
 			$data['data']['SSH'] = [];
-		        $data['data']['SSH']['private_key'] = $postData['private_key'];
-            		$data['data']['SSH']['public_key'] = $postData['public_key'];
-			$data['data']['SSH']['username'] = $postData['username'];
+			$data['data']['SSH']['private_key'] = $postData['private_key'];
+            $data['data']['SSH']['public_key'] = $postData['public_key'];
+			$data['data']['SSH']['user_key'] = $postData['user_key'];
 			$data['data']['SSH']['_id'] = $postData['_id'];
 			$_SESSION['User']['credentials'] = [
                                 'timestamp' => time()  // Only store the timestamp
@@ -280,7 +267,7 @@ function handleSSHAccount($action, $site_id, $postData){
 		if (isset($postData['private_key'], $postData['public_key'])) {
 			$postData['private_key'] = null;
 			$postData['public_key'] = null;
-			$postData['username'] = null;
+			$postData['user_key'] = null;
 		}
 		$postData['timestamp'] = null;
 		$postData['_id'] = null;
@@ -295,7 +282,7 @@ function handleSSHAccount($action, $site_id, $postData){
 				['$set' => [  // Use the $unset operator to remove fields
 					'launcher.access_credentials.private_key' => null,
 					'launcher.access_credentials.public_key' => null,
-					'launcher.access_credentials.username' => null
+					'launcher.access_credentials.user_key' => null
 				]]
 			);
 
@@ -313,11 +300,16 @@ function handleSSHAccount($action, $site_id, $postData){
         } else {
                 handleInvalidAction();
         }
-
-        //var_dump($data);
-	$postData['username'] = $postData['username'] . '_' . $site_id;
+	
+		if (empty($postData['user_key'])) {
+			error_log("Error: 'username' is missing in postData.");
+			throw new Exception("Username is required.");
+			exit;
+		}
+	
+		$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
         $vaultClient = new VaultClient(
-                        $_SESSION['User']['Vault']['vaultUrl'],
+                        $GLOBALS['vaultUrl'],
                         $_SESSION['User']['Vault']['vaultToken'],
                         $accessToken,
                         $_SESSION['User']['Vault']['vaultRolename'],
@@ -327,7 +319,7 @@ function handleSSHAccount($action, $site_id, $postData){
         $key = $vaultClient->uploadKeystoVault($data);
 	//echo ("key");
 	//var_dump($key);
-	$tokenTime = $vaultClient->getTokenExpirationTime($_SESSION['User']['Vault']['vaultUrl'], $key);
+	$tokenTime = $vaultClient->getTokenExpirationTime($GLOBALS['vaultUrl'], $key);
 	//echo ("TOKEN TIME" . $tokenTime);
 	if ($tokenTime !== false) {
 		$_SESSION['User']['Vault']['expires_in'] = $tokenTime;
@@ -350,8 +342,8 @@ function handleSSHAccount($action, $site_id, $postData){
 
 function handleObjectStorageAccount($action, $postData){
 	$data = [];
-	//echo $action;
-	//var_dump($postData);
+	echo $action;
+	var_dump($postData);
 	if ($action === "new") {
         	//$data = [];	
 		// Check if the credentials are already saved
@@ -366,36 +358,35 @@ function handleObjectStorageAccount($action, $postData){
             	// Add logic for handling MN account and uploading credentials to Vault
 			$accessToken = $_SESSION['User']['Token']['access_token'];
 		// You can customize this part based on how you obtain Swift credentials
-            		$data['data']['Swift'] = [];
-	    		$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
+            $data['data']['Swift'] = [];
+	    	$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
 			$data['data']['Swift']['app_secret'] = $postData['app_secret'];
-		        $data['data']['Swift']['projectName'] = $postData['projectName'];	// Modify this
+		    $data['data']['Swift']['projectName'] = $postData['projectName'];	// Modify this
 			$data['data']['Swift']['projectId'] = $postData['projectId'];
 			$data['data']['Swift']['domainName'] = $postData['domainName'];
 			$data['data']['Swift']['projectDomainId'] = $postData['projectDomainId'];
+			$data['data']['Swift']['user_key'] = $postData['user_key'];
 			$data['data']['Swift']['_id'] = $postData['_id'];
 		}
 
-		//ECHO "	VIOLETA "	;
-		//var_dump($postData);
+
 
 	} elseif ($action === "update") {
         	// Add logic for handling MN account and uploading credentials to Vault for "update" action
 
 		if (!empty($postData['app_id']) && !empty($postData['app_secret'])) {
 			
-			var_dump($_SESSION['User']);
-			
 			$accessToken = $_SESSION['User']['Token']['access_token'];
 			#$accessToken = json_decode($Token, true);
 			
 			$data['data']['Swift'] = [];
-        		$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
+        	$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
 			$data['data']['Swift']['app_secret'] = $postData['app_secret']; // Modify this
 			$data['data']['Swift']['projectName'] = $postData['projectName'];     // Modify this
-                        $data['data']['Swift']['projectId'] = $postData['projectId'];
-                        $data['data']['Swift']['domainName'] = $postData['domainName'];
+            $data['data']['Swift']['projectId'] = $postData['projectId'];
+            $data['data']['Swift']['domainName'] = $postData['domainName'];
 			$data['data']['Swift']['projectDomainId'] = $postData['projectDomainId'];
+			$data['data']['Swift']['user_key'] = $postData['user_key'];
 			$data['data']['Swift']['_id'] = $postData['_id'];
 			#$_SESSION['errorData']['Info'][] = "Credentials updated!";
 		} else {
@@ -408,28 +399,69 @@ function handleObjectStorageAccount($action, $postData){
 	} elseif ($action === "delete") {
         // Reset data for "delete" action
 		$data = [];
+		if (isset($postData['app_id'], $postData['app_secret'])) {
+			$postData['app_id'] = null;
+			$postData['app_secret'] = null;
+			$postData['projectName'] = null;
+			$postData['projectId']= null;
+			$postData['domainName']= null;
+			$postData['projectDomainId'] = null;
+			$postData['user_key'] = null;
+			$postData['_id'] = null; 
+		}
+		$postData['timestamp'] = null;
+		$postData['_id'] = null;
+
+		#var_dump($postData);
+		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
+
+		if (isset($site_id)) {  
+			$updateResult = $GLOBALS['sitesCol']->updateOne(
+				['_id' => $site_id],  // Match document by siteId    
+				['$set' => [  // Use the $unset operator to remove fields
+					'access_credentials.app_id' => null,
+					'access_credentials.app_secret' => null,
+					'access_credentials.user_key' => null,
+					'access_credentials.projectName' => null,
+					'access_credentials.domainName' => null,
+					'access_credentials.projectDomainId' => null,
+					'access_credentials.projectId' => null,
+				]]
+			);
+
+        		// Check if the update was successful
+			if ($updateResult->getModifiedCount() > 0) {
+				$_SESSION['errorData']['Info'][] = "Credentials removed from the database.";
+			} else {
+				$_SESSION['errorData']['Error'][] = "Failed to remove credentials from the database.";
+			}
+		}
+		redirect($_SERVER['HTTP_REFERER']);
+
+
 		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
 	} else {
         	handleInvalidAction();
     	}
 		
-	//var_dump($data);
-	#echo 'Okay';
-	#var_dump($accessToken);
-	#echo 'Vabbuo';
-	#var_dump($_SESSION['User']);
+	if (empty($postData['user_key'])) {
+		error_log("Error: 'username' is missing in postData.");
+		throw new Exception("Username is required.");
+		exit;
+	}
+	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
+
 	$vaultClient = new VaultClient(
-                	$_SESSION['User']['Vault']['vaultUrl'],
+                	$GLOBALS['vaultUrl'],
                 	$_SESSION['User']['Vault']['vaultToken'],
                 	$accessToken,
                 	$_SESSION['User']['Vault']['vaultRolename'],
-                	$postData['username']
+                	$postData['user_key']
 	);
 	#echo 'Vault';
 	#var_dump($vaultClient);
 	#var_dump($data);
 	$key = $vaultClient->uploadKeystoVault($data);
-	var_dump($key);
 	// Update user data with vault key
         $_SESSION['User']['Vault']['vaultKey'] = $key;
       	updateUser($_SESSION['User']);
@@ -471,7 +503,6 @@ function handleEGAAccount($action, $postData) {
 
 
 			$data['data']['EGA']['_id'] = $postData['_id'];
-			$_SESSION['errorData']['Info'][] = "Credentials updated!";
 		} else {
 			// Handle the case where app_id or app_secret is empty
 			$_SESSION['errorData']['Error'][] = "Please provide both username and password.";
@@ -494,7 +525,7 @@ function handleEGAAccount($action, $postData) {
 
 	
 	$vaultClient = new VaultClient(
-		$_SESSION['User']['Vault']['vaultUrl'],
+		$GLOBALS['vaultUrl'],
 		$_SESSION['User']['Vault']['vaultToken'],
 		$accessToken,
 		$_SESSION['User']['Vault']['vaultRolename'],
@@ -503,6 +534,7 @@ function handleEGAAccount($action, $postData) {
 
 	//var_dump($data);
 	$key = $vaultClient->uploadKeystoVault($data);
+	
 	//var_dump($key);
 	// Update user data with vault key
 	$_SESSION['User']['Vault']['vaultKey'] = $key;
@@ -621,7 +653,7 @@ function registerEgaPubKey($pubKey, $username, $vaultClient, $vaultKey) {
 	]);
 
 
-	$vaultUrl = $_SESSION['User']['Vault']['vaultUrl'];
+	$vaultUrl = $GLOBALS['vaultUrl'];
 	$credentials = $vaultClient->retrieveDatafromVault('ega', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $GLOBALS['bscEgaCredentialsFilename']);
 	if (is_null($credentials)) {
 		$_SESSION['errorData']['Error'][] = "Internal error. Failed to retrieve BSC-EGA credentials.";
@@ -635,7 +667,7 @@ function registerEgaPubKey($pubKey, $username, $vaultClient, $vaultKey) {
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 	
 	$response = curl_exec($ch);
-
+	
 	if (curl_errno($ch)) {
 		$error_msg = curl_error($ch);
 	}
@@ -643,6 +675,7 @@ function registerEgaPubKey($pubKey, $username, $vaultClient, $vaultKey) {
 	curl_close($ch);
 
 	if (isset($error_msg)) {
+		error_log("Error message: " . $error_msg);
 		$_SESSION['errorData']['Error'][] = "Error: $error_msg";
 		return false;
 	}
@@ -660,9 +693,6 @@ function registerEgaPubKey($pubKey, $username, $vaultClient, $vaultKey) {
 function generateSSHButtons() {
     // Check if $GLOBALS['sitesCol'] is set
     if (isset($GLOBALS['sitesCol'])) {
-        // Debugging: Add a log statement to confirm the function is called
-        $_SESSION['errorData']['Debug'][] = "generateSSHButtons() function called.";
-
         // Fetch the documents that have "SSH" in the "accessible_via" array
         $documents = $GLOBALS['sitesCol']->find([
             'launcher.accessible_via' => 'SSH'  // Filter condition
@@ -681,8 +711,6 @@ function generateSSHButtons() {
             $siteId = (string) $document['_id'];
             //$siteSigla = isset($document['sigla']) ? htmlspecialchars($document['_id']) : 'N/A'; 
 	    $siteSigla = (string) $document['sigla'];
-	    // Debugging: Log the site ID and name being processed
-            $_SESSION['errorData']['Debug'][] = "Processing site: $siteId - $siteName";
 
             // Create the button for each site
             $buttonsHTML .= '
@@ -719,7 +747,7 @@ function getSiteDetails($siteId) {
         // If the site is found, return the necessary details
         if ($site) {
             $siteName = htmlspecialchars($site['name']);
-            $siteAcronym = isset($site['hpc_acronym']) ? htmlspecialchars($site['hpc_acronym']) : 'N/A';
+            $siteAcronym = isset($site['sigla']) ? htmlspecialchars($site['sigla']) : 'N/A';
             return ['siteName' => $siteName, 'siteAcronym' => $siteAcronym];
         }
     }

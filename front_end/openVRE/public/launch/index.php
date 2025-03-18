@@ -119,14 +119,14 @@ sort($toolList);
 								<?php
 
 								// TO MODIFY WITH NEW "secondary kws"	
-								$kwt = array();
-								foreach ($toolList as $t) {
-									foreach ($t['keywords_tool'] as $tk)
-										$kwt[] = $tk;
+								$secondaryKeywords = [];
+								foreach ($toolList as $tool) {
+									foreach ($tool['keywords_tool'] as $toolKeywords)
+										$secondaryKeywords[] = $toolKeywords;
 								}
 
-								$kwt = array_unique($kwt);
-								sort($kwt);
+								$secondaryKeywords = array_unique($secondaryKeywords);
+								sort($secondaryKeywords);
 
 								?>
 
@@ -144,7 +144,7 @@ sort($toolList);
 											<select class="form-control form-field-enabled valid" id="sel-keyword"
 												name="selKey[]" aria-invalid="false" multiple="multiple">
 												<option value=""></option>
-												<?php foreach ($kwt as $k) { ?>
+												<?php foreach ($secondaryKeywords as $k) { ?>
 													<option value="<?php echo $k; ?>"><?php echo $k; ?></option>
 												<?php } ?>
 											</select>
@@ -189,8 +189,8 @@ sort($toolList);
 														<!-- TO MODIFY WITH LONG DESCRIPTION -->
 														<td><?php echo $tool["long_description"]; ?></td>
 														<!-- TO MODIFY WITH NEW "secondary kws" -->
-														<td><?php echo implode(", ", $tool["keywords_tool"]); ?></td>
-														<td><?php echo implode(", ", $tool["keywords"]); ?></td>
+														<td><?php echo implode(", ", $tool["keywords_tool"] ?? []); ?></td>
+														<td><?php echo implode(", ", $tool["keywords"] ?? []); ?></td>
 														<td><?php echo $tool["_id"]; ?></td>
 														<td><?php if (isset($tool['visualizers'])) {
 															echo $tool["visualizer"];

@@ -16,7 +16,6 @@ $GLOBALS['host_volumes_path'] = "/your_system_path/dockerized_vre/volumes";
 $GLOBALS['vre_network_name'] = "open-vre";  //Docker vnet name - make sure consistent with Docker Compose file
 
 
-
 // Email
 $GLOBALS['mail_credentials'] = __DIR__."/mail.conf"; // SMTP credentials
 $GLOBALS['FROMNAME']  = "VRE"; // 'From' for VRE tickets and notifications
@@ -35,7 +34,7 @@ $GLOBALS['shared']     = "/shared_data/"; // VRE data directory
 $GLOBALS['logFile']    = $GLOBALS['root']."/logs/application.log"; // Log file path
 $GLOBALS['dataDir']    = $GLOBALS['shared']."userdata/"; // User data directory
 $GLOBALS['pubDir']     = $GLOBALS['shared']."public/"; // Public data directory
-$GLOBALS['sampleData'] = $GLOBALS['shared']."sampleData/"; // Tool dataset directory
+$GLOBALS['sampleData'] = "/var/www/html/openVRE/data";
 $GLOBALS['sampleData_default'] = "basic"; // Default workspace's dataset entry
 
 // File manager config
@@ -46,10 +45,18 @@ $GLOBALS['caduca']          = "182"; // Expiration date for user files (days)
 $GLOBALS['project_default'] = "MyFirstProject"; // Default name for user project
 $GLOBALS['tmpUser_dir']     = ".tmp/"; // Default name for user temporal forder
 
-// Time
+// Time zone
 $GLOBALS['timezone'] = "UTC";
-$GLOBALS['datetime'] = "Y/M/dd HH:mm"; // https://unicode-org.github.io/icu/userguide/format_parse/datetime/#date-field-symbol-table
-$GLOBALS['logs_datetime'] = "dd/M/Y HH:mm:ss";
+$GLOBALS['datetime'] = "Y.M.dd HH:mm"; // https://unicode-org.github.io/icu/userguide/format_parse/datetime/#date-field-symbol-table
+$GLOBALS['logs_datetime'] = "dd.M.Y HH:mm:ss";
+
+
+// Interactive tools
+$GLOBALS['NETWORK_IP'] = "172.17.0.1"; # default host ip for docker
+$GLOBALS['interactive_range_start_port'] = 9001;
+$GLOBALS['max_parallel_independent_tools'] = 10;
+
+
 
 // Tool integration models and templates
 $GLOBALS['tool_json_schema']    = $GLOBALS['root']."/install/data/tool_schemas/tool_specification/tool_schema.json"; // data model for tool registration
@@ -71,12 +78,14 @@ $GLOBALS['adminToken']             = $GLOBALS['authServer']."/realms/master/prot
 $GLOBALS['adminRealm']             = $GLOBALS['authServer']."/admin/realms/".$GLOBALS['authRealm']; // admin keycloak users
 
 // Vault integration and roles
-$GLOBALS['vaultUrl'] = 'https://localhost/vault/';
+$GLOBALS['vaultUrl'] = 'https://localhost:8200';
 $GLOBALS['vaultToken'] = 'root';
 //$jwtToken = $_SESSION['User']['JWT'];
 $GLOBALS['vaultRolename'] = 'demo';
 $GLOBALS['secretPath'] = 'secret/mysecret/data/';
 
+// Google Analytics
+#$GLOBALS['GA_TAG']; // if used, set the id for: https://www.googletagmanager.com/gtag/js?id=
 
 
 /************************
@@ -153,10 +162,10 @@ $GLOBALS['clouds'] = Array(
                         "http_host"         => "www.mydomain.com",           // used in getCurrentCloud
                         "dataDir_fs"        => "/NFS/export/path/userdata/", // export path for NFS server
                         "pubDir_fs"         => "/NFS/export/path/public/",   // export path for NFS server
-                        "dataDir_host"   => $GLOBALS['dataDir'],
-                        "pubDir_host"    => $GLOBALS['pubDir'],
-                        "dataDir_virtual"    => $GLOBALS["host_volumes_path"].$GLOBALS['dataDir'],
-                        "pubDir_virtual"    => $GLOBALS["host_volumes_path"].$GLOBALS['pubDir'],
+                        "dataDir_virtual"   => $GLOBALS['dataDir'],
+                        "pubDir_virtual"    => $GLOBALS['pubDir'],
+                        "dataDir_host"    => $GLOBALS["host_volumes_path"].$GLOBALS['dataDir'],
+                        "pubDir_host"    => $GLOBALS["host_volumes_path"].$GLOBALS['pubDir'],
                         "PMESserver_domain" => "pmes.mydomain.com",
                         "PMESserver_port"   => "80",
                         "PMESserver_address"=> "/",

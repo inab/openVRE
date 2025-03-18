@@ -12,6 +12,7 @@ RUN apt-get update -y  \
         parallel \
         g++ \
         docker.io \
+        wget \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -44,13 +45,18 @@ RUN usermod -aG docker application
 # Add setup script and set permissions
 ADD setup_gridengine.sh /usr/local/bin/setup_gridengine.sh
 ADD setup_submitter.sh  /usr/local/bin/setup_submitter.sh
+ADD modify_config.sh  /usr/local/bin/modify_config.sh
+ADD modify_sched_config.sh  /usr/local/bin/modify_sched_config.sh
+ADD run_sched_logger.sh  /usr/local/bin/run_sched_logger.sh
 RUN chmod +x /usr/local/bin/setup_gridengine.sh
 RUN chmod +x /usr/local/bin/setup_submitter.sh
+RUN chmod +x /usr/local/bin/modify_config.sh
+RUN chmod +x /usr/local/bin/modify_sched_config.sh
+RUN chmod +x /usr/local/bin/run_sched_logger.sh
 
 ARG SUBMITTER_HOSTNAME
 RUN echo "$SUBMITTER_HOSTNAME" > /home/application/submit_hosts.list
 RUN cat /home/application/submit_hosts.list
 
 
-CMD /usr/local/bin/setup_gridengine.sh && cat /home/application/submit_hosts.list && /usr/local/bin/setup_submitter.sh /home/application/submit_hosts.list && qconf -mconf  && tail -f /var/spool/gridengine/qmaster/messages
-
+CMD /usr/local/bin/setup_gridengine.sh && /usr/local/bin/modify_config.sh && /usr/local/bin/modify_sched_config.sh && /usr/local/bin/setup_submitter.sh /home/application/submit_hosts.list && (/usr/local/bin/run_sched_logger.sh &) && tail -f /var/spool/gridengine/qmaster/messages /var/spool/gridengine/execd/sgecore/messages

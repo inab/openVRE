@@ -1,8 +1,0 @@
-mongo_data/*
-pg_data/*
-shared_data/userdata
-shared_data/public
-shared_data/sampledata/
-vault/logs/*
-vault/file/*
-openVRE/*

@@ -6,8 +6,6 @@
         "justinrainbow/json-schema": "^5.2",
         "league/oauth2-google": "^2.0",
         "mongodb/mongodb": "^1.11",
-        "paragonie/random_compat": "v9.99.99",
-        "paragonie/sodium_compat": "^1.13",
         "phpseclib/phpseclib": "~3.0",
         "swaggest/json-schema": "^0.12.34",
    	    "guzzlehttp/guzzle": "*",

@@ -324,31 +324,6 @@ redirectOutside();
 					<input type="hidden" name="taxon_id" name="taxon_id<?php $idx; ?>" value="" />
 				
 
-					<div class="form-group display-hide" id="refGenomeTR<?php echo $idx;?>">
-				        <label>Assembly <i class="icon-question tooltips" data-container="body" data-placement="right" data-original-title="Assembly description"></i></span></label> 
-								<select name="refGenome" id="refGenome<?php echo $idx;?>" class="form-control" disabled>
-						<option value="">Select the assembly</option>
-						<?php
-                                                $refList  = (isset($GLOBALS['refGenomes'])? scanDir($GLOBALS['refGenomes']) : array() );
-                                                foreach ($refList as $ref){
-                                                    if ( preg_match('/^\./', $ref) || !is_dir($GLOBALS['refGenomes']) )
-                                                        continue;
-                                                    if (isset($GLOBALS['refGenomes_names'][$ref]))
-                                                        $refName=$GLOBALS['refGenomes_names'][$ref];
-                                                    else
-                                                        $refName=$ref;
-                                                    if ($filesMeta[$idx]['refGenome'] == $ref){
-                                                        print "<option selected value=\"$ref\">$refName</option>";
-                                                    }else{
-                                                        print "<option value=\"$ref\">$refName</option>";
-                                                    }
-                                                }
-                                                print "<option value=0>Other</option>";
-						?>
-					
-				        </select>
-				  </div>
-
 					<div class="form-group display-hide" id="pairedTR<?php echo $idx;?>">
 				        <label>BAM type</label>
 				        <div class="mt-radio-inline">
@@ -386,29 +361,7 @@ redirectOutside();
 				        <span class="tooltip-mt-radio"><i class="icon-question tooltips" data-container="body" data-placement="right" data-original-title="Assembly description"></i></span>
 				        <select name="refGenome" class="form-control">
 						<option value="">Select the assembly</option>
-						<?php
-						$refList  = scanDir($GLOBALS['refGenomes']);
-						foreach ($refList as $specie){
-						  var_dump(is_link($specie));
-						  if ( preg_match('/^\./', $specie) || !is_dir($GLOBALS['refGenomes']))
-						    continue;
-						  $scaffoldList  = scanDir($GLOBALS['refGenomes']."/$specie");
 
-						  foreach ($scaffoldList as $ref){
-						    if ( preg_match('/^\./', $ref) || !is_dir($GLOBALS['refGenomes']."/$specie"))
-							continue;
-						    if (isset($GLOBALS['refGenomes_names'][$ref]))
-							$refName=$GLOBALS['refGenomes_names'][$ref];
-						    else
-							$refName=$ref;
-						    if ($filesMeta[$idx]['refGenome'] == $ref){
-							print "<option selected value=\"$ref\">$refName</option>";
-						    }else{
-							print "<option value=\"$ref\">$refName</option>";
-						    }
-						  }
-						} ?>
-					
 				        </select>
 					<span class="help-block font-red warn-ref-gen" style="display:none;">This field is required.</span>	
 				  </div>

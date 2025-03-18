@@ -187,7 +187,7 @@ foreach ( $user_data as $v ){
 
                 // check expiration based on mtime
                 }else{
-                    $time_mtime  = strftime('%Y/%m/%d %H:%M', $f['mtime']);
+                    $time_mtime  = datefmt_format(getDateTimeFormat(), $f['mtime']);
                     $daysold     = intval(( time() - $f['mtime'] ) / (24 * 3600));
                     $days2expire_readme = $caduca_strict - intval(( time() - $f['mtime'] ) / (24 * 3600));
 
@@ -231,8 +231,8 @@ foreach ( $user_data as $v ){
                 // check expiration based on 'caduca' global var
                 }else{
                     $days2expire = intval(( $f['expiration']->sec  - time()) / (24 * 3600));
-                    $time_exp    = strftime('%Y/%m/%d %H:%M', $f['expiration']->sec);
-                    $time_mtime  = strftime('%Y/%m/%d %H:%M', $f['mtime']);
+                    $time_exp    = datefmt_format(getDateTimeFormat(), $f['expiration']->sec);
+                    $time_mtime  = datefmt_format(getDateTimeFormat(), $f['mtime']);
 
                     // file is expired    
                     if ($days2expire < 0){

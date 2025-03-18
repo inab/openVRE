@@ -13,6 +13,3 @@ for f in /install_data/database/*.json; do
                 --authenticationDatabase admin \
                 --file $f
 done
-
-# Copy userdata
-rsync -av --delete /install_data/data/userdata /shared_data

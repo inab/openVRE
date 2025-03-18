@@ -1,0 +1,65 @@
+name: Deploy Docker Compose
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+    types: [ready_for_review]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Create .env file
+        run: |
+          echo "FQDN_HOST=${{ vars.FQDN_HOST }}" >> .env
+          echo "FQDN_HOST_PROTOCOL=${{ vars.FQDN_HOST_PROTOCOL }}" >> .env
+          echo "MONGO_INITDB_ROOT_USERNAME=${{ vars.MONGO_INITDB_ROOT_USERNAME }}" >> .env
+          echo "MONGO_INITDB_ROOT_PASSWORD=${{ vars.MONGO_INITDB_ROOT_PASSWORD }}" >> .env
+          echo "MONGO_PORT=${{ vars.MONGO_PORT }}" >> .env
+          echo "MONGO_INITDB_USERNAME=${{ vars.MONGO_INITDB_USERNAME }}" >> .env
+          echo "MONGO_INITDB_PASSWORD=${{ vars.MONGO_INITDB_PASSWORD }}" >> .env
+          echo "MONGO_SERVER=${{ vars.MONGO_SERVER }}" >> .env
+          echo "MONGO_DB=${{ vars.MONGO_DB }}" >> .env
+          echo "MONGO_INITDB_COLLECTION=${{ vars.MONGO_INITDB_COLLECTION }}" >> .env
+          echo "NETWORK_NAME=${{ vars.NETWORK_NAME }}" >> .env
+          echo "FRONTEND_PORT=${{ vars.FRONTEND_PORT }}" >> .env
+          echo "VAULT_PORT=${{ vars.VAULT_PORT }}" >> .env
+          echo "VAULT_UI_PORT=${{ vars.VAULT_UI_PORT }}" >> .env
+          echo "VAULT_ADDR=${{ vars.VAULT_ADDR }}" >> .env
+          echo "VAULT_API_ADDR=${{ vars.VAULT_API_ADDR }}" >> .env
+          echo "VAULT_ADDRESS=${{ vars.VAULT_ADDRESS }}" >> .env
+          echo "POSTGRES_DB=${{ vars.POSTGRES_DB }}" >> .env
+          echo "POSTGRES_USER=${{ vars.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}" >> .env
+          echo "DB_VENDOR=${{ vars.DB_VENDOR }}" >> .env
+          echo "DB_ADDR=${{ vars.DB_ADDR }}" >> .env
+          echo "DB_DATABASE=${{ vars.DB_DATABASE }}" >> .env
+          echo "DB_USER=${{ vars.DB_USER }}" >> .env
+          echo "DB_PASSWORD=${{ vars.DB_PASSWORD }}" >> .env
+          echo "DB_SCHEMA=${{ vars.DB_SCHEMA }}" >> .env
+          echo "KEYCLOAK_PORT=${{ vars.KEYCLOAK_PORT }}" >> .env
+          echo "KEYCLOAK_USER=${{ vars.KEYCLOAK_USER }}" >> .env
+          echo "KEYCLOAK_PASSWORD=${{ vars.KEYCLOAK_PASSWORD }}" >> .env
+          echo "FRONTEND_PORT=${{ vars.FRONTEND_PORT }}" >> .env
+          echo "FRONTEND_HOSTNAME=${{ vars.FRONTEND_HOSTNAME }}" >> .env
+          echo "DOCKER_GROUP=${{ vars.DOCKER_GROUP }}" >> .env
+
+      - name: Check Docker Compose
+        run: |
+          docker compose --version
+      - name: Start Docker Compose
+        run: |
+          docker compose --profile "*" up -d
+
+      - name: Verify running containers
+        run: docker ps -a

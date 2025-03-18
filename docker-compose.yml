@@ -3,7 +3,6 @@ services:
     hostname: my-mongodb
     image: mongo:4.4
     container_name: my-mongodb
-      #user: ${UID}:${GID}
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -27,7 +26,6 @@ services:
     container_name: mongo_seed
     image: mongo:4.4
     profiles: ["populate_DB"]
-    #user: ${UID}:${GID}
     links:
       - my-mongodb
     env_file: .env
@@ -77,11 +75,14 @@ services:
 
   postgres:
     container_name: postgres
-    image: postgres
+    image: postgres:17.3
+    profiles: ["local_auth"]
     environment:
        POSTGRES_DB: ${POSTGRES_DB}
        POSTGRES_USER: ${POSTGRES_USER}
        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./volumes/keycloak_data:/var/lib/postgresql/data
     networks:
       net_vre:
         ipv4_address: 172.21.0.13
@@ -101,8 +102,8 @@ services:
         KEYCLOAK_USER: ${KEYCLOAK_USER}
         KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
         PROXY_ADDRESS_FORWARDING: "false"
-          #KEYCLOAK_FRONTEND_URL: ${FQDN_HOST_PROTOCOL}://${FQDN_HOST}/auth
-        KEYCLOAK_FRONTEND_URL: "http://172.21.0.12:8080/auth"   # to use in local env.
+        KEYCLOAK_FRONTEND_URL: "http://172.21.0.12:8080/auth" # temporary hack for this keycloak version
+        #KEYCLOAK_FRONTEND_URL: ${FQDN_HOST_PROTOCOL}://${FQDN_HOST}/auth
     volumes:
         - ./keycloak/realms:/opt/jboss/keycloak/imports
     command:
@@ -119,6 +120,7 @@ services:
       - postgres
 
   front_end:
+    pull_policy: never
     container_name: front_end
     hostname: ${FRONTEND_HOSTNAME}
     build:
@@ -126,10 +128,10 @@ services:
     image: front_end
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./front_end/act_qmaster:/var/lib/gridengine/default/common/act_qmaster
       - ./volumes/openVRE/tools:/var/www/html/openVRE/public/tools
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
       - ./front_end/openVRE/config:/var/www/html/openVRE/config
+      - ./front_end/openVRE/data:/var/www/html/openVRE/data
       - ./volumes/shared_data:/shared_data
     environment:
       - DOCKER_GROUP:${DOCKER_GROUP}
@@ -144,12 +146,13 @@ services:
         ipv4_address: 172.21.0.14
 
   sgecore:
+    pull_policy: never
     image: sgecore
     build:
-          context: ./sge
-          args:
-              SUBMITTER_HOSTNAME: "${FRONTEND_HOSTNAME}"
-              DOCKER_GROUP: "${DOCKER_GROUP}"
+      context: ./sge
+      args:
+          SUBMITTER_HOSTNAME: "${FRONTEND_HOSTNAME}"
+          DOCKER_GROUP: "${DOCKER_GROUP}"
     container_name: sgecore
     hostname: sgecore
     extra_hosts:
@@ -178,7 +181,7 @@ services:
 networks:
   net_vre:
     name: ${NETWORK_NAME}
-    #Use on openStack cloud
+  # Use this driver_opts on openStack cloud
     #driver_opts:
       #com.docker.network.driver.mtu: 1442
     ipam:
