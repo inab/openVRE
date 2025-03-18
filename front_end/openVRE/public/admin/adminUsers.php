@@ -9,7 +9,7 @@ $ops = [
     'projection' => ['Surname' => 1, 'Name' => 1, 'Inst' => 1, 'diskQuota' => 1, 'lastLogin' => 1, 'Type' => 1, 'Status' => 1, 'id' => 1, 'lastReload' => 1],
     'sort'       => ['Surname' => 1]
 ];
-foreach (array_values(iterator_to_array($GLOBALS['usersCol']->find(array("Type" => array('$ne' => "3")), $ops))) as $v)
+foreach (array_values(iterator_to_array($GLOBALS['usersCol']->find(array("Type" => array('$ne' => UserType::Guest)), $ops))) as $v)
     $users[$v['_id']] = array($v['Surname'], $v['Name'], $v['Inst'], $v['diskQuota'], $v['lastLogin'], $v['Type'], $v['Status'], $v['id'], $v['lastReload']);
 
 unset($users['guest@guest']);

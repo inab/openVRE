@@ -6,7 +6,7 @@ redirectAdminOutside();
 
 $user = $GLOBALS['usersCol']->findOne(array('id' => $_REQUEST['id']));
 
-if ($user['Type'] == 0) {
+if ($user['Type'] == UserType::Admin) {
     $_SESSION['errorData']['Error'][] = "You are trying to edit an admin user.";
     redirect($GLOBALS['URL'] . 'admin/adminUsers.php');
 }
@@ -139,7 +139,7 @@ sort($tlsvlzrs);
                                                 <label class="control-label">Type of user</label>
                                                 <select name="Type" id="Type" class="form-control">
                                                     <?php
-                                                    if (!$user['Type']) $_REQUEST['Type'] = 2;
+                                                    if (!$user['Type']) $_REQUEST['Type'] = UserType::Registered;
 
                                                     foreach ($GLOBALS['ROLES'] as $k => $v) {
                                                         $selected = "";
@@ -158,7 +158,7 @@ sort($tlsvlzrs);
                                     <?php
                                     $dispTools = "";
                                     $stTools = "enabled";
-                                    if ($user['Type'] != 1) {
+                                    if ($user['Type'] != UserType::ToolDev) {
                                         $dispTools = "display-hide";
                                         $stTools = "disabled";
                                     }

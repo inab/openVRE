@@ -53,7 +53,7 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
             "Email"        => $login,
             "Token"        => $token,
             "JWT"          => $jwt,
-            "Type"         => 2
+            "Type"         => UserType::Registered
         );
     } else {
         $f = checkUserLoginExists($anonID);
@@ -62,13 +62,13 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
             $f["Email"] = $login;
             $f["Token"] = $token;
             $f["JWT"]   = $jwt;
-            $f["Type"]  = 2;
+            $f["Type"]  = UserType::Registered;
         } else {
             $f = array(
                 "Email"        => $login,
                 "Token"        => $token,
                 "JWT"          => $jwt,
-                "Type"         => 2
+                "Type"         => UserType::Registered
             );
         }
     }
@@ -142,7 +142,7 @@ function createUserAnonymous($sampleData = "")
 
     $f = array(
         "Email"        => substr(md5(rand()), 0, 25) . "",
-        "Type"         => 3,
+        "Type"         => UserType::Guest,
         "Name"         => "Guest",
         "Surname"      => "",
         "AuthProvider" => "VRE"
@@ -211,15 +211,6 @@ function createUserFromAdmin(&$f)
         echo 'Error saving new user into Mongo database';
     }
     $_SESSION['errorData']['Info'][] = "New user successfuly created";
-
-    /*
-    // register user in MuG ldap
-    $r = saveNewUser_ldap($aux);
-    if (!$r){
-        $_SESSION['errorData']['Error'][]="Failed to register ".$userObj['id']." into LDAP";
-        $_SESSION['errorData']['Error'][]="User creation failed while registering it to LDAP. Please, <a href=\"applib/delUser.php?id=".$aux['id']."\">DELETE USER</a>";
-        return false;
-    }*/
 
     // send mail to user, if selected
     if ($f['sendEmail'] == 1) sendPasswordToNewUser($f['Email'], $f['Name'], $f['Surname'], $f['pass1']);
@@ -425,8 +416,8 @@ function loadUser($login, $pass)
     }
     // check pass/token verifies - except when loading an ANON or when impersonating
     $pass_verified =  check_password($pass, null);
-    $impersonating =  (isset($_SESSION['User']) && $_SESSION['User']['Type'] == 0 && $pass == 99 ? TRUE : FALSE);
-    $loadingAnon   =  ($user['Type'] == 3 ? TRUE : FALSE);
+    $impersonating =  (isset($_SESSION['User']) && $_SESSION['User']['Type'] == UserType::Admin && $pass == 99 ? TRUE : FALSE);
+    $loadingAnon   =  ($user['Type'] == UserType::Guest ? TRUE : FALSE);
 
     if (!$pass_verified) {
         if (!$loadingAnon  && !$impersonating) {

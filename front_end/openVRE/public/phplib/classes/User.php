@@ -41,17 +41,13 @@ class User
             $this->Token = $f['Token'];
         } elseif (isset($f['TokenInfo'])) {
             $this->TokenInfo = $f['TokenInfo'];
-        } elseif ($f['Type'] == 3) {
-        } else {
+        } elseif ($f['Type'] != UserType::Guest) {
             return 0;
         }
 
-        // set user type (0: admin, 1:Tool dev, 2:registered user, 3:guest)
-        $this->Type = (!isset($this->Type) ? $this->Type = 2 : $this->Type = $this->Type);
-
-        // set ids
-        $this->_id           = $this->Email;
-        $this->id            = ($this->Type != 3 ? uniqid($GLOBALS['AppPrefix'] . "USER") : uniqid($GLOBALS['AppPrefix'] . "ANON"));
+        $this->Type = $this->Type ?? $this->Type = UserType::Registered;
+        $this->_id = $this->Email;
+        $this->id = ($this->Type != UserType::Guest ? uniqid($GLOBALS['AppPrefix'] . "USER") : uniqid($GLOBALS['AppPrefix'] . "ANON"));
         $this->activeProject = (!$this->activeProject ? createLabel_proj() : $this->activeProject);
 
         // set status (1: active, ...)
@@ -62,7 +58,7 @@ class User
         $this->registrationDate = (!$this->registrationDate ? moment() : $this->registrationDate);
 
         // set user quota according to user type
-        $this->diskQuota  = (!$this->diskQuota && $this->Type != 3 ? $GLOBALS['DISKLIMIT'] : $GLOBALS['DISKLIMIT_ANON']);
+        $this->diskQuota  = (!$this->diskQuota && $this->Type != UserType::Guest ? $GLOBALS['DISKLIMIT'] : $GLOBALS['DISKLIMIT_ANON']);
 
         // process given attributes 
         $this->Surname = ucfirst($this->Surname);

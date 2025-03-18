@@ -115,7 +115,7 @@ redirectAdminOutside();
                                                 <select name="Type" id="Type" class="form-control">
                                                     <?php
                                                     if (!$_REQUEST['Type'])
-                                                        $_REQUEST['Type'] = 2;
+                                                        $_REQUEST['Type'] = UserType::Registered;
                                                     foreach ($GLOBALS['ROLES'] as $k => $v) {
                                                         $selected = "";
                                                         if ($_REQUEST['Type'] == $k)

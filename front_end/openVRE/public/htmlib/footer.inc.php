@@ -15,7 +15,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <?php if ($_SESSION["User"]["Type"] != 3) { ?>
+                <?php if ($_SESSION["User"]["Type"] != UserType::Guest) { ?>
                     <a class="btn green" href="<?php echo $GLOBALS['URL_login']; ?>">Log in</a>
                     <a class="btn green" href="<?php echo $GLOBALS['URL']; ?>">Non-registered</a>
                 <?php } else { ?>
