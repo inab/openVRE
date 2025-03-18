@@ -360,7 +360,7 @@ function logoutAnon()
 
 function saveNewUser($user)
 {
-    $notPersistedAttributes = ["Token", "TokenInfo"];
+    $notPersistedAttributes = ["Token", "TokenInfo", "Vault"];
     foreach ($notPersistedAttributes as $attribute) {
         unset($user[$attribute]);
     }
@@ -376,7 +376,7 @@ function saveNewUser($user)
 
 function updateUser($user)
 {
-    $notPersistedAttributes = ["Token", "TokenInfo"];
+    $notPersistedAttributes = ["Token", "TokenInfo", "Vault"];
     foreach ($notPersistedAttributes as $attribute) {
         unset($user[$attribute]);
     }

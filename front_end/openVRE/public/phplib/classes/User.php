@@ -45,7 +45,6 @@ class User
         } else {
             return 0;
         }
-        $this->Token_mug_ebi = array();
 
         // set user type (0: admin, 1:Tool dev, 2:registered user, 3:guest)
         $this->Type = (!isset($this->Type) ? $this->Type = 2 : $this->Type = $this->Type);
