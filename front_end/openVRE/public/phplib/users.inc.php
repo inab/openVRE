@@ -358,20 +358,30 @@ function logoutAnon()
     unset($_SESSION['User']);
 }
 
-function saveNewUser($userObj)
+function saveNewUser($user)
 {
-    $r = $GLOBALS['usersCol']->insertOne($userObj);
-    if (!$r)
+    $notPersistedAttributes = ["Token"];
+    foreach ($notPersistedAttributes as $attribute) {
+        unset($user[$attribute]);
+    }
+    $r = $GLOBALS['usersCol']->insertOne($user);
+    if (!$r) {
         return false;
+    }
 
     return true;
 }
 
 // update user document in  Mongo
 
-function updateUser($f)
+function updateUser($user)
 {
-    $GLOBALS['usersCol']->updateOne(array('_id' => $f['_id']), array('$set' => $f), array('upsert=>true'));
+    $notPersistedAttributes = ["Token"];
+    foreach ($notPersistedAttributes as $attribute) {
+        unset($user[$attribute]);
+    }
+
+    $GLOBALS['usersCol']->updateOne(array('_id' => $user['_id']), array('$set' => $user), array('upsert=>true'));
 }
 
 
