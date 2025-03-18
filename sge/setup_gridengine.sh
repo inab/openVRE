@@ -1,6 +1,7 @@
 #!/bin/bash
 
-#hostname > /var/lib/gridengine/default/common/act_qmaster
+HOSTNAME="sgecore"
+echo $HOSTNAME > /var/lib/gridengine/default/common/act_qmaster
 /etc/init.d/gridengine-master start
 /etc/init.d/gridengine-exec start
 

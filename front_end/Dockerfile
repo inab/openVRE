@@ -39,7 +39,6 @@ RUN chmod +x /usr/local/bin/setup.sh
 
 WORKDIR /var/www/html
 ADD openVRE /var/www/html/openVRE
-#RUN git clone --single-branch --branch dockerized https://github.com/inab/openVRE.git
 RUN cd openVRE
 WORKDIR /var/www/html/openVRE
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -51,20 +50,9 @@ RUN chmod -R 777 logs/application.log
 RUN cd public
 
 USER application
-#RUN useradd -m -s /bin/bash application
-#RUN sudo usermod -aG docker application
-
 
 WORKDIR /var/www/html/openVRE/public
 RUN pwd
 EXPOSE 88 443
 
-#RUN useradd -m application
-#RUN echo "application:application" | chpasswd
-
-CMD /opt/docker/bin/entrypoint.sh supervisord
-
-
-#add cleaning step adjusting the document + sistema de cues
-#chmod u+x scripts/maintainance/cleanUsersData.php
-#crontab -e
+CMD setup.sh && /opt/docker/bin/entrypoint.sh supervisord

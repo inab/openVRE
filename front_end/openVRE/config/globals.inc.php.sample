@@ -34,7 +34,7 @@ $GLOBALS['shared']     = "/shared_data/"; // VRE data directory
 $GLOBALS['logFile']    = $GLOBALS['root']."/logs/application.log"; // Log file path
 $GLOBALS['dataDir']    = $GLOBALS['shared']."userdata/"; // User data directory
 $GLOBALS['pubDir']     = $GLOBALS['shared']."public/"; // Public data directory
-$GLOBALS['sampleData'] = $GLOBALS['shared']."sampleData/"; // Tool dataset directory
+$GLOBALS['sampleData'] = "/var/www/html/openVRE/data";
 $GLOBALS['sampleData_default'] = "basic"; // Default workspace's dataset entry
 
 // File manager config

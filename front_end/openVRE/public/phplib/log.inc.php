@@ -14,6 +14,7 @@ function logger($entry) {
 
     $entry = timestamp()." | $entry \n";
     file_put_contents($GLOBALS['logFile'], $entry, FILE_APPEND | LOCK_EX);
+    error_log($entry);
 }
 
 
