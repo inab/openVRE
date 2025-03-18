@@ -309,10 +309,6 @@ function delJob($pid,$launcherType=NULL,$cloudName="local",$login=NULL){
     $jobUser = $_SESSION['User']['lastjobs'][$pid];
 
     if($jobUser && $jobUser['job_type'] == "interactive"){
-	    //$_SESSION['errorData']['Error'][]="Job is interactive";
-	    // Get info from Interactive tool
-	    list($proxy_tool_url,$proxy_tool_headers,$autorefresh) = get_url_interactive_tool($pid);
-
 	    $jobUser = $_SESSION['User']['lastjobs'][$pid];
 	    // Stop the Docker container
 	    $containerName = $jobUser['interactive_tool']['container_name'];
