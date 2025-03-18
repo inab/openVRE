@@ -46,7 +46,6 @@ function fromMongoToLdap($UserMongo)
     $info['cn']           = $UserMongo['_id'];
     $info['uid']          = $UserMongo['_id'];
     $info['mail']         = $UserMongo['Email'];
-    $info['userPassword'] = $UserMongo['crypPassword'];
 
     if ($UserMongo['Name'])
         $info['givenName'] = $UserMongo['Name'];
