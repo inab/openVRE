@@ -375,19 +375,6 @@ function updateUser($f)
 }
 
 
-// update user document in Mongo true or false
-function updateUserNew($f)
-{
-    try {
-        $result = $GLOBALS['usersCol']->updateOne(['_id' => $f['_id']], ['$set' => $f], ['upsert' => true]);
-        return $result->getModifiedCount() > 0 || $result->getUpsertedCount() > 0;
-    } catch (Exception $e) {
-        // Handle the exception if needed
-        return false;
-    }
-}
-
-
 // update attribute user document in Mongo
 
 function modifyUser($login, $attribute, $value)

@@ -377,7 +377,6 @@ function handleObjectStorageAccount($action, $postData){
 		if (!empty($postData['app_id']) && !empty($postData['app_secret'])) {
 			
 			$accessToken = $_SESSION['User']['Token']['access_token'];
-			#$accessToken = json_decode($Token, true);
 			
 			$data['data']['Swift'] = [];
         	$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
