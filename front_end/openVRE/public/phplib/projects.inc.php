@@ -856,7 +856,7 @@ function formatData($data) {
 				$data['log_file'] = str_replace($GLOBALS['dataDir']."/","",$data['log_file']);
 			}
 			$viewLog_state="enabled";
-			if ($data['pending']=="HOLD" || $data['pending']=="PENDING"){
+			if (isset($data['pending']) && ($data['pending']=="HOLD" || $data['pending']=="PENDING")){
 				$viewLog_state = 'disabled';
 			}elseif(!is_file($GLOBALS['dataDir']."/".$data['log_file']) && !is_link($GLOBALS['dataDir']."/".$data['log_file'])){
 				$viewLog_state = 'disabled';
