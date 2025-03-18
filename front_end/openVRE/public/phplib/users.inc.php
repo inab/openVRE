@@ -43,54 +43,6 @@ function checkToolDev()
     else return false;
 }
 
-// create user - from sign up
-function createUser(&$f)
-{
-
-    // create full user object
-    $objUser = new User($f, True);
-    $aux = (array)$objUser;
-
-    //load user in current session
-    $_SESSION['userId'] = $aux['id']; //OBSOLETE
-    $_SESSION['User']   = $aux;
-
-    // create user directory 
-    $dataDirId =  prepUserWorkSpace($aux['id'], $aux['activeProject']);
-    if (!$dataDirId) {
-        $_SESSION['errorData']['Error'][] = "Error creating data dir";
-        echo "Error creating data dir";
-        return false;
-    }
-    $aux['dataDir']     = $dataDirId;
-    $aux['AuthProvider'] = "ldap-cloud";
-    $_SESSION['User']['dataDir'] = $dataDirId;
-
-    // register user into mongo
-    $r = saveNewUser($aux);
-    if (!$r) {
-        $_SESSION['errorData']['Error'][] = "User creation failed while registering it into the database. Please, manually clean orphan files for " . $aux['id'] . "(" . $dataDirId . ")";
-        echo 'Error saving new user into Mongo database';
-        unset($_SESSION['User']);
-        return false;
-    }
-
-    /*    
-    // register user in MuG ldap
-    $r = saveNewUser_ldap($aux);
-    if (!$r){
-        $_SESSION['errorData']['Error'][]="Failed to register ".$userObj['id']." into LDAP";
-        $_SESSION['errorData']['Error'][]="User creation failed while registering it to LDAP. Please, <a href=\"applib/delUser.php?id=".$aux['id']."\">DELETE USER</a>";
-	    unset($_SESSION['User']);
-        return false;
-    }
-     */
-
-    // send mail
-    sendWelcomeToNewUser($aux['_id'], $aux['Name'], $aux['Surname']);
-    return true;
-}
-
 // create user - after being authentified by the Auth Server
 function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID = false)
 {
