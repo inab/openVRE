@@ -15,7 +15,6 @@ class User
     public $Status;
     public $diskQuota;
     public $dataDir;
-    public $DataSample;
     public $Token;
     public $TokenInfo;
     public $Vault;
@@ -31,7 +30,7 @@ class User
             return 0;
 
         // set attributes from arguments
-        foreach (array('Surname', 'Name', 'Inst', 'Country', 'Email', 'Type', 'dataDir', 'diskQuota', 'DataSample', 'AuthProvider', 'activeProject') as $k) {
+        foreach (array('Surname', 'Name', 'Inst', 'Country', 'Email', 'Type', 'dataDir', 'diskQuota', 'AuthProvider', 'activeProject') as $k) {
             if (isset($f[$k])) {
                 $this->$k = sanitizeString($f[$k]);
             }
@@ -61,10 +60,6 @@ class User
         // process given attributes 
         $this->Surname = ucfirst($this->Surname);
         $this->Name    = ucfirst($this->Name);
-
-        // set inicial sample data for user workspace 
-        $this->DataSample = ($this->DataSample ? $this->DataSample : $GLOBALS['sampleData_default']);
-
         $this->Vault = array(
             "vaultClient" => array(
                 "jwtToken"    => isset($f['jwtToken']) ? $f['jwtToken'] : "", // Optionally pass jwtToken via $f or fetch from $_SESSION
