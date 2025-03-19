@@ -14,7 +14,7 @@ function checkLoggedIn()
     if (isset($_SESSION['User']) && isset($_SESSION['User']['_id']))
         $user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
 
-    if (isset($_SESSION['User']) && ($user['Status'] == 1)) return true;
+    if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active)) return true;
     else return false;
 }
 
@@ -30,7 +30,7 @@ function checkAdmin()
 
     $user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
 
-    if (isset($_SESSION['User']) && ($user['Status'] == 1) && (allowedRoles($user['Type'], $GLOBALS['ADMIN']))) return true;
+    if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active) && (allowedRoles($user['Type'], $GLOBALS['ADMIN']))) return true;
     else return false;
 }
 
@@ -39,7 +39,7 @@ function checkToolDev()
 
     $user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
 
-    if (isset($_SESSION['User']) && ($user['Status'] == 1) && (allowedRoles($user['Type'], $GLOBALS['TOOLDEV']) || allowedRoles($user['Type'], $GLOBALS['ADMIN']))) return true;
+    if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active) && (allowedRoles($user['Type'], $GLOBALS['TOOLDEV']) || allowedRoles($user['Type'], $GLOBALS['ADMIN']))) return true;
     else return false;
 }
 
@@ -375,7 +375,7 @@ function loadUser($login, $pass)
 
     // check user exists
     $user = $GLOBALS['usersCol']->findOne(array('_id' => $login));
-    if (!$user['_id'] || $user['Status'] == 0) {
+    if (!$user['_id'] || $user['Status'] == UserStatus::Inactive) {
         $_SESSION['errorData']['Error'][] = "Requested user (_id = $login) not found. Cannot load user.";
         return False;
     }
@@ -416,7 +416,7 @@ function loadUserWithToken($userinfo, $token, $jwt)
     $login = $userinfo['email'];
     $user = $GLOBALS['usersCol']->findOne(array('_id' => $login));
 
-    if (!$user['_id'] || $user['Status'] == 0)
+    if (!$user['_id'] || $user['Status'] == UserStatus::Inactive)
         return False;
 
     $auxlastlog = $user['lastLogin'];

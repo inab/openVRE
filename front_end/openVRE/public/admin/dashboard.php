@@ -24,7 +24,7 @@ $ops = [
 
 # TODO: check what's the goal here since there is no type 100
 foreach (array_values(iterator_to_array($GLOBALS['usersCol']->find(array("Type" => "100"), $ops))) as $v) {
-    if (($v['Type'] == 100) && ($v['Status'] == 1)) $users2[$v['_id']] = array($v['Surname'], $v['Name'], $v['Inst'],  $v['Type'], $v['Status'], $v['lastLogin'], $v['id']);
+    if (($v['Type'] == 100) && ($v['Status'] == UserStatus::Active)) $users2[$v['_id']] = array($v['Surname'], $v['Name'], $v['Inst'],  $v['Type'], $v['Status'], $v['lastLogin'], $v['id']);
 }
 
 // emails chart and data

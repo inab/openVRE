@@ -49,9 +49,7 @@ class User
         $this->_id = $this->Email;
         $this->id = ($this->Type != UserType::Guest ? uniqid($GLOBALS['AppPrefix'] . "USER") : uniqid($GLOBALS['AppPrefix'] . "ANON"));
         $this->activeProject = (!$this->activeProject ? createLabel_proj() : $this->activeProject);
-
-        // set status (1: active, ...)
-        $this->Status = "1";
+        $this->Status = userStatus::Active;
 
         // set creation time and last login
         $this->lastLogin        = moment();
