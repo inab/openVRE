@@ -25,12 +25,12 @@ function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData
 	}
 
 	// create worskspace data
-	$dataDirId = setUserWorkSpace($homeDir, $projectDir, $sampleData, $projectData, $verbose, $asRoot);
+	$dataDirId = setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $verbose, $asRoot);
 
 	return $dataDirId;
 }
 
-function setUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData, $verbose = FALSE, $asRoot = 0)
+function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData = "", $verbose = FALSE, $asRoot = 0)
 {
 
 	// set sampleData default
