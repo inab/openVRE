@@ -184,41 +184,6 @@ function createUserAnonymous($sampleData = "")
 }
 
 
-// create user - from Admin section
-function createUserFromAdmin(&$f)
-{
-
-    // create full user object
-    $objUser = new User($f, True);
-    $aux = (array)$objUser;
-    $_SESSION['errorData']['Info'][] = "New user data object created. Login = " . $aux['_id'] . " Password = " . $f['pass1'];
-
-    // create user directory
-    $dataDirId =  prepUserWorkSpace($aux['id'], $aux['activeProject'], $f['DataSample'], array(), TRUE, 1);
-    if (!$dataDirId) {
-        $_SESSION['errorData']['Error'][] = "Error creating new user directory with '" . $aux['id'] . "'. If needed <a href=\"applib/delUser.php?id=" . $aux['id'] . "\">delete user</a>";
-        echo "Error creating data dir";
-        return false;
-    }
-    $_SESSION['errorData']['Info'][] = "New workspace created at '" . $aux['id'] . "' (id=$dataDirId).";
-    $aux['dataDir'] = $dataDirId;
-    $aux['AuthProvider'] = "ldap-cloud";
-
-    // register user in mongo
-    $r = saveNewUser($aux);
-    if (!$r) {
-        $_SESSION['errorData']['Error'][] = "User creation failed while registering it into the database. Please, manually clean orphan files for " . $aux['id'] . "(" . $dataDirId . ")";
-        echo 'Error saving new user into Mongo database';
-    }
-    $_SESSION['errorData']['Info'][] = "New user successfuly created";
-
-    // send mail to user, if selected
-    if ($f['sendEmail'] == 1) sendPasswordToNewUser($f['Email'], $f['Name'], $f['Surname'], $f['pass1']);
-
-    return true;
-}
-
-
 // load user to SESSION
 function setUser($f, $lastLogin = FALSE)
 {
