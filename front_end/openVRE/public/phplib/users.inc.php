@@ -90,7 +90,7 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
         $_SESSION['tokenInfo'] = $userinfo;
     }
 
-    $objUser = new User($userAttributes);
+    $objUser = new User($userAttributes['Email'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "");
     if (!$objUser) {
         return false;
     }
@@ -155,7 +155,7 @@ function createUserAnonymous($sampleData = "")
         "AuthProvider" => "VRE"
     );
 
-    $objUser = new User($userAttributes);
+    $objUser = new User($userAttributes['Email'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "");
     if (!$objUser) {
         return false;
     }

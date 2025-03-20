@@ -70,6 +70,10 @@ function redirectInside()
 
 function sanitizeString($s)
 {
+	if (!is_string($s)) {
+		return $s;
+	}
+
 	return strip_tags(trim((string)$s));
 }
 

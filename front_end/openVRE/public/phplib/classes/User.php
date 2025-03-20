@@ -3,11 +3,11 @@
 class User
 {
 
-    public $_id; //= Email
+    public $_id;
+    public $Email;
     public $Surname;
     public $Name;
     public $Inst;
-    public $Email;
     public $lastLogin;
     public $registrationDate;
     public $Type;
@@ -16,41 +16,40 @@ class User
     public $dataDir;
     public $Vault;
     public $AuthProvider;
-    public $id;
+    public $id; // TODO: diff with _id?
     public $activeProject;
 
-    function __construct($f)
+    public function __construct(string $email, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject)
     {
-
-        // stop unless Email
-        if (!$f['Email'])
-            return 0;
-
-        // set attributes from arguments
-        foreach (array('Surname', 'Name', 'Inst', 'Email', 'dataDir', 'diskQuota', 'AuthProvider', 'activeProject') as $k) {
-            if (isset($f[$k])) {
-                $this->$k = sanitizeString($f[$k]);
-            }
-        }
-
-        if (!isset($_SESSION['userToken']) && $f['Type'] != UserType::Guest->value) {
+        if ($type != UserType::Guest->value && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return 0;
         }
 
-        $this->Type = $f['Type'] ?? UserType::Registered->value;
-        $this->_id = $this->Email;
-        $this->id = ($this->Type != UserType::Guest->value ? uniqid($GLOBALS['AppPrefix'] . "USER") : uniqid($GLOBALS['AppPrefix'] . "ANON"));
-        $this->activeProject = (!$this->activeProject ? createLabel_proj() : $this->activeProject);
+        if (!isset($_SESSION['userToken']) && $type != UserType::Guest->value) {
+            return 0;
+        }
+
+        $this->Type = $type ?? UserType::Registered->value; // TODO: check if this is ok
+        $this->Email = sanitizeString($email);
+        $this->_id = sanitizeString($email);
+        $this->Surname = ucfirst(sanitizeString($surname));
+        $this->Name = ucfirst(sanitizeString($name));
+        $this->Inst = sanitizeString($inst);
+        $this->diskQuota = sanitizeString($diskQuota);
+        $this->dataDir = sanitizeString($dataDir);
+        $this->AuthProvider = sanitizeString($authProvider);
+        $this->activeProject = sanitizeString($activeProject);
+        $this->id = $this->Type == UserType::Guest->value
+            ? uniqid($GLOBALS['AppPrefix'] . "ANON")
+            : uniqid($GLOBALS['AppPrefix'] . "USER");
+        $this->activeProject = $this->activeProject ?: createLabel_proj();
         $this->Status = userStatus::Active->value;
+        $this->lastLogin = moment();
+        $this->registrationDate = $this->registrationDate ?: moment();
+        $this->diskQuota  = $this->diskQuota || $this->Type == UserType::Guest->value // TODO: check if this is ok
+            ? $GLOBALS['DISKLIMIT_ANON']
+            : $GLOBALS['DISKLIMIT'];
 
-        // set creation time and last login
-        $this->lastLogin        = moment();
-        $this->registrationDate = (!$this->registrationDate ? moment() : $this->registrationDate);
-
-        // set user quota according to user type
-        $this->diskQuota  = (!$this->diskQuota && $this->Type != UserType::Guest->value ? $GLOBALS['DISKLIMIT'] : $GLOBALS['DISKLIMIT_ANON']);
-
-        // process given attributes 
         $this->Surname = ucfirst($this->Surname);
         $this->Name    = ucfirst($this->Name);
         $this->Vault = array(
