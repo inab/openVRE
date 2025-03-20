@@ -10,7 +10,7 @@ $ops = [
     'projection' => ['Surname' => 1, 'Name' => 1, 'Inst' => 1, 'diskQuota' => 1,  'Type' => 1, 'Status' => 1, 'registrationDate' => 1],
     'sort'       => ['Surname' => 1]
 ];
-foreach (array_values(iterator_to_array($GLOBALS['usersCol']->find(array("Type" => array('$ne' => UserType::Guest)), $ops))) as $v)
+foreach (array_values(iterator_to_array($GLOBALS['usersCol']->find(array("Type" => array('$ne' => UserType::Guest->value)), $ops))) as $v)
     $users[$v['_id']] = array($v['Surname'], $v['Name'], $v['Inst'], $v['diskQuota'], $v['Type'], $v['Status'], $v['registrationDate']);
 
 unset($users['guest@guest']);
@@ -24,7 +24,7 @@ $ops = [
 
 # TODO: check what's the goal here since there is no type 100
 foreach (array_values(iterator_to_array($GLOBALS['usersCol']->find(array("Type" => "100"), $ops))) as $v) {
-    if (($v['Type'] == 100) && ($v['Status'] == UserStatus::Active)) $users2[$v['_id']] = array($v['Surname'], $v['Name'], $v['Inst'],  $v['Type'], $v['Status'], $v['lastLogin'], $v['id']);
+    if (($v['Type'] == 100) && ($v['Status'] == UserStatus::Active->value)) $users2[$v['_id']] = array($v['Surname'], $v['Name'], $v['Inst'],  $v['Type'], $v['Status'], $v['lastLogin'], $v['id']);
 }
 
 // emails chart and data

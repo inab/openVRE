@@ -12,7 +12,7 @@ if ($_REQUEST) {
 	}
 
 	//check current user privilegies # TODO
-	if ($u['Type'] == UserType::Admin) { {
+	if ($u['Type'] == UserType::Admin->value) { {
 			$_SESSION['errorData']['Error'][] = "You are trying to remove an admin user.";
 			redirect($GLOBALS['URL'] . 'admin/adminUsers.php');
 		}

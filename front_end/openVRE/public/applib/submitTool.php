@@ -10,7 +10,7 @@ if (!isset($data)) {
     redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php?id=' . $_REQUEST['toolid']);
 }
 
-if ($data["user_id"] != $_SESSION["User"]["id"] && ($_SESSION['User']['Type'] != UserType::Admin)) {
+if ($data["user_id"] != $_SESSION["User"]["id"] && ($_SESSION['User']['Type'] != UserType::Admin->value)) {
     $_SESSION['errorData']['Error'][] = "The tool id <strong>" . $_REQUEST['toolid'] . "</strong> you are trying to edit doesn't belong to you.";
     redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php');
 }

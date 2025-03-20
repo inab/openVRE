@@ -141,7 +141,7 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 							</div>
 						<?php }
 
-						if ($_SESSION['User']['Type'] == UserType::Guest) {
+						if ($_SESSION['User']['Type'] == UserType::Guest->value) {
 
 							?>
 

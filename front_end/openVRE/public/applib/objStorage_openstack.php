@@ -42,7 +42,7 @@ if ($_REQUEST) {
     if ($_REQUEST['action'] == "getOpenstackUser") {
         $vaultUrl = $GLOBALS['vaultUrl'];
         $vaultToken = $_SESSION['User']['Vault']['vaultToken'];
-        $accessToken = $_SESSION['User']['Token']['access_token'];
+        $accessToken = $_SESSION['userToken']['access_token'];
         $vaultRolename = $_SESSION['User']['Vault']['vaultRolename'];
         $username = $_POST['username'];
 
@@ -75,7 +75,7 @@ if ($_REQUEST) {
 	    error_log("Main script - received container: $container");
 	    $vaultUrl = $GLOBALS['vaultUrl'];
 	    $vaultToken = $_SESSION['User']['Vault']['vaultToken'];
-	    $accessToken = $_SESSION['User']['Token']['access_token'];
+	    $accessToken = $_SESSION['userToken']['access_token'];
 	    $vaultRolename = $_SESSION['User']['Vault']['vaultRolename'];
 	    $username = $_POST['username'];
     
@@ -99,7 +99,7 @@ if ($_REQUEST) {
         $container = $_POST['container'];
         $vaultUrl = $GLOBALS['vaultUrl'];
         $vaultToken = $_SESSION['User']['Vault']['vaultToken'];
-        $accessToken = $_SESSION['User']['Token']['access_token'];
+        $accessToken = $_SESSION['userToken']['access_token'];
         $vaultRolename = $_SESSION['User']['Vault']['vaultRolename'];
         $username = $_POST['username'];
 

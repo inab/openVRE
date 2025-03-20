@@ -9,8 +9,9 @@ function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData
 	$_SESSION['curDir'] = $homeDir;
 
 	// set sampleData default
-	if ($sampleData == "")
+	if ($sampleData == "") {
 		$sampleData = $GLOBALS['sampleData_default'];
+	}
 
 	// set project default
 	if (!$projectDir) {
@@ -32,14 +33,12 @@ function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData
 
 function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData = "", $verbose = FALSE, $asRoot = 0)
 {
-
 	// set sampleData default
 	if ($sampleData == "")
 		$sampleData = $GLOBALS['sampleData_default'];
 
 	if ($verbose)
 		$_SESSION['errorData']['Info'][] = "Preparing user workspace named '$homeDir' with sample data '$sampleData'";
-
 
 	//creating user home directory
 	if (!is_dir($GLOBALS['dataDir']) || !is_writable($GLOBALS['dataDir'])) {
@@ -49,10 +48,7 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData = "",
 
 	$homeDirP  = $GLOBALS['dataDir'] . "/$homeDir";
 	$homeDirId = getGSFileId_fromPath($homeDir, $asRoot);
-
-
 	if (! isGSDirBNS($GLOBALS['filesCol'], $homeDirId) || ! is_dir($homeDirP)) {
-
 		$homeDirId  = createGSDirBNS($homeDir, 1);
 		if ($verbose)
 			$_SESSION['errorData']['Info'][] = "Creating main user directory: $homeDirP ($homeDirId)";
@@ -83,15 +79,12 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData = "",
 	);
 
 	// creating user workspace for given project
-
 	$dataDir   = "$homeDir/$projectDir";
 	$dataDirP  = $GLOBALS['dataDir'] . "/$dataDir";
 	$dataDirId = getGSFileId_fromPath($dataDir, $asRoot);
 
 	if (! isGSDirBNS($GLOBALS['filesCol'], $dataDirId) || ! is_dir($dataDirP)) {
-
 		//creating project directory
-
 		$dataDirId = createProjectDir($dataDir, $dataDirP, $projectData, $asRoot);
 
 		if ($verbose)
@@ -103,7 +96,6 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData = "",
 		}
 
 		//creating uploads directory
-
 		if ($sampleData != "0") {
 			$upDirId  = createGSDirBNS($dataDir . "/uploads", 1);
 			if ($verbose)
@@ -126,7 +118,6 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData = "",
 		}
 
 		//creating repository directory
-
 		if ($sampleData != "0") {
 			$repDirId  = createGSDirBNS($dataDir . "/repository", 1);
 			if ($verbose)
@@ -179,9 +170,7 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData = "",
 		}
 
 		// injecting sample data
-
 		if ($sampleData != "0") {
-
 			$r = setUserWorkSpace_sampleData($sampleData, $dataDir, $verbose);
 			if ($r == "0") {
 				$_SESSION['errorData']['Warning'][] = "Cannot fully inject sample data '$sampleData' into user workspace.";
@@ -205,7 +194,7 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData = "",
 }
 
 
-function setUserWorkSpace_sampleData($sampleName, $dataDir, $verbose = TRUE)
+function setUserWorkSpace_sampleData($sampleName, $dataDir, $verbose = true)
 {
 	// path for sample data set
 	$sampleData = getSampleData($sampleName);
@@ -674,7 +663,7 @@ function printLastJobs($filesAll = array())
 function getToolsByDT($data_type, $status = 1)
 {
 	$tl = $GLOBALS['toolsCol']->find(array('external' => true, 'status' => array('$in' => [$status, 3])));
-	if ($_SESSION['User']['Type'] == UserType::ToolDev) {
+	if ($_SESSION['User']['Type'] == UserType::ToolDev->value) {
 		$tools_list = iterator_to_array($tl, false);
 		foreach ($tools_list as $key => $tool) {
 
@@ -1943,11 +1932,11 @@ function downloadFile($rfn)
 function refresh_token($force = false)
 {
 
-	if (!$_SESSION['User']['Token']['access_token']) {
+	if (!$_SESSION['userToken']['access_token']) {
 		ob_clean();
 		header('Location: ' . $GLOBALS['BASEURL'] . '/htmlib/errordb.php?msg=MuG Authentification Session Expired. <a href=' . $GLOBALS['URL'] . '>Login again</a>');
 	}
-	$existingTokenO = new AccessToken($_SESSION['User']['Token']);
+	$existingTokenO = new AccessToken($_SESSION['userToken']);
 
 	//$provider = new MuG_Oauth2Provider\MuG_Oauth2Provider(['redirectUri'=> 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['PHP_SELF']]);
 	$provider = new MuG_Oauth2Provider\MuG_Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . $_SERVER['PHP_SELF']]);
@@ -1966,11 +1955,10 @@ function refresh_token($force = false)
 
 		// save in mongo
 		$user = $_SESSION['User'];
-		$user['Token'] = $newToken;
 		updateUser($user);
 
 		// load new token in session
-		$_SESSION['User']['Token'] = $newToken;
+		$_SESSION['userToken'] = $newToken;
 		return true;
 	} else {
 		$_SESSION['errorData']['Warning'][] = "Access token not expired yet. <a href='applib/refreshToken.php?force=1'>Force refresh</a>";
@@ -1997,7 +1985,7 @@ function refresh_vault_token($force = false)
 	//$provider = new MuG_Oauth2Provider\MuG_Oauth2Provider(['redirectUri'=> $GLOBALS['URL'] . $_SERVER['PHP_SELF']]);
 
 	//add them to mongo
-	$provider = new VaultClient($_SESSION['User']['Vault']['vaultUrl'], $_SESSION['User']['Vault']['vaultToken'], $_SESSION['User']['Token']['access_token'], $_SESSION['User']['Vault']['vaultRole'], $_POST['username']);
+	$provider = new VaultClient($_SESSION['User']['Vault']['vaultUrl'], $_SESSION['User']['Vault']['vaultToken'], $_SESSION['userToken']['access_token'], $_SESSION['User']['Vault']['vaultRole'], $_POST['username']);
 
 	$expirationTime = $provider->getTokenExpirationTime($_SESSION['User']['Vault']['vaultUrl'], $existingToken);
 	//echo "refresh_vault_token_1";

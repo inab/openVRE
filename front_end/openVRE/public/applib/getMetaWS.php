@@ -401,7 +401,7 @@ if ($mt["cloudName"] != "") {
 <!--- DATA ONLY FOR DEVEL USERS -->
 
 <?php
-if ($_SESSION['User']['Type'] ==  UserType::Admin || $_SESSION['User']['Type'] == UserType::ToolDev) {
+if ($_SESSION['User']['Type'] ==  UserType::Admin->value || $_SESSION['User']['Type'] == UserType::ToolDev->value) {
 ?>
 
 	<h3>Development data</h3>
@@ -414,7 +414,7 @@ if ($_SESSION['User']['Type'] ==  UserType::Admin || $_SESSION['User']['Type'] =
 			</tr>
 			<tr>
 				<td>
-					<?php if ($_SESSION['User']['Type'] == UserType::Admin || $_SESSION['User']['Type'] == UserType::ToolDev) { ?>
+					<?php if ($_SESSION['User']['Type'] == UserType::Admin->value || $_SESSION['User']['Type'] == UserType::ToolDev->value) { ?>
 						<br />
 						<pre style="font-size:0.7em;margin:10px 25px;"><?php echo json_encode($mt, JSON_PRETTY_PRINT); ?></pre>
 					<?php } ?>
@@ -477,7 +477,7 @@ if ($_SESSION['User']['Type'] ==  UserType::Admin || $_SESSION['User']['Type'] =
 
 	// Devel buttons
 
-	if (($_SESSION['User']['Type'] == UserType::Admin) || ($_SESSION['User']['Type'] == UserType::ToolDev)) { ?>
+	if (($_SESSION['User']['Type'] == UserType::Admin->value) || ($_SESSION['User']['Type'] == UserType::ToolDev->value)) { ?>
 
 		<?php if (file_exists($mt['submission_file'])) { ?>
 			<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['submission_file']); ?>" class="btn green" target="_blank"><i class="fa fa-paper-plane"></i> VIEW SUBMIT FILE </a>

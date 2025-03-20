@@ -28,7 +28,7 @@ $GLOBALS['dbname_VRE']     = "oeb_submission_dev"; // Database name
 
 
 // evaluate files for all users
-$fu = $GLOBALS['usersCol']->find(array('Type' => UserType::Guest));
+$fu = $GLOBALS['usersCol']->find(array('Type' => UserType::Guest->value));
 
 var_dump($fu);
 exit(0);
@@ -49,7 +49,7 @@ foreach (array_values(iterator_to_array($fu)) as $v) {
         print "\n-----> USER " . $v['_id'] . "\n";
         print "ERROR: User " . $v['_id'] . " has no dataDir var.";
 
-        if ($v['Type'] == UserType::Guest) {
+        if ($v['Type'] == UserType::Guest->value) {
             // force delete user
             if ($dry_run === true) {
                 print "Dry run ON - doing nothing\n";
@@ -80,7 +80,7 @@ foreach (array_values(iterator_to_array($fu)) as $v) {
     if (! is_dir($rdir)) {
         print "ERROR: User " . $v['_id'] . " has no dataDir folder $rdir. ";
 
-        if ($v['Type'] == UserType::Guest) {
+        if ($v['Type'] == UserType::Guest->value) {
             // force delete user
             if ($dry_run === true) {
                 print "Dry run ON - doing nothing\n";
@@ -104,7 +104,7 @@ foreach (array_values(iterator_to_array($fu)) as $v) {
     // if no files, delete user
     if ($files === false) {
         print "ERROR: User " . $v['_id'] . " has no files nor folders registered in dataDir '" . $v['dataDir'] . "' - " . join("; ", $_SESSION['errorData']['Error']);
-        if ($v['Type'] == UserType::Guest) {
+        if ($v['Type'] == UserType::Guest->value) {
             // force delete user
             print " | Deleting user\n";
             if ($dry_run === true) {
@@ -140,7 +140,7 @@ foreach (array_values(iterator_to_array($fu)) as $v) {
             }
 
             // delete READMEs based on shorten expiration dates (mtime + 'caduca_readme')
-            if (preg_match('/README.md/', $f['path']) && $v['Type'] == UserType::Guest) {
+            if (preg_match('/README.md/', $f['path']) && $v['Type'] == UserType::Guest->value) {
 
                 // ignore files without mtime
                 if (!isset($f['mtime'])) {
@@ -222,7 +222,7 @@ foreach (array_values(iterator_to_array($fu)) as $v) {
     }
 
     // deleting anon users with no data
-    if ($v['Type'] != UserType::Guest) {
+    if ($v['Type'] != UserType::Guest->value) {
         print "Registered user. Keeping user\n";
         continue;
     }

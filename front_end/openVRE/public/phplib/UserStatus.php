@@ -1,4 +1,3 @@
-
 <?php
 
 // temporary set user status with int to keep backwards compatibility

@@ -201,7 +201,7 @@ function getTools_ListByID($array, $status)
 {
 	$array = array_values($array);
 	$tl = $GLOBALS['toolsCol']->find(array('_id' => array('$in' => $array), 'status' => array('$in' => [$status, 3])), array("name" => true, "status" => true));
-	if ($_SESSION['User']['Type'] == UserType::ToolDev) {
+	if ($_SESSION['User']['Type'] == UserType::ToolDev->value) {
 
 		$tools_list = iterator_to_array($tl, false);
 

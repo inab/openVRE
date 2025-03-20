@@ -339,7 +339,7 @@ redirectOutside();
                                                                 data-original-title="<p align='left' style='margin:0'>Bearer token used to authenticate your access to any platform service.</p>"></i></label>
                                                         <div class="input-group">
                                                             <input id="mt-target-1" type="text" class="form-control"
-                                                                value="<?php echo $_SESSION['User']['Token']['access_token']; ?>"
+                                                                value="<?php echo $_SESSION['userToken']['access_token']; ?>"
                                                                 readonly style="background:#fff;">
                                                             <span class="input-group-btn">
                                                                 <button class="btn green mt-clipboard"
@@ -351,14 +351,14 @@ redirectOutside();
                                                         </div>
                                                     </div>
                                                     <input id="exp-token" type="hidden"
-                                                        value="<?php echo $_SESSION['User']['Token']['expires']; ?>">
+                                                        value="<?php echo $_SESSION['userToken']['expires']; ?>">
                                                     <input id="curr-time" type="hidden" value="<?php echo time(); ?>">
                                                     <?php
-                                                    $ed = date('h:i:s A (jS \of F Y)', $_SESSION['User']['Token']['expires']);
+                                                    $ed = date('h:i:s A (jS \of F Y)', $_SESSION['userToken']['expires']);
                                                     /*$edd = date('h:i:s A (jS \of F Y)');
                                                            print ">>>>>>>>> INI : $edd <br/>";
                             print ">>>>>>>>> EXP : $ed <br/>";*/
-                                                    $expiresIn = $_SESSION['User']['Token']['expires'] - time();
+                                                    $expiresIn = $_SESSION['userToken']['expires'] - time();
                                                     if ($expiresIn > 0)
                                                         $expDate = "Token will expire in " . intval($expiresIn / 60) . " minutes, at $ed";
                                                     else
@@ -390,7 +390,7 @@ redirectOutside();
                                                                 data-original-title="<p align='left' style='margin:0'>Token used to refresh an expired access token. It is revoked when used, so access tokens are issued together with a new refresh token</p>"></i></label>
                                                         <div class="input-group">
                                                             <input id="mt-target-2" type="text" class="form-control"
-                                                                value="<?php echo $_SESSION['User']['Token']['refresh_token']; ?>"
+                                                                value="<?php echo $_SESSION['userToken']['refresh_token']; ?>"
                                                                 readonly style="background:#fff;">
                                                             <span class="input-group-btn">
                                                                 <button class="btn green mt-clipboard"
@@ -402,9 +402,9 @@ redirectOutside();
                                                         </div>
                                                     </div>
                                                     <input id="exp-refrtoken" type="hidden"
-                                                        value="<?php echo $_SESSION['User']['Token']['expires'] + $_SESSION['User']['Token']['refresh_expires_in']; ?>">
+                                                        value="<?php echo $_SESSION['userToken']['expires'] + $_SESSION['userToken']['refresh_expires_in']; ?>">
                                                     <?php
-                                                    /*$expiresDate = $_SESSION['User']['Token']['expires'] + $_SESSION['User']['Token']['refresh_expires_in'];
+                                                    /*$expiresDate = $_SESSION['userToken']['expires'] + $_SESSION['userToken']['refresh_expires_in'];
                                                                                                  $ed = date('h:i:s A (jS \of F Y)',$expiresDate);
                                                                                                     $expiresIn = $expiresDate - time();
                                                                                                     if ($expiresIn > 0 )
@@ -428,7 +428,7 @@ redirectOutside();
                                                                 data-html="true" data-placement="right"
                                                                 data-original-title="<p align='left' style='margin:0'>Information returned by Oauth2 provider when the user token is beared</p>"></i></label>
                                                         <br />
-                                                        <pre><?php echo json_encode($_SESSION['User']['TokenInfo'], JSON_PRETTY_PRINT); ?></pre>
+                                                        <pre><?php echo json_encode($_SESSION['tokenInfo'], JSON_PRETTY_PRINT); ?></pre>
                                                     </div>
 
 

@@ -6,15 +6,15 @@
 
 function getTools_List($status = 1)
 {
-	if ($_SESSION['User']['Type'] == UserType::Guest) {
+	if ($_SESSION['User']['Type'] == UserType::Guest->value) {
 		$tools = $GLOBALS['toolsCol']->find(array('external' => true, 'status' => $status, 'owner.license' => array('$ne' => "free_for_academics")), array('name' => 1, 'title' => 1, 'short_description' => 1, 'keywords' => 1), array('title' => 1));
-	} elseif ($_SESSION['User']['Type'] == UserType::Admin || $_SESSION['User']['Type'] == UserType::ToolDev) {
+	} elseif ($_SESSION['User']['Type'] == UserType::Admin->value || $_SESSION['User']['Type'] == UserType::ToolDev->value) {
 		$tools = $GLOBALS['toolsCol']->find(array('external' => true, 'status' => $status), array('name' => 1, 'title' => 1, 'short_description' => 1, 'keywords' => 1, 'status' => 1), array('title' => 1));
 	} else {
 		$tools = $GLOBALS['toolsCol']->find(array('external' => true, 'status' => $status), array('name' => 1, 'title' => 1, 'short_description' => 1, 'keywords' => 1), array('title' => 1));
 	}
 
-	if ($_SESSION['User']['Type'] == UserType::ToolDev) {
+	if ($_SESSION['User']['Type'] == UserType::ToolDev->value) {
 		$tools_list = iterator_to_array($tools);
 		foreach ($tools_list as $key => $tool) {
 			if ($tool["status"] == 3 && !in_array($tool["_id"], $_SESSION['User']["ToolsDev"])) {
@@ -32,15 +32,15 @@ function getTools_List($status = 1)
 
 function getTools_ListComplete($status = 1)
 {
-	if ($_SESSION['User']['Type'] == UserType::Guest) {
+	if ($_SESSION['User']['Type'] == UserType::Guest->value) {
 		$tools = $GLOBALS['toolsCol']->find(array('external' => true, 'status' => $status, 'owner.license' => array('$ne' => "free_for_academics")), array(), array('title' => 1));
-	} elseif ($_SESSION['User']['Type'] == UserType::Admin || $_SESSION['User']['Type'] == UserType::ToolDev) {
+	} elseif ($_SESSION['User']['Type'] == UserType::Admin->value || $_SESSION['User']['Type'] == UserType::ToolDev->value) {
 		$tools = $GLOBALS['toolsCol']->find(array('external' => true, 'status' => array('$ne' => 2)), array(), array('title' => 1));
 	} else {
 		$tools = $GLOBALS['toolsCol']->find(array('external' => true, 'status' => $status), array(), array('title' => 1));
 	}
 
-	if ($_SESSION['User']['Type'] == UserType::ToolDev) {
+	if ($_SESSION['User']['Type'] == UserType::ToolDev->value) {
 		$tools_list = iterator_to_array($tools);
 		foreach ($tools_list as $key => $tool) {
 			if ($tool["status"] == 3 && !in_array($tool["_id"], $_SESSION['User']["ToolsDev"])) {

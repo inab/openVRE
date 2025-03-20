@@ -7,7 +7,6 @@ class User
     public $Surname;
     public $Name;
     public $Inst;
-    public $Country;
     public $Email;
     public $lastLogin;
     public $registrationDate;
@@ -15,8 +14,6 @@ class User
     public $Status;
     public $diskQuota;
     public $dataDir;
-    public $Token;
-    public $TokenInfo;
     public $Vault;
     public $AuthProvider;
     public $id;
@@ -30,32 +27,30 @@ class User
             return 0;
 
         // set attributes from arguments
-        foreach (array('Surname', 'Name', 'Inst', 'Country', 'Email', 'Type', 'dataDir', 'diskQuota', 'AuthProvider', 'activeProject') as $k) {
+        foreach (array('Surname', 'Name', 'Inst', 'Email', 'dataDir', 'diskQuota', 'AuthProvider', 'activeProject') as $k) {
             if (isset($f[$k])) {
                 $this->$k = sanitizeString($f[$k]);
             }
         }
 
-        if (isset($f['Token'])) {
-            $this->Token = $f['Token'];
-        } elseif (isset($f['TokenInfo'])) {
-            $this->TokenInfo = $f['TokenInfo'];
-        } elseif ($f['Type'] != UserType::Guest) {
+        error_log("User construct: " . json_encode($f));
+
+        if (!isset($_SESSION['userToken']) && $f['Type'] != UserType::Guest->value) {
             return 0;
         }
 
-        $this->Type = $this->Type ?? $this->Type = UserType::Registered;
+        $this->Type = $f['Type'] ?? UserType::Registered->value;
         $this->_id = $this->Email;
-        $this->id = ($this->Type != UserType::Guest ? uniqid($GLOBALS['AppPrefix'] . "USER") : uniqid($GLOBALS['AppPrefix'] . "ANON"));
+        $this->id = ($this->Type != UserType::Guest->value ? uniqid($GLOBALS['AppPrefix'] . "USER") : uniqid($GLOBALS['AppPrefix'] . "ANON"));
         $this->activeProject = (!$this->activeProject ? createLabel_proj() : $this->activeProject);
-        $this->Status = userStatus::Active;
+        $this->Status = userStatus::Active->value;
 
         // set creation time and last login
         $this->lastLogin        = moment();
         $this->registrationDate = (!$this->registrationDate ? moment() : $this->registrationDate);
 
         // set user quota according to user type
-        $this->diskQuota  = (!$this->diskQuota && $this->Type != UserType::Guest ? $GLOBALS['DISKLIMIT'] : $GLOBALS['DISKLIMIT_ANON']);
+        $this->diskQuota  = (!$this->diskQuota && $this->Type != UserType::Guest->value ? $GLOBALS['DISKLIMIT'] : $GLOBALS['DISKLIMIT_ANON']);
 
         // process given attributes 
         $this->Surname = ucfirst($this->Surname);

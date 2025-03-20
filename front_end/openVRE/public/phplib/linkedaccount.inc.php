@@ -207,17 +207,17 @@ function handleSSHAccount($action, $site_id, $postData){
 				// Check if the timestamp is more than 2 hours old (validity check)
 				if (($currentTime - $savedTime) > 7200) {
 					$_SESSION['errorData']['Warning'][] = "Credentials were saved more than 2 hours ago. Please update them.";
-					$accessToken = $_SESSION['User']['Token']['access_token'];
+					$accessToken = $_SESSION['userToken']['access_token'];
 				} else {
 					$_SESSION['errorData']['Info'][] = "Credentials are already saved and still valid.";
-					$accessToken = $_SESSION['User']['Token']['access_token'];
+					$accessToken = $_SESSION['userToken']['access_token'];
 					return; 
 				}
 			}
 			
                 } elseif (isset($postData["save_credential"]) && $postData["save_credential"] == "true") {
 
-					$accessToken = $_SESSION['User']['Token']['access_token'];
+					$accessToken = $_SESSION['userToken']['access_token'];
 					$data['data']['SSH'] = [];
                     $data['data']['SSH']['private_key'] = $postData['private_key'];
 					$data['data']['SSH']['public_key'] = $postData['public_key']; 
@@ -242,7 +242,7 @@ function handleSSHAccount($action, $site_id, $postData){
                 // Add logic for handling MN account and uploading credentials to Vault for "update" action
                 
 		if (!empty($postData['private_key']) && !empty($postData['public_key'])) {
-			$accessToken = $_SESSION['User']['Token']['access_token'];
+			$accessToken = $_SESSION['userToken']['access_token'];
 
 			$data['data']['SSH'] = [];
 			$data['data']['SSH']['private_key'] = $postData['private_key'];
@@ -350,13 +350,13 @@ function handleObjectStorageAccount($action, $postData){
 		
 		if (isset($postData['app_id'], $postData['app_secret'])) {
 	            // If credentials are provided, use them directly
-			$accessToken = $_SESSION['User']['Token']['access_token'];
+			$accessToken = $_SESSION['userToken']['access_token'];
 			$_SESSION['errorData']['Info'][] = "Credentials are already saved, update the credentials if needed.";
 		
 		} elseif (isset($postData['save_credential']) && $postData['save_credential'] == 'true') {
 
             	// Add logic for handling MN account and uploading credentials to Vault
-			$accessToken = $_SESSION['User']['Token']['access_token'];
+			$accessToken = $_SESSION['userToken']['access_token'];
 		// You can customize this part based on how you obtain Swift credentials
             $data['data']['Swift'] = [];
 	    	$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
@@ -376,7 +376,7 @@ function handleObjectStorageAccount($action, $postData){
 
 		if (!empty($postData['app_id']) && !empty($postData['app_secret'])) {
 			
-			$accessToken = $_SESSION['User']['Token']['access_token'];
+			$accessToken = $_SESSION['userToken']['access_token'];
 			
 			$data['data']['Swift'] = [];
         	$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this

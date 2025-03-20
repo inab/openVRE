@@ -11,10 +11,10 @@ $result = array();
 $stats_filter = array();
 
 // query 'tools' collection
-if ($_SESSION['User']['Type'] == UserType::Admin) {
+if ($_SESSION['User']['Type'] == UserType::Admin->value) {
     // do query
     $result = $GLOBALS['toolsCol']->find(array());
-} elseif ($_SESSION['User']['Type'] == UserType::ToolDev) {
+} elseif ($_SESSION['User']['Type'] == UserType::ToolDev->value) {
     if ($_SESSION['User']['ToolsDev']) {
         // do query
         $result = $GLOBALS['toolsCol']->find(array("_id" => array('$in' => $_SESSION['User']['ToolsDev'])));
@@ -184,7 +184,7 @@ $toolsList = $tools;
                                                             echo '<span class="label label-default"><b>Internal</b></span>';
                                                         } else {
                                                             // allow update status
-                                                            if ($_SESSION['User']['Type'] == UserType::Admin || ($_SESSION["User"]["Type"] == UserType::ToolDev && in_array($toolId, $_SESSION['User']['ToolsDev']))) {
+                                                            if ($_SESSION['User']['Type'] == UserType::Admin->value || ($_SESSION["User"]["Type"] == UserType::ToolDev->value && in_array($toolId, $_SESSION['User']['ToolsDev']))) {
 
                                                                 echo ' <select onChange="changeToolStatus(\'' . $toolId . '\', this);">';
                                                                 echo '   <option value="" disabled selected> status...</option>';

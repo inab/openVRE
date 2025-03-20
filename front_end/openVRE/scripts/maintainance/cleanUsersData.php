@@ -48,7 +48,7 @@ $users_query = array("_id" => "ECSHANON5fe51c35f2a8b");
 $fu = $GLOBALS['usersCol']->find($users_query);
 
 $user_data = array(
-    array("id" => "EUSHANON5db9d62b17900", "dataDir" => "ECSHANON5fe51c35f2a8b", "Type" => UserType::Guest, "_id" => "X")
+    array("id" => "EUSHANON5db9d62b17900", "dataDir" => "ECSHANON5fe51c35f2a8b", "Type" => UserType::Guest->value, "_id" => "X")
 );
 
 $errors = array();
@@ -69,7 +69,7 @@ foreach ($user_data as $v) {
     if (!isset($v['dataDir']) || !$v['dataDir']) {
         print "\n-----> Cleaning user " . $v['_id'] . " (" . $v['id'] . ")\n";
 
-        if ($v['Type'] == UserType::Guest) {
+        if ($v['Type'] == UserType::Guest->value) {
             // force delete user
             if ($dry_run === true) {
                 print "Dry run ON - doing nothing\n";
@@ -106,7 +106,7 @@ foreach ($user_data as $v) {
     $rdir =  $GLOBALS['dataDir'] . $v['id'];
     if (! is_dir($rdir)) {
 
-        if ($v['Type'] == UserType::Guest) {
+        if ($v['Type'] == UserType::Guest->value) {
             // force delete user
             if ($dry_run === true) {
                 print "Dry run ON - doing nothing\n";
@@ -136,7 +136,7 @@ foreach ($user_data as $v) {
 
     // if no files, delete user
     if ($files === false) {
-        if ($v['Type'] == UserType::Guest) {
+        if ($v['Type'] == UserType::Guest->value) {
             // force delete user
             $msg =  "ERROR: User " . $v['_id'] . " has no data registered under dataDir '" . $v['dataDir'] . "'. " . join("; ", $_SESSION['errorData']['Error']) . ". Deleting ANON user\n";
             print $msg;
@@ -306,7 +306,7 @@ foreach ($user_data as $v) {
     }
 
     // deleting anon users with no data
-    if ($v['Type'] != UserType::Guest) {
+    if ($v['Type'] != UserType::Guest->value) {
         print "------ Never deleting registered users. Keeping user\n";
         continue;
     }

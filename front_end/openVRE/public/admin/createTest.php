@@ -19,12 +19,12 @@ if (!isset($toolDevJSON)) {
 	redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php');
 }
 
-if ($_SESSION['User']['Type'] != UserType::Admin)
+if ($_SESSION['User']['Type'] != UserType::Admin->value)
 	$toolDevMetaJSON = $GLOBALS['toolsDevMetaCol']->findOne(array('_id' => $_REQUEST['id'], 'user_id' => $_SESSION['User']['id']));
 else
 	$toolDevMetaJSON = $GLOBALS['toolsDevMetaCol']->findOne(array('_id' => $_REQUEST['id']));
 
-if (!isset($toolDevMetaJSON) && ($_SESSION['User']['Type'] != UserType::Admin)) {
+if (!isset($toolDevMetaJSON) && ($_SESSION['User']['Type'] != UserType::Admin->value)) {
 	$_SESSION['errorData']['Error'][] = "The tool id <strong>" . $_REQUEST['toolid'] . "</strong> you are trying to edit doesn't belong to you.";
 	redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php');
 }

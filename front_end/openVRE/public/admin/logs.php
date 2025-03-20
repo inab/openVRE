@@ -10,7 +10,7 @@ redirectToolDevOutside();
 $filters = array();
 
 // show tool_dev tool logs
-if ($_SESSION['User']['Type'] == UserType::ToolDev) {
+if ($_SESSION['User']['Type'] == UserType::ToolDev->value) {
     if (! $_SESSION['User']['ToolsDev']) {
         $_SESSION['errorData']['Error'][] = "Your account owns no tools. Sorry, no logs to show";
         $filters = array("force" => "empty");
@@ -18,7 +18,7 @@ if ($_SESSION['User']['Type'] == UserType::ToolDev) {
     $filters = array("toolId" => array('$in' => $_SESSION['User']['ToolsDev']));
 
     // show all tool logs
-} elseif ($_SESSION['User']['Type'] == UserType::Admin) {
+} elseif ($_SESSION['User']['Type'] == UserType::Admin->value) {
     $filters = array();
 }
 
@@ -149,7 +149,7 @@ if ($_REQUEST['export'] == 1) {
                                             foreach ($jobs as $pid => $jobInfo) {
 
                                                 $user = $jobInfo['user'];
-                                                if ($_SESSION['User']['Type'] == UserType::Admin || $_SESSION['User']["_id"] == $jobInfo['user']) {
+                                                if ($_SESSION['User']['Type'] == UserType::Admin->value || $_SESSION['User']["_id"] == $jobInfo['user']) {
                                                     $u = checkUserIDExists($jobInfo['user']);
                                                     $user = $u['_id'];
                                                 }

@@ -815,7 +815,7 @@ function getSampleDataList($status = 1, $filter_tool_status = true)
         $tools_active = array_keys(array_merge($fa, $fu));
 
         // if common/anon user, list sampledata for active tools
-        if ($_SESSION['User']['Type'] == UserType::Guest || $_SESSION['User']['Type'] == UserType::Registered) {
+        if ($_SESSION['User']['Type'] == UserType::Guest->value || $_SESSION['User']['Type'] == UserType::Registered->value) {
             $ft = $GLOBALS['sampleDataCol']->find(array(
                 '$or' => array(
                     array("status" => $status, "tool" => array('$not' => array('$exists' => 1))),
@@ -824,11 +824,11 @@ function getSampleDataList($status = 1, $filter_tool_status = true)
             ), array('_id' => 1));
 
             // if admin user, list sampledata regardless tool status    
-        } elseif ($_SESSION['User']['Type'] == UserType::Admin) {
+        } elseif ($_SESSION['User']['Type'] == UserType::Admin->value) {
             $ft = $GLOBALS['sampleDataCol']->find(array('status' => $status), array('_id' => 1));
 
             // if tool dev user, list sampledata for active tools + its own tools
-        } elseif ($_SESSION['User']['Type'] == UserType::ToolDev) {
+        } elseif ($_SESSION['User']['Type'] == UserType::ToolDev->value) {
             $fr = $GLOBALS['toolsCol']->find(array('status' => 3, '_id' => array('$in' => $_SESSION['User']['ToolsDev'])), array('_id' => 1));
             $tools_owned = array_keys(iterator_to_array($fr));
             $ft = $GLOBALS['sampleDataCol']->find(array(

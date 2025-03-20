@@ -21,12 +21,12 @@ if (isset($user["ToolsDev"])) $tdev = $user["ToolsDev"];
 else $tdev = array();
 
 if ((isset($_SESSION['User'])
-		&& ($user['Status'] == UserStatus::Active)
+		&& ($user['Status'] == UserStatus::Active->value)
 		&& (allowedRoles($user['Type'], $GLOBALS['TOOLDEV']))
 		&& (in_array($tool, $tdev))) ||
 	(isset($_SESSION['User'])
-		&& ($user['Status'] == UserStatus::Active)
-		&& ($user['Type'] == UserType::Admin)
+		&& ($user['Status'] == UserStatus::Active->value)
+		&& ($user['Type'] == UserType::Admin->value)
 	)
 ) $developer = true;
 else $developer = false;

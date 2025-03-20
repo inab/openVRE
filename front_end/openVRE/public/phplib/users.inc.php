@@ -14,8 +14,18 @@ function checkLoggedIn()
     if (isset($_SESSION['User']) && isset($_SESSION['User']['_id']))
         $user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
 
-    if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active)) return true;
-    else return false;
+    error_log("user status is " . $user['Status']);
+    error_log("session user is " . json_encode($_SESSION['User']));
+    if ($user['Status'] == UserStatus::Active->value) {
+        error_log("should return true");
+    } else {
+        error_log("should return false");
+    }
+    if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 function checkTermsOfUse()
@@ -30,7 +40,7 @@ function checkAdmin()
 
     $user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
 
-    if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active) && (allowedRoles($user['Type'], $GLOBALS['ADMIN']))) return true;
+    if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (allowedRoles($user['Type'], $GLOBALS['ADMIN']))) return true;
     else return false;
 }
 
@@ -39,97 +49,103 @@ function checkToolDev()
 
     $user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
 
-    if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active) && (allowedRoles($user['Type'], $GLOBALS['TOOLDEV']) || allowedRoles($user['Type'], $GLOBALS['ADMIN']))) return true;
+    if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (allowedRoles($user['Type'], $GLOBALS['TOOLDEV']) || allowedRoles($user['Type'], $GLOBALS['ADMIN']))) return true;
     else return false;
 }
 
 // create user - after being authentified by the Auth Server
 function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID = false)
 {
+    error_log("createUserFromToken: " . json_encode($userinfo));
 
     // create full user oject
     if (!$anonID) {
-        $f = array(
+        $userAttributes = array(
             "Email"        => $login,
-            "Token"        => $token,
             "JWT"          => $jwt,
-            "Type"         => UserType::Registered
+            "Type"         => UserType::Registered->value
         );
     } else {
-        $f = checkUserLoginExists($anonID);
+        $userAttributes = checkUserLoginExists($anonID);
         // overwrite currently logged anon user
-        if ($f) {
-            $f["Email"] = $login;
-            $f["Token"] = $token;
-            $f["JWT"]   = $jwt;
-            $f["Type"]  = UserType::Registered;
+        if ($userAttributes) {
+            $userAttributes["Email"] = $login;
+            $userAttributes["JWT"]   = $jwt;
+            $userAttributes["Type"]  = UserType::Registered->value;
         } else {
-            $f = array(
+            $userAttributes = array(
                 "Email"        => $login,
-                "Token"        => $token,
                 "JWT"          => $jwt,
-                "Type"         => UserType::Registered
+                "Type"         => UserType::Registered->value
             );
         }
     }
-    if (isset($userinfo) && $userinfo) {
-        if (isset($userinfo['family_name']))
-            $f['Surname'] = $userinfo['family_name'];
-        if (isset($userinfo['given_name']))
-            $f['Name'] = $userinfo['given_name'];
-        if (isset($userinfo['provider']))
-            $f['AuthProvider'] = $userinfo['provider'];
-        $f['TokenInfo'] = $userinfo;
-    }
-    $objUser = new User($f, True);
-    if (!$objUser)
-        return false;
-    $aux = (array)$objUser;
 
+    $_SESSION['userToken'] = $token;
+    if (isset($userinfo) && $userinfo) {
+        if (isset($userinfo['family_name'])) {
+            $userAttributes['Surname'] = $userinfo['family_name'];
+        }
+
+        if (isset($userinfo['given_name'])) {
+            $userAttributes['Name'] = $userinfo['given_name'];
+        }
+
+        if (isset($userinfo['provider'])) {
+            $userAttributes['AuthProvider'] = $userinfo['provider'];
+        }
+        $_SESSION['tokenInfo'] = $userinfo;
+    }
+
+    $objUser = new User($userAttributes);
+    if (!$objUser) {
+        return false;
+    }
+
+    $userArray = (array) $objUser;
     //load user in current session
-    $_SESSION['userId'] = $aux['id']; //OBSOLETE
-    $_SESSION['User']   = $aux;
+    $_SESSION['userId'] = $userArray['id']; //OBSOLETE
+    $_SESSION['User'] = $userArray;
 
     // create user directory
-    if (!$aux['dataDir']) {
+    if (!$userArray['dataDir']) {
         // create new workspace
-        $dataDirId =  prepUserWorkSpace($aux['id'], $aux['activeProject']);
+        $dataDirId =  prepUserWorkSpace($userArray['id'], $userArray['activeProject']);
         if (!$dataDirId) {
             $_SESSION['errorData']['Error'][] = "Error creating data dir";
-            echo "Error creating data dir";
+
             return false;
         }
-        $aux['dataDir'] = $dataDirId;
+
+        $userArray['dataDir'] = $dataDirId;
         $_SESSION['User']['dataDir'] = $dataDirId;
     } else {
         // change ownership for re-used  workspace
-        $workspace_files = getGSFileIdsFromDir($aux['dataDir'], 1);
-        foreach ($workspace_files as $fn) {
+        $workspace_files = getGSFileIdsFromDir($userArray['dataDir'], 1);
+        foreach ($workspace_files as $fn) { // TODO: complete or remove
         }
     }
-    // register user in mongo. NOT in ldap, as user exists for a oauth2 provider
 
-    $r = saveNewUser($aux);
+    // register user in mongo. NOT in ldap, as user exists for a oauth2 provider
+    $r = saveNewUser($userArray);
     if (!$r) {
-        $_SESSION['errorData']['Error'][] = "User creation failed while registering it into the database. Please, manually clean orphan files for " . $aux['id'] . "(" . $dataDirId . ")";
+        $_SESSION['errorData']['Error'][] = "User creation failed while registering it into the database. Please, manually clean orphan files for " . $userArray['id'] . "(" . $dataDirId . ")";
         echo 'Error saving new user into Mongo database';
         unset($_SESSION['User']);
+
         return false;
     }
-    if ($anonID) {
+    if ($anonID) { // TODO: complete or remove
         // if replacing anon user, delete old anon from mongo
         //    	$GLOBALS['usersCol']->deleteOne(array('_id'=> $anonID));    
     }
 
-    // DEPRECATED
-    //  inject user['id'] into auth server (keycloak) as 'vre_id' (so APIs will find it in /openid-connect/userinfo endpoint)
-    #$r = injectMugIdToKeycloak($aux['_id'],$aux['id']);
-
     // if not all user metadata mapped from oauth2 provider, ask the user
-    if (!$aux['Name'] || !$aux['Surname'] || !$aux['Inst'] || !$aux['Country']) {
+    if (!$userArray['Name'] || !$userArray['Surname'] || !$userArray['Inst']) {
         redirect($GLOBALS['BASEURL'] . 'user/usrProfile.php');
         exit(0);
     }
+
     return true;
 }
 
@@ -137,46 +153,45 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
 // create anonymous user - without being authentified by the Auth Server
 function createUserAnonymous($sampleData = "")
 {
-
-    // create full user oject
-
-    $f = array(
+    error_log("creating anonymous user");
+    $userAttributes = array(
         "Email"        => substr(md5(rand()), 0, 25) . "",
-        "Type"         => UserType::Guest,
+        "Type"         => UserType::Guest->value,
         "Name"         => "Guest",
         "Surname"      => "",
         "AuthProvider" => "VRE"
     );
-    $objUser = new User($f, False);
-    if (!$objUser)
-        return false;
-    $aux = (array)$objUser;
 
-    //load user in current session
-    $_SESSION['userId'] = $aux['id']; //OBSOLETE
-    $_SESSION['User']   = $aux;
-    $_SESSION['anonID'] = $aux['Email'];
-
-
-    // create user directory
-    $dataDirId =  prepUserWorkSpace($aux['id'], $aux['activeProject'], $sampleData);
-    if (!$dataDirId) {
-        $_SESSION['errorData']['Error'][] = "Error creating data dir";
-        echo "Error creating data dir";
+    $objUser = new User($userAttributes);
+    if (!$objUser) {
         return false;
     }
-    $aux['dataDir'] = $dataDirId;
-    $aux['terms']  =  "1";
+
+    $userArray = (array) $objUser;
+    $_SESSION['userId'] = $userArray['id']; //TODO: OBSOLETE?
+    $_SESSION['User']   = $userArray;
+    $_SESSION['anonID'] = $userArray['Email'];
+
+    error_log("userArray: " . json_encode($userArray));
+
+    $dataDirId = prepUserWorkSpace($userArray['id'], $userArray['activeProject'], $sampleData);
+    if (!$dataDirId) {
+        $_SESSION['errorData']['Error'][] = "Error creating data dir";
+        return false;
+    }
+
+    $userArray['dataDir'] = $dataDirId;
+    $userArray['terms']  =  "1";
     $_SESSION['User']['dataDir'] = $dataDirId;
     $_SESSION['User']['terms'] = "1";
 
-
     // register user in mongo. NOT in ldap nor in the oauth2 provider
-    $r = saveNewUser($aux);
+    $r = saveNewUser($userArray);
     if (!$r) {
-        $_SESSION['errorData']['Error'][] = "User creation failed while registering it into the database. Please, manually clean orphan files for " . $aux['id'] . "(" . $dataDirId . ")";
+        $_SESSION['errorData']['Error'][] = "User creation failed while registering it into the database. Please, manually clean orphan files for " . $userArray['id'] . "(" . $dataDirId . ")";
         echo 'Error saving new user into Mongo database';
         unset($_SESSION['User']);
+
         return false;
     }
 
@@ -187,6 +202,7 @@ function createUserAnonymous($sampleData = "")
 // load user to SESSION
 function setUser($f, $lastLogin = FALSE)
 {
+    error_log("setUser: " . json_encode($f));
     $aux = (array)$f;
     $_SESSION['User']   = $aux;
     $_SESSION['curDir'] = $_SESSION['User']['id'];
@@ -312,11 +328,13 @@ function logoutUser()
 function logoutAnon()
 {
     unset($_SESSION['User']);
+    unset($_SESSION['userToken']);
+    unset($_SESSION['userInfo']);
 }
 
 function saveNewUser($user)
 {
-    $notPersistedAttributes = ["Token", "TokenInfo", "Vault"];
+    $notPersistedAttributes = ["Vault"];
     foreach ($notPersistedAttributes as $attribute) {
         unset($user[$attribute]);
     }
@@ -332,7 +350,7 @@ function saveNewUser($user)
 
 function updateUser($user)
 {
-    $notPersistedAttributes = ["Token", "TokenInfo", "Vault"];
+    $notPersistedAttributes = ["Vault"];
     foreach ($notPersistedAttributes as $attribute) {
         unset($user[$attribute]);
     }
@@ -375,13 +393,13 @@ function loadUser($login, $pass)
 
     // check user exists
     $user = $GLOBALS['usersCol']->findOne(array('_id' => $login));
-    if (!$user['_id'] || $user['Status'] == UserStatus::Inactive) {
+    if (!$user['_id'] || $user['Status'] == UserStatus::Inactive->value) {
         $_SESSION['errorData']['Error'][] = "Requested user (_id = $login) not found. Cannot load user.";
         return False;
     }
     // check pass/token verifies - except when loading an ANON or when impersonating
     $pass_verified =  check_password($pass, null);
-    $impersonating =  (isset($_SESSION['User']) && $_SESSION['User']['Type'] == UserType::Admin && $pass == 99 ? TRUE : FALSE);
+    $impersonating =  (isset($_SESSION['User']) && $_SESSION['User']['Type'] == UserType::Admin->value && $pass == 99 ? TRUE : FALSE);
     $loadingAnon   =  ($user['Type'] == UserType::Guest ? TRUE : FALSE);
 
     if (!$pass_verified) {
@@ -416,14 +434,14 @@ function loadUserWithToken($userinfo, $token, $jwt)
     $login = $userinfo['email'];
     $user = $GLOBALS['usersCol']->findOne(array('_id' => $login));
 
-    if (!$user['_id'] || $user['Status'] == UserStatus::Inactive)
+    if (!$user['_id'] || $user['Status'] == UserStatus::Inactive->value)
         return False;
 
     $auxlastlog = $user['lastLogin'];
     $user['lastLogin'] = moment();
-    $user['Token']     = $token;
     $user['JWT']       = $jwt;
-    $user['TokenInfo'] = $userinfo;
+    $_SESSION['userToken'] = $token;
+    $_SESSION['tokenInfo'] = $userinfo;
 
     updateUser($user);
     setUser($user, $auxlastlog);
