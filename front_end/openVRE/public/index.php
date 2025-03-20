@@ -31,8 +31,6 @@ if (isset($_REQUEST['id']) && $_REQUEST['id']) {
         }
     }
 
-    error_log("anonymous from index.php");
-
     // Get access creating an a anonymous guest account
     $r = createUserAnonymous($sd);
     if (!$r) {

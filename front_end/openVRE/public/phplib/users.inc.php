@@ -13,14 +13,7 @@ function checkLoggedIn()
 
     if (isset($_SESSION['User']) && isset($_SESSION['User']['_id']))
         $user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
-
-    error_log("user status is " . $user['Status']);
-    error_log("session user is " . json_encode($_SESSION['User']));
-    if ($user['Status'] == UserStatus::Active->value) {
-        error_log("should return true");
-    } else {
-        error_log("should return false");
-    }
+    
     if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value)) {
         return true;
     } else {

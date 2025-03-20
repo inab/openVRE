@@ -33,8 +33,6 @@ class User
             }
         }
 
-        error_log("User construct: " . json_encode($f));
-
         if (!isset($_SESSION['userToken']) && $f['Type'] != UserType::Guest->value) {
             return 0;
         }
