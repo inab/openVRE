@@ -2,7 +2,6 @@
 
 class User
 {
-
     public $_id;
     public $Email;
     public $Surname;
@@ -63,7 +62,146 @@ class User
             "vault_token"   => $GLOBALS['vaultToken'] ?? '',
             "vault_url"     => $GLOBALS['vaultUrl'] ?? ''
         );
+    }
 
-        return $this;
+    
+    public function getType(): int
+    {
+        return $this->Type;
+    }
+
+    public function setType(int $type): void
+    {
+        $this->Type = $type;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->Email;
+    }
+
+    public function setEmail(string $email): void
+    {
+        $this->Email = $email;
+    }
+
+    public function get_id(): string
+    {
+        return $this->_id;
+    }
+
+    public function set_id(string $id): void
+    {
+        $this->_id = $id;
+    }
+
+    public function getSurname(): string
+    {
+        return $this->Surname;
+    }
+
+    public function setSurname(string $surname): void
+    {
+        $this->Surname = $surname;
+    }
+
+    public function getName(): string
+    {
+        return $this->Name;
+    }
+
+    public function setName(string $name): void
+    {
+        $this->Name = $name;
+    }
+
+    public function getInst(): string
+    {
+        return $this->Inst;
+    }
+
+    public function setInst(string $inst): void
+    {
+        $this->Inst = $inst;
+    }
+
+    public function getDiskQuota(): string
+    {
+        return $this->diskQuota;
+    }
+
+    public function setDiskQuota(string $diskQuota): void
+    {
+        $this->diskQuota = $diskQuota;
+    }
+
+    public function getDataDir(): string
+    {
+        return $this->dataDir;
+    }
+
+    public function setDataDir(string $dataDir): void
+    {
+        $this->dataDir = $dataDir;
+    }
+
+    public function getAuthProvider(): string
+    {
+        return $this->AuthProvider;
+    }
+
+    public function setAuthProvider(string $authProvider): void
+    {
+        $this->AuthProvider = $authProvider;
+    }
+
+    public function getActiveProject(): string
+    {
+        return $this->activeProject;
+    }
+
+    public function setActiveProject(string $activeProject): void
+    {
+        $this->activeProject = $activeProject;
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function setId(string $id): void
+    {
+        $this->id = $id;
+    }
+
+    public function getStatus(): int
+    {
+        return $this->Status;
+    }
+
+    public function setStatus(int $status): void
+    {
+        $this->Status = $status;
+    }
+
+    public function getLastLogin(): string
+    {
+        return $this->lastLogin;
+    }
+
+    public function setLastLogin(string $lastLogin): void
+    {
+        $this->lastLogin = $lastLogin;
+    }
+
+    public function getRegistrationDate(): string
+    {
+        return $this->registrationDate;
+    }
+
+    public function setRegistrationDate(string $registrationDate): void
+    {
+        $this->registrationDate = $registrationDate;
     }
 }
