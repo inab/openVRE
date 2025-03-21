@@ -144,9 +144,8 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
 
 
 // create anonymous user - without being authentified by the Auth Server
-function createUserAnonymous($sampleData = "")
+function createUserAnonymous($sampleData)
 {
-    error_log("creating anonymous user");
     $userAttributes = array(
         "Email"        => substr(md5(rand()), 0, 25) . "",
         "Type"         => UserType::Guest->value,
@@ -164,8 +163,6 @@ function createUserAnonymous($sampleData = "")
     $_SESSION['userId'] = $userArray['id']; //TODO: OBSOLETE?
     $_SESSION['User']   = $userArray;
     $_SESSION['anonID'] = $userArray['Email'];
-
-    error_log("userArray: " . json_encode($userArray));
 
     $dataDirId = prepUserWorkSpace($userArray['id'], $userArray['activeProject'], $sampleData);
     if (!$dataDirId) {

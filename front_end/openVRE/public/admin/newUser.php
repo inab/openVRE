@@ -145,10 +145,10 @@ redirectAdminOutside();
                                                     <?php
                                                     if (!$_REQUEST['Data'])
                                                         $_REQUEST['Data'] = $GLOBALS['sampleData_default'];
-                                                    $dataList  = scanDir($GLOBALS['sampleData']);
+                                                    $dataList  = scanDir($GLOBALS['sampleDataPath']);
                                                     foreach ($dataList as $data) {
                                                         $selected = "";
-                                                        if (preg_match('/^\./', $data) || !is_dir($GLOBALS['sampleData'] . "/$data"))
+                                                        if (preg_match('/^\./', $data) || !is_dir($GLOBALS['sampleDataPath'] . "/$data"))
                                                             continue;
 
                                                         if ($_REQUEST['Data'] == $data)

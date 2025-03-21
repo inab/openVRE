@@ -4,7 +4,6 @@ use League\OAuth2\Client\Token\AccessToken;
 
 function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData = array(), $verbose = FALSE, $asRoot = 0)
 {
-
 	// set current directory
 	$_SESSION['curDir'] = $homeDir;
 
@@ -31,12 +30,8 @@ function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData
 	return $dataDirId;
 }
 
-function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData = "", $verbose = FALSE, $asRoot = 0)
+function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $verbose = FALSE, $asRoot = 0)
 {
-	// set sampleData default
-	if ($sampleData == "")
-		$sampleData = $GLOBALS['sampleData_default'];
-
 	if ($verbose)
 		$_SESSION['errorData']['Info'][] = "Preparing user workspace named '$homeDir' with sample data '$sampleData'";
 
@@ -204,13 +199,13 @@ function setUserWorkSpace_sampleData($sampleName, $dataDir, $verbose = true)
 	}
 
 	// validate sample Data integrity
-	$datafolders = scanDir($GLOBALS['sampleData'] . "/" . $sampleData['sample_path']);
+	$datafolders = scanDir($GLOBALS['sampleDataPath'] . "/" . $sampleData['sample_path']);
 	if (!in_array("uploads", $datafolders)) {
 		$_SESSION['errorData']['Warning'][] = "Sample data '" . $sampleData['name'] . "' has no 'uploads' folder";
 		return 0;
 	}
 
-	$metadataPath = $GLOBALS['sampleData'] . "/" . $sampleData['sample_path'] . "/.sample_metadata.json";
+	$metadataPath = $GLOBALS['sampleDataPath'] . "/" . $sampleData['sample_path'] . "/.sample_metadata.json";
 	if (!is_file($metadataPath)) {
 		$_SESSION['errorData']['Warning'][] = "Sample data '" . $sampleData['name'] . "' has no metadata (.sample_metadata.json) to load -> $metadataPath ";
 		return 0;
@@ -235,7 +230,7 @@ function setUserWorkSpace_sampleData($sampleName, $dataDir, $verbose = true)
 
 		// TODO: check if it is necessary
 		// looking for files in the folder 
-		$sampleDataPath = $GLOBALS['sampleData'] . "/" . $sampleData['sample_path'] . "/" . $metadata['file_path'];
+		$sampleDataPath = $GLOBALS['sampleDataPath'] . "/" . $sampleData['sample_path'] . "/" . $metadata['file_path'];
 		$metaFilePath  = "$sampleDataPath/.sample_metadata.json";
 
 		if (!is_file($metaFilePath)) {
@@ -268,7 +263,7 @@ function setUserWorkSpace_sampleData($sampleName, $dataDir, $verbose = true)
 function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type, $verbose = TRUE)
 {
 	$sampleData = getSampleData($sampleName);
-	$sampleDataPath = $GLOBALS['sampleData'] . "/" . $sampleData['sample_path'] . "/" . $metadata['file_path'];
+	$sampleDataPath = $GLOBALS['sampleDataPath'] . "/" . $sampleData['sample_path'] . "/" . $metadata['file_path'];
 	$dataDirPath = $GLOBALS['dataDir'] . "/$dataDir";
 	$userDataPath = $dataDirPath . "/" . $metadata['file_path'];
 
@@ -629,13 +624,7 @@ function printLastJobs($filesAll = array())
 				if (preg_match('/\/\./', $r['_id']))
 					continue;
 				if (isset($r['pending'])) {
-					/*if(basename($r['path']) != "repository") {
-			print parseTemplate(formatData($r), getTemplate('/LastJobsworkspace/LJ_folderPending.htm'));
-						$wehavejobs = true;
-				}*/
 				} elseif ((basename($r['path']) == "uploads") || (basename($r['path']) == "repository")) {
-					//$wehavejobs = false;
-					//print parseTemplate(formatData($r), getTemplate('/TreeTblworkspace/TR_folder_uploads.htm'));
 				} elseif (!strpos($r['files'][0], "dummy")) {
 					print parseTemplate(formatData($r), getTemplate('/LastJobsworkspace/LJ_folder.htm'));
 					$wehavejobs = true;

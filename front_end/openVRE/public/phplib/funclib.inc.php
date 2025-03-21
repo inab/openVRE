@@ -36,7 +36,7 @@ function redirectOutside()
 {
 	if (!checkLoggedIn()) {
 		//Get access creating an a anonymous guest account
-		$r = createUserAnonymous();
+		$r = createUserAnonymous(null);
 		if (!$r)
 			exit('Login error: cannot create anonymous VRE user');
 	} else {

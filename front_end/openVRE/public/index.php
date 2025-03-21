@@ -13,8 +13,6 @@ if (isset($_REQUEST['id']) && $_REQUEST['id']) {
     $r = loadUser($_REQUEST['id'], false);
 } else {
     // Load WS with sample data, if tool requested
-    $tool = array();
-    $sd = "";
     if (isset($_REQUEST['from']) && $_REQUEST['from']) {
         $tool = getTool_fromId($_REQUEST['from'], 1);
         if (!isset($tool['_id'])) {
@@ -23,16 +21,16 @@ if (isset($_REQUEST['id']) && $_REQUEST['id']) {
         }
 
         if (isset($_REQUEST['sd'])) {
-            $sd = $_REQUEST['sd'];
-        } elseif (isset($tool['$sd'])) {
-            $sd = $tool['$sd'];
+            $sampleData = $_REQUEST['sd'];
+        } elseif (isset($tool['$sampleData'])) {
+            $sampleData = $tool['$sampleData'];
         } else {
-            $sd = $tool['_id'];
+            $sampleData = $tool['_id'];
         }
     }
 
     // Get access creating an a anonymous guest account
-    $r = createUserAnonymous($sd);
+    $r = createUserAnonymous($sampleData);
     if (!$r) {
         exit('Login error: cannot create anonymous VRE user');
     }

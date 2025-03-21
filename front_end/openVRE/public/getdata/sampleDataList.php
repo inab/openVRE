@@ -152,9 +152,9 @@ $sampleList = getSampleDataList();
                                     <select class="form-control form-field-enabled valid select2naf" name="sampleData[]" id="sampleData" aria-invalid="false">
 																		<option value="">Please select a sample</option>
 																		<?php
-                                    $sampleList  = scanDir($GLOBALS['sampleData']);
+                                    $sampleList  = scanDir($GLOBALS['sampleDataPath']);
                                     foreach ($sampleList as $sample) {
-                                      if (preg_match('/^\./', $sample) || !is_dir($GLOBALS['sampleData']))
+                                      if (preg_match('/^\./', $sample) || !is_dir($GLOBALS['sampleDataPath']))
                                         continue;
                                       $sampleName = $sample;
                                     ?><option value="<?php echo $sample; ?>"><?php echo $sampleName; ?></option><?php

@@ -847,9 +847,9 @@ function getSampleDataList($status = 1, $filter_tool_status = true)
 
 
 // get sampleData
-function getSampleData($sampleData)
+function getSampleData($sampleDataId)
 {
-    return  $GLOBALS['sampleDataCol']->findOne(['_id' => $sampleData]);
+    return  $GLOBALS['sampleDataCol']->findOne(['_id' => $sampleDataId]);
 }
 
 
