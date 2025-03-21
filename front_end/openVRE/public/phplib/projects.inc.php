@@ -1959,50 +1959,29 @@ function refresh_token($force = false)
 
 function refresh_vault_token($force = false)
 {
-
-	if (!$_SESSION['User']['Vault']['vaultKey']) {
+	if (!$_SESSION['userVaultInfo']['vaultKey']) {
 		ob_clean();
 		header('Location: ' . $GLOBALS['BASEURL'] . '/htmlib/errordb.php?msg=Vault Authentification Session Expired. <a href=' . $GLOBALS['URL'] . '>Login again</a>');
 	}
 
-	//echo "refresh_vault_token";
-	//echo $_SESSION['User']['Vault']['vaultKey'];
-
-	$existingToken = $_SESSION['User']['Vault']['vaultKey'];
-
-	//$provider = new MuG_Oauth2Provider\MuG_Oauth2Provider(['redirectUri'=> 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['PHP_SELF']]);
-	//$provider = new MuG_Oauth2Provider\MuG_Oauth2Provider(['redirectUri'=> $GLOBALS['URL'] . $_SERVER['PHP_SELF']]);
-
+	$existingToken = $_SESSION['userVaultInfo']['vaultKey'];
 	//add them to mongo
-	$provider = new VaultClient($_SESSION['User']['Vault']['vaultUrl'], $_SESSION['User']['Vault']['vaultToken'], $_SESSION['userToken']['access_token'], $_SESSION['User']['Vault']['vaultRole'], $_POST['username']);
+	$provider = new VaultClient($_SESSION['userVaultInfo']['vaultUrl'], $_SESSION['userVaultInfo']['vaultToken'], $_SESSION['userToken']['access_token'], $_SESSION['userVaultInfo']['vaultRole'], $_POST['username']);
 
-	$expirationTime = $provider->getTokenExpirationTime($_SESSION['User']['Vault']['vaultUrl'], $existingToken);
-	//echo "refresh_vault_token_1";
-	//echo $expirationTime;
-
-	//expiration time can be or the timestamp or false:
-	//if ($force || $provider->isTokenExpired($_SESSION['User']['Vault']['vaultUrl'], $existingToken)) {
+	$expirationTime = $provider->getTokenExpirationTime($_SESSION['userVaultInfo']['vaultUrl'], $existingToken);
 	if ($force || ($expirationTime !== false)) {
 		try {
-			//echo "refresh_vault_token_2";
-			$newToken = $provider->renewVaultToken($_SESSION['User']['Vault']['vaultUrl'], $existingToken);
-			//echo "refresh_vault_token_3";
-			//echo $newToken;
+			$newToken = $provider->renewVaultToken($_SESSION['userVaultInfo']['vaultUrl'], $existingToken);
 			if ($newToken) {
 				$newToken  = json_decode($newToken, true);
-				$user = $_SESSION['User'];
-				$_SESSION['User']['Vault']['vaultKey'] = $newToken;
-				$tokenTime = $provider->getTokenExpirationTime($_SESSION['User']['Vault']['vaultUrl'], $user['Vault']['vaultKey']);
-				//echo "refresh_vault_token_4";
-				//echo $tokenTime;
+				$_SESSION['userVaultInfo']['vaultKey'] = $newToken;
+				$tokenTime = $provider->getTokenExpirationTime($_SESSION['userVaultInfo']['vaultUrl'], $_SESSION['userVaultInfo']['vaultKey']);
 				if ($tokenTime !== false) {
-					$user['Vault']['expires_in'] = $tokenTime;
-					//echo "Updated";
+					$_SESSION['userVaultInfo']['expires_in'] = $tokenTime;
 				}
-				updateUser($user);
-				$_SESSION['User']['Vault']['vaultKey'] = $newToken;
-				$_SESSION['User']['Vault']['expires_in'] = $tokenTime;
-				//updateUser($user);
+				updateUser($_SESSION['User']);
+				$_SESSION['userVaultInfo']['vaultKey'] = $newToken;
+				$_SESSION['userVaultInfo']['expires_in'] = $tokenTime;
 				return true;
 			}
 		} catch (Exception $e) {

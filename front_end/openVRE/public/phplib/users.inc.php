@@ -90,7 +90,7 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
         $_SESSION['tokenInfo'] = $userinfo;
     }
 
-    $objUser = new User($userAttributes['Email'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "");
+    $objUser = new User($userAttributes['Email'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", $userAttributes['JWT']);
     if (!$objUser) {
         return false;
     }
@@ -154,7 +154,7 @@ function createUserAnonymous($sampleData)
         "AuthProvider" => "VRE"
     );
 
-    $objUser = new User($userAttributes['Email'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "");
+    $objUser = new User($userAttributes['Email'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", "");
     if (!$objUser) {
         return false;
     }
@@ -323,10 +323,6 @@ function logoutAnon()
 
 function saveNewUser($user)
 {
-    $notPersistedAttributes = ["Vault"];
-    foreach ($notPersistedAttributes as $attribute) {
-        unset($user[$attribute]);
-    }
     $r = $GLOBALS['usersCol']->insertOne($user);
     if (!$r) {
         return false;
@@ -339,11 +335,6 @@ function saveNewUser($user)
 
 function updateUser($user)
 {
-    $notPersistedAttributes = ["Vault"];
-    foreach ($notPersistedAttributes as $attribute) {
-        unset($user[$attribute]);
-    }
-
     $GLOBALS['usersCol']->updateOne(array('_id' => $user['_id']), array('$set' => $user), array('upsert=>true'));
 }
 

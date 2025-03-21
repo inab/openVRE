@@ -4,7 +4,7 @@
 function getOpenstackUser($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username) {
 
 	$vaultClient = new VaultClient($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
-	$vaultKey = $_SESSION['User']['Vault']['vaultKey'];
+	$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
 	
 	$credentials = $vaultClient->retrieveDatafromVault('Swift', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $_SESSION['User']['_id'] . '_credentials.txt');
 	if ($credentials) {

@@ -434,12 +434,12 @@ redirectOutside();
 
                                                     <div class="form-group mt-clipboard-container">
                                                         <input id="vault-exp-token" type="hidden"
-                                                            value="<?php echo $_SESSION['User']['Vault']['expires_in']; ?>">
+                                                            value="<?php echo $_SESSION['userVaultInfo']['expires_in']; ?>">
                                                         <input id="curr-time" type="hidden"
                                                             value="<?php echo time(); ?>">
                                                         <?php
-                                                        //$ed = date('h:i:s A (jS \of F Y)', $_SESSION['User']['Vault']['expires_in']);
-                                                        $expirationTimestamp = intval($_SESSION['User']['Vault']['expires_in']);
+                                                        //$ed = date('h:i:s A (jS \of F Y)', $_SESSION['userVaultInfo']['expires_in']);
+                                                        $expirationTimestamp = intval($_SESSION['userVaultInfo']['expires_in']);
                                                         $ed = gmdate('h:i:s A (jS \of F Y)', $expirationTimestamp);
                                                         $expiresIn = $expirationTimestamp - time();
                                                         if ($expiresIn > 0)

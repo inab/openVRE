@@ -310,9 +310,9 @@ function handleSSHAccount($action, $site_id, $postData){
 		$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
         $vaultClient = new VaultClient(
                         $GLOBALS['vaultUrl'],
-                        $_SESSION['User']['Vault']['vaultToken'],
+                        $_SESSION['userVaultInfo']['vaultToken'],
                         $accessToken,
-                        $_SESSION['User']['Vault']['vaultRolename'],
+                        $_SESSION['userVaultInfo']['vaultRolename'],
                         $postData['username']
         );
 	//var_dump($data);
@@ -322,10 +322,10 @@ function handleSSHAccount($action, $site_id, $postData){
 	$tokenTime = $vaultClient->getTokenExpirationTime($GLOBALS['vaultUrl'], $key);
 	//echo ("TOKEN TIME" . $tokenTime);
 	if ($tokenTime !== false) {
-		$_SESSION['User']['Vault']['expires_in'] = $tokenTime;
+		$_SESSION['userVaultInfo']['expires_in'] = $tokenTime;
 	}
 	// Update user data with vault key
-        $_SESSION['User']['Vault']['vaultKey'] = $key;
+        $_SESSION['userVaultInfo']['vaultKey'] = $key;
         updateUser($_SESSION['User']);
         if (!$key) {
                 $_SESSION['errorData']['Error'][] = "Failed to link SSH account";
@@ -452,9 +452,9 @@ function handleObjectStorageAccount($action, $postData){
 
 	$vaultClient = new VaultClient(
                 	$GLOBALS['vaultUrl'],
-                	$_SESSION['User']['Vault']['vaultToken'],
+                	$_SESSION['userVaultInfo']['vaultToken'],
                 	$accessToken,
-                	$_SESSION['User']['Vault']['vaultRolename'],
+                	$_SESSION['userVaultInfo']['vaultRolename'],
                 	$postData['user_key']
 	);
 	#echo 'Vault';
@@ -462,7 +462,7 @@ function handleObjectStorageAccount($action, $postData){
 	#var_dump($data);
 	$key = $vaultClient->uploadKeystoVault($data);
 	// Update user data with vault key
-        $_SESSION['User']['Vault']['vaultKey'] = $key;
+        $_SESSION['userVaultInfo']['vaultKey'] = $key;
       	updateUser($_SESSION['User']);
 	if (!$key) {
 		$_SESSION['errorData']['Error'][] = "Failed to link Swift account";
@@ -517,7 +517,7 @@ function handleEGAAccount($action, $postData) {
 		handleInvalidAction();
 	}
 
-	//var_dump($_SESSION['User']['Vault']['vaultKey']);
+	//var_dump($_SESSION['userVaultInfo']['vaultKey']);
 
 	//var_dump($data);
 	//var_dump($accessToken);
@@ -525,9 +525,9 @@ function handleEGAAccount($action, $postData) {
 	
 	$vaultClient = new VaultClient(
 		$GLOBALS['vaultUrl'],
-		$_SESSION['User']['Vault']['vaultToken'],
+		$_SESSION['userVaultInfo']['vaultToken'],
 		$accessToken,
-		$_SESSION['User']['Vault']['vaultRolename'],
+		$_SESSION['userVaultInfo']['vaultRolename'],
 		$postData['username']
 	);
 
@@ -536,7 +536,7 @@ function handleEGAAccount($action, $postData) {
 	
 	//var_dump($key);
 	// Update user data with vault key
-	$_SESSION['User']['Vault']['vaultKey'] = $key;
+	$_SESSION['userVaultInfo']['vaultKey'] = $key;
 	updateUser($_SESSION['User']);
 	if (!$key) {
 		$_SESSION['errorData']['Info'][] = "";

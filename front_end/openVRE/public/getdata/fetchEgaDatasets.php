@@ -11,7 +11,7 @@ try {
 
     // Define the Vault token and address
     $userEmail = $_SESSION['User']['Email'];
-    $vaultToken = $_SESSION['User']['Vault']['vaultKey'];
+    $vaultToken = $_SESSION['userVaultInfo']['vaultKey'];
     $vaultAddress = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $userEmail . $GLOBALS['vaultCredentialsSuffix'];
 
     // Function to fetch data from the Vault

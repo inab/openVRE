@@ -14,12 +14,11 @@ class User
     public $Status;
     public $diskQuota;
     public $dataDir;
-    public $Vault;
     public $AuthProvider;
     public $id; // TODO: diff with _id?
     public $activeProject;
 
-    public function __construct(string $email, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject)
+    public function __construct(string $email, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject, ?string $jwt)
     {
         if ($type != UserType::Guest->value && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return 0;
@@ -52,18 +51,18 @@ class User
 
         $this->Surname = ucfirst($this->Surname);
         $this->Name    = ucfirst($this->Name);
-        $this->Vault = array(
+
+        $_SESSION['userVaultInfo'] = array(
             "vaultClient" => array(
-                "jwtToken"    => isset($f['jwtToken']) ? $f['jwtToken'] : "", // Optionally pass jwtToken via $f or fetch from $_SESSION
+                "jwtToken"    => $jwt ??  "",
                 "credentials" => array("data" => array("SSH" => array()))
             ),
             "vaultKey"     => null,
-            "secretPath"   => isset($GLOBALS['secretPath']) ? $GLOBALS['secretPath'] : '',
-            "vaultRolename" => isset($GLOBALS['vaultRolename']) ? $GLOBALS['vaultRolename'] : '',
-            "vaultToken"   => isset($GLOBALS['vaultToken']) ? $GLOBALS['vaultToken'] : '',
-            "vaultUrl"     => isset($GLOBALS['vaultUrl']) ? $GLOBALS['vaultUrl'] : ''
+            "secret_path"   => $GLOBALS['secretPath'] ?? '',
+            "vault_role_name" => $GLOBALS['vaultRolename'] ?? '',
+            "vault_token"   => $GLOBALS['vaultToken'] ?? '',
+            "vault_url"     => $GLOBALS['vaultUrl'] ?? ''
         );
-
 
         return $this;
     }

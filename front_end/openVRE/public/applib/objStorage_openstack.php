@@ -41,9 +41,9 @@ if ($_REQUEST) {
     // Get user openstack credentials.
     if ($_REQUEST['action'] == "getOpenstackUser") {
         $vaultUrl = $GLOBALS['vaultUrl'];
-        $vaultToken = $_SESSION['User']['Vault']['vaultToken'];
+        $vaultToken = $_SESSION['userVaultInfo']['vaultToken'];
         $accessToken = $_SESSION['userToken']['access_token'];
-        $vaultRolename = $_SESSION['User']['Vault']['vaultRolename'];
+        $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
         $username = $_POST['username'];
 
         // Obtain the SwiftClient directly:
@@ -74,9 +74,9 @@ if ($_REQUEST) {
 	    $container = $_POST['container'];
 	    error_log("Main script - received container: $container");
 	    $vaultUrl = $GLOBALS['vaultUrl'];
-	    $vaultToken = $_SESSION['User']['Vault']['vaultToken'];
+	    $vaultToken = $_SESSION['userVaultInfo']['vaultToken'];
 	    $accessToken = $_SESSION['userToken']['access_token'];
-	    $vaultRolename = $_SESSION['User']['Vault']['vaultRolename'];
+	    $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
 	    $username = $_POST['username'];
     
 	    $swiftClient = getSwiftClient($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
@@ -98,9 +98,9 @@ if ($_REQUEST) {
         $fileName = $_POST['fileName']; // Get the file URL (container/filename)
         $container = $_POST['container'];
         $vaultUrl = $GLOBALS['vaultUrl'];
-        $vaultToken = $_SESSION['User']['Vault']['vaultToken'];
+        $vaultToken = $_SESSION['userVaultInfo']['vaultToken'];
         $accessToken = $_SESSION['userToken']['access_token'];
-        $vaultRolename = $_SESSION['User']['Vault']['vaultRolename'];
+        $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
         $username = $_POST['username'];
 
         // Obtain the SwiftClient directly:
