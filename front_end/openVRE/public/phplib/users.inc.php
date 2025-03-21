@@ -195,7 +195,6 @@ function createUserAnonymous($sampleData = "")
 // load user to SESSION
 function setUser($f, $lastLogin = FALSE)
 {
-    error_log("setUser: " . json_encode($f));
     $aux = (array)$f;
     $_SESSION['User']   = $aux;
     $_SESSION['curDir'] = $_SESSION['User']['id'];
