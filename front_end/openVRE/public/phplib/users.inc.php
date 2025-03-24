@@ -11,47 +11,35 @@
 function checkLoggedIn()
 {
 
-    if (isset($_SESSION['User']) && isset($_SESSION['User']['_id']))
-        $user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
-    
-    if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value)) {
-        return true;
-    } else {
-        return false;
+    if (isset($_SESSION['User']) && isset($_SESSION['User']['_id'])) {
+        $user = getUserById($_SESSION['User']['_id']);
     }
+
+    return isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value);
 }
 
 function checkTermsOfUse()
 {
-
-    if (isset($_SESSION['User']['terms']) and $_SESSION['User']['terms'] == 1) return true;
-    else return false;
+    return isset($_SESSION['User']['terms']) && $_SESSION['User']['terms'] == 1;
 }
 
 function checkAdmin()
 {
+    $user = getUserById($_SESSION['User']['_id']);
 
-    $user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
-
-    if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (allowedRoles($user['Type'], $GLOBALS['ADMIN']))) return true;
-    else return false;
+    return isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (allowedRoles($user['Type'], $GLOBALS['ADMIN']));
 }
 
 function checkToolDev()
 {
+    $user = getUserById($_SESSION['User']['_id']);
 
-    $user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
-
-    if (isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (allowedRoles($user['Type'], $GLOBALS['TOOLDEV']) || allowedRoles($user['Type'], $GLOBALS['ADMIN']))) return true;
-    else return false;
+    return isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (allowedRoles($user['Type'], $GLOBALS['TOOLDEV']) || allowedRoles($user['Type'], $GLOBALS['ADMIN']));
 }
 
 // create user - after being authentified by the Auth Server
 function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID = false)
 {
-    error_log("createUserFromToken: " . json_encode($userinfo));
-
-    // create full user oject
     if (!$anonID) {
         $userAttributes = array(
             "Email"        => $login,
@@ -59,7 +47,7 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
             "Type"         => UserType::Registered->value
         );
     } else {
-        $userAttributes = checkUserLoginExists($anonID);
+        $userAttributes = getUserById($anonID);
         // overwrite currently logged anon user
         if ($userAttributes) {
             $userAttributes["Email"] = $login;
@@ -189,6 +177,24 @@ function createUserAnonymous($sampleData)
 }
 
 
+function getUserById($id, $options = array())
+{
+    return iterator_to_array($GLOBALS['usersCol']->findOne(["_id" => $id], $options));
+}
+
+
+function getUserByType($type, $options = array())
+{
+    return iterator_to_array($GLOBALS['usersCol']->findOne(["Type" => $type], $options));
+}
+
+
+function getUsersByFilter($filter, $options = array())
+{
+    return iterator_to_array($GLOBALS['usersCol']->find($filter, $options));
+}
+
+
 // load user to SESSION
 function setUser($f, $lastLogin = FALSE)
 {
@@ -232,12 +238,6 @@ function delUser($id, $asRoot = 1, $force = false)
     if (is_dir($rfn)) {
         exec("rm -r \"$rfn\" 2>&1", $output);
     }
-
-    /*
-    //delete user from KC
-    $user = $GLOBALS['usersCol']->findOne(array('id' => $id));
-    $r = delUser_ldap($user['_id']);
-     */
 
     //delete user from mongo
     $GLOBALS['usersCol']->deleteOne(array('id' => $id));
@@ -350,29 +350,11 @@ function modifyUser($login, $attribute, $value)
     );
 }
 
-function checkUserIDExists($userId)
-{
-    $user = array();
-    if ($userId)
-        $user = $GLOBALS['usersCol']->findOne(array('id' => $userId));
-
-    return $user;
-}
-
-function checkUserLoginExists($login)
-{
-    $user = array();
-    if ($login)
-        $user = $GLOBALS['usersCol']->findOne(array('_id' => $login));
-
-    return $user;
-}
 
 function loadUser($login, $pass)
 {
-
     // check user exists
-    $user = $GLOBALS['usersCol']->findOne(array('_id' => $login));
+    $user = getUserById($login);
     if (!$user['_id'] || $user['Status'] == UserStatus::Inactive->value) {
         $_SESSION['errorData']['Error'][] = "Requested user (_id = $login) not found. Cannot load user.";
         return False;
@@ -411,11 +393,10 @@ function loadUser($login, $pass)
 
 function loadUserWithToken($userinfo, $token, $jwt)
 {
-    $login = $userinfo['email'];
-    $user = $GLOBALS['usersCol']->findOne(array('_id' => $login));
-
-    if (!$user['_id'] || $user['Status'] == UserStatus::Inactive->value)
-        return False;
+    $user = getUserById($userinfo['email']);
+    if (!$user['_id'] || $user['Status'] == UserStatus::Inactive->value) {
+        return false;
+    }
 
     $auxlastlog = $user['lastLogin'];
     $user['lastLogin'] = moment();
@@ -445,10 +426,8 @@ function getUser_diskQuota($login)
         '_id'  => $login,
         'diskQuota' => array('$exists' => true)
     ));
-    if (isset($r['diskQuota']))
-        return $r['diskQuota'];
-    else
-        return false;
+
+    return $r['diskQuota'] ?? false;
 }
 
 function saveUserJobs($login, $jobInfo)
@@ -525,8 +504,6 @@ function getUserJobPid($login, $pid)
         "_id"      => $login,
         "lastjobs.$pid" => array('$exists' => true)
     ));
-    if (isset($r['lastjobs']))
-        return $r['lastjobs'];
-    else
-        return array();
+
+    return $r['lastjobs'] ?? array();
 }

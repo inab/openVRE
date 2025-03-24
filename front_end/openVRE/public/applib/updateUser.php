@@ -15,8 +15,7 @@ if ($_POST) {
 	}
 
 	$login = $_POST['Email'];
-
-	$user = $GLOBALS['usersCol']->findOne(array('_id' => $login));
+	$user = getUserById($login);
 
 	if ($user['_id']) {
 		$newdata = array('$set' => array('Surname' => ucfirst($_POST['Surname']), 'Name' => ucfirst($_POST['Name']), 'Inst' => $_POST['Inst'], 'diskQuota' => $_POST['diskQuota'] * 1024 * 1024 * 1024, 'Type' => $_POST['Type'], 'ToolsDev' => $_POST['tools']));

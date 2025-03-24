@@ -9,7 +9,7 @@ function launchTool($toolId, $userEmail, $projectName, $inputFiles) {
         return 0;
     }
 
-    $userInfo = $GLOBALS['usersCol']->findOne(["_id" => $userEmail]);
+    $userInfo = getUserById($userEmail);
     if (empty($userInfo)) {
         $_SESSION['errorData']['Error'][] = "User not found";
         return 0;

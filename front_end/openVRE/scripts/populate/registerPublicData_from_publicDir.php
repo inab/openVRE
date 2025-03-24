@@ -28,12 +28,10 @@ $GLOBALS['dbname_VRE']     = "oeb_submission_dev"; // Database name
 
 
 // evaluate files for all users
-$fu = $GLOBALS['usersCol']->find(array('Type' => UserType::Guest->value));
+$fu = getUserByType(UserType::Guest->value);
 
 var_dump($fu);
 exit(0);
-
-//$fu = $GLOBALS['usersCol']->find(array('id' => array('$in' => array("MuGANON5b9e960ec7644","MuGANON5b8e903f20dbd"))) );
 
 // foreach user
 foreach (array_values(iterator_to_array($fu)) as $v) {

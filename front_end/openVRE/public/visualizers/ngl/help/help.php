@@ -7,7 +7,7 @@ $help = pathinfo($_SERVER['PHP_SELF'], PATHINFO_FILENAME);
 $a = explode("/", dirname($_SERVER['PHP_SELF']));
 $tool = $a[sizeof($a) - 2];
 
-$user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
+$user = getUserById($_SESSION['User']['_id']);
 
 if (isset($user["ToolsDev"])) $tdev = $user["ToolsDev"];
 else $tdev = array();

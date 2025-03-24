@@ -5,7 +5,7 @@ require __DIR__ . "/../../config/bootstrap.php";
 if ($_POST) {
 	$login = $_POST['id'];
 	$status = $_POST['userStatus'];
-	$user = $GLOBALS['usersCol']->findOne(array('_id' => $login));
+	$user = getUserById($login);
 	if ($user['_id']) {
 		$newdata = array('$set' => array('Status' => $status));
 		$GLOBALS['usersCol']->updateOne(array('_id' => $login), $newdata);

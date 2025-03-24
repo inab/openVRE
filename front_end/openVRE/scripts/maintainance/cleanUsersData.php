@@ -44,7 +44,7 @@ print "\n########### START DATE: " . date("Y-m-d H:i:s") . " ##################\
 require __DIR__ . "/../../config/bootstrap.php";
 
 // query users whose files will be cleaned
-$users_query = array("_id" => "ECSHANON5fe51c35f2a8b");
+$users_query = array("_id" => "ECSHANON5fe51c35f2a8b"); // TODO: to be changed
 $fu = $GLOBALS['usersCol']->find($users_query);
 
 $user_data = array(

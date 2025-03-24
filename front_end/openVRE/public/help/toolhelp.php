@@ -15,8 +15,7 @@ $tool = $_REQUEST['tool'];
 
 
 // fetch user
-
-$user = $GLOBALS['usersCol']->findOne(array('_id' => $_SESSION['User']['_id']));
+$user = getUserById($_SESSION['User']['_id']);
 if (isset($user["ToolsDev"])) $tdev = $user["ToolsDev"];
 else $tdev = array();
 

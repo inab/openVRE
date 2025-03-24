@@ -4,7 +4,7 @@ require __DIR__ . "/../../config/bootstrap.php";
 
 if ($_POST) {
 	$login = $_SESSION['User']['Email'];
-	$user = $GLOBALS['usersCol']->findOne(array('_id' => $login));
+	$user = getUserById($login);
 
 	if ($user['_id']) {
 		$newdata = array('$set' => array(

@@ -90,7 +90,7 @@ function saveNewUser_ldap($mongoObj)
 }
 
 // search entry
-function checkUserLoginExists_ldap($login)
+function getUserById_ldap($login)
 {
 
     $sr = ldap_search($GLOBALS['ldap'], $GLOBALS['ldap_dn'], "uid=" . $login);
@@ -104,7 +104,7 @@ function checkUserLoginExists_ldap($login)
 // delete entry
 function delUser_ldap($login)
 {
-    if (checkUserLoginExists_ldap($login)) {
+    if (getUserById_ldap($login)) {
         $r = ldap_delete($GLOBALS['ldap'], "uid=" . $login . "," . $GLOBALS['ldap_dn']);
         if (!$r) {
             $_SESSION['errorData']['Error'][] = "Cannot delete user. LDAP says: [" . ldap_errno($GLOBALS['ldap']) . "] " . ldap_error($GLOBALS['ldap']);

@@ -6,7 +6,7 @@ $r = checkLoggedIn();
 
 // Recover guest user
 if (isset($_REQUEST['id']) && $_REQUEST['id']) {
-    if (!checkUserLoginExists($_REQUEST['id'])) {
+    if (!getUserById($_REQUEST['id'])) {
         unset($_REQUEST['id']);
     }
 

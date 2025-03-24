@@ -4,7 +4,7 @@ require __DIR__ . "/../../config/bootstrap.php";
 
 
 if ($_REQUEST) {
-	$u = checkUserIDExists(sanitizeString($_REQUEST["id"]));
+	$u = getUserById(sanitizeString($_REQUEST["id"]));
 
 	if (!isset($u)) {
 		$_SESSION['errorData']['Error'][] = "You are trying to remove a non existing user.";

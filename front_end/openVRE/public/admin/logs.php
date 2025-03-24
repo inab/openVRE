@@ -150,7 +150,7 @@ if ($_REQUEST['export'] == 1) {
 
                                                 $user = $jobInfo['user'];
                                                 if ($_SESSION['User']['Type'] == UserType::Admin->value || $_SESSION['User']["_id"] == $jobInfo['user']) {
-                                                    $u = checkUserIDExists($jobInfo['user']);
+                                                    $u = getUserById($jobInfo['user']);
                                                     $user = $u['_id'];
                                                 }
 

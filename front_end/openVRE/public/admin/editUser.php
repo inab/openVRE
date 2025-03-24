@@ -4,15 +4,12 @@ require __DIR__ . "/../../config/bootstrap.php";
 
 redirectAdminOutside();
 
-$user = $GLOBALS['usersCol']->findOne(array('id' => $_REQUEST['id']));
+$user = getUserById($_REQUEST['id']);
 
 if ($user['Type'] == UserType::Admin->value) {
     $_SESSION['errorData']['Error'][] = "You are trying to edit an admin user.";
     redirect($GLOBALS['URL'] . 'admin/adminUsers.php');
 }
-
-/*$tls = $GLOBALS['toolsCol']->find();
-$tls = $GLOBALS['visualizersCol']->find();*/
 
 $tls = getTools_List();
 $vlzrs = getVisualizers_List();

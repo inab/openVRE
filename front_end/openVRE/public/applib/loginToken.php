@@ -79,7 +79,7 @@ if (!isset($_GET['code'])) {
     }
 
     // Check if user exists.
-    $u = checkUserLoginExists(sanitizeString($resourceOwner['email']));
+    $u = getUserById(sanitizeString($resourceOwner['email']));
 
     // If new user, create or import from anon 
     if (!isset($u) || !$u) {
@@ -87,7 +87,7 @@ if (!isset($_GET['code'])) {
         $r = createUserFromToken($resourceOwner['email'], $accessToken, $jwt, $resourceOwner, false);
         if (!$r)
             exit('Login error: cannot create local VRE user');
-        $u = checkUserLoginExists(sanitizeString($resourceOwner['email']));
+        $u = getUserById(sanitizeString($resourceOwner['email']));
         if (!isset($u))
             exit('Login error: failed to create local VRE user');
     }

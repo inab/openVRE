@@ -7,7 +7,7 @@ redirectAdminOutside();
 
 $userAttributesProjection = ['projection' => ['Email' => 1, 'Surname' => 1, 'Name' => 1, 'Inst' => 1, 'diskQuota' => 1,  'Type' => 1, 'Status' => 1, 'registrationDate' => 1]];
 $filterNamedUsers = array("Type" => array('$ne' => UserType::Guest->value));
-$namedUsers = iterator_to_array($GLOBALS['usersCol']->find($filterNamedUsers, $userAttributesProjection));
+$namedUsers = getUsersByFilter($filterNamedUsers, $userAttributesProjection);
 
 // emails chart and data
 $emails = array();

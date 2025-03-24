@@ -527,24 +527,6 @@ function getVisualizerTableList($file_types, $visualizer = null)
 }
 
 
-// has tool custom visualizer
-
-function getToolDev_fromTool($toolId)
-{
-	$r = $GLOBALS['usersCol']->find(
-		array('ToolsDev' => array('$elemMatch' => array('$eq' => $toolId))),
-		array("_id" => 1)
-	);
-
-	if (empty($r))
-		return array();
-
-	$r_arr = iterator_to_array($r);
-	return array_keys($r_arr);
-}
-
-
-
 function getExecutionSitesForTool($toolId)
 {
 	// Retrieve tool document from the tools collection
