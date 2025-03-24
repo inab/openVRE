@@ -4,28 +4,10 @@ require __DIR__ . "/../../config/bootstrap.php";
 
 redirectAdminOutside();
 
-// total users
-$users = array();
-$ops = [
-    'projection' => ['Surname' => 1, 'Name' => 1, 'Inst' => 1, 'diskQuota' => 1,  'Type' => 1, 'Status' => 1, 'registrationDate' => 1],
-    'sort'       => ['Surname' => 1]
-];
-foreach (array_values(iterator_to_array($GLOBALS['usersCol']->find(array("Type" => array('$ne' => UserType::Guest->value)), $ops))) as $v)
-    $users[$v['_id']] = array($v['Surname'], $v['Name'], $v['Inst'], $v['diskQuota'], $v['Type'], $v['Status'], $v['registrationDate']);
 
-unset($users['guest@guest']);
-
-// users requesting premium user account 
-$users2 = array();
-$ops = [
-    'projection' => ['Surname' => 1, 'Name' => 1, 'Inst' => 1, 'Type' => 1, 'Status' => 1, 'lastLogin' => 1, 'id' => 1],
-    'sort'       => ['lastLogin' => -1]
-];
-
-# TODO: check what's the goal here since there is no type 100
-foreach (array_values(iterator_to_array($GLOBALS['usersCol']->find(array("Type" => "100"), $ops))) as $v) {
-    if (($v['Type'] == 100) && ($v['Status'] == UserStatus::Active->value)) $users2[$v['_id']] = array($v['Surname'], $v['Name'], $v['Inst'],  $v['Type'], $v['Status'], $v['lastLogin'], $v['id']);
-}
+$userAttributesProjection = ['projection' => ['Email' => 1, 'Surname' => 1, 'Name' => 1, 'Inst' => 1, 'diskQuota' => 1,  'Type' => 1, 'Status' => 1, 'registrationDate' => 1]];
+$filterNamedUsers = array("Type" => array('$ne' => UserType::Guest->value));
+$namedUsers = iterator_to_array($GLOBALS['usersCol']->find($filterNamedUsers, $userAttributesProjection));
 
 // emails chart and data
 $emails = array();
@@ -71,23 +53,23 @@ for ($i = 0; $i <= 11; $i++) {
     $months_list[date("Y/m", strtotime(date('Y-m') . " -$i months"))] = 0;
 }
 
-foreach ($users as $k => $v) {
-    if (isset($v[6])) {
-        $monthyear = substr($v[6], 0, 7);
-        if (array_key_exists($monthyear, $months_list)) $months_list[$monthyear]++;
-    }
-}
-$months_list = array_reverse($months_list);
-
-// types of user
 $types_of_user = array();
 foreach ($GLOBALS['ROLES'] as $k => $v) {
     $types_of_user[$k] = 0;
 }
 
-foreach ($users as $k => $v) {
-    $types_of_user[$v[4]]++;
+foreach ($namedUsers as $userAttributes) {
+    if (isset($userAttributes["registrationDate"])) {
+        $monthyear = substr($userAttributes["registrationDate"], 0, 7);
+        if (array_key_exists($monthyear, $months_list)) {
+            $months_list[$monthyear]++;
+        }
+    }
+
+    $types_of_user[$userAttributes["Type"]]++;
 }
+
+$months_list = array_reverse($months_list);
 
 ?>
 
@@ -134,7 +116,7 @@ foreach ($users as $k => $v) {
                             </div>
                             <div class="details">
                                 <div class="number">
-                                    <span data-counter="counterup" data-value="<?php echo sizeof($users); ?>">0</span>
+                                    <span data-counter="counterup" data-value="<?php echo sizeof($namedUsers); ?>">0</span>
                                 </div>
                                 <div class="desc"> Total registered users </div>
                             </div>
@@ -268,16 +250,16 @@ foreach ($users as $k => $v) {
 											<tbody>	
 											<?php
                                             $mock_disk = array();
-                                            foreach ($users as $key => $value):
+                                            foreach ($namedUsers as $userAttributes):
                                             ?>
 												<tr>
-													<td><a href="mailto:<?php echo $key; ?>"><?php echo $key; ?></a></td>
-													<td><?php echo $value[0]; ?></td>
-													<td><?php echo $value[1]; ?></td>
-													<td><?php echo $value[2]; ?></td>
+													<td><a href="mailto:<?php echo $userAttributes["Email"]; ?>"><?php echo $userAttributes["Email"]; ?></a></td>
+													<td><?php echo $userAttributes["SurName"]; ?></td>
+													<td><?php echo $userAttributes["Name"]; ?></td>
+													<td><?php echo $userAttributes["Inst"]; ?></td>
 													<td>
                                                       <div class="btn-group">
-                                                        <button class="btn btn-xs btn-default <?php echo $GLOBALS['ROLES_COLOR'][$value[4]]; ?> dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false" disabled="" style="opacity:1;"> <?php echo $GLOBALS['ROLES'][$value[4]]; ?> </button>
+                                                        <button class="btn btn-xs btn-default <?php echo $GLOBALS['ROLES_COLOR'][$userAttributes["Type"]]; ?> dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false" disabled="" style="opacity:1;"> <?php echo $GLOBALS['ROLES'][$userAttributes["Type"]]; ?> </button>
                                                       </div>
                                                     </td>
 													<td>
@@ -287,11 +269,11 @@ foreach ($users as $k => $v) {
                                                         echo $value_disk;
                                                         ?>
                                                     </td>
-													<td><?php echo $value[3]; ?></td>
+													<td><?php echo $userAttributes["Inst"]; ?></td>
 													<td>
-													  <?php if ($value[4] != 0) { ?>
+													  <?php if ($userAttributes["Type"] != 0) { ?>
 													  <div class="btn-group">
-														  <?php if ($value[5] == 0) { ?>
+														  <?php if ($userAttributes["Status"] == 0) { ?>
 														  <button class="btn btn-xs red dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false" disabled style="opacity:1"> Disabled 
                                                               <i class="fa fa-ban"></i>
                                                           </button>
@@ -436,56 +418,6 @@ foreach ($users as $k => $v) {
                         </div>
                         <!-- END DYNAMIC CHART PORTLET-->
                     </div>
-
-                    <!--<div class="col-lg-6 col-xs-12 col-sm-12">
-															<div class="portlet light bordered" style="height:839px">
-                                    <div class="portlet-title tabbable-line">
-                                        <div class="caption">
-                                            <span class="caption-subject font-dark bold uppercase">premium USERS REQUEST</span>
-                                        </div>                       
-                                    </div>
-                                    <div class="portlet-body">
-                                        <div class="scroller" style="height:739px;">
-																					<div class="tab-pane active" id="tab_actions_pending">
-																						<div class="mt-actions" id="container-actions">
-																						<?php
-                                                                                        if (sizeof($users2) > 0) {
-                                                                                            foreach ($users2 as $key => $value):
-                                                                                        ?>
-																						<div class="mt-action" id="<?php echo $value[6]; ?>">
-                                                        <div class="mt-action-body">
-                                                            <div class="mt-action-row">
-                                                                <div class="mt-action-info ">
-                                                                    <div class="mt-action-details ">
-                                                                        <span class="mt-action-author"><?php echo $value[1] . ' ' . $value[0]; ?></span>
-                                                                        <p class="mt-action-desc"><?php echo $value[2]; ?></p>
-                                                                    </div>
-                                                                </div>
-																																<div class="mt-action-datetime ">
-																																	<?php echo returnHumanDateDashboard($value[5]); ?>
-                                                                </div>
-                                                                <div class="mt-action-buttons ">
-                                                                    <div class="btn-group">
-																																				<button type="button" class="btn btn-outline green btn-sm btn-action-user1" onclick="userRequest('<?php echo $key; ?>', '<?php echo $value[6]; ?>', 1)">Approve</button>
-                                                                        <button type="button" class="btn btn-outline red btn-sm btn-action-user101" onclick="userRequest('<?php echo $key; ?>', '<?php echo $value[6]; ?>', 101)">Reject</button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-																						<?php
-                                                                                            endforeach;
-                                                                                        } else {
-                                                                                        ?>
-																						<div class="mt-action">No pending requests</div>	
-																						<?php } ?>
-                                            </div>
-                                          </div>
-                                    	</div>
-                                  </div>
-													</div>
-												</div>-->
-
                 </div>
 
 
