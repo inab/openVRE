@@ -4,15 +4,9 @@ require __DIR__ . "/../../config/bootstrap.php";
 
 redirectAdminOutside();
 
-$users = array();
-$ops = [
-    'projection' => ['Surname' => 1, 'Name' => 1, 'Inst' => 1, 'diskQuota' => 1, 'lastLogin' => 1, 'Type' => 1, 'Status' => 1, 'id' => 1, 'lastReload' => 1],
-    'sort'       => ['Surname' => 1]
-];
-foreach (array_values(iterator_to_array($GLOBALS['usersCol']->find(array("Type" => array('$ne' => UserType::Guest->value)), $ops))) as $v)
-    $users[$v['_id']] = array($v['Surname'], $v['Name'], $v['Inst'], $v['diskQuota'], $v['lastLogin'], $v['Type'], $v['Status'], $v['id'], $v['lastReload']);
-
-unset($users['guest@guest']);
+$userAttributesProjection = ['projection' => ['Email' => 1, 'Surname' => 1, 'Name' => 1, 'Inst' => 1, 'diskQuota' => 1, 'lastLogin' => 1, 'Type' => 1, 'Status' => 1, 'id' => 1, 'lastReload' => 1]];
+$filterNamedUsers = array("Type" => array('$ne' => UserType::Guest->value));
+$namedUsers = $GLOBALS['usersCol']->find($filterNamedUsers, $userAttributesProjection);
 
 ?>
 
@@ -89,9 +83,6 @@ unset($users['guest@guest']);
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <div class="btn-group">
-                                                    <!--<button id="sample_editable_1_new" class="btn green"> Add New
-                                                            <i class="fa fa-plus"></i>
-																												</button>-->
                                                     <button class="btn green" onclick="location.href = 'admin/newUser.php'"> Add New
                                                         <i class="fa fa-plus"></i>
                                                     </button>
@@ -120,24 +111,24 @@ unset($users['guest@guest']);
                                         </thead>
                                         <tbody>
                                             <?php
-                                            foreach ($users as $key => $value):
-                                                if (!$value[8]) {
+                                            foreach ($namedUsers as $userAttributes):
+                                                if (!$userAttributes["lastReload"]) {
                                                     continue;
                                                 }
                                             ?>
                                                 <tr>
-                                                    <td><a href="mailto:<?php echo $key; ?>"><?php echo $key; ?></a><br /><?php echo $value[8]; ?></td>
-                                                    <td><?php echo $value[0]; ?></td>
-                                                    <td><?php echo $value[1]; ?></td>
-                                                    <td><?php echo $value[2]; ?></td>
+                                                    <td><a href="mailto:<?php echo $userAttributes["Email"]; ?>"><?php echo $userAttributes["Email"]; ?></a><br /><?php echo $userAttributes["lastReload"]; ?></td>
+                                                    <td><?php echo $userAttributes["Surname"]; ?></td>
+                                                    <td><?php echo $userAttributes["Name"]; ?></td>
+                                                    <td><?php echo $userAttributes["Inst"]; ?></td>
                                                     <td>
                                                         <!--<div class="btn-group">
-														<?php if ($value[6] == 0) { ?>
-														<button disabled class="btn btn-xs blue dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false" style="opacity:1;"> <?php echo $GLOBALS['ROLES'][$value[6]]; ?>
+														<?php if ($userAttributes["Type"] == 0) { ?>
+														<button disabled class="btn btn-xs blue dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false" style="opacity:1;"> <?php echo $GLOBALS['ROLES'][$userAttributes["Type"]]; ?>
                                                             <i class="fa fa-circle-thin"></i>
                                                         </button>	
 														<?php } else { ?>
-														<button class="btn btn-xs btn-default <?php echo $GLOBALS['ROLES_COLOR'][$value[6]]; ?> dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false"> <?php echo $GLOBALS['ROLES'][$value[6]]; ?>
+														<button class="btn btn-xs btn-default <?php echo $GLOBALS['ROLES_COLOR'][$userAttributes["Type"]]; ?> dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false"> <?php echo $GLOBALS['ROLES'][$userAttributes["Type"]]; ?>
                                                             <i class="fa fa-angle-down"></i>
                                                         </button>
 														<ul class="dropdown-menu" role="menu">
@@ -145,37 +136,40 @@ unset($users['guest@guest']);
 														<li><a class="role-usr role<?php echo $k; ?>"  href="javascript:;"><?php echo $v; ?></a></li>
 														<?php endforeach; ?>
 														</ul>
-														<div style="display:none;">*<?php echo $value[6]; ?>*</div>
+														<div style="display:none;">*<?php echo $userAttributes["Type"]; ?>*</div>
 														<?php } ?>
 														</div>-->
                                                         <?php
                                                         $colorRole = '';
-                                                        if ($value[6] == 0) $colorRole = 'font-blue bold';
+                                                        if ($userAttributes["Type"] == 0) {
+                                                            $colorRole = 'font-blue bold';
+                                                        }
 
-                                                        echo "<span class='$colorRole'>" . $GLOBALS['ROLES'][$value[6]] . "</span>";
+                                                        echo "<span class='$colorRole'>" . $GLOBALS['ROLES'][$userAttributes["Type"]] . "</span>";
                                                         ?>
                                                     </td>
-                                                    <td><?php print returnHumanDate($value[5]);
-                                                        $hoursLastReload = (time() - momentToTime($value[9])) / 3600;
-                                                        $daysLastLogin   = (time() - momentToTime($value[5])) / (3600 * 24);
+                                                    <td><?php print returnHumanDate($userAttributes["lastLogin"]);
+                                                        $hoursLastReload = (time() - momentToTime($userAttributes["lastReload"])) / 3600;
+                                                        $daysLastLogin   = (time() - momentToTime($userAttributes["lastLogin"])) / (3600 * 24);
 
                                                         ?></td>
                                                     <td>
                                                         <?php
-                                                        if ($hoursLastReload < 0.6)
+                                                        if ($hoursLastReload < 0.6) {
                                                             print "<span class='font-green'>LOGGED IN</span>";
-                                                        elseif ($daysLastLogin < 30)
+                                                        } elseif ($daysLastLogin < 30) {
                                                             print "<span class='font-green-meadow'>ACTIVE</span>";
-                                                        else
+                                                        } else {
                                                             print "<span class='font-red'>INACTIVE</span>";
+                                                        }
                                                         ?>
                                                     </td>
 
-                                                    <td><?php echo ((($value[4] / 1024) / 1024) / 1024); ?> GB</td>
+                                                    <td><?php echo (($userAttributes["diskQuota"] / 1024) / 1024) / 1024; ?> GB</td>
                                                     <td>
-                                                        <?php if ($value[6] != 0) { ?>
+                                                        <?php if ($userAttributes["Type"] != 0) { ?>
                                                             <div class="btn-group">
-                                                                <?php if ($value[7] == 0) { ?>
+                                                                <?php if ($userAttributes["Status"] == 0) { ?>
                                                                     <button class="btn btn-xs red dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false"> Actions
                                                                         <i class="fa fa-angle-down"></i>
                                                                     </button>
@@ -191,7 +185,7 @@ unset($users['guest@guest']);
                                                                     </button>
                                                                     <ul class="dropdown-menu pull-right" role="menu">
                                                                         <li>
-                                                                            <a class="" href="admin/editUser.php?id=<?php echo $value[8]; ?>">
+                                                                            <a class="" href="admin/editUser.php?id=<?php echo $userAttributes["_id"]; ?>">
                                                                                 <i class="fa fa-pencil"></i> Edit user</a>
                                                                         </li>
                                                                         <li>
@@ -203,7 +197,7 @@ unset($users['guest@guest']);
                                                                                 <i class="fa fa-ban"></i> Disable user</a>
                                                                         </li>
                                                                         <li>
-                                                                            <a href="javascript:deleteUser('<?php echo $value[8]; ?>');">
+                                                                            <a href="javascript:deleteUser('<?php echo $userAttributes["_id"]; ?>');">
                                                                                 <i class="fa fa-trash"></i> Delete user</a>
                                                                         </li>
                                                                     </ul>
