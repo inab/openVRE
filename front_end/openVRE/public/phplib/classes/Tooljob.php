@@ -55,7 +55,6 @@ class Tooljob
 	public $pid             = 0;
 	public $start_time      = 0;
 	public $hasExecutionFolder = true;
-	#public $refGenome_to_taxon = Array( "hg38"=>"9606" ,  "hg19"=>"9606", "R64-1-1"=>"4932", "r5_01"=>"7227");
 
 
 	/**
@@ -64,8 +63,6 @@ class Tooljob
 	 */
 	public function __construct($tool, $execution = "", $project = "", $descrip = "", $arguments_exec = "", $output_dir = "")
 	{
-
-
 		// Setting Tooljob
 		$this->toolId    = $tool['_id'];
 		$this->title     = $tool['name'] . " job";
@@ -78,10 +75,6 @@ class Tooljob
 		$this->arguments_exec = $arguments_exec;
 
 		// Set paths in the virtual machine
-		//$this->set_cloudName($tool);
-		//$this->launcher         = $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
-		//$_SESSION['errorData']['Error'][]="Tool '$this->toolId' '$this->cloudName' '$this->launcher' ";
-
 		if (!empty($this->arguments_exec['site_list']) && count($this->arguments_exec['site_list']) >= 1) {
 			$site_list = $this->arguments_exec['site_list'];
 			// The first element in site_list is the cloudName
@@ -126,13 +119,9 @@ class Tooljob
 			case "Slurm":
 				$this->root_dir_df = $GLOBALS['clouds'][$this->cloudName]['mn_dir'] .  "/" . substr($_SESSION['User']['linked_accounts']['MN']['username'], 0, 6) . "/" . $_SESSION['User']['linked_accounts']['MN']['username'] . "/" . $GLOBALS['clouds'][$this->cloudName]['dataDir_fs'];
 				$this->pub_dir_fs = $GLOBALS['clouds'][$this->cloudName]['mn_dir'] .  "/" . substr($_SESSION['User']['linked_accounts']['MN']['username'], 0, 6) . "/" . $_SESSION['User']['linked_accounts']['MN']['username'] . "/" . $GLOBALS['clouds'][$this->cloudName]['pubDir_fs'];
-				//$this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
-				//$this->root_dir_fs = $GLOBALS['clouds'][$this->cloudName]['dataDir_fs'];
-				//$this->pub_dir_fs = $GLOBALS['clouds'][$this->cloudName]['pubDir_fs'];
 				$this->auth = $GLOBALS['clouds'][$this->cloudName]['auth'];
 				$this->http_host = $GLOBALS['clouds'][$this->cloudName]['http_host'];
 				break;
-			//$this->port = $GLOBALS['clouds'][$this->cloudName]['port'];     
 			default:
 				$_SESSION['errorData']['Error'][] = "Tool '$this->toolId' not properly registered. Launcher type is set to '" . $this->launcher . "'. Case not implemented.";
 		}
@@ -167,7 +156,6 @@ class Tooljob
 			}
 		}
 
-
 		return $this;
 	}
 
@@ -183,7 +171,6 @@ class Tooljob
 			$_SESSION['errorData']['Tooljob'][] = "Tool '$toolId' is not registered. Cannot submit execution. Please, contact <a href=\"mailto:" . $GLOBALS['helpdeskMail'] . "\">us</a>";
 			return 0;
 		}
-		//$this->tool= (object) $tool;
 		$this->tool = $this->array_to_object($tool);
 	}
 
@@ -243,7 +230,6 @@ class Tooljob
 					$prevs = $GLOBALS['filesCol']->findOne(['path' => $localWorkingDir, 'owner' => $_SESSION['User']['id']]);
 					if ($prevs) {
 						$execution = $executionN;
-						// $workingDir = $GLOBALS['dataDir']."/$localWorkingDir"; // TODO: check if needed
 						break;
 					}
 				}
@@ -610,12 +596,6 @@ class Tooljob
 							return 0; // Comentarlo si no hay metadatos
 						}
 					}
-					// checking input_file integrity
-					/*			$ok = $this->validateInput_file($tool['input_files'][$input_name], $metadata[$filename]);
-					if (! $ok){
-						$_SESSION['errorData']['Error'][]="Input file '$input_name' not valid. Stopping '$this->toolId' execution";
-						return 0;
-					}*/
 				}
 			}
 
@@ -623,15 +603,7 @@ class Tooljob
 				$this->input_files[$input_name] = $filenames;
 			}
 		}
-		/*
-		if (count($tool['input_files'])){
-			foreach ($tool['input_files'] as $input_name => $input){
-				if (!isset($input_files[$input_name]) && $input['required'] ){
-					$_SESSION['errorData']['Error'][]="Input file '$input_name' is required. Input not given";
-					return 0;
-				}
-			}
-		}*/
+
 		return 1;
 	}
 
@@ -677,19 +649,13 @@ class Tooljob
 						$_SESSION['errorData']['Error'][] = "Input file public '$input_name' with value '$input_value' not found in public directory";
 						return 0;
 					}
-					// checking input_file integrity
-					/*	        $ok = $this->validateInput_file($tool['input_files_public'][$input_name], $metadata_pub[$fn]);
-		    if (! $ok){
-			   	$_SESSION['errorData']['Error'][]="Input file public '$input_name' not valid. Stopping '$this->toolId' execution";
-                return 0;
-            }
-            */
 				}
 			}
 			// setting input_files
 			$this->input_files_pub[$input_name] = $fns;
 			$this->input_paths_pub[$input_name] = $input_values[0];
 		}
+
 		return 1;
 	}
 
@@ -1946,12 +1912,9 @@ class Tooljob
 	public function getSSHCred($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username, $remote_dir, $siteId)
 	{
 		#retrieve the credential and update the site collection with it
-
 		$vaultClient = new VaultClient($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
 		$vaultKey = $_SESSION['User']['Vault']['vaultKey'];
 		$credentials = $vaultClient->retrieveDatafromVault('SSH', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $_SESSION['User']['_id'] . '_credentials.txt');
-		//$_SESSION['errorData']['Error'][] = "SSH credentials from Vault: " . print_r($credentials);
-		//        error_log($vaultKey, $credentials);
 		if ($credentials) {
 			$sshPrivateKey = $credentials['priv_key'];
 			$sshPublicKey = $credentials['pub_key'];
@@ -1967,35 +1930,16 @@ class Tooljob
 
 			// Retrieve site info from the sites collection
 			$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-			//$_SESSION['errorData']['Error'][] = "SSH: " . print_r($sshCredentials);
 			// Assuming the site document exists, update the launcher section with SSH credentials
 			if ($siteDocument) {
-
-				//$_SESSION['errorData']['Debug'][] = "Site document before update: " . print_r($siteDocument, true);
-
 				$siteDocument['launcher']['access_credentials']['username'] = $sshUsername;
 				$siteDocument['launcher']['access_credentials']['private_key'] = $sshPrivateKey;
 				$siteDocument['launcher']['access_credentials']['public_key'] = $sshPublicKey;
-
-				//$_SESSION['errorData']['Debug'][] = "SSH Username: " . $sshUsername;
-				//$_SESSION['errorData']['Debug'][] = "SSH Private Key (first 20 chars): " . substr($sshPrivateKey, 0, 20);
-				//$_SESSION['errorData']['Debug'][] = "SSH Public Key (first 20 chars): " . substr($sshPublicKey, 0, 20);
-
 				// Save the updated site document back to the collection
 				$updateResult = $GLOBALS['sitesCol']->updateOne(['_id' => $siteId], ['$set' => $siteDocument]);
-				//$_SESSION['errorData']['Info'][] = "Update result: " . print_r($updateResult->getModifiedCount(), true);
-
 				$updatedSiteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-				//$_SESSION['errorData']['Debug'][] = "Site document after update: " . print_r($updatedSiteDocument, true);
-
 
 				return true;
-
-				// aNOTHER FUNCTION Initialize the SSH client with retrieved credentials and site details
-				//$remoteSSH = new RemoteSSH($sshCredentials, $remote_dir, 22, $siteDocument['launcher']['http_server']);
-				//$SshCred = $remoteSSH->getCredentials();
-
-
 			} else {
 				return array('error' => 'Site document not found for site ID: ' . $siteId);
 			}
@@ -2047,9 +1991,7 @@ class Tooljob
 	{
 
 		// Retrieve tool document from the tools collection
-		//      $filterfields=array();
 		$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-		//$_SESSION['errorData']['Error'][] = "Site: " . print_r($siteDocument, true);
 		if (!$siteDocument) {
 			return null;
 		}
