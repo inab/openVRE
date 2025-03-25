@@ -981,49 +981,6 @@ class Tooljob
 	}
 
 
-	protected function setBashCommandDockerSge_old($tool)
-	{
-
-		if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])) {
-			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
-			return 0;
-		}
-
-		$cmd = "FREE_PORT=$(python -c 'import socket; s=socket.socket(); s.bind((\"\", 0)); print(s.getsockname()[1]); s.close()');\n";
-		$cmd_vre = $tool['infrastructure']['executable'] .
-			" --config "       . $this->config_file_virtual .
-			" --in_metadata "  . $this->metadata_file_virtual .
-			" --out_metadata " . $this->stageout_file_virtual;
-		" --log_file "     . $this->log_file_virtual;
-
-		$cmd_envs = "";
-		foreach ($tool['infrastructure']['container_env'][0] as $env_key => $env_value) {
-			$cmd_envs .= "-e $env_key=$env_value ";
-		}
-
-		if (isset($tool['infrastructure']['interactive'])) {
-			$cmd .= "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d " .
-				" " . $cmd_envs .
-				" -p " . "\$FREE_PORT" . ":" . $tool['infrastructure']['container_port'] . #change second one to make it a variable
-				" -v " . $this->pub_dir_host . ":" . $GLOBALS['shared'] . "public_tmp/ " .
-				" -v " . $this->root_dir_host . "/" . $_SESSION['User']['id'] . ":" . $this->root_dir_virtual . "/" .
-				" " . $tool['infrastructure']['container_image'] . " $cmd_vre";
-		} else {
-			$cmd = "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock " .
-				" " . $cmd_envs .
-				" -v " . $this->pub_dir_host .                            ":" . $GLOBALS['shared'] . "public_tmp/ " .
-				" -v " . $this->root_dir_host . "/" . $_SESSION['User']['id'] . ":" . $GLOBALS['shared'] . "userdata_tmp/" . $_SESSION['User']['id'] .
-				" " . $tool['infrastructure']['container_image'] . " $cmd_vre";
-		}
-
-		echo "CMD from setBashCommandDockerSge";
-		echo "<br></br>";
-		echo $cmd;
-		echo "<br></br>";
-		return $cmd;
-	}
-
-
 	protected function getFreePort()
 	{
 		$networkIP = $GLOBALS['NETWORK_IP'];
