@@ -74,7 +74,7 @@ if ($debug){
 //
 // Check input file requirements
 
-if (!isset($_REQUEST['input_files']) && !isset($_REQUEST['input_files_public_dir'])){
+if (!$tool['infrastructure']['interactive'] && !isset($_REQUEST['input_files']) && !isset($_REQUEST['input_files_public_dir'])){
     $_SESSION['errorData']['Error'][]="Tool is not receiving input files. Please, select them from your workspace table.";
     redirect($GLOBALS['BASEURL']."workspace/");
 }

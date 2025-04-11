@@ -1680,7 +1680,7 @@ function  build_outputs_list($tool,$stageout_job,$stageout_file){
 
 	// check tool output_files
 
-	if (!isset($tool['output_files']) || count($tool['output_files'])==0){
+	if (!$tool['infrastructure']['interactive'] && !(isset($tool['output_files']) || count($tool['output_files'])==0)){
 		$_SESSION['errorData']['Internal'][]="Tool ".$tool['name']." has not list of 'output_files'. Invalid tool registration";
 		$_SESSION['errorData']['Error'][]="Cannot obtain results from execution '".dirname($stageout_file)."'";
 		return $outs_meta;
@@ -1688,7 +1688,7 @@ function  build_outputs_list($tool,$stageout_job,$stageout_file){
 
 	// parse stageout file
 	$stageout_meta = Array();
-    if (isset($stageout_file) && is_file($stageout_file) ){
+    if (isset($stageout_file) && is_file($stageout_file) ) {
       	$content = file_get_contents($stageout_file);
 		$data    = json_decode($content, true);
 		if (count($data) == 0 || count($data['output_files'])==0){
