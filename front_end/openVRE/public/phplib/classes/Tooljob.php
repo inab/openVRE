@@ -24,6 +24,7 @@ class Tooljob
 	public $launcher;
 	public $imageType;
 	public $arguments_exec;
+	public $job_type;
 
 	public $root_dir_mug;
 
@@ -1101,6 +1102,35 @@ class Tooljob
 	}
 
 
+	protected function setBashCommandDockerCompose($tool)
+	{
+		$this->job_type = "interactive";
+		$dockerComposeFile = "/shared_data/public/" . $tool['infrastructure']['docker_path'];
+		$container_port = $tool['infrastructure']['container_port'];
+		$cmd = "docker compose -f $dockerComposeFile up -d";
+		$this->containerName = $tool['infrastructure']['container_image'];
+
+		$monitorContainer = <<<EOF
+			CONTAINER_URL="http://$this->containerName:$container_port"
+			whoami;
+			printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
+			if timeout 420 wget --retry-connrefused --tries=10 --waitretry=100 -O /dev/null \$CONTAINER_URL; then
+				printf '%s | %s\n' "\$(date)" "Service UP";
+			else
+				printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
+			fi
+
+			printf '%s | %s\n' "\$(date)" "Wait while container is running...";
+			exit_code="\$(docker wait $this->containerName)";
+			printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
+
+			echo '# End time:' \$(date) >> $this->log_file_virtual;
+		EOF;
+
+		return $cmd . "\n" . $monitorContainer;
+	}
+
+
 	protected function setBashCommandDockerSge($tool)
 	{
 		if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])) {
@@ -1121,8 +1151,12 @@ class Tooljob
 			$cmd_envs .= "-v $userHomeDir" . "$hostDir:$containerDir ";
 		}
 
-		if (isset($tool['infrastructure']['interactive'])) {
-			$cmd = $this->setBashCommandDockerSgeInteractive($tool, $cmd_envs);
+		if ($tool['infrastructure']['interactive']) {
+			if ($tool['infrastructure']['docker_type'] == "compose") {
+				$cmd = $this->setBashCommandDockerCompose($tool, $cmd_envs);
+			} else {
+				$cmd = $this->setBashCommandDockerSgeInteractive($tool, $cmd_envs);
+			}
 		} else {
 			$cmd_vre = $tool['infrastructure']['executable'] .
 				" --config "         . $this->config_file_virtual .
