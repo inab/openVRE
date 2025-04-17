@@ -1107,14 +1107,19 @@ class Tooljob
 		$this->job_type = "interactive";
 		$dockerComposeFile = "/shared_data/public/" . $tool['infrastructure']['docker_path'];
 		$container_port = $tool['infrastructure']['container_port'];
-		$cmd = "docker compose -f $dockerComposeFile up -d";
+		$hostPort = $this->getFreePort();
+		if ($hostPort === null) {
+			$_SESSION['errorData']['Internal Error'][] = "No free ports available to run the interactive tool.";
+			return 0;
+		}
+		$cmd = "HOST_PORT=$hostPort docker compose -f $dockerComposeFile up -d";
 		$this->containerName = $tool['infrastructure']['container_image'];
 
 		$monitorContainer = <<<EOF
 			CONTAINER_URL="http://$this->containerName:$container_port"
 			whoami;
 			printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
-			if timeout 420 wget --retry-connrefused --tries=10 --waitretry=100 -O /dev/null \$CONTAINER_URL; then
+			if timeout 420 wget --retry-connrefused --tries=10 --wait=7 -O /dev/null \$CONTAINER_URL; then
 				printf '%s | %s\n' "\$(date)" "Service UP";
 			else
 				printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
