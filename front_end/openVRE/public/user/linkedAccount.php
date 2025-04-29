@@ -116,8 +116,7 @@ require "../htmlib/header.inc.php"; ?>
                                             <div class="col-md-12">
                                                 <div class="form-group">
                                                     <label class="control-label">Username</label>
-                                                    <input type="text" name="username" id="alias_token" class="form-control"
-                                                        value="<?php echo $defaults['username']; ?>">
+                                                    <input type="text" name="username" id="alias_token" class="form-control">
                                                 </div>
                                             </div>
                                         </div>
@@ -125,8 +124,7 @@ require "../htmlib/header.inc.php"; ?>
                                             <div class="col-md-12">
                                                 <div class="form-group">
                                                     <label class="control-label">Password</label>
-                                                    <input type="password" name="password" id="password" class="form-control"
-                                                        value="<?php echo $defaults['password']; ?>">
+                                                    <input type="password" name="password" id="password" class="form-control">
                                                 </div>
                                             </div>
                                         </div>
@@ -134,7 +132,6 @@ require "../htmlib/header.inc.php"; ?>
                                     <div class="row">
                                         <div class="col-md-12 text-right">
                                             <input type="hidden" name="save_credential" id="save_credential" value="false">
-                                            <!-- <button type="submit" onclick="document.getElementById('save_credential').value=true" class="btn blue"><i class="fa fa-check"></i> Accept</button> -->
                                             <button type="submit" name="submitOption" value="clearAccount"
                                                 href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=ega&action=delete"
                                                 class="btn" style="background-color: white; margin-bottom: 10px;"><i
