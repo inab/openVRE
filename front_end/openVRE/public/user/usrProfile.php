@@ -583,12 +583,7 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                                     Do you have an EGA account?
                                                                 </span>
                                                                 Link it and you'll have one-click access for all your EGA
-                                                                datasets, under <a
-                                                                    href="<?php echo $GLOBALS['BASEURL']; ?>getdata/eush_ega/eush_ega.php"
-                                                                    target="blank"> <i class="icon-cloud-upload"></i> Get Data<i
-                                                                        class="fa fa-circle"
-                                                                        style="font-size:5px; margin: 0 5px; position: relative;top: -3px;"></i>
-                                                                    EGA </a>
+                                                                datasets
                                                             </p>
                                                             <div class="row" style="margin-left:30px;">
                                                                 <div class="col-md-6">
@@ -596,10 +591,6 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                                         href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=ega&action=new"
                                                                         class="btn green"><i class="fa fa-plus"></i> &nbsp; Link
                                                                         your account</a>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <a href="javascript:void(0)"><i class="fa fa-sign-in"></i>
-                                                                        How to apply to EGA access?</a>
                                                                 </div>
                                                             </div>
                                                         <?php

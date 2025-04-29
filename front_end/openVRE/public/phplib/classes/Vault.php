@@ -513,26 +513,16 @@ class VaultClient {
 			}
 		} elseif (isset($data['data']['EGA'])) {
 			try {
-				//echo "ega?";
 				// First access the Vault with the Token provided by Keycloak
-				//echo "token";
 				$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
-				//print "Token1";
-				//echo $token;
 				$responseArray = $token["response"];
 				$respondeData = json_decode($responseArray, true);
 				$vaultToken = $respondeData["auth"]["client_token"];
-
-				//              echo "client token:";
-				//             echo  $responseArray;
-
 				$secretPath = 'secret/mysecret/data/';
+
 				if (isset($data['data']['EGA']['_id'])) {
 					$filename = $data['data']['EGA']['_id'] . '_credentials.txt';
-				} elseif (isset($data['data']['EGA']['_id'])) {
-					$filename = $data['data']['EGA']['_id'] . '_credentials.txt';
 				}
-
 
 				$keyPair = generateSSHKeyPair( $data['data']['EGA']['username']);
 				$isPubKeyRegistered = registerEgaPubKey($keyPair['publicKey'], $data['data']['EGA']['username'], $this, $vaultToken);
@@ -545,8 +535,6 @@ class VaultClient {
 				$data['data']['EGA']['crypt4gh_pub'] = $keyPair['publicKey'];
 
 				// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
-				// uploadFileToVault($url, $secretPath, $username, $token, $data)
-
 				$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
 				return $vaultToken;
 
@@ -558,9 +546,7 @@ class VaultClient {
 			}
 		} else {
 			// Invalid data format or system type
-			//echo "Invalid data format or system type.";
 			$_SESSION['errorData']['Error'][] = "Invalid data format or system type";
-			return;
 		}
 	}
 
