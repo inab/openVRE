@@ -59,21 +59,18 @@ function addUserLinkedAccount($accountType, $action, $site_id, $postData) {
 case "ega":
 			if (isset($_POST["submitOption"])) {
 				$submitOption = $_POST["submitOption"];
-				//var_dump($postData);
 				if ($submitOption === "clearAccount") {
-					// Handle clearing account
-					handleEGAAccount("delete", $postData);
+					handleEgaAccount("delete", $postData);
 					break;
 				} elseif ($submitOption === "updateAccount") {
-					// Handle updating account
-					handleEGAAccount("update", $postData);
+					handleEgaAccount("update", $postData);
 					break;
 				} else {
-					handleEGAAccount($action, $postData);
+					handleEgaAccount($action, $postData);
 					break;
 				}
 			} else {
-				handleEGAAccount($action, $postData);
+				handleEgaAccount($action, $postData);
 				break;
 			}
         	default:
@@ -475,7 +472,7 @@ function handleObjectStorageAccount($action, $postData){
 	redirect($_SERVER['HTTP_REFERER']);		
 }
 
-function handleEGAAccount($action, $postData) {
+function handleEgaAccount($action, $postData) {
 	$data = [];
 	if ($action === "new") {
 		$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
@@ -632,63 +629,6 @@ function generateSSHKeyPair($username) {
 	];
 }
 
-
-function registerEgaPubKey($pubKey, $username, $vaultClient, $vaultKey) {
-	$egaTempKeysEndpoint = $GLOBALS['EGA_EPHEMERAL_KEYS_ENDPOINT'] . "/$username";
-	$validFor = "1 hour";
-
-	$data = json_encode([
-		"pubkey" => $pubKey,
-		"valid_for" => $validFor
-        ]);
-
-	// Initialize cURL session
-	$ch = curl_init();
-
-	// Set cURL options
-	curl_setopt($ch, CURLOPT_URL, $egaTempKeysEndpoint);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_HTTPHEADER, [
-		'Content-Type: application/json'
-	]);
-
-
-	$vaultUrl = $GLOBALS['vaultUrl'];
-	$credentials = $vaultClient->retrieveDatafromVault('ega', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $GLOBALS['bscEgaCredentialsFilename']);
-	if (is_null($credentials)) {
-		$_SESSION['errorData']['Error'][] = "Internal error. Failed to retrieve BSC-EGA credentials.";
-		return false;
-	}
-	
-	$egaKeyEndpointUser = $credentials['username'];
-	$egaKeyEndpointPassword = $credentials['password'];
-	curl_setopt($ch, CURLOPT_USERPWD, "$egaKeyEndpointUser:$egaKeyEndpointPassword");
-	curl_setopt($ch, CURLOPT_POST, true);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-	
-	$response = curl_exec($ch);
-	
-	if (curl_errno($ch)) {
-		$error_msg = curl_error($ch);
-	}
-
-	curl_close($ch);
-
-	if (isset($error_msg)) {
-		error_log("Error message: " . $error_msg);
-		$_SESSION['errorData']['Error'][] = "Error: $error_msg";
-		return false;
-	}
-
-	$responseData = json_decode($response, true);
-
-	if (isset($responseData['result']) && $responseData['result'] === 'ok') {
-		return true;
-    } else {
-		$_SESSION['errorData']['Error'][] = "Request failed. Response: " . $response;
-		return false;
-        }
-}
 
 function generateSSHButtons() {
     // Check if $GLOBALS['sitesCol'] is set

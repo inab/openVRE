@@ -524,29 +524,22 @@ class VaultClient
 				$respondeData = json_decode($responseArray, true);
 				$vaultToken = $respondeData["auth"]["client_token"];
 				$secretPath = 'secret/mysecret/data/';
-
 				if (isset($data['data']['EGA']['_id'])) {
 					$filename = $data['data']['EGA']['_id'] . '_credentials.txt';
 				}
 
 				$keyPair = generateSSHKeyPair($data['data']['EGA']['username']);
-				$isPubKeyRegistered = registerEgaPubKey($keyPair['publicKey'], $data['data']['EGA']['username'], $this, $vaultToken);
-				if (!$isPubKeyRegistered) {
-					$_SESSION['errorData']['Error'][] = "Failed to register public key.";
-					redirect($_SERVER['HTTP_REFERER']);
-				}
-
 				$data['data']['EGA']['crypt4gh_priv'] = $keyPair['privateKey'];
 				$data['data']['EGA']['crypt4gh_pub'] = $keyPair['publicKey'];
 
 				// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
-				$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
+				$this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
 				return $vaultToken;
 			} catch (Exception $e) {
-				echo $this->vaultUrl;
-				echo $this->jwtToken;
-				echo $this->roleName;
-				echo "Error: " . $e->getMessage();
+				error_log("Error: " . $e->getMessage());
+				error_log("vaultUrl: " . $this->vaultUrl);
+				error_log("jwtToken: " . $this->jwtToken);
+				error_log("roleName: " . $this->roleName);
 			}
 		} else {
 			// Invalid data format or system type
