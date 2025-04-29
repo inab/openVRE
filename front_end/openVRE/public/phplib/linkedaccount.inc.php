@@ -1,26 +1,12 @@
 <?php
 
-/*
- * linkedaccounts.inc.php
- * 
- */
-
-//require_once "classes/User.php";
-
-// Usage example:
-// addUserLinkedAccount($_REQUEST['account'], $_REQUEST['action'], $_POST);
-
 function addUserLinkedAccount($accountType, $action, $site_id, $postData)
 {
 	switch ($accountType) {
-		case "euBI":
-			handleEuBIAccount($action, $postData);
-			break;
 		case "SSH":
 			if (isset($_POST["submitOption"])) {
 				$submitOption = $_POST["submitOption"];
 				if ($submitOption === "clearAccount") {
-					// Handle clearing account
 					handleSSHAccount("delete", $site_id, $postData);
 					break;
 				} elseif ($submitOption === "updateAccount") {
@@ -37,13 +23,10 @@ function addUserLinkedAccount($accountType, $action, $site_id, $postData)
 		case "objectstorage":
 			if (isset($_POST["submitOption"])) {
 				$submitOption = $_POST["submitOption"];
-				//var_dump($postData);
 				if ($submitOption === "clearAccount") {
-					// Handle clearing account
 					handleObjectStorageAccount("delete", $postData);
 					break;
 				} elseif ($submitOption === "updateAccount") {
-					// Handle updating account
 					handleObjectStorageAccount("update", $postData);
 					break;
 				} else {
@@ -54,9 +37,6 @@ function addUserLinkedAccount($accountType, $action, $site_id, $postData)
 				handleObjectStorageAccount($action, $postData);
 				break;
 			}
-		case "molgenis":
-			handleMolgenisAccount($action, $postData);
-			break;
 		case "ega":
 			if (isset($_POST["submitOption"])) {
 				$submitOption = $_POST["submitOption"];
@@ -81,118 +61,8 @@ function addUserLinkedAccount($accountType, $action, $site_id, $postData)
 }
 
 
-function handleEuBIAccount($action, $postData)
-{
-	switch ($action) {
-		case "update":
-		case "new":
-			if (!isset($postData['alias_token']) || !isset($postData['secret'])) {
-				handleInvalidData();
-			}
-
-			$r = addUserLinkedAccount_euBI($postData['alias_token'], $postData['secret']);
-			handleResult($r);
-			break;
-
-		case "delete":
-			$r = deleteUserLinkedAccount($_SESSION['User']['_id'], 'euBI');
-			handleResult($r);
-			break;
-
-		default:
-			handleInvalidAction();
-	}
-}
-
-/*
-function handleMNAccount($action, $postData) {
-	if ($action === "new") {
-		$data = [];
-		
-		// Check if the keys are already provided
-        	if (isset($postData['priv_key'], $postData['pub_key'])) {
-            	
-		// If keys are provided, use them directly
-            		$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
-
-            		$data['data']['SSH'] = [];
-            		$data['data']['SSH']['private_key'] = $postData['priv_key'];
-            		$data['data']['SSH']['public_key'] = $postData['pub_key'];
-            		$data['data']['SSH']['username'] = $postData['username'];
-
-            		$_SESSION['errorData']['Info'][] = "Credentials are already saved.";
-        	
-		} elseif (isset($postData['save_credential']) && $postData['save_credential'] == 'true') {
-           
-		// Check compulsory fields
-		// If generate_keys is true, meaning we have to generate the keys
-        //	if (isset($postData['generate_keys']) && $postData['generate_keys'] == 'true') {
-			$keys = generate_RSA_keys($postData['username'],'mn1.bsc.es',$_REQUEST['account']);
-
-			$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
-			$data['data']['SSH'] = [];
-			$data['data']['SSH']['private_key'] = $keys['private_key'];
-			$data['data']['SSH']['public_key'] = $keys['public_key'];
-			$data['data']['SSH']['username'] = $postData['username'];
-
-			$_SESSION['errorData']['Info'][] = "Here is the new pub key:" . $keys['public_key'] . "   Take care to save it somewhere!";
-
-
-
-		// If save_credentials is true, means the credentials are provided
-        	} elseif (isset($postData['save_credential']) && $postData['save_credential'] == 'true') {
-		   
-		// Add logic for handling MN account and uploading keys to Vault
-
-	            	$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
-	
-        	    	$data['data']['SSH'] = [];
-	        	$data['data']['SSH']['private_key'] = $postData['priv_key'];
-        		$data['data']['SSH']['public_key'] = $postData['pub_key'];
-			$data['data']['SSH']['username'] = $postData['username'];
-		}
-
-//		echo $data;
-
-            	$vaultClient = new VaultClient(
-                	$GLOBALS['vaultUrl'],
-                	$GLOBALS['vaultToken'],
-                	$accessToken,
-                	$GLOBALS['vaultRolename'],
-                	$postData['username']
-            	);
-
-            	$key = $vaultClient->uploadKeystoVault_check($data);
-
-            	// Update user data with vault key
-            	$_SESSION['User']['linked_accounts']['Vault']['vaultKey'] = $key;
-		updateUser($_SESSION['User']);
-
-		//var_dump($key);
-
-		//var_dump($r);
-
-            	if (!$key) {
-                	$_SESSION['errorData']['Error'][] = "Failed to link MN account";
-                	$_SESSION['formData'] = $postData;
-                	redirect($_SERVER['HTTP_REFERER']);
-            	}
-
-            	$_SESSION['errorData']['Info'][] = "MN account successfully linked.";
-		//redirect($GLOBALS['BASEURL'] . "user/usrProfile.php#tab_1_4");
-		redirect($_SERVER['HTTP_REFERER']);
-
-    	} else {
-        	handleInvalidAction();
-    	};
-}
-
- */
-
-
 function handleSSHAccount($action, $site_id, $postData)
 {
-
 	$data = [];
 	if ($action === "new") {
 		// Check if the credentials are already saved
@@ -504,12 +374,6 @@ function handleEgaAccount($action, $postData)
 		handleInvalidAction();
 	}
 
-	//var_dump($_SESSION['User']['Vault']['vaultKey']);
-
-	//var_dump($data);
-	//var_dump($accessToken);
-
-
 	$vaultClient = new VaultClient(
 		$GLOBALS['vaultUrl'],
 		$_SESSION['User']['Vault']['vaultToken'],
@@ -518,10 +382,7 @@ function handleEgaAccount($action, $postData)
 		$postData['username']
 	);
 
-	//var_dump($data);
 	$key = $vaultClient->uploadKeystoVault($data);
-
-	//var_dump($key);
 	// Update user data with vault key
 	$_SESSION['User']['Vault']['vaultKey'] = $key;
 	updateUser($_SESSION['User']);
@@ -537,66 +398,10 @@ function handleEgaAccount($action, $postData)
 }
 
 
-function handleInvalidData()
-{
-	$_SESSION['errorData']['Error'][] = "Not receiving expected fields. Please submit the data again.";
-	$_SESSION['formData'] = $postData;
-	redirect($_SERVER['HTTP_REFERER']);
-}
-
-function handleResult($result)
-{
-	if (!$result) {
-		$_SESSION['errorData']['Error'][] = "Failed to perform the requested action.";
-		$_SESSION['formData'] = $postData;
-		redirect($_SERVER['HTTP_REFERER']);
-	}
-
-	$_SESSION['errorData']['Info'][] = "Action successfully completed.";
-	redirect($GLOBALS['BASEURL'] . "user/usrProfile.php#tab_1_4");
-}
-
 function handleInvalidAction()
 {
 	$_SESSION['errorData']['Error'][] = "Invalid action for the specified account type.";
 	redirect($_SERVER['HTTP_REFERER']);
-}
-
-
-function generate_RSA_keys($username, $server, $account)
-{
-	$config = array(
-		"digest_alg" => "sha512",
-		"private_key_bits" => 2048,
-		"private_key_type" => OPENSSL_KEYTYPE_RSA,
-	);
-
-	// Generate the key pair
-	$res = openssl_pkey_new($config);
-
-	// Extract the private key
-	openssl_pkey_export($res, $privateKey);
-	$formattedPrivateKey = "-----BEGIN RSA PRIVATE KEY-----\n";
-	$formattedPrivateKey .= wordwrap($privateKey, 64, "\n", true);
-	$formattedPrivateKey .= "\n-----END RSA PRIVATE KEY-----";
-
-	// Extract the public key
-	$publicKeyDetails = openssl_pkey_get_details($res);
-	$publicKey = $publicKeyDetails['key'];
-	$publicKey = str_replace(["-----BEGIN PUBLIC KEY-----", "-----END PUBLIC KEY-----", "\n", "\r"], '', $publicKey);
-	$publicKey = "ssh-rsa " . trim($publicKey) . " " . $username . "@" . $server;
-
-	// Save or use the keys as needed
-	// For example, you might want to save them in your database
-	//	var_dump($privateKey);
-	//	var_dump($publicKey);
-
-	// Return the keys along with the account
-	return array(
-		'account' => $account,
-		'private_key' => $formattedPrivateKey,
-		'public_key' => $publicKey,
-	);
 }
 
 
@@ -672,37 +477,3 @@ function generateSSHButtons()
 	}
 }
 
-
-function getSiteDetails($siteId)
-{
-	// Check if the siteId is valid
-	if (isset($siteId)) {
-		// Fetch site details from the database
-		$site = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-
-		// If the site is found, return the necessary details
-		if ($site) {
-			$siteName = htmlspecialchars($site['name']);
-			$siteAcronym = isset($site['sigla']) ? htmlspecialchars($site['sigla']) : 'N/A';
-			return ['siteName' => $siteName, 'siteAcronym' => $siteAcronym];
-		}
-	}
-	// Return default values if site not found
-	return ['siteName' => 'Unknown Site', 'siteAcronym' => 'N/A'];
-}
-
-
-function getSiteCredentials($siteId)
-{
-	if (isset($siteId)) {
-		// Fetch site details from the database
-		$site = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-
-		if ($site) {
-			// Return the credentials if they exist, else return default empty values
-			$credentials = isset($site['launcher']['access_credentials']) ? $site['launcher']['access_credentials'] : null;
-			return $credentials;
-		}
-	}
-	return null;
-}
