@@ -59,16 +59,6 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 		<?php
 		break; 
 	case 'logs':
-	case 'eush_projects':
-	case 'eush_subjects':
-	case 'eush_experiments':
-	case 'eush_subjects_auth':
-	case 'eush_experiments_auth':
-	case 'eush_ega':
-	case 'eush_ega_datasets':
-	case 'eush_cardiogwas':
-	case 'eush_cardiogwas_table':
-	case 'eush_cardiogwas_table_step_II':
 	case 'datasets': ?>
 		<script src="assets/global/scripts/datatable.js" type="text/javascript"></script>
 		<script src="assets/global/plugins/datatables/datatables.min.js" type="text/javascript"></script>
@@ -275,43 +265,6 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 	case 'usrProfile': ?>
 		<script src="assets/pages/scripts/profile.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
 		<?php break; 
-	case 'eush_projects': ?>
-		<script src="assets/pages/scripts/table-datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-                <script src="assets/pages/eush_js/eush_projects.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php break; 
-	case 'eush_subjects': ?>
-		<script src="assets/pages/scripts/table-datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<script src="assets/pages/eush_js/eush_subjects.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php break; 
-	case 'eush_experiments': ?>
-		<script src="assets/pages/scripts/table-datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<script src="assets/pages/eush_js/eush_experiments.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php break; 
-	case 'eush_subjects_auth': ?>
-		<script src="assets/pages/scripts/table-datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<script src="assets/pages/eush_js/eush_subjects_auth.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php break; 
-	case 'eush_experiments_auth': ?>
-		<script src="assets/pages/scripts/table-datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<script src="assets/pages/eush_js/eush_experiments_auth.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php break; 
-	case 'eush_ega': ?>
-		<script src="assets/pages/scripts/table-datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<script src="assets/pages/eush_js/eush_ega.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php break;
-	case 'eush_ega_datasets': ?>
-		<script src="assets/pages/scripts/table-datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<script src="assets/pages/eush_js/eush_ega_datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php break;
-	case 'eush_cardiogwas': 
-	case 'eush_cardiogwas_table':?>
-		<script src="assets/pages/scripts/table-datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<script src="getdata/eush_cardiogwas/assets/js/eush_cardiogwas.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php break; 
-	case 'eush_cardiogwas_table_step_II': ?>
-		<script src="assets/pages/scripts/table-datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<script src="getdata/eush_cardiogwas/assets/js/eush_cardiogwas_step_II.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
-		<?php break;
 	case 'datasets': ?>
 		<script src="assets/pages/scripts/table-datasets.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
 		<?php break; 
@@ -417,16 +370,6 @@ switch(pathinfo($_SERVER['PHP_SELF'])['filename']){
 	case 'index2': 				
 	case 'index': 
 	case 'home': 
-	case 'eush_projects':
-	case 'eush_subjects':
-	case 'eush_experiments':
-	case 'eush_subjects_auth':
-	case 'eush_experiments_auth':
-	case 'eush_ega':
-	case 'eush_ega_datasets':
-	case 'eush_cardiogwas':
-	case 'eush_cardiogwas_table':
-	case 'eush_cardiogwas_table_step_II':
 	case 'datasets':
 	case 'usrProfile':
 	case 'restoreLink':

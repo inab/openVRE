@@ -569,7 +569,7 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                 <!-- END MN ACCOUNT -->
                                                 <!-- EGA ACCOUNT (TODO: leave hidden until authentication implemented)-->
                                                 <hr>
-                                                <div style="display: none;">
+                                                <div>
                                                     <img src="https://static.ega-archive.org/img/logo.png" /
                                                         style="float: right; height: 50px; margin: 0 50px;">
                                                     <h4>European Genome-phenome Archive (EGA)</h4><br />
