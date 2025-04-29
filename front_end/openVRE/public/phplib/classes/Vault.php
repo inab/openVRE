@@ -9,8 +9,8 @@ class VaultClient {
 	private $vaultToken;
 	private $httpClient;
 	private $roleName;
-	private $data;
-
+	private $jwtToken;
+	private $username;
 
 
 	public function __construct($vaultUrl, $vaultToken, $jwtToken, $roleName, $username) {
@@ -19,7 +19,6 @@ class VaultClient {
 		$this->vaultToken = $vaultToken;
 		$this->jwtToken = $jwtToken;
 		$this->roleName = $roleName;
-		$this->credentials = $data;
 		$this->username = $username;
 		$this->httpClient = new Client();
 
