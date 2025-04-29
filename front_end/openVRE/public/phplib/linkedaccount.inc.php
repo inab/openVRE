@@ -10,15 +10,16 @@
 // Usage example:
 // addUserLinkedAccount($_REQUEST['account'], $_REQUEST['action'], $_POST);
 
-function addUserLinkedAccount($accountType, $action, $site_id, $postData) {
+function addUserLinkedAccount($accountType, $action, $site_id, $postData)
+{
 	switch ($accountType) {
-        	case "euBI":
-           		handleEuBIAccount($action, $postData);
-            		break;
+		case "euBI":
+			handleEuBIAccount($action, $postData);
+			break;
 		case "SSH":
 			if (isset($_POST["submitOption"])) {
-                                $submitOption = $_POST["submitOption"];
-                                if ($submitOption === "clearAccount") {
+				$submitOption = $_POST["submitOption"];
+				if ($submitOption === "clearAccount") {
 					// Handle clearing account
 					handleSSHAccount("delete", $site_id, $postData);
 					break;
@@ -26,7 +27,7 @@ function addUserLinkedAccount($accountType, $action, $site_id, $postData) {
 					handleSSHAccount("update", $site_id, $postData);
 					break;
 				} else {
-		            		handleSSHAccount($action, $site_id, $postData);
+					handleSSHAccount($action, $site_id, $postData);
 					break;
 				}
 			} else {
@@ -50,13 +51,13 @@ function addUserLinkedAccount($accountType, $action, $site_id, $postData) {
 					break;
 				}
 			} else {
-	    			handleObjectStorageAccount($action, $postData);	
+				handleObjectStorageAccount($action, $postData);
 				break;
 			}
 		case "molgenis":
-            		handleMolgenisAccount($action, $postData);
-            		break;
-case "ega":
+			handleMolgenisAccount($action, $postData);
+			break;
+		case "ega":
 			if (isset($_POST["submitOption"])) {
 				$submitOption = $_POST["submitOption"];
 				if ($submitOption === "clearAccount") {
@@ -73,33 +74,34 @@ case "ega":
 				handleEgaAccount($action, $postData);
 				break;
 			}
-        	default:
-            		$_SESSION['errorData']['Error'][] = "Account of type '$accountType' is not yet supported.";
-            		redirect($_SERVER['HTTP_REFERER']);
-    		}
+		default:
+			$_SESSION['errorData']['Error'][] = "Account of type '$accountType' is not yet supported.";
+			redirect($_SERVER['HTTP_REFERER']);
+	}
 }
 
 
-function handleEuBIAccount($action, $postData) {
-    switch ($action) {
-        case "update":
-        case "new":
-            if (!isset($postData['alias_token']) || !isset($postData['secret'])) {
-                handleInvalidData();
-            }
+function handleEuBIAccount($action, $postData)
+{
+	switch ($action) {
+		case "update":
+		case "new":
+			if (!isset($postData['alias_token']) || !isset($postData['secret'])) {
+				handleInvalidData();
+			}
 
-            $r = addUserLinkedAccount_euBI($postData['alias_token'], $postData['secret']);
-            handleResult($r);
-            break;
+			$r = addUserLinkedAccount_euBI($postData['alias_token'], $postData['secret']);
+			handleResult($r);
+			break;
 
-        case "delete":
-            $r = deleteUserLinkedAccount($_SESSION['User']['_id'], 'euBI');
-            handleResult($r);
-            break;
+		case "delete":
+			$r = deleteUserLinkedAccount($_SESSION['User']['_id'], 'euBI');
+			handleResult($r);
+			break;
 
-        default:
-            handleInvalidAction();
-    }
+		default:
+			handleInvalidAction();
+	}
 }
 
 /*
@@ -188,13 +190,14 @@ function handleMNAccount($action, $postData) {
  */
 
 
-function handleSSHAccount($action, $site_id, $postData){
-	
+function handleSSHAccount($action, $site_id, $postData)
+{
+
 	$data = [];
 	if ($action === "new") {
-                // Check if the credentials are already saved
-		
-                if (isset($postData['private_key'], $postData['public_key'])) {
+		// Check if the credentials are already saved
+
+		if (isset($postData['private_key'], $postData['public_key'])) {
 			// If credentials are provided, use them directly
 			if (isset($_SESSION['User']['credentials']['timestamp'])) {
 				$savedTime = $_SESSION['User']['credentials']['timestamp'];
@@ -208,58 +211,54 @@ function handleSSHAccount($action, $site_id, $postData){
 				} else {
 					$_SESSION['errorData']['Info'][] = "Credentials are already saved and still valid.";
 					$accessToken = $_SESSION['User']['Token']['access_token'];
-					return; 
+					return;
 				}
 			}
-			
-                } elseif (isset($postData["save_credential"]) && $postData["save_credential"] == "true") {
+		} elseif (isset($postData["save_credential"]) && $postData["save_credential"] == "true") {
 
-					$accessToken = $_SESSION['User']['Token']['access_token'];
-					$data['data']['SSH'] = [];
-                    $data['data']['SSH']['private_key'] = $postData['private_key'];
-					$data['data']['SSH']['public_key'] = $postData['public_key']; 
-					$data['data']['SSH']['user_key'] = $postData['user_key'];
-					$data['data']['SSH']['_id'] = $postData['_id'];
-					$_SESSION['User']['credentials'] = [
-						'timestamp' => time()  // Only store the timestamp
-					];
-					
+			$accessToken = $_SESSION['User']['Token']['access_token'];
+			$data['data']['SSH'] = [];
+			$data['data']['SSH']['private_key'] = $postData['private_key'];
+			$data['data']['SSH']['public_key'] = $postData['public_key'];
+			$data['data']['SSH']['user_key'] = $postData['user_key'];
+			$data['data']['SSH']['_id'] = $postData['_id'];
+			$_SESSION['User']['credentials'] = [
+				'timestamp' => time()  // Only store the timestamp
+			];
 
-		
+
+
 			$_SESSION['errorData']['Info'][] = "Credentials in the system, saving to Vault...";
 		} else {
-                        // Handle the case where app_id or app_secret is empty
-                        $_SESSION['errorData']['Error'][] = "Please provide both keys.";
-                        $_SESSION['formData'] = $postData;
-                        redirect($_SERVER['HTTP_REFERER']);
-                }
+			// Handle the case where app_id or app_secret is empty
+			$_SESSION['errorData']['Error'][] = "Please provide both keys.";
+			$_SESSION['formData'] = $postData;
+			redirect($_SERVER['HTTP_REFERER']);
+		}
+	} elseif ($action === "update") {
+		// Add logic for handling MN account and uploading credentials to Vault for "update" action
 
-
-        } elseif ($action === "update") {
-                // Add logic for handling MN account and uploading credentials to Vault for "update" action
-                
 		if (!empty($postData['private_key']) && !empty($postData['public_key'])) {
 			$accessToken = $_SESSION['User']['Token']['access_token'];
 
 			$data['data']['SSH'] = [];
 			$data['data']['SSH']['private_key'] = $postData['private_key'];
-            $data['data']['SSH']['public_key'] = $postData['public_key'];
+			$data['data']['SSH']['public_key'] = $postData['public_key'];
 			$data['data']['SSH']['user_key'] = $postData['user_key'];
 			$data['data']['SSH']['_id'] = $postData['_id'];
 			$_SESSION['User']['credentials'] = [
-                                'timestamp' => time()  // Only store the timestamp
-                        ];
+				'timestamp' => time()  // Only store the timestamp
+			];
 
 			$_SESSION['errorData']['Info'][] = "Credentials in the system, saving to Vault...";
-                } else {
-                        // Handle the case where app_id or app_secret is empty
-                        $_SESSION['errorData']['Error'][] = "Please provide both keys.";
-                        $_SESSION['formData'] = $postData;
-                        redirect($_SERVER['HTTP_REFERER']);
-                }
-
-        } elseif ($action === "delete") {
-        // Reset data for "delete" action
+		} else {
+			// Handle the case where app_id or app_secret is empty
+			$_SESSION['errorData']['Error'][] = "Please provide both keys.";
+			$_SESSION['formData'] = $postData;
+			redirect($_SERVER['HTTP_REFERER']);
+		}
+	} elseif ($action === "delete") {
+		// Reset data for "delete" action
 		$data = [];
 		if (isset($postData['private_key'], $postData['public_key'])) {
 			$postData['private_key'] = null;
@@ -272,8 +271,8 @@ function handleSSHAccount($action, $site_id, $postData){
 		#var_dump($postData);
 		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
 
-		if (isset($site_id)) {  
-		    	#echo 'aoooooooooooooooo';	
+		if (isset($site_id)) {
+			#echo 'aoooooooooooooooo';	
 			$updateResult = $GLOBALS['sitesCol']->updateOne(
 				['_id' => $site_id],  // Match document by siteId    
 				['$set' => [  // Use the $unset operator to remove fields
@@ -283,7 +282,7 @@ function handleSSHAccount($action, $site_id, $postData){
 				]]
 			);
 
-        		// Check if the update was successful
+			// Check if the update was successful
 			if ($updateResult->getModifiedCount() > 0) {
 				$_SESSION['errorData']['Info'][] = "Credentials removed from the database.";
 			} else {
@@ -291,29 +290,26 @@ function handleSSHAccount($action, $site_id, $postData){
 			}
 		}
 		redirect($_SERVER['HTTP_REFERER']);
+	} else {
+		handleInvalidAction();
+	}
 
+	if (empty($postData['user_key'])) {
+		error_log("Error: 'username' is missing in postData.");
+		throw new Exception("Username is required.");
+		exit;
+	}
 
-
-        } else {
-                handleInvalidAction();
-        }
-	
-		if (empty($postData['user_key'])) {
-			error_log("Error: 'username' is missing in postData.");
-			throw new Exception("Username is required.");
-			exit;
-		}
-	
-		$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
-        $vaultClient = new VaultClient(
-                        $GLOBALS['vaultUrl'],
-                        $_SESSION['User']['Vault']['vaultToken'],
-                        $accessToken,
-                        $_SESSION['User']['Vault']['vaultRolename'],
-                        $postData['username']
-        );
+	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
+	$vaultClient = new VaultClient(
+		$GLOBALS['vaultUrl'],
+		$_SESSION['User']['Vault']['vaultToken'],
+		$accessToken,
+		$_SESSION['User']['Vault']['vaultRolename'],
+		$postData['username']
+	);
 	//var_dump($data);
-        $key = $vaultClient->uploadKeystoVault($data);
+	$key = $vaultClient->uploadKeystoVault($data);
 	//echo ("key");
 	//var_dump($key);
 	$tokenTime = $vaultClient->getTokenExpirationTime($GLOBALS['vaultUrl'], $key);
@@ -322,89 +318,85 @@ function handleSSHAccount($action, $site_id, $postData){
 		$_SESSION['User']['Vault']['expires_in'] = $tokenTime;
 	}
 	// Update user data with vault key
-        $_SESSION['User']['Vault']['vaultKey'] = $key;
-        updateUser($_SESSION['User']);
-        if (!$key) {
-                $_SESSION['errorData']['Error'][] = "Failed to link SSH account";
-                $_SESSION['formData'] = $postData;
-                redirect($_SERVER['HTTP_REFERER']);
-        }
+	$_SESSION['User']['Vault']['vaultKey'] = $key;
+	updateUser($_SESSION['User']);
+	if (!$key) {
+		$_SESSION['errorData']['Error'][] = "Failed to link SSH account";
+		$_SESSION['formData'] = $postData;
+		redirect($_SERVER['HTTP_REFERER']);
+	}
 
-        $_SESSION['errorData']['Info'][] = "SSH account successfully linked.";
-        redirect($_SERVER['HTTP_REFERER']);
+	$_SESSION['errorData']['Info'][] = "SSH account successfully linked.";
+	redirect($_SERVER['HTTP_REFERER']);
 }
 
 
 
 
-function handleObjectStorageAccount($action, $postData){
+function handleObjectStorageAccount($action, $postData)
+{
 	$data = [];
 	echo $action;
 	var_dump($postData);
 	if ($action === "new") {
-        	//$data = [];	
+		//$data = [];	
 		// Check if the credentials are already saved
-		
+
 		if (isset($postData['app_id'], $postData['app_secret'])) {
-	            // If credentials are provided, use them directly
+			// If credentials are provided, use them directly
 			$accessToken = $_SESSION['User']['Token']['access_token'];
 			$_SESSION['errorData']['Info'][] = "Credentials are already saved, update the credentials if needed.";
-		
 		} elseif (isset($postData['save_credential']) && $postData['save_credential'] == 'true') {
 
-            	// Add logic for handling MN account and uploading credentials to Vault
+			// Add logic for handling MN account and uploading credentials to Vault
 			$accessToken = $_SESSION['User']['Token']['access_token'];
-		// You can customize this part based on how you obtain Swift credentials
-            $data['data']['Swift'] = [];
-	    	$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
+			// You can customize this part based on how you obtain Swift credentials
+			$data['data']['Swift'] = [];
+			$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
 			$data['data']['Swift']['app_secret'] = $postData['app_secret'];
-		    $data['data']['Swift']['projectName'] = $postData['projectName'];	// Modify this
+			$data['data']['Swift']['projectName'] = $postData['projectName'];	// Modify this
 			$data['data']['Swift']['projectId'] = $postData['projectId'];
 			$data['data']['Swift']['domainName'] = $postData['domainName'];
 			$data['data']['Swift']['projectDomainId'] = $postData['projectDomainId'];
 			$data['data']['Swift']['user_key'] = $postData['user_key'];
 			$data['data']['Swift']['_id'] = $postData['_id'];
 		}
-
-
-
 	} elseif ($action === "update") {
-        	// Add logic for handling MN account and uploading credentials to Vault for "update" action
+		// Add logic for handling MN account and uploading credentials to Vault for "update" action
 
 		if (!empty($postData['app_id']) && !empty($postData['app_secret'])) {
-			
+
 			$accessToken = $_SESSION['User']['Token']['access_token'];
 			#$accessToken = json_decode($Token, true);
-			
+
 			$data['data']['Swift'] = [];
-        	$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
+			$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
 			$data['data']['Swift']['app_secret'] = $postData['app_secret']; // Modify this
 			$data['data']['Swift']['projectName'] = $postData['projectName'];     // Modify this
-            $data['data']['Swift']['projectId'] = $postData['projectId'];
-            $data['data']['Swift']['domainName'] = $postData['domainName'];
+			$data['data']['Swift']['projectId'] = $postData['projectId'];
+			$data['data']['Swift']['domainName'] = $postData['domainName'];
 			$data['data']['Swift']['projectDomainId'] = $postData['projectDomainId'];
 			$data['data']['Swift']['user_key'] = $postData['user_key'];
 			$data['data']['Swift']['_id'] = $postData['_id'];
 			#$_SESSION['errorData']['Info'][] = "Credentials updated!";
 		} else {
 			// Handle the case where app_id or app_secret is empty
-    			$_SESSION['errorData']['Error'][] = "Please provide both app_id and app_secret.";
-    			$_SESSION['formData'] = $postData;
-    			redirect($_SERVER['HTTP_REFERER']);
+			$_SESSION['errorData']['Error'][] = "Please provide both app_id and app_secret.";
+			$_SESSION['formData'] = $postData;
+			redirect($_SERVER['HTTP_REFERER']);
 		}
-
 	} elseif ($action === "delete") {
-        // Reset data for "delete" action
+		// Reset data for "delete" action
 		$data = [];
 		if (isset($postData['app_id'], $postData['app_secret'])) {
 			$postData['app_id'] = null;
 			$postData['app_secret'] = null;
 			$postData['projectName'] = null;
-			$postData['projectId']= null;
-			$postData['domainName']= null;
+			$postData['projectId'] = null;
+			$postData['domainName'] = null;
 			$postData['projectDomainId'] = null;
 			$postData['user_key'] = null;
-			$postData['_id'] = null; 
+			$postData['_id'] = null;
 		}
 		$postData['timestamp'] = null;
 		$postData['_id'] = null;
@@ -412,7 +404,7 @@ function handleObjectStorageAccount($action, $postData){
 		#var_dump($postData);
 		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
 
-		if (isset($site_id)) {  
+		if (isset($site_id)) {
 			$updateResult = $GLOBALS['sitesCol']->updateOne(
 				['_id' => $site_id],  // Match document by siteId    
 				['$set' => [  // Use the $unset operator to remove fields
@@ -426,7 +418,7 @@ function handleObjectStorageAccount($action, $postData){
 				]]
 			);
 
-        		// Check if the update was successful
+			// Check if the update was successful
 			if ($updateResult->getModifiedCount() > 0) {
 				$_SESSION['errorData']['Info'][] = "Credentials removed from the database.";
 			} else {
@@ -438,9 +430,9 @@ function handleObjectStorageAccount($action, $postData){
 
 		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
 	} else {
-        	handleInvalidAction();
-    	}
-		
+		handleInvalidAction();
+	}
+
 	if (empty($postData['user_key'])) {
 		error_log("Error: 'username' is missing in postData.");
 		throw new Exception("Username is required.");
@@ -449,19 +441,19 @@ function handleObjectStorageAccount($action, $postData){
 	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
 
 	$vaultClient = new VaultClient(
-                	$GLOBALS['vaultUrl'],
-                	$_SESSION['User']['Vault']['vaultToken'],
-                	$accessToken,
-                	$_SESSION['User']['Vault']['vaultRolename'],
-                	$postData['user_key']
+		$GLOBALS['vaultUrl'],
+		$_SESSION['User']['Vault']['vaultToken'],
+		$accessToken,
+		$_SESSION['User']['Vault']['vaultRolename'],
+		$postData['user_key']
 	);
 	#echo 'Vault';
 	#var_dump($vaultClient);
 	#var_dump($data);
 	$key = $vaultClient->uploadKeystoVault($data);
 	// Update user data with vault key
-        $_SESSION['User']['Vault']['vaultKey'] = $key;
-      	updateUser($_SESSION['User']);
+	$_SESSION['User']['Vault']['vaultKey'] = $key;
+	updateUser($_SESSION['User']);
 	if (!$key) {
 		$_SESSION['errorData']['Error'][] = "Failed to link Swift account";
 		$_SESSION['formData'] = $postData;
@@ -469,25 +461,23 @@ function handleObjectStorageAccount($action, $postData){
 	}
 
 	$_SESSION['errorData']['Info'][] = "Swift account successfully linked.";
-	redirect($_SERVER['HTTP_REFERER']);		
+	redirect($_SERVER['HTTP_REFERER']);
 }
 
-function handleEgaAccount($action, $postData) {
+function handleEgaAccount($action, $postData)
+{
 	$data = [];
 	if ($action === "new") {
 		$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
 		if (isset($postData['username'], $postData['password'])) {
 			$_SESSION['errorData']['Info'][] = "Credentials are already saved, update the credentials if needed.";
-
 		} elseif (isset($postData['save_credential']) && $postData['save_credential'] == 'true') {
 			$data['data']['EGA'] = [];
 			$data['data']['EGA']['username'] = $postData['username']; // Modify this
 			$data['data']['EGA']['password'] = $postData['password']; // Modify this
 
 			$data['data']['EGA']['_id'] = $postData['_id'];
-
 		}
-
 	} elseif ($action === "update") {
 		$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
 		// Add logic for handling MN account and uploading credentials to Vault for "update" action
@@ -506,7 +496,6 @@ function handleEgaAccount($action, $postData) {
 			$_SESSION['formData'] = $postData;
 			redirect($_SERVER['HTTP_REFERER']);
 		}
-
 	} elseif ($action === "delete") {
 		// Reset data for "delete" action
 		$data = [];
@@ -520,7 +509,7 @@ function handleEgaAccount($action, $postData) {
 	//var_dump($data);
 	//var_dump($accessToken);
 
-	
+
 	$vaultClient = new VaultClient(
 		$GLOBALS['vaultUrl'],
 		$_SESSION['User']['Vault']['vaultToken'],
@@ -531,7 +520,7 @@ function handleEgaAccount($action, $postData) {
 
 	//var_dump($data);
 	$key = $vaultClient->uploadKeystoVault($data);
-	
+
 	//var_dump($key);
 	// Update user data with vault key
 	$_SESSION['User']['Vault']['vaultKey'] = $key;
@@ -548,76 +537,81 @@ function handleEgaAccount($action, $postData) {
 }
 
 
-function handleInvalidData() {
-    $_SESSION['errorData']['Error'][] = "Not receiving expected fields. Please submit the data again.";
-    $_SESSION['formData'] = $postData;
-    redirect($_SERVER['HTTP_REFERER']);
+function handleInvalidData()
+{
+	$_SESSION['errorData']['Error'][] = "Not receiving expected fields. Please submit the data again.";
+	$_SESSION['formData'] = $postData;
+	redirect($_SERVER['HTTP_REFERER']);
 }
 
-function handleResult($result) {
-    if (!$result) {
-        $_SESSION['errorData']['Error'][] = "Failed to perform the requested action.";
-        $_SESSION['formData'] = $postData;
-        redirect($_SERVER['HTTP_REFERER']);
-    }
+function handleResult($result)
+{
+	if (!$result) {
+		$_SESSION['errorData']['Error'][] = "Failed to perform the requested action.";
+		$_SESSION['formData'] = $postData;
+		redirect($_SERVER['HTTP_REFERER']);
+	}
 
-    $_SESSION['errorData']['Info'][] = "Action successfully completed.";
-    redirect($GLOBALS['BASEURL'] . "user/usrProfile.php#tab_1_4");
+	$_SESSION['errorData']['Info'][] = "Action successfully completed.";
+	redirect($GLOBALS['BASEURL'] . "user/usrProfile.php#tab_1_4");
 }
 
-function handleInvalidAction() {
-    $_SESSION['errorData']['Error'][] = "Invalid action for the specified account type.";
-    redirect($_SERVER['HTTP_REFERER']);
+function handleInvalidAction()
+{
+	$_SESSION['errorData']['Error'][] = "Invalid action for the specified account type.";
+	redirect($_SERVER['HTTP_REFERER']);
 }
 
 
-function generate_RSA_keys($username, $server, $account) {
+function generate_RSA_keys($username, $server, $account)
+{
 	$config = array(
 		"digest_alg" => "sha512",
 		"private_key_bits" => 2048,
 		"private_key_type" => OPENSSL_KEYTYPE_RSA,
 	);
-	
+
 	// Generate the key pair
 	$res = openssl_pkey_new($config);
 
-    	// Extract the private key
+	// Extract the private key
 	openssl_pkey_export($res, $privateKey);
 	$formattedPrivateKey = "-----BEGIN RSA PRIVATE KEY-----\n";
-    	$formattedPrivateKey .= wordwrap($privateKey, 64, "\n", true);
-    	$formattedPrivateKey .= "\n-----END RSA PRIVATE KEY-----";
+	$formattedPrivateKey .= wordwrap($privateKey, 64, "\n", true);
+	$formattedPrivateKey .= "\n-----END RSA PRIVATE KEY-----";
 
-    	// Extract the public key
+	// Extract the public key
 	$publicKeyDetails = openssl_pkey_get_details($res);
 	$publicKey = $publicKeyDetails['key'];
 	$publicKey = str_replace(["-----BEGIN PUBLIC KEY-----", "-----END PUBLIC KEY-----", "\n", "\r"], '', $publicKey);
 	$publicKey = "ssh-rsa " . trim($publicKey) . " " . $username . "@" . $server;
 
-    	// Save or use the keys as needed
-    	// For example, you might want to save them in your database
-//	var_dump($privateKey);
-//	var_dump($publicKey);
+	// Save or use the keys as needed
+	// For example, you might want to save them in your database
+	//	var_dump($privateKey);
+	//	var_dump($publicKey);
 
-    	// Return the keys along with the account
-    	return array(
-        	'account' => $account,
-        	'private_key' => $formattedPrivateKey,
-        	'public_key' => $publicKey,
-    	);
+	// Return the keys along with the account
+	return array(
+		'account' => $account,
+		'private_key' => $formattedPrivateKey,
+		'public_key' => $publicKey,
+	);
 }
 
 
-function generateSSHKeyPair($username) {
+function generateSSHKeyPair($username)
+{
 	// Temporary directory to store key files
 	$tempDir = sys_get_temp_dir();
 	$privateKeyPath = $tempDir . '/id_ed25519_' . $username;
 	$publicKeyPath = $tempDir . '/id_ed25519_' . $username . '.pub';
-	
+
 	// Generate the key pair using ssh-keygen and store it temporarily
 	shell_exec("ssh-keygen -t ed25519 -f " . escapeshellarg($privateKeyPath) . " -N ''");
 
-    $privateKey = file_get_contents($privateKeyPath);
-    $publicKey = file_get_contents($publicKeyPath);
+	$privateKey = file_get_contents($privateKeyPath);
+	$publicKey = file_get_contents($publicKeyPath);
 
 	// Clean up the temporary key files
 	unlink($privateKeyPath);
@@ -630,30 +624,31 @@ function generateSSHKeyPair($username) {
 }
 
 
-function generateSSHButtons() {
-    // Check if $GLOBALS['sitesCol'] is set
-    if (isset($GLOBALS['sitesCol'])) {
-        // Fetch the documents that have "SSH" in the "accessible_via" array
-        $documents = $GLOBALS['sitesCol']->find([
-            'launcher.accessible_via' => 'SSH'  // Filter condition
-        ]);
+function generateSSHButtons()
+{
+	// Check if $GLOBALS['sitesCol'] is set
+	if (isset($GLOBALS['sitesCol'])) {
+		// Fetch the documents that have "SSH" in the "accessible_via" array
+		$documents = $GLOBALS['sitesCol']->find([
+			'launcher.accessible_via' => 'SSH'  // Filter condition
+		]);
 
-        // Initialize HTML output and results flag
-        $buttonsHTML = '';
-        $hayResults = false;
+		// Initialize HTML output and results flag
+		$buttonsHTML = '';
+		$hayResults = false;
 
-        // Iterate through the documents
-        foreach ($documents as $document) {
-            $hayResults = true;
+		// Iterate through the documents
+		foreach ($documents as $document) {
+			$hayResults = true;
 
-            // Prepare the data to fill up the buttons
-            $siteName = htmlspecialchars($document['name']);
-            $siteId = (string) $document['_id'];
-            //$siteSigla = isset($document['sigla']) ? htmlspecialchars($document['_id']) : 'N/A'; 
-	    $siteSigla = (string) $document['sigla'];
+			// Prepare the data to fill up the buttons
+			$siteName = htmlspecialchars($document['name']);
+			$siteId = (string) $document['_id'];
+			//$siteSigla = isset($document['sigla']) ? htmlspecialchars($document['_id']) : 'N/A'; 
+			$siteSigla = (string) $document['sigla'];
 
-            // Create the button for each site
-            $buttonsHTML .= '
+			// Create the button for each site
+			$buttonsHTML .= '
                 <div class="row" style="margin-left:0px;margin-bottom:5px">
                     <div class="col-md-6">
                         <a href="' . $GLOBALS['BASEURL'] . 'user/linkedAccount.php?account=SSH&action=new&site_id=' . $siteId . '" class="btn green" data-site-id="' . $siteId . '">
@@ -661,54 +656,53 @@ function generateSSHButtons() {
                         </a>
                     </div>
                 </div>';
-        }
+		}
 
-        // Check if no documents were found
-        if (!$hayResults) {
-            $_SESSION['errorData']['Error'][] = "No SSH-accessible sites found.";
-            $buttonsHTML = '<p>No HPC accounts found with SSH access.</p>';
-        }
+		// Check if no documents were found
+		if (!$hayResults) {
+			$_SESSION['errorData']['Error'][] = "No SSH-accessible sites found.";
+			$buttonsHTML = '<p>No HPC accounts found with SSH access.</p>';
+		}
 
-        return $buttonsHTML;
-    } else {
-        // Log if $GLOBALS['sitesCol'] is not set
-        $_SESSION['errorData']['Error'][] = "Sites collection is not available.";
-        return '<p>Sites collection is not available.</p>';
-    }
+		return $buttonsHTML;
+	} else {
+		// Log if $GLOBALS['sitesCol'] is not set
+		$_SESSION['errorData']['Error'][] = "Sites collection is not available.";
+		return '<p>Sites collection is not available.</p>';
+	}
 }
 
 
-function getSiteDetails($siteId) {
-    // Check if the siteId is valid
-    if (isset($siteId)) {
-        // Fetch site details from the database
-        $site = $GLOBALS['sitesCol']->findOne(['_id' =>$siteId]);
+function getSiteDetails($siteId)
+{
+	// Check if the siteId is valid
+	if (isset($siteId)) {
+		// Fetch site details from the database
+		$site = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
 
-        // If the site is found, return the necessary details
-        if ($site) {
-            $siteName = htmlspecialchars($site['name']);
-            $siteAcronym = isset($site['sigla']) ? htmlspecialchars($site['sigla']) : 'N/A';
-            return ['siteName' => $siteName, 'siteAcronym' => $siteAcronym];
-        }
-    }
-    // Return default values if site not found
-    return ['siteName' => 'Unknown Site', 'siteAcronym' => 'N/A'];
+		// If the site is found, return the necessary details
+		if ($site) {
+			$siteName = htmlspecialchars($site['name']);
+			$siteAcronym = isset($site['sigla']) ? htmlspecialchars($site['sigla']) : 'N/A';
+			return ['siteName' => $siteName, 'siteAcronym' => $siteAcronym];
+		}
+	}
+	// Return default values if site not found
+	return ['siteName' => 'Unknown Site', 'siteAcronym' => 'N/A'];
 }
 
 
-function getSiteCredentials($siteId) {
-    if (isset($siteId)) {
-        // Fetch site details from the database
-        $site = $GLOBALS['sitesCol']->findOne(['_id' =>$siteId]);
+function getSiteCredentials($siteId)
+{
+	if (isset($siteId)) {
+		// Fetch site details from the database
+		$site = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
 
-        if ($site) {
-            // Return the credentials if they exist, else return default empty values
-            $credentials = isset($site['launcher']['access_credentials']) ? $site['launcher']['access_credentials'] : null;
-            return $credentials;
-        }
-    }
-    return null;
+		if ($site) {
+			// Return the credentials if they exist, else return default empty values
+			$credentials = isset($site['launcher']['access_credentials']) ? $site['launcher']['access_credentials'] : null;
+			return $credentials;
+		}
+	}
+	return null;
 }
-
-
-?>
