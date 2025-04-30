@@ -73,19 +73,7 @@ require "../htmlib/header.inc.php"; ?>
 
                         <?php if ($_REQUEST['account'] == "ega") {
 
-
-                            // set form default values
-
-                            $defaults = array();
-                            if (isset($_SESSION['formData'])) {
-                                $defaults = $_SESSION['formData'];
-                                unset($_SESSION['formData']);
-                            } elseif ($_REQUEST['action'] == 'update') {
-                                $defaults['username'] = $_SESSION['User']['linked_accounts']['ega']['username'];
-                                $defaults['secret'] = $_SESSION['User']['linked_accounts']['ega']['password'];
-                            }
                         ?>
-
                             <div class="portlet box blue-oleo">
                                 <div class="portlet-title">
                                     <div class="caption">
