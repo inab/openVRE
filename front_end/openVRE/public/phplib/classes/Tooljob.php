@@ -1105,7 +1105,7 @@ class Tooljob
 	protected function setBashCommandDockerCompose($tool)
 	{
 		$this->job_type = "interactive";
-		$dockerComposeFile = "/shared_data/public/" . $tool['infrastructure']['docker_path'];
+		$dockerComposeFile = $GLOBALS['toolsPath'] . $tool['infrastructure']['docker_path'];
 		$container_port = $tool['infrastructure']['container_port'];
 		$hostPort = $this->getFreePort();
 		if ($hostPort === null) {
@@ -1167,7 +1167,7 @@ class Tooljob
 				" --config "         . $this->config_file_virtual .
 				" --in_metadata "    . $this->metadata_file_virtual .
 				" --out_metadata "   . $this->stageout_file_virtual .
-			" --log_file "       . $this->log_file_virtual;
+				" --log_file "       . $this->log_file_virtual;
 
 
 			$cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d" .
