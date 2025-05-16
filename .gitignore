@@ -5,3 +5,6 @@ front_end/openVRE/config/*.conf
 vault/config/public-key.pem
 vendor/
 volumes/
+*.crt
+*.key
+*.pem

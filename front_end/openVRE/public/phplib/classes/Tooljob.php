@@ -1166,12 +1166,13 @@ class Tooljob
 			$cmd_vre = $tool['infrastructure']['executable'] .
 				" --config "         . $this->config_file_virtual .
 				" --in_metadata "    . $this->metadata_file_virtual .
-				" --out_metadata "   . $this->stageout_file_virtual;
+				" --out_metadata "   . $this->stageout_file_virtual .
 			" --log_file "       . $this->log_file_virtual;
 
 
-			$cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d " .
+			$cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d" .
 				" " . $cmd_envs .
+				"--memory=" . $tool['infrastructure']['memory']. "g" .
 				" -v " . $this->pub_dir_volumes . ":" . $GLOBALS['shared'] . "public_tmp/ " .
 				" -v " . $this->root_dir_volumes . ":" . $GLOBALS['shared'] . "userdata_tmp/{$_SESSION['User']['id']}" .
 				" " . $tool['infrastructure']['container_image'] . " $cmd_vre";

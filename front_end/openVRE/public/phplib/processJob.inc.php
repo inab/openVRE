@@ -317,7 +317,7 @@ function delJob($pid, $launcherType = NULL, $cloudName = "local", $login = NULL)
         $containerName = $jobUser['interactive_tool']['container_name'];
         // Obtain rdata and history before stopping the Docker container
         $dockerExecCommand = "docker exec $containerName Rscript -e 'save.image(\"./RData\"); savehistory(file = \".Rhistory\")'";
-        $dockerExecProcess = new ProcessSGE($dockerExecCommand, "/tmp/", "testq", "$pid-save-history", 1, 0, "$pid-save-history.out", "$pid-save-history.err");
+        $dockerExecProcess = new ProcessSGE($dockerExecCommand, "/tmp/", "local.q", "$pid-save-history", 1, 0, "$pid-save-history.out", "$pid-save-history.err");
 
         return false;
         //die(0);
