@@ -28,18 +28,11 @@ class VaultClient
 
 	public function checkToken($vaultUrl, $jwtToken, $roleName)
 	{
-		// $data = json_encode(array(
-		//	"jwt" => $jwtToken));
 		$headers = array(
 			"Content-Type: application/json",
 		);
 
 		$url = $this->vaultUrl . "auth/jwt/login";
-		//$url = $this->vaultUrl . "vault/auth/oidc/oidc/callback";
-
-		echo "Authentication URL: " . $url . "\n";
-		// 		echo "Request Payload: " . $jwtToken . "\n";
-		// 		echo "Role" .$roleName . "\n";
 
 		$data = [
 			'role' => $roleName,
@@ -48,17 +41,7 @@ class VaultClient
 			'renewable' => true,
 		];
 
-		// Constructing the curl command
-		$curlCommand = "curl -X POST \"$url\" ";
-		$curlCommand .= "-H 'Content-Type: application/json' ";
-		$curlCommand .= "-d '" . json_encode($data) . "' ";
-
-		// Outputting the curl command
-		// echo "Curl Command: $curlCommand\n";
-
-		//echo "VABBE   \n";
 		$ch = curl_init($url);
-		// curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_POST, true);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
@@ -523,6 +506,7 @@ class VaultClient
 				$responseArray = $token["response"];
 				$respondeData = json_decode($responseArray, true);
 				$vaultToken = $respondeData["auth"]["client_token"];
+				error_log("token: " . print_r($token, true) . "\n");
 				$secretPath = 'secret/mysecret/data/';
 				if (isset($data['data']['EGA']['_id'])) {
 					$filename = $data['data']['EGA']['_id'] . '_credentials.txt';
