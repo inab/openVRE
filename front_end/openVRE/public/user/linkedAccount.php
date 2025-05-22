@@ -115,6 +115,14 @@ require "../htmlib/header.inc.php"; ?>
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label class="control-label">Private Key</label>
+                                                    <input type="password" name="privateKey" id="privateKey" class="form-control">
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-md-12 text-right">

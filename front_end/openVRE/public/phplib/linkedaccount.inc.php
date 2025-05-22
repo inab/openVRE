@@ -358,6 +358,7 @@ function handleEgaAccount($action, $userId, $postData)
 			$data['data']['EGA'] = [];
 			$data['data']['EGA']['username'] = $postData['username'];
 			$data['data']['EGA']['password'] = $postData['password'];
+			$data['data']['EGA']['privateKey'] = $postData['privateKey'];
 			$data['data']['EGA']['_id'] = $userId;
 		} else {
 			$_SESSION['errorData']['Error'][] = "Please provide username and password.";
