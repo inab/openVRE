@@ -587,8 +587,7 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                             </p>
                                                             <div class="row" style="margin-left:30px;">
                                                                 <div class="col-md-6">
-                                                                    <a target="_blank"
-                                                                        href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=ega&action=new"
+                                                                    <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=ega&action=new"
                                                                         class="btn green"><i class="fa fa-plus"></i> &nbsp; Link
                                                                         your account</a>
                                                                 </div>

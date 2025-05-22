@@ -69,7 +69,6 @@ require "../htmlib/header.inc.php"; ?>
 
                         <input type="hidden" name="account" id="account" value="<?php echo $_REQUEST['account']; ?>">
                         <input type="hidden" name="action" id="action" value="<?php echo $_REQUEST['action']; ?>">
-                        <input type="hidden" name="_id" value="<?php echo $_SESSION['User']['_id']; ?>">
 
                         <?php if ($_REQUEST['account'] == "ega") {
 
@@ -121,11 +120,9 @@ require "../htmlib/header.inc.php"; ?>
                                         <div class="col-md-12 text-right">
                                             <input type="hidden" name="save_credential" id="save_credential" value="false">
                                             <button type="submit" name="submitOption" value="clearAccount"
-                                                href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=ega&action=delete"
                                                 class="btn" style="background-color: white; margin-bottom: 10px;"><i
                                                     class="fa fa-plus"></i> &nbsp; Clear account</button>
                                             <button type="submit" name="submitOption" value="updateAccount"
-                                                href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=ega&action=update"
                                                 class="btn"
                                                 style="background-color: #d4d4d4; margin-bottom: 10px; margin-right: 20px;"><i
                                                     class="fa fa-plus"></i> &nbsp; Update account</button>

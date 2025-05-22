@@ -1,57 +1,57 @@
 <?php
 
-function addUserLinkedAccount($accountType, $action, $site_id, $postData)
+function addUserLinkedAccount($accountType, $action, $userId, $site_id, $postData)
 {
 	switch ($accountType) {
 		case "SSH":
 			if (isset($_POST["submitOption"])) {
 				$submitOption = $_POST["submitOption"];
 				if ($submitOption === "clearAccount") {
-					handleSSHAccount("delete", $site_id, $postData);
+					handleSSHAccount("delete", $userId, $site_id, $postData);
 					break;
 				} elseif ($submitOption === "updateAccount") {
-					handleSSHAccount("update", $site_id, $postData);
+					handleSSHAccount("update", $userId, $site_id, $postData);
 					break;
 				} else {
-					handleSSHAccount($action, $site_id, $postData);
+					handleSSHAccount($action, $userId, $site_id, $postData);
 					break;
 				}
 			} else {
-				handleSSHAccount($action, $site_id, $postData);
+				handleSSHAccount($action, $userId, $site_id, $postData);
 				break;
 			}
 		case "objectstorage":
 			if (isset($_POST["submitOption"])) {
 				$submitOption = $_POST["submitOption"];
 				if ($submitOption === "clearAccount") {
-					handleObjectStorageAccount("delete", $postData);
+					handleObjectStorageAccount("delete", $userId, $postData);
 					break;
 				} elseif ($submitOption === "updateAccount") {
-					handleObjectStorageAccount("update", $postData);
+					handleObjectStorageAccount("update", $userId, $postData);
 					break;
 				} else {
-					handleObjectStorageAccount($action, $postData);
+					handleObjectStorageAccount($action, $userId, $postData);
 					break;
 				}
 			} else {
-				handleObjectStorageAccount($action, $postData);
+				handleObjectStorageAccount($action, $userId, $postData);
 				break;
 			}
 		case "ega":
 			if (isset($_POST["submitOption"])) {
 				$submitOption = $_POST["submitOption"];
 				if ($submitOption === "clearAccount") {
-					handleEgaAccount("delete", $postData);
+					handleEgaAccount("delete", $userId, $postData);
 					break;
 				} elseif ($submitOption === "updateAccount") {
-					handleEgaAccount("update", $postData);
+					handleEgaAccount("update", $userId, $postData);
 					break;
 				} else {
-					handleEgaAccount($action, $postData);
+					handleEgaAccount($action, $userId, $postData);
 					break;
 				}
 			} else {
-				handleEgaAccount($action, $postData);
+				handleEgaAccount($action, $userId, $postData);
 				break;
 			}
 		default:
@@ -61,7 +61,7 @@ function addUserLinkedAccount($accountType, $action, $site_id, $postData)
 }
 
 
-function handleSSHAccount($action, $site_id, $postData)
+function handleSSHAccount($action, $userId, $site_id, $postData)
 {
 	$data = [];
 	if ($action === "new") {
@@ -91,7 +91,7 @@ function handleSSHAccount($action, $site_id, $postData)
 			$data['data']['SSH']['private_key'] = $postData['private_key'];
 			$data['data']['SSH']['public_key'] = $postData['public_key'];
 			$data['data']['SSH']['user_key'] = $postData['user_key'];
-			$data['data']['SSH']['_id'] = $postData['_id'];
+			$data['data']['SSH']['_id'] = $userId;
 			$_SESSION['User']['credentials'] = [
 				'timestamp' => time()  // Only store the timestamp
 			];
@@ -115,7 +115,7 @@ function handleSSHAccount($action, $site_id, $postData)
 			$data['data']['SSH']['private_key'] = $postData['private_key'];
 			$data['data']['SSH']['public_key'] = $postData['public_key'];
 			$data['data']['SSH']['user_key'] = $postData['user_key'];
-			$data['data']['SSH']['_id'] = $postData['_id'];
+			$data['data']['SSH']['_id'] = $userId;
 			$_SESSION['User']['credentials'] = [
 				'timestamp' => time()  // Only store the timestamp
 			];
@@ -136,7 +136,7 @@ function handleSSHAccount($action, $site_id, $postData)
 			$postData['user_key'] = null;
 		}
 		$postData['timestamp'] = null;
-		$postData['_id'] = null;
+		$userId = null;
 
 		#var_dump($postData);
 		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
@@ -203,7 +203,7 @@ function handleSSHAccount($action, $site_id, $postData)
 
 
 
-function handleObjectStorageAccount($action, $postData)
+function handleObjectStorageAccount($action, $userId, $postData)
 {
 	$data = [];
 	echo $action;
@@ -229,7 +229,7 @@ function handleObjectStorageAccount($action, $postData)
 			$data['data']['Swift']['domainName'] = $postData['domainName'];
 			$data['data']['Swift']['projectDomainId'] = $postData['projectDomainId'];
 			$data['data']['Swift']['user_key'] = $postData['user_key'];
-			$data['data']['Swift']['_id'] = $postData['_id'];
+			$data['data']['Swift']['_id'] = $userId;
 		}
 	} elseif ($action === "update") {
 		// Add logic for handling MN account and uploading credentials to Vault for "update" action
@@ -247,7 +247,7 @@ function handleObjectStorageAccount($action, $postData)
 			$data['data']['Swift']['domainName'] = $postData['domainName'];
 			$data['data']['Swift']['projectDomainId'] = $postData['projectDomainId'];
 			$data['data']['Swift']['user_key'] = $postData['user_key'];
-			$data['data']['Swift']['_id'] = $postData['_id'];
+			$data['data']['Swift']['_id'] = $userId;
 			#$_SESSION['errorData']['Info'][] = "Credentials updated!";
 		} else {
 			// Handle the case where app_id or app_secret is empty
@@ -269,7 +269,7 @@ function handleObjectStorageAccount($action, $postData)
 			$postData['_id'] = null;
 		}
 		$postData['timestamp'] = null;
-		$postData['_id'] = null;
+		$userId = null;
 
 		#var_dump($postData);
 		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
@@ -334,46 +334,42 @@ function handleObjectStorageAccount($action, $postData)
 	redirect($_SERVER['HTTP_REFERER']);
 }
 
-function handleEgaAccount($action, $postData)
+function handleEgaAccount($action, $userId, $postData)
 {
-	$data = [];
-	if ($action === "new") {
-		$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
-		if (isset($postData['username'], $postData['password'])) {
-			$_SESSION['errorData']['Info'][] = "Credentials are already saved, update the credentials if needed.";
-		} elseif (isset($postData['save_credential']) && $postData['save_credential'] == 'true') {
-			$data['data']['EGA'] = [];
-			$data['data']['EGA']['username'] = $postData['username']; // Modify this
-			$data['data']['EGA']['password'] = $postData['password']; // Modify this
-
-			$data['data']['EGA']['_id'] = $postData['_id'];
-		}
-	} elseif ($action === "update") {
-		$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
-		// Add logic for handling MN account and uploading credentials to Vault for "update" action
+	error_log("handleEgaAccount");
+	error_log(var_export($action, true));
+	error_log(var_export($postData, true));
 
 
-		if (!empty($postData['username']) && !empty($postData['password'])) {
-			$data['data']['EGA'] = [];
-			$data['data']['EGA']['username'] = $postData['username']; // Modify this
-			$data['data']['EGA']['password'] = $postData['password']; // Modify this
-
-
-			$data['data']['EGA']['_id'] = $postData['_id'];
-		} else {
-			// Handle the case where app_id or app_secret is empty
-			$_SESSION['errorData']['Error'][] = "Please provide both username and password.";
-			$_SESSION['formData'] = $postData;
+	if ($action === "update") {
+		try {
+			$egaAuthToken = getEgaAuthToken($postData['username'], $postData['password']);
+			$_SESSION['User']['EGA']['token'] = $egaAuthToken;
+		} catch (Exception $e) {
+			error_log("Could not connect to EGA: " . $e->getMessage());
+			$_SESSION['errorData']['Error'][] = "Could not connect to EGA. Please check your credentials.";
 			redirect($_SERVER['HTTP_REFERER']);
 		}
+	}
+
+	$data = [];
+	if ($action === "update") {
+		if (!empty($postData['username']) && !empty($postData['password'])) {
+			$data['data']['EGA'] = [];
+			$data['data']['EGA']['username'] = $postData['username'];
+			$data['data']['EGA']['password'] = $postData['password'];
+			$data['data']['EGA']['_id'] = $userId;
+		} else {
+			$_SESSION['errorData']['Error'][] = "Please provide username and password.";
+			$_SESSION['formData'] = $postData;
+		}
 	} elseif ($action === "delete") {
-		// Reset data for "delete" action
-		$data = [];
-		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
+		clearLinkedAccount("EGA");
 	} else {
 		handleInvalidAction();
 	}
 
+	$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
 	$vaultClient = new VaultClient(
 		$GLOBALS['vaultUrl'],
 		$_SESSION['User']['Vault']['vaultToken'],
@@ -383,9 +379,7 @@ function handleEgaAccount($action, $postData)
 	);
 
 	$key = $vaultClient->uploadKeystoVault($data);
-	// Update user data with vault key
 	$_SESSION['User']['Vault']['vaultKey'] = $key;
-	updateUser($_SESSION['User']);
 	if (!$key) {
 		$_SESSION['errorData']['Info'][] = "";
 		$_SESSION['errorData']['Error'][] = "Failed to link EGA account";
@@ -395,6 +389,13 @@ function handleEgaAccount($action, $postData)
 
 	$_SESSION['errorData']['Info'][] = "EGA account successfully linked.";
 	redirect($_SERVER['HTTP_REFERER']);
+}
+
+
+function clearLinkedAccount($account)
+{
+	// To be implemented
+	$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
 }
 
 
@@ -476,4 +477,3 @@ function generateSSHButtons()
 		return '<p>Sites collection is not available.</p>';
 	}
 }
-
