@@ -506,15 +506,10 @@ class VaultClient
 				$responseArray = $token["response"];
 				$respondeData = json_decode($responseArray, true);
 				$vaultToken = $respondeData["auth"]["client_token"];
-				error_log("token: " . print_r($token, true) . "\n");
 				$secretPath = 'secret/mysecret/data/';
 				if (isset($data['data']['EGA']['_id'])) {
 					$filename = $data['data']['EGA']['_id'] . '_credentials.txt';
 				}
-
-				$keyPair = generateSSHKeyPair($data['data']['EGA']['username']);
-				$data['data']['EGA']['crypt4gh_priv'] = $keyPair['privateKey'];
-				$data['data']['EGA']['crypt4gh_pub'] = $keyPair['publicKey'];
 
 				// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
 				$this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
