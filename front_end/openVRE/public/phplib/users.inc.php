@@ -79,8 +79,6 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
     }
 
     $objUser = new User($userAttributes['Email'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", $userAttributes['JWT']);
-
-    error_log("createUserFromToken: " . var_export($objUser, true));
     if (!$objUser) {
         return false;
     }
