@@ -33,8 +33,7 @@ if (!isset($_SESSION['errorData'])){
 $_REQUEST['dryrun'] = 1;
 
 // list all users
-//$fu = $GLOBALS['usersCol']->find(array());
-$fu = $GLOBALS['usersCol']->find(array("_id" => "ebb7713428c9245dbb9277139"));
+$fu = $GLOBALS['usersCol']->find(array("_id" => "ebb7713428c9245dbb9277139")); // TODO: to be changed
 
 // for each user
 foreach ( array_values(iterator_to_array($fu)) as $u ){
@@ -42,7 +41,7 @@ foreach ( array_values(iterator_to_array($fu)) as $u ){
     $id = $u['id'];
 
     // ckeck if user exists in mongo
-    $u = checkUserIDExists($id);
+    $u = getUserById($id);
     if (!isset($_SESSION['User'])){
         $_SESSION['User'] = $u;
     }

@@ -1,96 +1,207 @@
 <?php
 
-class User {
-
-    public $_id; //= Email
+class User
+{
+    public $_id;
+    public $Email;
     public $Surname;
     public $Name;
     public $Inst;
-    public $Country;
-    public $Email;
-    public $crypPassword;
     public $lastLogin;
     public $registrationDate;
     public $Type;
     public $Status;
     public $diskQuota;
     public $dataDir;
-    public $DataSample;
-    public $Token;
-    public $TokenInfo;
-    public $Vault;
     public $AuthProvider;
-    public $id;
+    public $id; // TODO: diff with _id?
     public $activeProject;
 
-    function __construct($f) {
-
-        // stop unless Email
-        if (!$f['Email'])
-            return 0;
-
-        // set attributes from arguments
-	foreach (array('Surname','Name','Inst','Country','Email','Type','dataDir','diskQuota','DataSample','AuthProvider','activeProject') as $k)
-	    if (isset($f[$k]))
-		$this->$k = sanitizeString($f[$k]);
-
-        // set credential attributes (crypPassword or Token or ANON)
-        if (isset($f['pass1'])){
-            //$this->crypPassword = password_hash($f['pass1'], PASSWORD_DEFAULT);
-            //$this->crypPassword = crypt($f['pass1'], '$6$'.randomSalt(8).'$');
-            $salt = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',4)),0,4);
-            $this->crypPassword = '{SSHA}' . base64_encode(sha1( $f['pass1'].$salt, TRUE ). $salt);
-        }elseif (isset($f['Token'])){
-            $this->Token = $f['Token'];
-        }elseif (isset($f['TokenInfo'])){
-            $this->TokenInfo = $f['TokenInfo'];
-        }elseif ($f['Type'] == 3){
-        }else{
+    public function __construct(string $email, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject, ?string $jwt)
+    {
+        if ($type != UserType::Guest->value && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return 0;
         }
-        $this->Token_mug_ebi= array();
-        
-        // set user type (0: admin, 1:Tool dev, 2:registered user, 3:guest)
-        $this->Type = (!isset($this->Type)?$this->Type=2:$this->Type=$this->Type);
 
-        // set ids
-    	$this->_id           = $this->Email;
-        $this->id            = ($this->Type!=3?uniqid($GLOBALS['AppPrefix'] . "USER"):uniqid($GLOBALS['AppPrefix'] . "ANON"));
-        $this->activeProject = (!$this->activeProject?createLabel_proj():$this->activeProject);
-        
-        // set status (1: active, ...)
-        $this->Status = "1";
+        if (!isset($_SESSION['userToken']) && $type != UserType::Guest->value) {
+            return 0;
+        }
 
-        // set creation time and last login
-    	$this->lastLogin        = moment();
-        $this->registrationDate = (!$this->registrationDate?moment():$this->registrationDate);
+        $this->Type = $type ?? UserType::Registered->value; // TODO: check if this is ok
+        $this->Email = sanitizeString($email);
+        $this->_id = sanitizeString($email);
+        $this->Surname = ucfirst(sanitizeString($surname));
+        $this->Name = ucfirst(sanitizeString($name));
+        $this->Inst = sanitizeString($inst);
+        $this->diskQuota = sanitizeString($diskQuota);
+        $this->dataDir = sanitizeString($dataDir);
+        $this->AuthProvider = sanitizeString($authProvider);
+        $this->activeProject = sanitizeString($activeProject);
+        $this->id = $this->Type == UserType::Guest->value
+            ? uniqid($GLOBALS['AppPrefix'] . "ANON")
+            : uniqid($GLOBALS['AppPrefix'] . "USER");
+        $this->activeProject = $this->activeProject ?: createLabel_proj();
+        $this->Status = userStatus::Active->value;
+        $this->lastLogin = moment();
+        $this->registrationDate = $this->registrationDate ?: moment();
+        $this->diskQuota  = $this->diskQuota || $this->Type == UserType::Guest->value // TODO: check if this is ok
+            ? $GLOBALS['DISKLIMIT_ANON']
+            : $GLOBALS['DISKLIMIT'];
 
-        // set user quota according to user type
-    	$this->diskQuota  = (!$this->diskQuota && $this->Type!=3? $GLOBALS['DISKLIMIT']:$GLOBALS['DISKLIMIT_ANON']);
-
-        // process given attributes 
-    	$this->Surname = ucfirst($this->Surname);
+        $this->Surname = ucfirst($this->Surname);
         $this->Name    = ucfirst($this->Name);
 
-        // set inicial sample data for user workspace 
-	$this->DataSample = ($this->DataSample?$this->DataSample:$GLOBALS['sampleData_default']);
-
-	$this->Vault = array(
+        $_SESSION['userVaultInfo'] = array(
             "vaultClient" => array(
-                "jwtToken"    => isset($f['jwtToken']) ? $f['jwtToken'] : "", // Optionally pass jwtToken via $f or fetch from $_SESSION
+                "jwtToken"    => $jwt ??  "",
                 "credentials" => array("data" => array("SSH" => array()))
             ),
             "vaultKey"     => null,
-            "secretPath"   => isset($GLOBALS['secretPath']) ? $GLOBALS['secretPath'] : '',
-            "vaultRolename"=> isset($GLOBALS['vaultRolename']) ? $GLOBALS['vaultRolename'] : '',
-            "vaultToken"   => isset($GLOBALS['vaultToken']) ? $GLOBALS['vaultToken'] : '',
-            "vaultUrl"     => isset($GLOBALS['vaultUrl']) ? $GLOBALS['vaultUrl'] : ''
+            "secret_path"   => $GLOBALS['secretPath'] ?? '',
+            "vault_role_name" => $GLOBALS['vaultRolename'] ?? '',
+            "vault_token"   => $GLOBALS['vaultToken'] ?? '',
+            "vault_url"     => $GLOBALS['vaultUrl'] ?? ''
         );
-
-
-        return $this;
     }
 
-}
+    
+    public function getType(): int
+    {
+        return $this->Type;
+    }
 
-?>
+    public function setType(int $type): void
+    {
+        $this->Type = $type;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->Email;
+    }
+
+    public function setEmail(string $email): void
+    {
+        $this->Email = $email;
+    }
+
+    public function get_id(): string
+    {
+        return $this->_id;
+    }
+
+    public function set_id(string $id): void
+    {
+        $this->_id = $id;
+    }
+
+    public function getSurname(): string
+    {
+        return $this->Surname;
+    }
+
+    public function setSurname(string $surname): void
+    {
+        $this->Surname = $surname;
+    }
+
+    public function getName(): string
+    {
+        return $this->Name;
+    }
+
+    public function setName(string $name): void
+    {
+        $this->Name = $name;
+    }
+
+    public function getInst(): string
+    {
+        return $this->Inst;
+    }
+
+    public function setInst(string $inst): void
+    {
+        $this->Inst = $inst;
+    }
+
+    public function getDiskQuota(): string
+    {
+        return $this->diskQuota;
+    }
+
+    public function setDiskQuota(string $diskQuota): void
+    {
+        $this->diskQuota = $diskQuota;
+    }
+
+    public function getDataDir(): string
+    {
+        return $this->dataDir;
+    }
+
+    public function setDataDir(string $dataDir): void
+    {
+        $this->dataDir = $dataDir;
+    }
+
+    public function getAuthProvider(): string
+    {
+        return $this->AuthProvider;
+    }
+
+    public function setAuthProvider(string $authProvider): void
+    {
+        $this->AuthProvider = $authProvider;
+    }
+
+    public function getActiveProject(): string
+    {
+        return $this->activeProject;
+    }
+
+    public function setActiveProject(string $activeProject): void
+    {
+        $this->activeProject = $activeProject;
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function setId(string $id): void
+    {
+        $this->id = $id;
+    }
+
+    public function getStatus(): int
+    {
+        return $this->Status;
+    }
+
+    public function setStatus(int $status): void
+    {
+        $this->Status = $status;
+    }
+
+    public function getLastLogin(): string
+    {
+        return $this->lastLogin;
+    }
+
+    public function setLastLogin(string $lastLogin): void
+    {
+        $this->lastLogin = $lastLogin;
+    }
+
+    public function getRegistrationDate(): string
+    {
+        return $this->registrationDate;
+    }
+
+    public function setRegistrationDate(string $registrationDate): void
+    {
+        $this->registrationDate = $registrationDate;
+    }
+}

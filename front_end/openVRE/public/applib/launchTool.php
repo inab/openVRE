@@ -191,9 +191,8 @@ foreach ($files as $fnId => $file) {
 		    }
 		    $path_file = $r[0]['path'];
 		    $local_path_file =  $r[0]['local_path'];
-		    $prova = $jobData->handleFileLocation($location, $path_file, $local_path_file, $GLOBALS['vaultUrl'], $_SESSION['User']['Vault']['vaultToken'], $_SESSION['User']['Vault']['vaultRolename']);
+		    $prova = $jobData->handleFileLocation($location, $path_file, $local_path_file, $GLOBALS['vaultUrl'], $_SESSION['userVaultInfo']['vaultToken'], $_SESSION['userVaultInfo']['vaultRolename']);
 		    if (!$prova) {
-			    //print ('Bhu?');
 			    $_SESSION['errorData']['Error'][]= "Null files";
 		    }  elseif ($prova === 0) {
 			    $_SESSION['errorData']['Error'][]= "No stored credentials are present in the system. Go to the profile section to save them.";

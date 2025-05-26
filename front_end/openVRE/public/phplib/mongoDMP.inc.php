@@ -7,8 +7,8 @@ function DMP_http($method,$service,$data=false){
     $info = array();
 
     $url_base = $GLOBALS['DMPserver_domain'].":".$GLOBALS['DMPserver_port'].$GLOBALS['DMPserver_address'];
-    $headers  = array("Content-Type: application/json", "Authorization: Bearer ".$_SESSION['User']['token']);
-    print "HEADER : -H \"Content-Type: application/json\" -H \"Authorization: Bearer ".$_SESSION['User']['token']."\"\n";
+    $headers  = array("Content-Type: application/json", "Authorization: Bearer ".$_SESSION['userToken']);
+    print "HEADER : -H \"Content-Type: application/json\" -H \"Authorization: Bearer ".$_SESSION['userToken']."\"\n";
 
     $url = $url_base."/".$service;
     switch ($method){

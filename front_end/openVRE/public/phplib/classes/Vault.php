@@ -14,6 +14,7 @@ class VaultClient
 	private $username;
 
 
+
 	public function __construct($vaultUrl, $vaultToken, $jwtToken, $roleName, $username)
 	{
 
@@ -28,11 +29,8 @@ class VaultClient
 
 	public function checkToken($vaultUrl, $jwtToken, $roleName)
 	{
-		$headers = array(
-			"Content-Type: application/json",
-		);
-
-		$url = $this->vaultUrl . "auth/jwt/login";
+		$headers = array("Content-Type: application/json",);
+		$url = $this->vaultUrl . "/auth/jwt/login";
 
 		$data = [
 			'role' => $roleName,
@@ -55,8 +53,8 @@ class VaultClient
 		}
 
 		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
 		curl_close($ch);
+
 		return array(
 			'statusCode' => $httpCode,
 			'response' => $response
@@ -86,7 +84,7 @@ class VaultClient
 		//echo "JSON  \n";
 		//var_dump($context);
 		//echo "END \n";
-		$url1 = $this->$url . "auth/jwt/login";
+		$url1 = $this->$url . "/auth/jwt/login";
 		//echo "url" . $url1;
 		$response = file_get_contents($url1, false, $context);
 
@@ -232,7 +230,7 @@ class VaultClient
 
 	function uploadFileToVault($url, $secretPath, $username, $token, $data)
 	{
-		$vaultUrl = $url . $secretPath . $username;
+		$vaultUrl = $url . "/" . $secretPath . $username;
 		$headers = [
 			'X-Vault-Token: ' . $token,
 			'Content-Type: application/json'
@@ -250,6 +248,7 @@ class VaultClient
 		}
 
 		curl_close($curl);
+
 		return $response;
 	}
 
@@ -501,7 +500,6 @@ class VaultClient
 			}
 		} elseif (isset($data['data']['EGA'])) {
 			try {
-				// First access the Vault with the Token provided by Keycloak
 				$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
 				$responseArray = $token["response"];
 				$respondeData = json_decode($responseArray, true);
@@ -515,13 +513,13 @@ class VaultClient
 				$this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
 				return $vaultToken;
 			} catch (Exception $e) {
-				error_log("Error: " . $e->getMessage());
-				error_log("vaultUrl: " . $this->vaultUrl);
-				error_log("jwtToken: " . $this->jwtToken);
-				error_log("roleName: " . $this->roleName);
+				echo "Vault url: ";
+				echo $this->vaultUrl . "\n";
+				echo "jwtToken: ";
+				echo $this->jwtToken . "\n";
+				echo "Error: " . $e->getMessage();
 			}
 		} else {
-			// Invalid data format or system type
 			$_SESSION['errorData']['Error'][] = "Invalid data format or system type";
 		}
 	}

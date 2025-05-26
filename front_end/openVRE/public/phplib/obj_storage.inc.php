@@ -3,7 +3,7 @@
 function getOpenstackUser($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username) {
 
         $vaultClient = new VaultClient($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
-        $vaultKey = $_SESSION['User']['Vault']['vaultKey'];
+        $vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
 
         $credentials = $vaultClient->retrieveDatafromVault('Swift', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $_SESSION['User']['_id'] . '_credentials.txt');
         if ($credentials) {
@@ -26,7 +26,7 @@ function getOpenstackUser($vaultUrl, $vaultToken, $accessToken, $vaultRolename, 
 function getSwiftClient($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username) {
 
 	$vaultClient = new VaultClient($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
-	$vaultKey = $_SESSION['User']['Vault']['vaultKey'];
+	$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
 	$credentials = $vaultClient->retrieveDatafromVault('Swift', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $_SESSION['User']['_id'] . '_credentials.txt');
 	error_log($vaultKey, $credentials);
 	
@@ -50,7 +50,7 @@ function getSwiftClient($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $u
 function getSSHClient($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username, $remote_dir, $siteId) {
 
 	$vaultClient = new VaultClient($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
-	$vaultKey = $_SESSION['User']['Vault']['vaultKey'];
+	$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
 	$credentials = $vaultClient->retrieveDatafromVault('SSH', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $_SESSION['User']['_id'] . '_credentials.txt');
 	//        error_log($vaultKey, $credentials);
 	if ($credentials) {
