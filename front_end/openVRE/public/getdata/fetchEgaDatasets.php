@@ -121,6 +121,5 @@ try {
     $total_count = count($dataArray);
     $total_pages = ceil($total_count / 10);
 } catch (Exception $e) {
-    // Handle or log the error as needed
     throw $e;
 }
