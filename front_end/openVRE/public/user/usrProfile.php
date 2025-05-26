@@ -544,7 +544,7 @@ redirectOutside();
                                                 <?php } ?>
                                                 </div>
                                                 <!-- END MN ACCOUNT -->
-                                                <!-- EGA ACCOUNT (TODO: leave hidden until authentication implemented)-->
+                                                <!-- EGA ACCOUNT -->
                                                 <hr>
                                                 <div>
                                                     <img src="https://static.ega-archive.org/img/logo.png" /
