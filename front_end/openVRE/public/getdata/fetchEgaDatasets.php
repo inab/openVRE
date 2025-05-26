@@ -43,7 +43,7 @@ try {
     $egaPassword = $data['data']['data']['EGA']['password'] ?? null;
 
     if ($egaUsername === null || $egaPassword === null) {
-        throw new Exception('EGA credentials not found in ' . print_r($data, true));
+        throw new Exception('EGA credentials not found. Try to link your EGA account again.');
     }
 
     $params = [
