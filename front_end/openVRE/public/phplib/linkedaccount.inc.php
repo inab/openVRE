@@ -340,8 +340,6 @@ function handleEgaAccount($action, $userId, $postData)
 {
 	error_log("handleEgaAccount");
 	error_log(var_export($action, true));
-	error_log(var_export($postData, true));
-
 
 	if ($action === "update") {
 		try {
