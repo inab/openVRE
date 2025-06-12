@@ -368,6 +368,7 @@ function handleEgaAccount($action, $userId, $postData)
 		}
 	} elseif ($action === "delete") {
 		clearLinkedAccount("EGA");
+		redirect($_SERVER['HTTP_REFERER']);
 	} else {
 		handleInvalidAction();
 	}
