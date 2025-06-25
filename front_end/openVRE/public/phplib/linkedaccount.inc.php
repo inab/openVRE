@@ -338,9 +338,6 @@ function handleObjectStorageAccount($action, $userId, $postData)
 
 function handleEgaAccount($action, $userId, $postData)
 {
-	error_log("handleEgaAccount");
-	error_log(var_export($action, true));
-
 	if ($action === "update") {
 		try {
 			$egaAuthToken = getEgaAuthToken($postData['username'], $postData['password']);
@@ -354,7 +351,7 @@ function handleEgaAccount($action, $userId, $postData)
 
 	$data = [];
 	if ($action === "update") {
-		if (!empty($postData['username']) && !empty($postData['password'])) {
+		if (empty($postData['username'])  || empty($postData['password'])) {
 			$data['data']['EGA'] = [];
 			$data['data']['EGA']['username'] = $postData['username'];
 			$data['data']['EGA']['password'] = $postData['password'];
