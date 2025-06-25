@@ -393,7 +393,7 @@ function handleEgaAccount($action, $userId, $postData)
 
 function clearLinkedAccount($account)
 {
-	// To be implemented
+	// TODO: To be implemented
 	$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
 }
 
