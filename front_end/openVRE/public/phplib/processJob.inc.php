@@ -188,12 +188,12 @@ function getPidFromOutfile($outfile)
     $pid = 0;
     $SGE_updated = getUserJobs($_SESSION['userId']);
     foreach ($SGE_updated as $data) {
-        $outs = $data['out'];
-        if (!is_array($data['out']))
-            $outs = array($data['out']);
-        if (in_array($outfile, $outs))
+        $outs = is_array($data['out']) ? $data['out'] : array($data['out']);
+        if (in_array($outfile, $outs)) {
             return $data['_id'];
+        }
     }
+    
     return $pid;
 }
 
