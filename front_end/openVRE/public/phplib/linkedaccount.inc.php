@@ -400,7 +400,7 @@ function clearLinkedAccount($account)
 
 function handleInvalidAction()
 {
-	$_SESSION['errorData']['Error'][] = "Invalid action for the specified account type.";
+	$_SESSION['errorData']['Error'][] = "Action not recognized.";
 	redirect($_SERVER['HTTP_REFERER']);
 }
 
