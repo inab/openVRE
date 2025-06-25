@@ -128,7 +128,7 @@ require "../htmlib/header.inc.php"; ?>
                                         <div class="col-md-12 text-right">
                                             <input type="hidden" name="save_credential" id="save_credential" value="false">
                                             <button type="submit" name="submitOption" value="clearAccount"
-                                                class="btn" style="background-color: white; margin-bottom: 10px;"><i
+                                                class="btn" style="background-color: white; margin-bottom: 10px; display: none;"><i
                                                     class="fa fa-plus"></i> &nbsp; Clear account</button>
                                             <button type="submit" name="submitOption" value="updateAccount"
                                                 class="btn"
