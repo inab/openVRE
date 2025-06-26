@@ -1719,7 +1719,7 @@ function  build_outputs_list($tool, $stageout_job, $stageout_file)
 				continue;
 			}
 		}
-	} else {
+	} elseif ($tool['external'] !== false) {
 		$_SESSION['errorData']['Warning'][] = date("h:i:s") . ": Tool stageout file '" . $stageout_file . "' is not found";
 	}
 	print "\n__________FROM FILE________________\n";
