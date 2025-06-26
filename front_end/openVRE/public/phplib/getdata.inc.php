@@ -324,7 +324,7 @@ function  getData_wget_asyncron($toolArgs, $toolOuts, $output_dir, $referer) {
     }
 
     $_SESSION['errorData']['Info'][] = "File from URL '".basename($filePath)."' is being imported into the '$outdir' folder below. Please, edit its metadata once the import has finished";
-    redirect($GLOBALS['BASEURL']."/workspace/");
+    redirect($GLOBALS['BASEURL']."workspace/");
 }   
 
 /////////////////////////////////
