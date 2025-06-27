@@ -1,3 +1,4 @@
+[
   {
     "_id": "tool_skeleton",
     "name": "Tool Skeleton",
@@ -13,30 +14,40 @@
     },
     "status": 1,
     "external": true,
-    "keywords": ["next gen seq", "dna"],
-    "keywords_tool": ["Tool skeleton", "Sample keyword"],
+    "keywords": [
+      "next gen seq",
+      "dna"
+    ],
+    "keywords_tool": [
+      "Tool skeleton",
+      "Sample keyword"
+    ],
     "infrastructure": {
-    "memory": 12,
-    "cpus": 1,
-    "executable": "/home/vre_template_tool/VRE_RUNNER",
-    "container_image": "dockerhub/tool-skeleton:latest",
-    "clouds": {
-      "local": {
-        "launcher": "docker_SGE",
-        "default_cloud": true,
-        "queue": "testq",
-        "executable": "/home/vre_template_tool/VRE_RUNNER",
-        "executable_type": "docker"
+      "memory": 12,
+      "cpus": 1,
+      "executable": "/home/vre_template_tool/VRE_RUNNER",
+      "container_image": "dockerhub/tool-skeleton:latest",
+      "clouds": {
+        "local": {
+          "launcher": "docker_SGE",
+          "default_cloud": true,
+          "queue": "testq",
+          "executable": "/home/vre_template_tool/VRE_RUNNER",
+          "executable_type": "docker"
+        }
       }
-    }
-  },
+    },
     "input_files": [
       {
         "name": "fasta1",
         "description": "FASTA input file 1",
         "help": "This is the input file 1 help tooltip",
-        "file_type": ["FASTA"],
-        "data_type": ["dna_sequence"],
+        "file_type": [
+          "FASTA"
+        ],
+        "data_type": [
+          "dna_sequence"
+        ],
         "required": true,
         "allow_multiple": false
       },
@@ -44,8 +55,12 @@
         "name": "fasta2",
         "description": "FASTA input file 2",
         "help": "This is the input file 2 help tooltip",
-        "file_type": ["FASTA"],
-        "data_type": ["dna_sequence"],
+        "file_type": [
+          "FASTA"
+        ],
+        "data_type": [
+          "dna_sequence"
+        ],
         "required": false,
         "allow_multiple": false
       }
@@ -53,20 +68,31 @@
     "input_files_combinations": [
       {
         "description": "Start tool with 1 FASTA FILE",
-        "input_files": ["fasta1"]
+        "input_files": [
+          "fasta1"
+        ]
       },
       {
         "description": "Start tool with 2 FASTA FILES",
-        "input_files": ["fasta1", "fasta2"]
+        "input_files": [
+          "fasta1",
+          "fasta2"
+        ]
       }
     ],
     "input_files_combinations_internal": [
       [
-        { "dna_sequence": 1 },
-        { "dna_sequence": 1 }
+        {
+          "dna_sequence": 1
+        },
+        {
+          "dna_sequence": 1
+        }
       ],
       [
-        { "dna_sequence": 1 }
+        {
+          "dna_sequence": 1
+        }
       ]
     ],
     "arguments": [
@@ -83,8 +109,14 @@
         "help": " Tooltip for this argument",
         "type": "enum_multiple",
         "enum_items": {
-          "name": ["option 1 name", "option 2 name"],
-          "description": ["option1", "option2"]
+          "name": [
+            "option 1 name",
+            "option 2 name"
+          ],
+          "description": [
+            "option1",
+            "option2"
+          ]
         },
         "required": true,
         "default": ""
@@ -124,10 +156,92 @@
         }
       }
     ],
-  "sites": [
-    {
-      "site_id": "local",
-      "status": 1
-    }   
-  ]
+    "sites": [
+      {
+        "site_id": "local",
+        "status": 1
+      }
+    ]
+  },
+  {
+    "_id": "wget",
+    "title": "Remote file retrieving from URLs",
+    "name": "Get remote file",
+    "short_description": "Implementation of a the remote file retriever WGET.",
+    "url": "https://www.gnu.org/software/wget/",
+    "owner": {
+      "institution": "Barcelona Supercomputing Center",
+      "author": "Laia Codo",
+      "contact": "laia.codo@bsc.es",
+      "url": "",
+      "user": "laia.codo@bsc.es"
+    },
+    "external": false,
+    "keywords": [],
+    "infrastructure": {
+      "memory": 2,
+      "cpus": 1,
+      "executable": "/shared_scripts/download_from_url.sh",
+      "clouds": {
+        "local": {
+          "launcher": "SGE",
+          "default_cloud": true,
+          "queue": "local.q"
+        }
+      }
+    },
+    "input_files": [],
+    "arguments": [
+      {
+        "name": "url",
+        "description": "URL of the file to be downloaded",
+        "help": "URL",
+        "type": "string",
+        "required": true,
+        "allow_multiple": true
+      },
+      {
+        "name": "output",
+        "description": "Name of the output file",
+        "help": "Name of the output file",
+        "type": "string",
+        "allow_multiple": false,
+        "default": ""
+      },
+      {
+        "name": "working_dir",
+        "description": "Temporal dir",
+        "help": "",
+        "type": "string",
+        "allow_multiple": false,
+        "default": ""
+      },
+      {
+        "name": "untar",
+        "description": "Untar output file if ",
+        "help": "",
+        "type": "string",
+        "allow_multiple": false,
+        "default": ""
+      }
+    ],
+    "control_file": ".summary.json",
+    "output_files": [
+      {
+        "name": "file",
+        "required": true,
+        "allow_multiple": false,
+        "file_type": "",
+        "data_type": "",
+        "file": {
+          "meta_data": {
+            "validated": false,
+            "description": "Data imported from URL",
+            "tool": "wget",
+            "visible": true
+          }
+        }
+      }
+    ]
   }
+]
