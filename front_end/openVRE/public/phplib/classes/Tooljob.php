@@ -826,7 +826,28 @@ class Tooljob
 		$launcher = $this->launcher;
 		$cloudName = $this->cloudName;
 
-		if ($tool['external'] !== false) {
+		if ($tool['external'] === false) {
+			switch ($launcher) {
+				case "SGE":
+					$cmd = $this->setBashCmd_withoutApp($tool, $metadata);
+					if (!$cmd) {
+						return 0;
+					}
+
+					$submissionFilename = $this->createSubmitFile_SGE($cmd);
+					if (!is_file($submissionFilename)) {
+						return 0;
+					}
+
+					break;
+
+				default:
+					$_SESSION['errorData']['Error'][] = "Internal Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
+					return 0;
+			}
+
+			return 1;
+		} else {
 			$configFilename = $this->setConfiguration_file($tool);
 			if ($configFilename == "0") {
 				return 0;
@@ -858,7 +879,6 @@ class Tooljob
 
 				case "docker_SGE":
 					$cmd  = $this->setBashCommandDockerSge($tool);
-					#$_SESSION['errorData']['Error'][] = "CMD3 " . $cmd;
 					if (!$cmd) {
 						return 0;
 					}
@@ -897,8 +917,6 @@ class Tooljob
 					break;
 
 				case "Slurm":
-					//$_SESSION['errorData']['Internal Error'][]="Cannot set tool command line. Case still not implemented.";    
-
 					$username = $_POST['username'];
 					$cmd = $this->setHPCRequest($cloudName, $tool, $username);
 					if (!$cmd) {
@@ -908,32 +926,6 @@ class Tooljob
 					break;
 				default:
 					$_SESSION['errorData']['Error'][] = "Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
-					return 0;
-			}
-
-			return 1;
-		}
-
-		if ($tool['external'] === false) {
-			switch ($launcher) {
-				case "SGE":
-					$cmd = $this->setBashCmd_withoutApp($tool, $metadata);
-					if (!$cmd) {
-						return 0;
-					}
-
-					$submissionFilename = $this->createSubmitFile_SGE($cmd);
-					if (!is_file($submissionFilename)) {
-						return 0;
-					}
-
-					break;
-
-				case "PMES":
-					//TODO
-
-				default:
-					$_SESSION['errorData']['Error'][] = "Internal Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
 					return 0;
 			}
 

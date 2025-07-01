@@ -1249,7 +1249,7 @@ function processPendingFiles($sessionId, $files = array())
 
 			if ($jobProcess['state'] == "RUNNING" && $job['job_type'] == "interactive") {
 				$fileDummy['pending'] = "ACTIVE SESSION";
-				$fileDummy['toolContainerName'] = $_SESSION['User']['lastjobs'][$pid]['containerName'];
+        $fileDummy['toolContainerName'] = $_SESSION['User']['lastjobs'][$pid]['containerName'];
 			}
 
 			//list job in workspace
@@ -1695,7 +1695,7 @@ function  build_outputs_list($tool, $stageout_job, $stageout_file)
 
 	// check tool output_files
 
-	if (!$tool['infrastructure']['interactive'] && !(isset($tool['output_files']) || count($tool['output_files']) == 0)) {
+  if (!$tool['infrastructure']['interactive'] && !(isset($tool['output_files']) || count($tool['output_files']) == 0)) {
 		$_SESSION['errorData']['Internal'][] = "Tool " . $tool['name'] . " has not list of 'output_files'. Invalid tool registration";
 		$_SESSION['errorData']['Error'][] = "Cannot obtain results from execution '" . dirname($stageout_file) . "'";
 		return $outs_meta;
@@ -1720,7 +1720,7 @@ function  build_outputs_list($tool, $stageout_job, $stageout_file)
 				continue;
 			}
 		}
-	} else {
+	} elseif ($tool['external'] !== false) {
 		$_SESSION['errorData']['Warning'][] = date("h:i:s") . ": Tool stageout file '" . $stageout_file . "' is not found";
 	}
 	print "\n__________FROM FILE________________\n";
@@ -2195,11 +2195,9 @@ function resolvePath_toLocalAbsolutePath($path, $job)
 		} elseif (preg_match('/^' . $job['execution'] . '/', $path)) {
 			//$rfn = $GLOBALS['dataDir'].$_SESSION['User']['id']."/".$_SESSION['User']['activeProject']."/".$path;
 			$rfn = dirname($job["output_dir"]) . "/" . $path;
-
 			// file_path is relative to root directory (userid/prj/run/file)
 		} elseif (preg_match('/^' . $_SESSION['User']['id'] . '/', $path)) {
 			$rfn = $GLOBALS['dataDir'] . "/" . $path;
-
 			// file_path contains $(working_dir) tag
 		} elseif (preg_match('/(working_dir)/', $path)) {
 			$rfn = str_replace("$(working_dir)", $job['working_dir'] . "/", $path);
