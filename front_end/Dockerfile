@@ -3,9 +3,6 @@ FROM webdevops/php-apache:8.3
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Apache config file
-COPY 10-server.conf /opt/docker/etc/httpd/conf.d/10-server.conf
-
 RUN apt-get update
 RUN a2enmod proxy proxy_http
 RUN apt install -y nodejs

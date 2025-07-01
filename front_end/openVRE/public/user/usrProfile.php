@@ -193,22 +193,6 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                                 value="<?php echo $_SESSION['User']['Inst']; ?>"
                                                                 class="form-control" />
                                                         </div>
-                                                        <div class="form-group">
-                                                            <label class="control-label">Country</label>
-                                                            <select name="Country" class="form-control">
-                                                                <option value=""></option>
-                                                                <?php
-                                                                $selCountry = '';
-                                                                foreach ($countries as $key => $value):
-                                                                    if ($_SESSION['User']['Country'] == $key)
-                                                                        $selCountry = ' selected';
-                                                                    else
-                                                                        $selCountry = '';
-                                                                    echo '<option value="' . $key . '"' . $selCountry . '>' . $value . '</option>';
-                                                                endforeach;
-                                                                ?>
-                                                            </select>
-                                                        </div>
                                                         <?php if (!allowedRoles($_SESSION['User']['Type'], $GLOBALS['TOOLDEV']) && (checkTermsOfUse())) { ?>
                                                             <div class="form-group margin-top-30">
                                                                 <label class="control-label">You are a standard user. Do you

@@ -24,6 +24,7 @@ class Tooljob
 	public $launcher;
 	public $imageType;
 	public $arguments_exec;
+	public $job_type;
 
 	public $root_dir_mug;
 
@@ -55,7 +56,6 @@ class Tooljob
 	public $pid             = 0;
 	public $start_time      = 0;
 	public $hasExecutionFolder = true;
-	#public $refGenome_to_taxon = Array( "hg38"=>"9606" ,  "hg19"=>"9606", "R64-1-1"=>"4932", "r5_01"=>"7227");
 
 
 	/**
@@ -64,8 +64,6 @@ class Tooljob
 	 */
 	public function __construct($tool, $execution = "", $project = "", $descrip = "", $arguments_exec = "", $output_dir = "")
 	{
-
-
 		// Setting Tooljob
 		$this->toolId    = $tool['_id'];
 		$this->title     = $tool['name'] . " job";
@@ -78,10 +76,6 @@ class Tooljob
 		$this->arguments_exec = $arguments_exec;
 
 		// Set paths in the virtual machine
-		//$this->set_cloudName($tool);
-		//$this->launcher         = $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
-		//$_SESSION['errorData']['Error'][]="Tool '$this->toolId' '$this->cloudName' '$this->launcher' ";
-
 		if (!empty($this->arguments_exec['site_list']) && count($this->arguments_exec['site_list']) >= 1) {
 			$site_list = $this->arguments_exec['site_list'];
 			// The first element in site_list is the cloudName
@@ -126,13 +120,9 @@ class Tooljob
 			case "Slurm":
 				$this->root_dir_df = $GLOBALS['clouds'][$this->cloudName]['mn_dir'] .  "/" . substr($_SESSION['User']['linked_accounts']['MN']['username'], 0, 6) . "/" . $_SESSION['User']['linked_accounts']['MN']['username'] . "/" . $GLOBALS['clouds'][$this->cloudName]['dataDir_fs'];
 				$this->pub_dir_fs = $GLOBALS['clouds'][$this->cloudName]['mn_dir'] .  "/" . substr($_SESSION['User']['linked_accounts']['MN']['username'], 0, 6) . "/" . $_SESSION['User']['linked_accounts']['MN']['username'] . "/" . $GLOBALS['clouds'][$this->cloudName]['pubDir_fs'];
-				//$this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
-				//$this->root_dir_fs = $GLOBALS['clouds'][$this->cloudName]['dataDir_fs'];
-				//$this->pub_dir_fs = $GLOBALS['clouds'][$this->cloudName]['pubDir_fs'];
 				$this->auth = $GLOBALS['clouds'][$this->cloudName]['auth'];
 				$this->http_host = $GLOBALS['clouds'][$this->cloudName]['http_host'];
 				break;
-			//$this->port = $GLOBALS['clouds'][$this->cloudName]['port'];     
 			default:
 				$_SESSION['errorData']['Error'][] = "Tool '$this->toolId' not properly registered. Launcher type is set to '" . $this->launcher . "'. Case not implemented.";
 		}
@@ -167,7 +157,6 @@ class Tooljob
 			}
 		}
 
-
 		return $this;
 	}
 
@@ -183,7 +172,6 @@ class Tooljob
 			$_SESSION['errorData']['Tooljob'][] = "Tool '$toolId' is not registered. Cannot submit execution. Please, contact <a href=\"mailto:" . $GLOBALS['helpdeskMail'] . "\">us</a>";
 			return 0;
 		}
-		//$this->tool= (object) $tool;
 		$this->tool = $this->array_to_object($tool);
 	}
 
@@ -243,7 +231,6 @@ class Tooljob
 					$prevs = $GLOBALS['filesCol']->findOne(['path' => $localWorkingDir, 'owner' => $_SESSION['User']['id']]);
 					if ($prevs) {
 						$execution = $executionN;
-						// $workingDir = $GLOBALS['dataDir']."/$localWorkingDir"; // TODO: check if needed
 						break;
 					}
 				}
@@ -610,12 +597,6 @@ class Tooljob
 							return 0; // Comentarlo si no hay metadatos
 						}
 					}
-					// checking input_file integrity
-					/*			$ok = $this->validateInput_file($tool['input_files'][$input_name], $metadata[$filename]);
-					if (! $ok){
-						$_SESSION['errorData']['Error'][]="Input file '$input_name' not valid. Stopping '$this->toolId' execution";
-						return 0;
-					}*/
 				}
 			}
 
@@ -623,15 +604,7 @@ class Tooljob
 				$this->input_files[$input_name] = $filenames;
 			}
 		}
-		/*
-		if (count($tool['input_files'])){
-			foreach ($tool['input_files'] as $input_name => $input){
-				if (!isset($input_files[$input_name]) && $input['required'] ){
-					$_SESSION['errorData']['Error'][]="Input file '$input_name' is required. Input not given";
-					return 0;
-				}
-			}
-		}*/
+
 		return 1;
 	}
 
@@ -677,19 +650,13 @@ class Tooljob
 						$_SESSION['errorData']['Error'][] = "Input file public '$input_name' with value '$input_value' not found in public directory";
 						return 0;
 					}
-					// checking input_file integrity
-					/*	        $ok = $this->validateInput_file($tool['input_files_public'][$input_name], $metadata_pub[$fn]);
-		    if (! $ok){
-			   	$_SESSION['errorData']['Error'][]="Input file public '$input_name' not valid. Stopping '$this->toolId' execution";
-                return 0;
-            }
-            */
 				}
 			}
 			// setting input_files
 			$this->input_files_pub[$input_name] = $fns;
 			$this->input_paths_pub[$input_name] = $input_values[0];
 		}
+
 		return 1;
 	}
 
@@ -1007,49 +974,6 @@ class Tooljob
 	}
 
 
-	protected function setBashCommandDockerSge_old($tool)
-	{
-
-		if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])) {
-			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
-			return 0;
-		}
-
-		$cmd = "FREE_PORT=$(python -c 'import socket; s=socket.socket(); s.bind((\"\", 0)); print(s.getsockname()[1]); s.close()');\n";
-		$cmd_vre = $tool['infrastructure']['executable'] .
-			" --config "       . $this->config_file_virtual .
-			" --in_metadata "  . $this->metadata_file_virtual .
-			" --out_metadata " . $this->stageout_file_virtual;
-		" --log_file "     . $this->log_file_virtual;
-
-		$cmd_envs = "";
-		foreach ($tool['infrastructure']['container_env'][0] as $env_key => $env_value) {
-			$cmd_envs .= "-e $env_key=$env_value ";
-		}
-
-		if (isset($tool['infrastructure']['interactive'])) {
-			$cmd .= "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d " .
-				" " . $cmd_envs .
-				" -p " . "\$FREE_PORT" . ":" . $tool['infrastructure']['container_port'] . #change second one to make it a variable
-				" -v " . $this->pub_dir_host . ":" . $GLOBALS['shared'] . "public_tmp/ " .
-				" -v " . $this->root_dir_host . "/" . $_SESSION['User']['id'] . ":" . $this->root_dir_virtual . "/" .
-				" " . $tool['infrastructure']['container_image'] . " $cmd_vre";
-		} else {
-			$cmd = "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock " .
-				" " . $cmd_envs .
-				" -v " . $this->pub_dir_host .                            ":" . $GLOBALS['shared'] . "public_tmp/ " .
-				" -v " . $this->root_dir_host . "/" . $_SESSION['User']['id'] . ":" . $GLOBALS['shared'] . "userdata_tmp/" . $_SESSION['User']['id'] .
-				" " . $tool['infrastructure']['container_image'] . " $cmd_vre";
-		}
-
-		echo "CMD from setBashCommandDockerSge";
-		echo "<br></br>";
-		echo $cmd;
-		echo "<br></br>";
-		return $cmd;
-	}
-
-
 	protected function getFreePort()
 	{
 		$networkIP = $GLOBALS['NETWORK_IP'];
@@ -1170,6 +1094,40 @@ class Tooljob
 	}
 
 
+	protected function setBashCommandDockerCompose($tool)
+	{
+		$this->job_type = "interactive";
+		$dockerComposeFile = $GLOBALS['toolsPath'] . $tool['infrastructure']['docker_path'];
+		$container_port = $tool['infrastructure']['container_port'];
+		$hostPort = $this->getFreePort();
+		if ($hostPort === null) {
+			$_SESSION['errorData']['Internal Error'][] = "No free ports available to run the interactive tool.";
+			return 0;
+		}
+		$cmd = "HOST_PORT=$hostPort docker compose -f $dockerComposeFile up -d";
+		$this->containerName = $tool['infrastructure']['container_image'];
+
+		$monitorContainer = <<<EOF
+			CONTAINER_URL="http://$this->containerName:$container_port"
+			whoami;
+			printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
+			if timeout 420 wget --retry-connrefused --tries=10 --wait=7 -O /dev/null \$CONTAINER_URL; then
+				printf '%s | %s\n' "\$(date)" "Service UP";
+			else
+				printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
+			fi
+
+			printf '%s | %s\n' "\$(date)" "Wait while container is running...";
+			exit_code="\$(docker wait $this->containerName)";
+			printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
+
+			echo '# End time:' \$(date) >> $this->log_file_virtual;
+		EOF;
+
+		return $cmd . "\n" . $monitorContainer;
+	}
+
+
 	protected function setBashCommandDockerSge($tool)
 	{
 		if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])) {
@@ -1190,18 +1148,23 @@ class Tooljob
 			$cmd_envs .= "-v $userHomeDir" . "$hostDir:$containerDir ";
 		}
 
-		if (isset($tool['infrastructure']['interactive'])) {
-			$cmd = $this->setBashCommandDockerSgeInteractive($tool, $cmd_envs);
+		if ($tool['infrastructure']['interactive']) {
+			if ($tool['infrastructure']['docker_type'] == "compose") {
+				$cmd = $this->setBashCommandDockerCompose($tool, $cmd_envs);
+			} else {
+				$cmd = $this->setBashCommandDockerSgeInteractive($tool, $cmd_envs);
+			}
 		} else {
 			$cmd_vre = $tool['infrastructure']['executable'] .
 				" --config "         . $this->config_file_virtual .
 				" --in_metadata "    . $this->metadata_file_virtual .
-				" --out_metadata "   . $this->stageout_file_virtual;
-			" --log_file "       . $this->log_file_virtual;
+				" --out_metadata "   . $this->stageout_file_virtual .
+				" --log_file "       . $this->log_file_virtual;
 
 
-			$cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d " .
+			$cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d" .
 				" " . $cmd_envs .
+				"--memory=" . $tool['infrastructure']['memory']. "g" .
 				" -v " . $this->pub_dir_volumes . ":" . $GLOBALS['shared'] . "public_tmp/ " .
 				" -v " . $this->root_dir_volumes . ":" . $GLOBALS['shared'] . "userdata_tmp/{$_SESSION['User']['id']}" .
 				" " . $tool['infrastructure']['container_image'] . " $cmd_vre";
@@ -1938,12 +1901,9 @@ class Tooljob
 	public function getSSHCred($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username, $remote_dir, $siteId)
 	{
 		#retrieve the credential and update the site collection with it
-
 		$vaultClient = new VaultClient($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
 		$vaultKey = $_SESSION['User']['Vault']['vaultKey'];
 		$credentials = $vaultClient->retrieveDatafromVault('SSH', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $_SESSION['User']['_id'] . '_credentials.txt');
-		//$_SESSION['errorData']['Error'][] = "SSH credentials from Vault: " . print_r($credentials);
-		//        error_log($vaultKey, $credentials);
 		if ($credentials) {
 			$sshPrivateKey = $credentials['priv_key'];
 			$sshPublicKey = $credentials['pub_key'];
@@ -1959,35 +1919,16 @@ class Tooljob
 
 			// Retrieve site info from the sites collection
 			$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-			//$_SESSION['errorData']['Error'][] = "SSH: " . print_r($sshCredentials);
 			// Assuming the site document exists, update the launcher section with SSH credentials
 			if ($siteDocument) {
-
-				//$_SESSION['errorData']['Debug'][] = "Site document before update: " . print_r($siteDocument, true);
-
 				$siteDocument['launcher']['access_credentials']['username'] = $sshUsername;
 				$siteDocument['launcher']['access_credentials']['private_key'] = $sshPrivateKey;
 				$siteDocument['launcher']['access_credentials']['public_key'] = $sshPublicKey;
-
-				//$_SESSION['errorData']['Debug'][] = "SSH Username: " . $sshUsername;
-				//$_SESSION['errorData']['Debug'][] = "SSH Private Key (first 20 chars): " . substr($sshPrivateKey, 0, 20);
-				//$_SESSION['errorData']['Debug'][] = "SSH Public Key (first 20 chars): " . substr($sshPublicKey, 0, 20);
-
 				// Save the updated site document back to the collection
 				$updateResult = $GLOBALS['sitesCol']->updateOne(['_id' => $siteId], ['$set' => $siteDocument]);
-				//$_SESSION['errorData']['Info'][] = "Update result: " . print_r($updateResult->getModifiedCount(), true);
-
 				$updatedSiteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-				//$_SESSION['errorData']['Debug'][] = "Site document after update: " . print_r($updatedSiteDocument, true);
-
 
 				return true;
-
-				// aNOTHER FUNCTION Initialize the SSH client with retrieved credentials and site details
-				//$remoteSSH = new RemoteSSH($sshCredentials, $remote_dir, 22, $siteDocument['launcher']['http_server']);
-				//$SshCred = $remoteSSH->getCredentials();
-
-
 			} else {
 				return array('error' => 'Site document not found for site ID: ' . $siteId);
 			}
@@ -2039,9 +1980,7 @@ class Tooljob
 	{
 
 		// Retrieve tool document from the tools collection
-		//      $filterfields=array();
 		$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-		//$_SESSION['errorData']['Error'][] = "Site: " . print_r($siteDocument, true);
 		if (!$siteDocument) {
 			return null;
 		}
