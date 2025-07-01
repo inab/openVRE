@@ -165,7 +165,6 @@ redirectOutside();
 			    <!-- Send via POST url and metadata to getData.php -->
 
 			    <form action="applib/getData.php" method="post">
-				<input type="hidden" name="uploadType"        value="eush_demo"/> 
 				<input type="hidden" name="url"               value="" />
 				<input type="hidden" name="data_type"         value=""/>
 				<input type="hidden" name="description"       value="Studies for myocardial infarction and healthy patients for demonstration"/>

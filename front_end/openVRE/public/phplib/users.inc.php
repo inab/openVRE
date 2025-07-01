@@ -179,19 +179,22 @@ function createUserAnonymous($sampleData)
 
 function getUserById($id, $options = array())
 {
-    return iterator_to_array($GLOBALS['usersCol']->findOne(["_id" => $id], $options));
+    array_push($options, ['typemap' => ['root' => 'array', 'document' => 'array']]);
+    return $GLOBALS['usersCol']->findOne(["_id" => $id], $options);
 }
 
 
 function getUserByType($type, $options = array())
 {
-    return iterator_to_array($GLOBALS['usersCol']->findOne(["Type" => $type], $options));
+    array_push($options, ['typemap' => ['root' => 'array', 'document' => 'array']]);
+    return $GLOBALS['usersCol']->findOne(["Type" => $type], $options);
 }
 
 
 function getUsersByFilter($filter, $options = array())
 {
-    return iterator_to_array($GLOBALS['usersCol']->find($filter, $options));
+    array_push($options, ['typemap' => ['root' => 'array', 'document' => 'array']]);
+    return $GLOBALS['usersCol']->find($filter, $options);
 }
 
 
@@ -330,8 +333,6 @@ function saveNewUser($user)
 
     return true;
 }
-
-// update user document in  Mongo
 
 function updateUser($user)
 {

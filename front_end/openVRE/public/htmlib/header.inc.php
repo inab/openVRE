@@ -87,12 +87,6 @@
 		case 'adminJobs':
 		case 'myNewTools':
 		case 'dashboard':
-		case 'eush_projects':
-		case 'eush_ega':
-		case 'eush_ega_datasets':
-		case 'eush_cardiogwas':
-		case 'eush_cardiogwas_table':
-		case 'eush_cardiogwas_table_step_II':
 		case 'datasets':
 		case 'logs': ?>
 			<link href="assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.css" rel="stylesheet" type="text/css" />
@@ -221,16 +215,6 @@
 		case 'jsonTestValidator':
 		case 'dashboard':
 		case 'datasets':
-		case 'eush_projects':
-		case 'eush_subjects':
-		case 'eush_experiments':
-		case 'eush_subjects_auth':
-		case 'eush_experiments_auth':
-		case 'eush_ega':
-		case 'eush_ega_datasets':
-		case 'eush_cardiogwas':
-		case 'eush_cardiogwas_table':
-		case 'eush_cardiogwas_table_step_II':
 		case 'sampleDataList':
 		case 'dataFromTxt':
 		case 'dataFromID':

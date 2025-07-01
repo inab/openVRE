@@ -10,7 +10,8 @@ class VaultClient
 	private $vaultToken;
 	private $httpClient;
 	private $roleName;
-	private $data;
+	private $jwtToken;
+	private $username;
 
 
 
@@ -21,7 +22,6 @@ class VaultClient
 		$this->vaultToken = $vaultToken;
 		$this->jwtToken = $jwtToken;
 		$this->roleName = $roleName;
-		$this->credentials = $data;
 		$this->username = $username;
 		$this->httpClient = new Client();
 	}
@@ -507,25 +507,10 @@ class VaultClient
 				$secretPath = 'secret/mysecret/data/';
 				if (isset($data['data']['EGA']['_id'])) {
 					$filename = $data['data']['EGA']['_id'] . '_credentials.txt';
-				} elseif (isset($data['data']['EGA']['_id'])) {
-					$filename = $data['data']['EGA']['_id'] . '_credentials.txt';
 				}
-
-
-				$keyPair = generateSSHKeyPair($data['data']['EGA']['username']);
-				$isPubKeyRegistered = registerEgaPubKey($keyPair['publicKey'], $data['data']['EGA']['username'], $this, $vaultToken);
-				if (!$isPubKeyRegistered) {
-					$_SESSION['errorData']['Error'][] = "Failed to register public key.";
-					redirect($_SERVER['HTTP_REFERER']);
-				}
-
-				$data['data']['EGA']['crypt4gh_priv'] = $keyPair['privateKey'];
-				$data['data']['EGA']['crypt4gh_pub'] = $keyPair['publicKey'];
 
 				// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
-				// uploadFileToVault($url, $secretPath, $username, $token, $data)
-
-				$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
+				$this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
 				return $vaultToken;
 			} catch (Exception $e) {
 				echo "Vault url: ";

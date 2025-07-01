@@ -544,70 +544,31 @@ redirectOutside();
                                                 <?php } ?>
                                                 </div>
                                                 <!-- END MN ACCOUNT -->
-                                                <!-- EGA ACCOUNT (TODO: leave hidden until authentication implemented)-->
                                                 <hr>
-                                                <div style="display: none;">
+                                                <!-- EGA ACCOUNT -->
+                                                <div>
                                                     <img src="https://static.ega-archive.org/img/logo.png" /
                                                         style="float: right; height: 50px; margin: 0 50px;">
                                                     <h4>European Genome-phenome Archive (EGA)</h4><br />
                                                     <div style="padding-left: 15px;border-left: 2px solid lightgray;">
-
-                                                        <?php
-                                                        if (!isset($_SESSION['User']['linked_accounts']['EGA'])) { ?>
-
-                                                            <p>
-                                                                <span style="color: #666;font-weight: bold;">
-                                                                    Do you have an EGA account?
-                                                                </span>
-                                                                Link it and you'll have one-click access for all your EGA
-                                                                datasets, under <a
-                                                                    href="<?php echo $GLOBALS['BASEURL']; ?>getdata/eush_ega/eush_ega.php"
-                                                                    target="blank"> <i class="icon-cloud-upload"></i> Get Data<i
-                                                                        class="fa fa-circle"
-                                                                        style="font-size:5px; margin: 0 5px; position: relative;top: -3px;"></i>
-                                                                    EGA </a>
-                                                            </p>
-                                                            <div class="row" style="margin-left:30px;">
-                                                                <div class="col-md-6">
-                                                                    <a target="_blank"
-                                                                        href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=ega&action=new"
-                                                                        class="btn green"><i class="fa fa-plus"></i> &nbsp; Link
-                                                                        your account</a>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <a href="javascript:void(0)"><i class="fa fa-sign-in"></i>
-                                                                        How to apply to EGA access?</a>
-                                                                </div>
+                                                        <p>
+                                                            <span style="color: #666;font-weight: bold;">
+                                                                Do you have an EGA account?
+                                                            </span>
+                                                            Link it and you'll have one-click access for all your EGA
+                                                            datasets
+                                                        </p>
+                                                        <div class="row" style="margin-left:30px;">
+                                                            <div class="col-md-6">
+                                                                <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=ega&action=new"
+                                                                    class="btn green"><i class="fa fa-plus"></i> &nbsp; Link
+                                                                    your account</a>
                                                             </div>
-                                                        <?php
-                                                        } else { ?>
-                                                            <div class="form-group">
-                                                                <label class="control-label">User Name</label>
-                                                                <br />
-                                                                <input type="text"
-                                                                    value="<?php echo $_SESSION['User']['linked_accounts']['EGA']['username'] ?>"
-                                                                    class="form-control" readonly style="background:#fff;" />
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="control-label">Crypt4GH Public key</label>
-                                                                <br />
-                                                                <pre><?php echo $_SESSION['User']['linked_accounts']['EGA']['pub_key'] ?></pre>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="control-label">Crypt4GH Private key</label>
-
-                                                                <i onclick="this.classList.toggle('fa-eye-slash');x=document.getElementById('priv_key');if (x.style.display === 'none') {x.style.display = 'block';} else {x.style.display = 'none';}"
-                                                                    class="fa fa-eye font-green"
-                                                                    style="margin:10px; font-size:18px"></i>
-                                                                <br />
-                                                                <div style="height:150px;display:none;" id="priv_key">
-                                                                    <pre><?php echo $_SESSION['User']['linked_accounts']['EGA']['priv_key'] ?></pre>
-                                                                </div>
-                                                            </div>
-                                                        <?php } ?>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <!-- END EGA ACCOUNT -->
+                                                <hr>
                                                 <!-- START opnestack ACCOUnt -->
 
                                                 <div style="padding-top: 15px; padding-left: 15px;border-left: 2px solid lightgray;">
