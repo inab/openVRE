@@ -20,8 +20,7 @@ if (($credentialsFile = fopen($GLOBALS['db_credentials'], "r")) !== FALSE) {
 try {
 	$VREConn =  new MongoDB\Client("mongodb://".$conf[0].":".$conf[1]."@".$conf[2].":".$conf[3],
 					array(
-						'readConcernLevel' => 'majority',
-						'w' => 'majority'
+						'readConcernLevel' => 'local'
 					),
 					array('typeMap' => array ('root'     => 'array',
 								  'document' => 'array',
