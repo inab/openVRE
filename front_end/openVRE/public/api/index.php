@@ -131,7 +131,7 @@ $app->post('/jobs/', function (Request $request, Response $response, $args) {
     }
 
     if ($_SESSION['errorData'] != null) {
-        $response->getBody()->write(json_encode(["Error" => $_SESSION['errorData']['Error']])); // Not returning warnings or other type of error data
+        $response->getBody()->write(json_encode(["Error" => $_SESSION['errorData']['Error']])); // Not returning warnings or debug data
         $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(500);
