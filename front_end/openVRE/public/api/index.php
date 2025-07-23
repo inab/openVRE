@@ -56,53 +56,52 @@ $app->get('/', function (Request $request, Response $response, $args) {
 });
 
 
-$app->get('/tools/', function (Request $request, Response $response, $args) {
+$app->get('/tools', function (Request $request, Response $response, $args) {
     try {
         $token = getBearerToken($request->getHeaderLine('Authorization'));
     } catch (Exception $e) {
         $response
-            ->withStatus(401)
-            ->withHeader('Content-Type', 'application/json')
             ->getBody()
             ->write(json_encode(['error' => $e->getMessage()]));
 
-        return $response;
+        return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(401);
     }
 
     try {
         validateToken($token);
     } catch (Exception $e) {
         $response
-            ->withStatus(403)
-            ->withHeader('Content-Type', 'application/json')
             ->getBody()
             ->write(json_encode(['error' => 'Forbidden: ' . $e->getMessage()]));
 
-        return $response;
+        return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(403);
     }
 
     $tools = $GLOBALS['toolsCol']->find();
     $payload = json_encode(iterator_to_array($tools));
     $response->getBody()->write($payload);
-    $response
-        ->withHeader('Content-Type', 'application/json')
-        ->withStatus(200);
 
-    return $response;
+    return  $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
 });
 
 
-$app->post('/jobs/', function (Request $request, Response $response, $args) {
+$app->post('/jobs', function (Request $request, Response $response, $args) {
     try {
         $token = getBearerToken($request->getHeaderLine('Authorization'));
     } catch (Exception $e) {
         $response
-            ->withStatus(401)
-            ->withHeader('Content-Type', 'application/json')
             ->getBody()
             ->write(json_encode(['error' => $e->getMessage()]));
 
-        return $response;
+        return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(401);
     }
 
     try {
@@ -110,43 +109,66 @@ $app->post('/jobs/', function (Request $request, Response $response, $args) {
         $userEmail = $decodedToken->email;
     } catch (Exception $e) {
         $response
-            ->withStatus(403)
-            ->withHeader('Content-Type', 'application/json')
             ->getBody()
             ->write(json_encode(['error' => 'Forbidden: ' . $e->getMessage()]));
 
-        return $response;
+        return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(403);
     }
 
     $queryParams = $request->getQueryParams();
-    try {
-        $toolJson = launchTool($queryParams['tool'], $userEmail, $queryParams['project'], $queryParams['input_files']);
-    } catch (Exception $e) {
-        $response->getBody()->write(json_encode(["Error" => "Error connecting to database: " . $e->getMessage()]));
-        $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(500);
+    if (empty($queryParams['tool'])) {
+        $response->getBody()->write(json_encode(["Error" => "Missing tool id"]));
 
-        return $response;
+        return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(400);
     }
 
-    if ($_SESSION['errorData'] != null) {
-        $response->getBody()->write(json_encode(["Error" => $_SESSION['errorData']['Error']])); // Not returning warnings or debug data
-        $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(500);
+    if (empty($queryParams['project'])) {
+        $response->getBody()->write(json_encode(["Error" => "Missing project id"]));
 
-        return $response;
+        return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(400);
+    }
+
+    $parsedBody = $request->getParsedBody();
+
+    if (empty($parsedBody['input_files'])) {
+        $response->getBody()->write(json_encode(["Error" => "Missing input files"]));
+
+        return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(400);
+    }
+
+    try {
+        $toolJson = launchTool($queryParams['tool'], $userEmail, $queryParams['project'], $parsedBody['input_files']);
+    } catch (Exception $e) {
+        $response->getBody()->write(json_encode(["Error" => "Error connecting to database: " . $e->getMessage()]));
+
+        return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(500);
+        }
+
+    if ($_SESSION['errorData'] != null) {
+        $response->getBody()->write(json_encode(["Error" => $_SESSION['errorData']['Error']]));
+        $_SESSION['errorData']['Error'] = null; // Clear the error data from the session to avoid concatenation on futher requests
+
+        return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(500);
     }
 
     $payload = json_encode($toolJson);
     $response->getBody()->write($payload);
 
-    $response
-        ->withHeader('Content-Type', 'application/json')
-        ->withStatus(200);
-
-    return $response;
+    return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
 });
 
 
