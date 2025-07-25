@@ -91,6 +91,49 @@ $app->get('/tools', function (Request $request, Response $response, $args) {
 });
 
 
+$app->get('/tools/{id}', function (Request $request, Response $response, $args) {
+    try {
+        $token = getBearerToken($request->getHeaderLine('Authorization'));
+    } catch (Exception $e) {
+        $response
+            ->getBody()
+            ->write(json_encode(['error' => $e->getMessage()]));
+
+        return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(401);
+    }
+
+    try {
+        validateToken($token);
+    } catch (Exception $e) {
+        $response
+            ->getBody()
+            ->write(json_encode(['error' => 'Forbidden: ' . $e->getMessage()]));
+
+        return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(403);
+    }
+
+    $options = array('typemap' => ['root' => 'array', 'document' => 'array']);
+    $tool = $GLOBALS['toolsCol']->findOne(array('_id' => $args['id']), $options);
+    if (empty($tool)) {
+        $response->getBody()->write(json_encode(["Error" => "Tool not found"]));
+        return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(404);
+    }
+    
+    $payload = json_encode($tool);
+    $response->getBody()->write($payload);
+
+    return  $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
+});
+
+
 $app->post('/jobs', function (Request $request, Response $response, $args) {
     try {
         $token = getBearerToken($request->getHeaderLine('Authorization'));
