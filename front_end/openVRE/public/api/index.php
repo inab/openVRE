@@ -14,7 +14,7 @@ require __DIR__ . "/launchTool.php";
 
 
 $app = AppFactory::create();
-$app->setBasePath("/api");
+$app->setBasePath("/api/v1");
 $app->addErrorMiddleware(true, true, true);
 
 
