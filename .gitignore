@@ -9,3 +9,4 @@ volumes/
 *.crt
 *.key
 *.pem
+.jwks

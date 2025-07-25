@@ -2,4 +2,5 @@ RewriteEngine On
 RewriteCond %{REQUEST_URI} ^/api
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [QSA,L]
+RewriteRule ^(.*)$ index.php [QSA,L]
+CGIPassAuth On # https://serverfault.com/questions/1094686/rewriterule-e-http-authorizationhttpauthorization-what-does-it-mean#1094693
