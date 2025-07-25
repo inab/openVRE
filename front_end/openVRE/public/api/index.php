@@ -154,7 +154,7 @@ $app->post('/jobs', function (Request $request, Response $response, $args) {
                     ->withStatus(500);
         }
 
-    if ($_SESSION['errorData'] != null) {
+    if ($_SESSION['errorData']['Error'] != null) {
         $response->getBody()->write(json_encode(["Error" => $_SESSION['errorData']['Error']]));
         $_SESSION['errorData']['Error'] = null; // Clear the error data from the session to avoid concatenation on futher requests
 
