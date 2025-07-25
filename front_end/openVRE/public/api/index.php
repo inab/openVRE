@@ -50,13 +50,8 @@ function validateToken(string $token)
 }
 
 
-$app->get('/', function (Request $request, Response $response, $args) {
-    $response->getBody()->write("Welcome to the OpenVRE API!\n");
-    return $response;
-});
-
-
-$app->get('/tools', function (Request $request, Response $response, $args) {
+function checkAuthorizationToken($request, $response)
+{
     try {
         $token = getBearerToken($request->getHeaderLine('Authorization'));
     } catch (Exception $e) {
@@ -79,6 +74,22 @@ $app->get('/tools', function (Request $request, Response $response, $args) {
         return $response
                     ->withHeader('Content-Type', 'application/json')
                     ->withStatus(403);
+    }
+
+    return $response;
+}
+
+
+$app->get('/', function (Request $request, Response $response, $args) {
+    $response->getBody()->write("Welcome to the OpenVRE API!\n");
+    return $response;
+});
+
+
+$app->get('/tools', function (Request $request, Response $response, $args) {
+    $response = checkAuthorizationToken($request, $response);
+    if ($response->getStatusCode() !== 200) {
+        return $response;
     }
 
     $tools = $GLOBALS['toolsCol']->find();
@@ -92,28 +103,9 @@ $app->get('/tools', function (Request $request, Response $response, $args) {
 
 
 $app->get('/tools/{id}', function (Request $request, Response $response, $args) {
-    try {
-        $token = getBearerToken($request->getHeaderLine('Authorization'));
-    } catch (Exception $e) {
-        $response
-            ->getBody()
-            ->write(json_encode(['error' => $e->getMessage()]));
-
-        return $response
-                    ->withHeader('Content-Type', 'application/json')
-                    ->withStatus(401);
-    }
-
-    try {
-        validateToken($token);
-    } catch (Exception $e) {
-        $response
-            ->getBody()
-            ->write(json_encode(['error' => 'Forbidden: ' . $e->getMessage()]));
-
-        return $response
-                    ->withHeader('Content-Type', 'application/json')
-                    ->withStatus(403);
+    $response = checkAuthorizationToken($request, $response);
+    if ($response->getStatusCode() !== 200) {
+        return $response;
     }
 
     $options = array('typemap' => ['root' => 'array', 'document' => 'array']);
@@ -124,7 +116,7 @@ $app->get('/tools/{id}', function (Request $request, Response $response, $args) 
                     ->withHeader('Content-Type', 'application/json')
                     ->withStatus(404);
     }
-    
+
     $payload = json_encode($tool);
     $response->getBody()->write($payload);
 
