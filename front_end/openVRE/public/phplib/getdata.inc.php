@@ -5,19 +5,18 @@
 /////////////////////////////////
 
 // upload file from local
-function getData_fromLocal()
-{
-    // set destination working_directory/uploads
-    $dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
-    $localWorkingDir = "$dataDirPath/uploads";
-    $workingDir = $GLOBALS['dataDir'] . "/" . $localWorkingDir;
-    $workingDirId = getGSFileId_fromPath($localWorkingDir);
-
-    // check source file/s
-    if (empty($_FILES)) {
-        $_SESSION['errorData']['upload'][] = "ERROR: Receiving blank. Please select a file to upload";
-        die("ERROR: Recieving blank. Please select a file to upload0");
-    }
+function getData_fromLocal() {
+	// set destination working_directory/uploads
+	$dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
+	$localWorkingDir = "$dataDirPath/uploads";
+	$workingDir = $GLOBALS['dataDir']."/".$localWorkingDir;
+	$workingDirId = getGSFileId_fromPath($localWorkingDir);
+	
+	// check source file/s
+	if (empty($_FILES)) {
+		$_SESSION['errorData']['upload'][] = "ERROR: Receiving blank. Please select a file to upload";
+		die("ERROR: Recieving blank. Please select a file to upload0");
+	}
 
     // check target directory
     if ($workingDirId == "0" || !is_dir($workingDir)) {
@@ -332,7 +331,7 @@ function  getData_wget_asyncron($toolArgs, $toolOuts, $output_dir, $referer)
     }
 
     $_SESSION['errorData']['Info'][] = "File from URL '" . basename($filePath) . "' is being imported into the '$outdir' folder below. Please, edit its metadata once the import has finished";
-    redirect($GLOBALS['BASEURL'] . "/workspace/");
+    redirect($GLOBALS['BASEURL'] . "workspace/");
 }
 
 /////////////////////////////////

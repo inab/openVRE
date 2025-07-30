@@ -1223,6 +1223,7 @@ function processPendingFiles($sessionId, $files = array())
 
 			if ($jobProcess['state'] == "RUNNING" && $job['job_type'] == "interactive") {
 				$fileDummy['pending'] = "ACTIVE SESSION";
+        $fileDummy['toolContainerName'] = $_SESSION['User']['lastjobs'][$pid]['containerName'];
 			}
 
 			//list job in workspace
@@ -1668,7 +1669,7 @@ function  build_outputs_list($tool, $stageout_job, $stageout_file)
 
 	// check tool output_files
 
-	if (!isset($tool['output_files']) || count($tool['output_files']) == 0) {
+  if (!$tool['infrastructure']['interactive'] && !(isset($tool['output_files']) || count($tool['output_files']) == 0)) {
 		$_SESSION['errorData']['Internal'][] = "Tool " . $tool['name'] . " has not list of 'output_files'. Invalid tool registration";
 		$_SESSION['errorData']['Error'][] = "Cannot obtain results from execution '" . dirname($stageout_file) . "'";
 		return $outs_meta;
@@ -1693,7 +1694,7 @@ function  build_outputs_list($tool, $stageout_job, $stageout_file)
 				continue;
 			}
 		}
-	} else {
+	} elseif ($tool['external'] !== false) {
 		$_SESSION['errorData']['Warning'][] = date("h:i:s") . ": Tool stageout file '" . $stageout_file . "' is not found";
 	}
 	print "\n__________FROM FILE________________\n";
@@ -2340,9 +2341,6 @@ function moveFiles($fns, $target_fn)
 
 	return $result;
 }
-
-
-
 
 
 ?>
