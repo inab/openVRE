@@ -1,5 +1,6 @@
 <?php
 
+
 use League\OAuth2\Client\Token\AccessToken;
 
 function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData = array(), $verbose = FALSE, $asRoot = 0)
@@ -81,7 +82,6 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $ver
 	if (! isGSDirBNS($GLOBALS['filesCol'], $dataDirId) || ! is_dir($dataDirP)) {
 		//creating project directory
 		$dataDirId = createProjectDir($dataDir, $dataDirP, $projectData, $asRoot);
-
 		if ($verbose)
 			$_SESSION['errorData']['Info'][] = "Creating main project directory: $dataDirP ($dataDirId)";
 
@@ -655,7 +655,6 @@ function getToolsByDT($data_type, $status = 1)
 	if ($_SESSION['User']['Type'] == UserType::ToolDev->value) {
 		$tools_list = iterator_to_array($tl, false);
 		foreach ($tools_list as $key => $tool) {
-
 			if ($tool["status"] == 3 && !in_array($tool["_id"], $_SESSION['User']["ToolsDev"])) {
 				unset($tools_list[$key]);
 			}
@@ -1101,7 +1100,6 @@ function updatePendingFiles($sessionId, $singleJob = array())
 
 			// TODO: PMES will redirect log info to log_file. Now, info extracted from $jobProcess
 			updateLogFromJobInfo($job['log_file'], $pid, $job['launcher']);
-
 
 			//job keeps running: maintain original job data 
 			if (count($jobProcess)) {
@@ -1919,6 +1917,7 @@ function downloadFile($rfn)
 	exit(0);
 }
 
+
 function refresh_token($force = false)
 {
 
@@ -2151,7 +2150,6 @@ function resolvePath_toLocalAbsolutePath($path, $job)
 			// file_path is relative to root directory (userid/prj/run/file)
 		} elseif (preg_match('/^' . $_SESSION['User']['id'] . '/', $path)) {
 			$rfn = $GLOBALS['dataDir'] . "/" . $path;
-
 			// file_path contains $(working_dir) tag
 		} elseif (preg_match('/(working_dir)/', $path)) {
 			$rfn = str_replace("$(working_dir)", $job['working_dir'] . "/", $path);
