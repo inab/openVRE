@@ -503,6 +503,10 @@ class VaultClient
 				$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
 				$responseArray = $token["response"];
 				$respondeData = json_decode($responseArray, true);
+				if ($respondeData["statusCode"] != 200) {
+					error_log("Error: " . $respondeData["error"]);
+				}
+				
 				$vaultToken = $respondeData["auth"]["client_token"];
 				$secretPath = 'secret/mysecret/data/';
 				if (isset($data['data']['EGA']['_id'])) {

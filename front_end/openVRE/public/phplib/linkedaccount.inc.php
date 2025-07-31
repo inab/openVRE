@@ -379,7 +379,8 @@ function handleEgaAccount($action, $userId, $postData)
 	if (!$key) {
 		$_SESSION['errorData']['Info'][] = "";
 		$_SESSION['errorData']['Error'][] = "Failed to link EGA account";
-		$_SESSION['formData'] = $postData;
+		error_log("Failed to link EGA account");
+		error_log("Vault key: " . $key);
 		redirect($_SERVER['HTTP_REFERER']);
 	}
 
