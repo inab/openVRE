@@ -78,11 +78,15 @@ $GLOBALS['adminToken']             = $GLOBALS['authServer']."/realms/master/prot
 $GLOBALS['adminRealm']             = $GLOBALS['authServer']."/admin/realms/".$GLOBALS['authRealm']; // admin keycloak users
 
 // Vault integration and roles
-$GLOBALS['vaultUrl'] = 'https://localhost:8200';
+$GLOBALS['vaultUrl'] = 'http://localhost:8200';
 $GLOBALS['vaultToken'] = 'root';
 //$jwtToken = $_SESSION['User']['JWT'];
 $GLOBALS['vaultRolename'] = 'demo';
 $GLOBALS['secretPath'] = 'secret/mysecret/data/';
+
+// EGA
+$GLOBALS['EGA_METADATA_TOKEN_ENDPOINT'] = 'https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token';
+$GLOBALS['EGA_METADATA_API'] = 'https://metadata.ega-archive.org';
 
 // Google Analytics
 #$GLOBALS['GA_TAG']; // if used, set the id for: https://www.googletagmanager.com/gtag/js?id=

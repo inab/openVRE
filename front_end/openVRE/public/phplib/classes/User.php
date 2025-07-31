@@ -57,10 +57,10 @@ class User
                 "credentials" => array("data" => array("SSH" => array()))
             ),
             "vaultKey"     => null,
-            "secret_path"   => $GLOBALS['secretPath'] ?? '',
-            "vault_role_name" => $GLOBALS['vaultRolename'] ?? '',
-            "vault_token"   => $GLOBALS['vaultToken'] ?? '',
-            "vault_url"     => $GLOBALS['vaultUrl'] ?? ''
+            "secretPath"   => $GLOBALS['secretPath'] ?? '',
+            "vaultRolename" => $GLOBALS['vaultRolename'] ?? '',
+            "vaultToken"   => $GLOBALS['vaultToken'] ?? '',
+            "vaultUrl"     => $GLOBALS['vaultUrl'] ?? ''
         );
     }
 

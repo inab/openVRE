@@ -81,7 +81,7 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 				} else {
 					$_SESSION['errorData']['Info'][] = "Credentials are already saved and still valid.";
 					$accessToken = $_SESSION['userToken']['access_token'];
-					return; 
+					return;
 				}
 			}
 		} elseif (isset($postData["save_credential"]) && $postData["save_credential"] == "true") {
@@ -160,27 +160,24 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 			}
 		}
 		redirect($_SERVER['HTTP_REFERER']);
+	} else {
+		handleInvalidAction();
+	}
 
+	if (empty($postData['user_key'])) {
+		error_log("Error: 'username' is missing in postData.");
+		throw new Exception("Username is required.");
+		exit;
+	}
 
-
-        } else {
-                handleInvalidAction();
-        }
-	
-		if (empty($postData['user_key'])) {
-			error_log("Error: 'username' is missing in postData.");
-			throw new Exception("Username is required.");
-			exit;
-		}
-	
-		$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
-        $vaultClient = new VaultClient(
-                        $GLOBALS['vaultUrl'],
-                        $_SESSION['userVaultInfo']['vaultToken'],
-                        $accessToken,
-                        $_SESSION['userVaultInfo']['vaultRolename'],
-                        $postData['username']
-        );
+	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
+	$vaultClient = new VaultClient(
+		$GLOBALS['vaultUrl'],
+		$_SESSION['userVaultInfo']['vaultToken'],
+		$accessToken,
+		$_SESSION['userVaultInfo']['vaultRolename'],
+		$postData['username']
+	);
 	//var_dump($data);
 	$key = $vaultClient->uploadKeystoVault($data);
 	//echo ("key");
@@ -191,13 +188,13 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 		$_SESSION['userVaultInfo']['expires_in'] = $tokenTime;
 	}
 	// Update user data with vault key
-        $_SESSION['userVaultInfo']['vaultKey'] = $key;
-        updateUser($_SESSION['User']);
-        if (!$key) {
-                $_SESSION['errorData']['Error'][] = "Failed to link SSH account";
-                $_SESSION['formData'] = $postData;
-                redirect($_SERVER['HTTP_REFERER']);
-        }
+	$_SESSION['userVaultInfo']['vaultKey'] = $key;
+	updateUser($_SESSION['User']);
+	if (!$key) {
+		$_SESSION['errorData']['Error'][] = "Failed to link SSH account";
+		$_SESSION['formData'] = $postData;
+		redirect($_SERVER['HTTP_REFERER']);
+	}
 
 	$_SESSION['errorData']['Info'][] = "SSH account successfully linked.";
 	redirect($_SERVER['HTTP_REFERER']);
@@ -216,16 +213,16 @@ function handleObjectStorageAccount($action, $userId, $postData)
 		// Check if the credentials are already saved
 
 		if (isset($postData['app_id'], $postData['app_secret'])) {
-	            // If credentials are provided, use them directly
+			// If credentials are provided, use them directly
 			$accessToken = $_SESSION['userToken']['access_token'];
 			$_SESSION['errorData']['Info'][] = "Credentials are already saved, update the credentials if needed.";
 		} elseif (isset($postData['save_credential']) && $postData['save_credential'] == 'true') {
 
-            	// Add logic for handling MN account and uploading credentials to Vault
+			// Add logic for handling MN account and uploading credentials to Vault
 			$accessToken = $_SESSION['userToken']['access_token'];
-		// You can customize this part based on how you obtain Swift credentials
-            $data['data']['Swift'] = [];
-	    	$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
+			// You can customize this part based on how you obtain Swift credentials
+			$data['data']['Swift'] = [];
+			$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
 			$data['data']['Swift']['app_secret'] = $postData['app_secret'];
 			$data['data']['Swift']['projectName'] = $postData['projectName'];	// Modify this
 			$data['data']['Swift']['projectId'] = $postData['projectId'];
@@ -238,9 +235,9 @@ function handleObjectStorageAccount($action, $userId, $postData)
 		// Add logic for handling MN account and uploading credentials to Vault for "update" action
 
 		if (!empty($postData['app_id']) && !empty($postData['app_secret'])) {
-			
+
 			$accessToken = $_SESSION['userToken']['access_token'];
-			
+
 			$data['data']['Swift'] = [];
 			$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
 			$data['data']['Swift']['app_secret'] = $postData['app_secret']; // Modify this
@@ -313,19 +310,19 @@ function handleObjectStorageAccount($action, $userId, $postData)
 	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
 
 	$vaultClient = new VaultClient(
-                	$GLOBALS['vaultUrl'],
-                	$_SESSION['userVaultInfo']['vaultToken'],
-                	$accessToken,
-                	$_SESSION['userVaultInfo']['vaultRolename'],
-                	$postData['user_key']
+		$GLOBALS['vaultUrl'],
+		$_SESSION['userVaultInfo']['vaultToken'],
+		$accessToken,
+		$_SESSION['userVaultInfo']['vaultRolename'],
+		$postData['user_key']
 	);
 	#echo 'Vault';
 	#var_dump($vaultClient);
 	#var_dump($data);
 	$key = $vaultClient->uploadKeystoVault($data);
 	// Update user data with vault key
-        $_SESSION['userVaultInfo']['vaultKey'] = $key;
-      	updateUser($_SESSION['User']);
+	$_SESSION['userVaultInfo']['vaultKey'] = $key;
+	updateUser($_SESSION['User']);
 	if (!$key) {
 		$_SESSION['errorData']['Error'][] = "Failed to link Swift account";
 		$_SESSION['formData'] = $postData;
@@ -352,14 +349,14 @@ function handleEgaAccount($action, $userId, $postData)
 	$data = [];
 	if ($action === "update") {
 		if (empty($postData['username'])  || empty($postData['password'])) {
+			$_SESSION['errorData']['Error'][] = "Please provide username and password.";
+			redirect($_SERVER['HTTP_REFERER']);
+		} else {
 			$data['data']['EGA'] = [];
 			$data['data']['EGA']['username'] = $postData['username'];
 			$data['data']['EGA']['password'] = $postData['password'];
 			$data['data']['EGA']['privateKey'] = $postData['privateKey'];
 			$data['data']['EGA']['_id'] = $userId;
-		} else {
-			$_SESSION['errorData']['Error'][] = "Please provide username and password.";
-			$_SESSION['formData'] = $postData;
 		}
 	} elseif ($action === "delete") {
 		clearLinkedAccount("EGA");

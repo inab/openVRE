@@ -513,11 +513,7 @@ class VaultClient
 				$this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
 				return $vaultToken;
 			} catch (Exception $e) {
-				echo "Vault url: ";
-				echo $this->vaultUrl . "\n";
-				echo "jwtToken: ";
-				echo $this->jwtToken . "\n";
-				echo "Error: " . $e->getMessage();
+				error_log("Error: " . $e->getMessage());
 			}
 		} else {
 			$_SESSION['errorData']['Error'][] = "Invalid data format or system type";
