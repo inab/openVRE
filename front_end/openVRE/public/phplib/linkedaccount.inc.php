@@ -142,7 +142,6 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
 
 		if (isset($site_id)) {
-			#echo 'aoooooooooooooooo';	
 			$updateResult = $GLOBALS['sitesCol']->updateOne(
 				['_id' => $site_id],  // Match document by siteId    
 				['$set' => [  // Use the $unset operator to remove fields
