@@ -437,16 +437,14 @@ function generateSSHButtons()
 
 		// Initialize HTML output and results flag
 		$buttonsHTML = '';
-		$hayResults = false;
+		$documentsFound = false;
 
 		// Iterate through the documents
 		foreach ($documents as $document) {
-			$hayResults = true;
+			$documentsFound = true;
 
 			// Prepare the data to fill up the buttons
-			$siteName = htmlspecialchars($document['name']);
 			$siteId = (string) $document['_id'];
-			//$siteSigla = isset($document['sigla']) ? htmlspecialchars($document['_id']) : 'N/A'; 
 			$siteSigla = (string) $document['sigla'];
 
 			// Create the button for each site
@@ -461,7 +459,7 @@ function generateSSHButtons()
 		}
 
 		// Check if no documents were found
-		if (!$hayResults) {
+		if (!$documentsFound) {
 			$_SESSION['errorData']['Error'][] = "No SSH-accessible sites found.";
 			$buttonsHTML = '<p>No HPC accounts found with SSH access.</p>';
 		}
