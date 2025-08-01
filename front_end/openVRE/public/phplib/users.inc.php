@@ -179,21 +179,18 @@ function createUserAnonymous($sampleData)
 
 function getUserById($id, $options = array())
 {
-    array_push($options, ['typemap' => ['root' => 'array', 'document' => 'array']]);
     return $GLOBALS['usersCol']->findOne(["_id" => $id], $options);
 }
 
 
 function getUserByType($type, $options = array())
 {
-    array_push($options, ['typemap' => ['root' => 'array', 'document' => 'array']]);
     return $GLOBALS['usersCol']->findOne(["Type" => $type], $options);
 }
 
 
 function getUsersByFilter($filter, $options = array())
 {
-    array_push($options, ['typemap' => ['root' => 'array', 'document' => 'array']]);
     return $GLOBALS['usersCol']->find($filter, $options);
 }
 
