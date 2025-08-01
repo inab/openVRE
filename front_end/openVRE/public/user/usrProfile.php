@@ -1,14 +1,7 @@
 <?php
 
 require __DIR__ . "/../../config/bootstrap.php";
-#if (!allowedRoles($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) redirectInside();
 redirectOutside();
-
-$countries = array();
-$ops = ['projection' => ['country' => 1], 'sort' => ['country' => 1]];
-foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), $ops))) as $v)
-    $countries[$v['_id']] = $v['country'];
-
 
 ?>
 
@@ -251,9 +244,9 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                         enctype="multipart/form-data">
                                                         <div class="form-group">
                                                             <div class="fileinput fileinput-<?php if ($avatarExists == 1)
-                                                                echo 'exists';
-                                                            else
-                                                                echo 'new'; ?>"
+                                                                                                echo 'exists';
+                                                                                            else
+                                                                                                echo 'new'; ?>"
                                                                 data-provides="fileinput">
                                                                 <div class="fileinput-new thumbnail"
                                                                     style="width: 200px; height: 150px;">
@@ -346,7 +339,7 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                                 data-original-title="<p align='left' style='margin:0'>Bearer token used to authenticate your access to any platform service.</p>"></i></label>
                                                         <div class="input-group">
                                                             <input id="mt-target-1" type="text" class="form-control"
-                                                                value="<?php echo $_SESSION['User']['Token']['access_token']; ?>"
+                                                                value="<?php echo $_SESSION['userToken']['access_token']; ?>"
                                                                 readonly style="background:#fff;">
                                                             <span class="input-group-btn">
                                                                 <button class="btn green mt-clipboard"
@@ -358,14 +351,14 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                         </div>
                                                     </div>
                                                     <input id="exp-token" type="hidden"
-                                                        value="<?php echo $_SESSION['User']['Token']['expires']; ?>">
+                                                        value="<?php echo $_SESSION['userToken']['expires']; ?>">
                                                     <input id="curr-time" type="hidden" value="<?php echo time(); ?>">
                                                     <?php
-                                                    $ed = date('h:i:s A (jS \of F Y)', $_SESSION['User']['Token']['expires']);
+                                                    $ed = date('h:i:s A (jS \of F Y)', $_SESSION['userToken']['expires']);
                                                     /*$edd = date('h:i:s A (jS \of F Y)');
                                                            print ">>>>>>>>> INI : $edd <br/>";
                             print ">>>>>>>>> EXP : $ed <br/>";*/
-                                                    $expiresIn = $_SESSION['User']['Token']['expires'] - time();
+                                                    $expiresIn = $_SESSION['userToken']['expires'] - time();
                                                     if ($expiresIn > 0)
                                                         $expDate = "Token will expire in " . intval($expiresIn / 60) . " minutes, at $ed";
                                                     else
@@ -397,7 +390,7 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                                 data-original-title="<p align='left' style='margin:0'>Token used to refresh an expired access token. It is revoked when used, so access tokens are issued together with a new refresh token</p>"></i></label>
                                                         <div class="input-group">
                                                             <input id="mt-target-2" type="text" class="form-control"
-                                                                value="<?php echo $_SESSION['User']['Token']['refresh_token']; ?>"
+                                                                value="<?php echo $_SESSION['userToken']['refresh_token']; ?>"
                                                                 readonly style="background:#fff;">
                                                             <span class="input-group-btn">
                                                                 <button class="btn green mt-clipboard"
@@ -409,9 +402,9 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                         </div>
                                                     </div>
                                                     <input id="exp-refrtoken" type="hidden"
-                                                        value="<?php echo $_SESSION['User']['Token']['expires'] + $_SESSION['User']['Token']['refresh_expires_in']; ?>">
+                                                        value="<?php echo $_SESSION['userToken']['expires'] + $_SESSION['userToken']['refresh_expires_in']; ?>">
                                                     <?php
-                                                    /*$expiresDate = $_SESSION['User']['Token']['expires'] + $_SESSION['User']['Token']['refresh_expires_in'];
+                                                    /*$expiresDate = $_SESSION['userToken']['expires'] + $_SESSION['userToken']['refresh_expires_in'];
                                                                                                  $ed = date('h:i:s A (jS \of F Y)',$expiresDate);
                                                                                                     $expiresIn = $expiresDate - time();
                                                                                                     if ($expiresIn > 0 )
@@ -435,18 +428,18 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                                 data-html="true" data-placement="right"
                                                                 data-original-title="<p align='left' style='margin:0'>Information returned by Oauth2 provider when the user token is beared</p>"></i></label>
                                                         <br />
-                                                        <pre><?php echo json_encode($_SESSION['User']['TokenInfo'], JSON_PRETTY_PRINT); ?></pre>
+                                                        <pre><?php echo json_encode($_SESSION['tokenInfo'], JSON_PRETTY_PRINT); ?></pre>
                                                     </div>
 
 
                                                     <div class="form-group mt-clipboard-container">
                                                         <input id="vault-exp-token" type="hidden"
-                                                            value="<?php echo $_SESSION['User']['Vault']['expires_in']; ?>">
+                                                            value="<?php echo $_SESSION['userVaultInfo']['expires_in']; ?>">
                                                         <input id="curr-time" type="hidden"
                                                             value="<?php echo time(); ?>">
                                                         <?php
-                                                        //$ed = date('h:i:s A (jS \of F Y)', $_SESSION['User']['Vault']['expires_in']);
-                                                        $expirationTimestamp = intval($_SESSION['User']['Vault']['expires_in']);
+                                                        //$ed = date('h:i:s A (jS \of F Y)', $_SESSION['userVaultInfo']['expires_in']);
+                                                        $expirationTimestamp = intval($_SESSION['userVaultInfo']['expires_in']);
                                                         $ed = gmdate('h:i:s A (jS \of F Y)', $expirationTimestamp);
                                                         $expiresIn = $expirationTimestamp - time();
                                                         if ($expiresIn > 0)
@@ -501,7 +494,7 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                             </div>
 
                                                         <?php } else {
-                                                            ?>
+                                                        ?>
                                                             <div class="form-group">
                                                                 <label class="control-label">HPC system Username</label>
                                                                 <br />
@@ -547,160 +540,121 @@ foreach (array_values(iterator_to_array($GLOBALS['countriesCol']->find(array(), 
                                                                     class="btn btn-xs green"><i class="fa fa-trash"></i>
                                                                     &nbsp; Delete Account</a>
                                                             </div>
-                                                        </div>
-                                                    <?php } ?>
+                                                    </div>
+                                                <?php } ?>
                                                 </div>
                                                 <!-- END MN ACCOUNT -->
-                                                <!-- EGA ACCOUNT (TODO: leave hidden until authentication implemented)-->
                                                 <hr>
-                                                <div style="display: none;">
+                                                <!-- EGA ACCOUNT -->
+                                                <div>
                                                     <img src="https://static.ega-archive.org/img/logo.png" /
                                                         style="float: right; height: 50px; margin: 0 50px;">
                                                     <h4>European Genome-phenome Archive (EGA)</h4><br />
                                                     <div style="padding-left: 15px;border-left: 2px solid lightgray;">
-
-                                                        <?php
-                                                        if (!isset($_SESSION['User']['linked_accounts']['EGA'])) { ?>
-
-                                                            <p>
-                                                                <span style="color: #666;font-weight: bold;">
-                                                                    Do you have an EGA account?
-                                                                </span>
-                                                                Link it and you'll have one-click access for all your EGA
-                                                                datasets, under <a
-                                                                    href="<?php echo $GLOBALS['BASEURL']; ?>getdata/eush_ega/eush_ega.php"
-                                                                    target="blank"> <i class="icon-cloud-upload"></i> Get Data<i
-                                                                        class="fa fa-circle"
-                                                                        style="font-size:5px; margin: 0 5px; position: relative;top: -3px;"></i>
-                                                                    EGA </a>
-                                                            </p>
-                                                            <div class="row" style="margin-left:30px;">
-                                                                <div class="col-md-6">
-                                                                    <a target="_blank"
-                                                                        href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=ega&action=new"
-                                                                        class="btn green"><i class="fa fa-plus"></i> &nbsp; Link
-                                                                        your account</a>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <a href="javascript:void(0)"><i class="fa fa-sign-in"></i>
-                                                                        How to apply to EGA access?</a>
-                                                                </div>
+                                                        <p>
+                                                            <span style="color: #666;font-weight: bold;">
+                                                                Do you have an EGA account?
+                                                            </span>
+                                                            Link it and you'll have one-click access for all your EGA
+                                                            datasets
+                                                        </p>
+                                                        <div class="row" style="margin-left:30px;">
+                                                            <div class="col-md-6">
+                                                                <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=ega&action=new"
+                                                                    class="btn green"><i class="fa fa-plus"></i> &nbsp; Link
+                                                                    your account</a>
                                                             </div>
-                                                        <?php
-                                                        } else { ?>
-                                                            <div class="form-group">
-                                                                <label class="control-label">User Name</label>
-                                                                <br />
-                                                                <input type="text"
-                                                                    value="<?php echo $_SESSION['User']['linked_accounts']['EGA']['username'] ?>"
-                                                                    class="form-control" readonly style="background:#fff;" />
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="control-label">Crypt4GH Public key</label>
-                                                                <br />
-                                                                <pre><?php echo $_SESSION['User']['linked_accounts']['EGA']['pub_key'] ?></pre>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="control-label">Crypt4GH Private key</label>
-
-                                                                <i onclick="this.classList.toggle('fa-eye-slash');x=document.getElementById('priv_key');if (x.style.display === 'none') {x.style.display = 'block';} else {x.style.display = 'none';}"
-                                                                    class="fa fa-eye font-green"
-                                                                    style="margin:10px; font-size:18px"></i>
-                                                                <br />
-                                                                <div style="height:150px;display:none;" id="priv_key">
-                                                                    <pre><?php echo $_SESSION['User']['linked_accounts']['EGA']['priv_key'] ?></pre>
-                                                                </div>
-                                                            </div>
-                                                        <?php } ?>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <!-- END EGA ACCOUNT -->
-                                                 <!-- START opnestack ACCOUnt -->
+                                                <hr>
+                                                <!-- START opnestack ACCOUnt -->
 
-					<div style="padding-top: 15px; padding-left: 15px;border-left: 2px solid lightgray;">
-					<?php
-                                        if (! isset($_SESSION['User']['linked_accounts']['openstack'])){?>
-                                                <p>
-                                                  <span style="color: #666;font-weight: bold;">
-                                                  Do you have an OpenStack account?
-                                                  </span>
-                                                  Link it and you'll have one-click access for all your OpenStack Object Storage protected datasets, under <a href="<?php echo $GLOBALS['BASEURL']; ?>getdata/eush_bioimages/eush_projects.php" target="blank"> <i class="icon-cloud-upload"></i> Get Data <i class="fa fa-circle" style="font-size:5px; margin: 0 5px; position: relative;top: -3px;"></i> OPENSTACK </a>
-                                                </p>
-                                                <div class="row" style="margin-left:30px; padding-bottom:10px; ">
-                                                    <div class="col-md-6">
-                                                     <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=objectstorage&action=new" class="btn green"><i class="fa fa-plus"></i> &nbsp; Link your account</a>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <a href="javascript:void(0)"><i class="fa fa-sign-in"></i> How to apply to BSC OpenStack Object Storage access?</a>
-                                                    </div>
-                                                </div>
-                                        <?php
-                                        }else{
-                                                // compute expiration time for XNAT token
-                                                //
-                                                $xnat_expiration = intval($_SESSION['User']['linked_accounts']['euBI']['estimatedExpirationTime']/1000);
-                                                $ed = date('h:i:s A jS \of F Y', $xnat_expiration);
-                                                $expiresIn = $xnat_expiration - time();
-                                                if ($expiresIn > 0)
-                                                    $expDate = "Alias will expire in " . intval($expiresIn / (60*60)) . " hours, at $ed";
-                                                else
-                                                    $expDate = "Alias is expired... Regenerate it at <a href='https://xnat.bmia.nl' target='_blank'>euro-BioImaging</a>";
-?>
-                                                    <div class="form-group">
-                                                        <label class="control-label">euro-BioImaging Username</label>
-                                                        <br />
-                                                        <input type="text" value="<?php echo $_SESSION['User']['linked_accounts']['euBI']['xdatUserId'] ?>" class="form-control" readonly style="background:#fff;"  />
-                                                   </div>
-                                                    <div class="form-group">
-                                                        <label class="control-label">Alias Token</label>
-                                                        <br />
-                                                        <input type="text" value="<?php echo $_SESSION['User']['linked_accounts']['euBI']['alias'] ?>" class="form-control" readonly style="background:#fff;"  />
-                                                   </div>
-
-                                                    <div class="form-group">
-                                                        <label class="control-label">Expiration date</label>
-                                                        <br />
-                                                        <span class="form-control" readonly style="background:#fff;"><?php echo $expDate;?></span>
-
-                                                        <?php if ($expiresIn < 0){ ?>
-                                                                <div style="margin:3px;font-size:0.9em;">
-                                                                <a target="_blank" href="https://wiki.xnat.org/documentation/how-to-use-xnat/generating-an-alias-token-for-scripted-authentication">How to generate an euro-BioImaging Alias Token?</a>
-                                                                <br/>
-                                                                <a target="_blank" href="https://xnat.bmia.nl/">Go to euro-BioImaging</a>
-                                                                </div>
-                                                        <?php } ?>
-
-                                                   </div>
-
-                                                    <div class="form-group">
-                                                        <label class="control-label">Secret</label>
-
-                                                        <i onclick="this.classList.toggle('fa-eye-slash');x=document.getElementById('secret');if (x.style.display === 'none') {x.style.display = 'block';} else {x.style.display = 'none';}" class="fa fa-eye font-green" style="margin:10px; font-size:18px"></i>
-                                                        <br />
-                                                        <div id="secret" style="height:50px;display:none;">
-                                                        <pre><?php echo $_SESSION['User']['linked_accounts']['euBI']['secret'] ?></pre>
+                                                <div style="padding-top: 15px; padding-left: 15px;border-left: 2px solid lightgray;">
+                                                    <?php
+                                                    if (! isset($_SESSION['User']['linked_accounts']['openstack'])) { ?>
+                                                        <p>
+                                                            <span style="color: #666;font-weight: bold;">
+                                                                Do you have an OpenStack account?
+                                                            </span>
+                                                            Link it and you'll have one-click access for all your OpenStack Object Storage protected datasets, under <a href="<?php echo $GLOBALS['BASEURL']; ?>getdata/eush_bioimages/eush_projects.php" target="blank"> <i class="icon-cloud-upload"></i> Get Data <i class="fa fa-circle" style="font-size:5px; margin: 0 5px; position: relative;top: -3px;"></i> OPENSTACK </a>
+                                                        </p>
+                                                        <div class="row" style="margin-left:30px; padding-bottom:10px; ">
+                                                            <div class="col-md-6">
+                                                                <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=objectstorage&action=new" class="btn green"><i class="fa fa-plus"></i> &nbsp; Link your account</a>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <a href="javascript:void(0)"><i class="fa fa-sign-in"></i> How to apply to BSC OpenStack Object Storage access?</a>
+                                                            </div>
                                                         </div>
-                                                   </div>
-                                                    <div class="form-group">
-                                                        <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=euBI&action=update" class="btn btn-xs green"><i class="fa fa-refresh"></i> &nbsp; Update Alias Token</a>
-                                                        <a href="<?php echo $GLOBALS['BASEURL']; ?>applib/linkedAccount.php?account=euBI&action=delete" class="btn btn-xs green"><i class="fa fa-trash"></i> &nbsp; Delete Account</a>
-                                                    </div>
+                                                    <?php
+                                                    } else {
+                                                        // compute expiration time for XNAT token
+                                                        //
+                                                        $xnat_expiration = intval($_SESSION['User']['linked_accounts']['euBI']['estimatedExpirationTime'] / 1000);
+                                                        $ed = date('h:i:s A jS \of F Y', $xnat_expiration);
+                                                        $expiresIn = $xnat_expiration - time();
+                                                        if ($expiresIn > 0)
+                                                            $expDate = "Alias will expire in " . intval($expiresIn / (60 * 60)) . " hours, at $ed";
+                                                        else
+                                                            $expDate = "Alias is expired... Regenerate it at <a href='https://xnat.bmia.nl' target='_blank'>euro-BioImaging</a>";
+                                                    ?>
+                                                        <div class="form-group">
+                                                            <label class="control-label">euro-BioImaging Username</label>
+                                                            <br />
+                                                            <input type="text" value="<?php echo $_SESSION['User']['linked_accounts']['euBI']['xdatUserId'] ?>" class="form-control" readonly style="background:#fff;" />
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label class="control-label">Alias Token</label>
+                                                            <br />
+                                                            <input type="text" value="<?php echo $_SESSION['User']['linked_accounts']['euBI']['alias'] ?>" class="form-control" readonly style="background:#fff;" />
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label class="control-label">Expiration date</label>
+                                                            <br />
+                                                            <span class="form-control" readonly style="background:#fff;"><?php echo $expDate; ?></span>
+
+                                                            <?php if ($expiresIn < 0) { ?>
+                                                                <div style="margin:3px;font-size:0.9em;">
+                                                                    <a target="_blank" href="https://wiki.xnat.org/documentation/how-to-use-xnat/generating-an-alias-token-for-scripted-authentication">How to generate an euro-BioImaging Alias Token?</a>
+                                                                    <br />
+                                                                    <a target="_blank" href="https://xnat.bmia.nl/">Go to euro-BioImaging</a>
+                                                                </div>
+                                                            <?php } ?>
+
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label class="control-label">Secret</label>
+
+                                                            <i onclick="this.classList.toggle('fa-eye-slash');x=document.getElementById('secret');if (x.style.display === 'none') {x.style.display = 'block';} else {x.style.display = 'none';}" class="fa fa-eye font-green" style="margin:10px; font-size:18px"></i>
+                                                            <br />
+                                                            <div id="secret" style="height:50px;display:none;">
+                                                                <pre><?php echo $_SESSION['User']['linked_accounts']['euBI']['secret'] ?></pre>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=euBI&action=update" class="btn btn-xs green"><i class="fa fa-refresh"></i> &nbsp; Update Alias Token</a>
+                                                            <a href="<?php echo $GLOBALS['BASEURL']; ?>applib/linkedAccount.php?account=euBI&action=delete" class="btn btn-xs green"><i class="fa fa-trash"></i> &nbsp; Delete Account</a>
+                                                        </div>
                                                 </div>
-                                           <?php } ?>
-                                                </div>
-						<!-- end openstack account -->
+                                            <?php } ?>
                                             </div>
+                                            <!-- end openstack account -->
                                         </div>
-                                        <!-- END CHANGE PASSWORD TAB -->
                                     </div>
+                                    <!-- END CHANGE PASSWORD TAB -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- END PROFILE CONTENT -->
             </div>
+            <!-- END PROFILE CONTENT -->
         </div>
+    </div>
     </div>
     <!-- END CONTENT BODY -->
     </div>

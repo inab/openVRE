@@ -318,13 +318,13 @@ protected function set_cloudName($tool = array()) {
 
 public function handleFileLocation($location, $file_path, $local_file_path, $vaultUrl, $vaultToken, $vaultRole) {
 	
-	if (isset($_SESSION['User']['Token']['access_token']) && !empty($_SESSION['User']['Token']['access_token'])) {
-		$accessToken = $_SESSION['User']['Token']['access_token'];	
+	if (isset($_SESSION['userToken']['access_token']) && !empty($_SESSION['userToken']['access_token'])) {
+		$accessToken = $_SESSION['userToken']['access_token'];	
 		
 		print "</br> $vaultUrl </br>";
 
 		$vaultClient = new VaultClient($vaultUrl, $vaultToken, $accessToken, $vaultRole, $_POST['username']);
-		$vaultKey = $_SESSION['User']['Vault']['vaultKey'];
+		$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
 		if (empty($vaultKey)) {
 			$_SESSION['errorData']['Error'][] = "No key to access Vault, check the User credentials.";
 			return 0;
@@ -376,7 +376,7 @@ public function handleFileLocation($location, $file_path, $local_file_path, $vau
 		echo "SWIFT case is true <br></br>";
 		//
 		//Assuming location is the same for all files
-		$vaultKey = $_SESSION['User']['Vault']['vaultKey'];
+		$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
 		$vaultUrl = $GLOBALS['vaultUrl'];
 		echo "Vault Key: $vaultKey<br>";
 		echo "Vault Url: $vaultUrl<br>";

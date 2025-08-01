@@ -4,7 +4,6 @@ require __DIR__."/../../config/bootstrap.php";
 
 redirectOutside();
 
-
 // Check query
 if(!$_REQUEST){
 	redirect($GLOBALS['URL']);
@@ -15,6 +14,6 @@ if(!$_REQUEST){
 
 $siteId = $_REQUEST['site_id'] ?? null;
 
-addUserLinkedAccount($_REQUEST['account'], $_REQUEST['action'], $siteId, $_POST);
+addUserLinkedAccount($_POST['account'], $_POST['action'], $_SESSION['User']['_id'], $siteId, $_POST);
 
 ?>

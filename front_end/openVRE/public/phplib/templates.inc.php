@@ -35,9 +35,12 @@ function parseTemplate($f, $txt, $indirFields = '', $dateFields = '', $incRec = 
         }
     }
     foreach (array_keys($f) as $k){
-        if (is_array($f[$k]))
+        if (is_array($f[$k])) {
             continue;
-        $txt = str_replace("##$k##", $f[$k], $txt);
+        }
+        
+        $replace = $f[$k] ?? "";
+        $txt = str_replace("##$k##", $replace, $txt);
     }
     if (!$recursive)
         $txt = preg_replace("/##([^#]*)##/", "<!--\\1-->", $txt);

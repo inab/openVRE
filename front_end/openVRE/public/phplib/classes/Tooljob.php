@@ -1193,7 +1193,7 @@ class Tooljob
 		}
 
 		$userEmail = $_SESSION['User']['Email'];
-		$vaultKey = $_SESSION['User']['Vault']['vaultKey'];
+		$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
 		$vaultAddress = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $userEmail . $GLOBALS['vaultCredentialsSuffix'];
 		$userFolder = "/shared_data/userdata/" . $_SESSION['User']['id'];
 		$configFilePath = $userFolder . '/env.yml';
@@ -1902,7 +1902,7 @@ class Tooljob
 	{
 		#retrieve the credential and update the site collection with it
 		$vaultClient = new VaultClient($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
-		$vaultKey = $_SESSION['User']['Vault']['vaultKey'];
+		$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
 		$credentials = $vaultClient->retrieveDatafromVault('SSH', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $_SESSION['User']['_id'] . '_credentials.txt');
 		if ($credentials) {
 			$sshPrivateKey = $credentials['priv_key'];
@@ -1942,9 +1942,9 @@ class Tooljob
 	{
 		if ($cloudName == 'marenostrum') {
 			$vaultUrl = $GLOBALS['vaultUrl'];
-			$vaultToken = $_SESSION['User']['Vault']['vaultToken'];
-			$accessToken = $_SESSION['User']['Token']['access_token'];
-			$vaultRolename = $_SESSION['User']['Vault']['vaultRolename'];
+			$vaultToken = $_SESSION['userVaultInfo']['vaultToken'];
+			$accessToken = $_SESSION['userToken']['access_token'];
+			$vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
 
 			//Get the credentials
 			$remoteSSH = $this->getSSHCred($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username, null, $cloudName);

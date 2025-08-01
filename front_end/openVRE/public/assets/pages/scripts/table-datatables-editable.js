@@ -338,7 +338,7 @@ var TableDatatablesEditable = function () {
 				$.ajax({
            			type: "POST",
            			url: baseURL + "applib/changeStatusOfUser.php",
-           			data: 'id=' + $('td:first', nRow)[0].innerText.split('\n')[0] + '&s=1', 
+           			data: 'id=' + $('td:first', nRow)[0].innerText.split('\n')[0] + '&userStatus=1', 
            			success: function(data) {
 						d = data.replace(/(\r\n|\n|\r|\t)/gm,"");
                			if(d == '1'){
@@ -376,7 +376,7 @@ var TableDatatablesEditable = function () {
 				$.ajax({
            			type: "POST",
            			url: baseURL + "applib/changeStatusOfUser.php",
-           			data: 'id=' + $('td:first', nRow)[0].innerText.split('\n')[0] + '&s=0', 
+           			data: 'id=' + $('td:first', nRow)[0].innerText.split('\n')[0] + '&userStatus=0', 
            			success: function(data) {
 						d = data.replace(/(\r\n|\n|\r|\t)/gm,"");
                			if(d == '1'){

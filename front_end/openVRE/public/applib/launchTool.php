@@ -174,35 +174,32 @@ foreach ($files as $fnId => $file) {
 		$r = $jobData->getList($filesId);
 		$s = $jobData->checkLoc($r);
 
-		if ($debug) {
-			print "<br/>DATA TRANSFER</br>";
-		}
+	    if ($debug) {
+            	print "<br/>DATA TRANSFER</br>";
+	    }
+	    
+	    if ($s) {
+		    $location = $r[0]['protocol'];
+		    if ($debug) {
+			    print "<br/>?????</br>";
+			    var_dump($r);
+		    }
+		    $path_file = $r[0]['path'];
+		    $local_path_file =  $r[0]['local_path'];
+		    $prova = $jobData->handleFileLocation($location, $path_file, $local_path_file, $GLOBALS['vaultUrl'], $_SESSION['userVaultInfo']['vaultToken'], $_SESSION['userVaultInfo']['vaultRolename']);
+		    if (!$prova) {
+			    $_SESSION['errorData']['Error'][]= "Null files";
+		    }  elseif ($prova === 0) {
+			    $_SESSION['errorData']['Error'][]= "No stored credentials are present in the system. Go to the profile section to save them.";
+		    }
+	    }
+	    //?><script type="text/javascript">//window.history.go(-1);</script><?php
+	    //exit(0);
+	    //redirect($_SERVER['HTTP_REFERER']);
+    } else {
+    }
 
-		if ($s) {
-			$location = $r[0]['protocol'];
-			if ($debug) {
-				print "<br/>?????</br>";
-				var_dump($r);
-			}
-			$path_file = $r[0]['path'];
-			$local_path_file =  $r[0]['local_path'];
-			$prova = $jobData->handleFileLocation($location, $path_file, $local_path_file, $GLOBALS['vaultUrl'], $_SESSION['User']['Vault']['vaultToken'], $_SESSION['User']['Vault']['vaultRolename']);
-			if (!$prova) {
-				//print ('Bhu?');
-				$_SESSION['errorData']['Error'][] = "Null files";
-			} elseif ($prova === 0) {
-				$_SESSION['errorData']['Error'][] = "No stored credentials are present in the system. Go to the profile section to save them.";
-			}
-		}
-		//
-?><script type="text/javascript">
-			//window.history.go(-1);
-		</script><?php
-					//exit(0);
-					//redirect($_SERVER['HTTP_REFERER']);
-				} else {
-				}
-			}
+}
 
 			// Set InputFilesPublic from public directory
 

@@ -108,8 +108,7 @@ $app->get('/tools/{id}', function (Request $request, Response $response, $args) 
         return $response;
     }
 
-    $options = array('typemap' => ['root' => 'array', 'document' => 'array']);
-    $tool = $GLOBALS['toolsCol']->findOne(array('_id' => $args['id']), $options);
+    $tool = $GLOBALS['toolsCol']->findOne(array('_id' => $args['id']));
     if (empty($tool)) {
         $response->getBody()->write(json_encode(["Error" => "Tool not found"]));
         return $response
