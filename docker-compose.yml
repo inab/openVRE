@@ -12,43 +12,17 @@ services:
       MONGO_SERVER: ${MONGO_SERVER}
       MONGO_INITDB_DATABASE: ${MONGO_DB}
     ports:
-      - ${MONGO_PORT}:27017
+      - "${MONGO_PORT}:27017"
     command: mongod --port ${MONGO_PORT}
     env_file: .env
     volumes:
-      - ./volumes/mongo_data:/data/db:rw
+      - mongoDB_data:/data/db:rw
       - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+      - ./mongodb/init_documents:/init_documents:ro
     networks:
         net_vre:
             ipv4_address: 172.21.0.10
 
-  mongo_seed:
-    container_name: mongo_seed
-    image: mongo:4.4
-    profiles: ["populate_DB"]
-    links:
-      - my-mongodb
-    env_file: .env
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      MONGO_INITDB_USERNAME: ${MONGO_INITDB_USERNAME}
-      MONGO_INITDB_PASSWORD: ${MONGO_INITDB_PASSWORD}
-      MONGO_PORT: ${MONGO_PORT}
-      MONGO_SERVER: ${MONGO_SERVER}
-      MONGO_INITDB_DATABASE: ${MONGO_DB}
-    volumes:
-      - ./mongo-seed:/mongo-seed
-      - ./volumes/shared_data:/shared_data
-      - ./front_end/openVRE/install:/install_data
-    command:
-      /mongo-seed/import.sh
-    networks:
-      - net_vre
-    depends_on:
-      - my-mongodb
-
-  
   vault-server:
     container_name: vault-server
     image: vault:1.13.3
@@ -178,6 +152,10 @@ services:
     ports:
       - 6444:6444
     restart: always
+
+volumes:
+  mongoDB_data:
+    name: ${DATABASE_VOLUME}
 
 networks:
   net_vre:
