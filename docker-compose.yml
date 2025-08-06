@@ -20,8 +20,8 @@ services:
       - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
       - ./mongodb/init_documents:/init_documents:ro
     networks:
-        net_vre:
-            ipv4_address: 172.21.0.10
+      net_vre:
+        ipv4_address: 172.21.0.10
 
   vault-server:
     container_name: vault-server
@@ -39,8 +39,8 @@ services:
       - IPC_LOCK
     command: /bin/sh -c "vault server -dev & sleep 5 && /vault-init.sh && wait"
     networks:
-             net_vre:
-                ipv4_address: 172.21.0.18
+      net_vre:
+        ipv4_address: 172.21.0.18
     restart: unless-stopped
 
   postgres:
@@ -48,9 +48,9 @@ services:
     image: postgres:17.3
     profiles: ["local_auth"]
     environment:
-       POSTGRES_DB: ${POSTGRES_DB}
-       POSTGRES_USER: ${POSTGRES_USER}
-       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - ./volumes/keycloak_data:/var/lib/postgresql/data
     networks:
@@ -62,25 +62,25 @@ services:
     image: quay.io/keycloak/keycloak:15.0.2
     profiles: ["local_auth"]
     environment:
-        DB_VENDOR: ${DB_VENDOR}
-        DB_ADDR: ${DB_ADDR}
-        DB_DATABASE: ${DB_DATABASE}
-        DB_USER: ${DB_USER}
-        DB_SCHEMA: ${DB_SCHEMA}
-        DB_PASSWORD: ${DB_PASSWORD}
-        KEYCLOAK_USER: ${KEYCLOAK_USER}
-        KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
-        PROXY_ADDRESS_FORWARDING: "false"
-        KEYCLOAK_FRONTEND_URL: "http://172.21.0.12:8080/auth" # temporary hack for this keycloak version
-        #KEYCLOAK_FRONTEND_URL: ${FQDN_HOST_PROTOCOL}://${FQDN_HOST}/auth
+      DB_VENDOR: ${DB_VENDOR}
+      DB_ADDR: ${DB_ADDR}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_SCHEMA: ${DB_SCHEMA}
+      DB_PASSWORD: ${DB_PASSWORD}
+      KEYCLOAK_USER: ${KEYCLOAK_USER}
+      KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
+      PROXY_ADDRESS_FORWARDING: "false"
+      KEYCLOAK_FRONTEND_URL: "http://172.21.0.12:8080/auth" # temporary hack for this keycloak version
+    #KEYCLOAK_FRONTEND_URL: ${FQDN_HOST_PROTOCOL}://${FQDN_HOST}/auth
     volumes:
-        - ./keycloak/realms:/opt/jboss/keycloak/imports
+      - ./keycloak/realms:/opt/jboss/keycloak/imports
     command:
-            - '-b 0.0.0.0 -Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/opt/jboss/keycloak/imports/realm-export.json -Dkeycloak.migration.strategy=IGNORE_EXISTING'
+      - '-b 0.0.0.0 -Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/opt/jboss/keycloak/imports/realm-export.json -Dkeycloak.migration.strategy=IGNORE_EXISTING'
     ports:
-        - ${KEYCLOAK_PORT}:8080
+      - ${KEYCLOAK_PORT}:8080
     links:
-        - postgres
+      - postgres
     hostname: keycloak
     networks:
       net_vre:
@@ -121,8 +121,8 @@ services:
     build:
       context: ./sge
       args:
-          SUBMITTER_HOSTNAME: "${FRONTEND_HOSTNAME}"
-          DOCKER_GROUP: "${DOCKER_GROUP}"
+        SUBMITTER_HOSTNAME: "${FRONTEND_HOSTNAME}"
+        DOCKER_GROUP: "${DOCKER_GROUP}"
     container_name: sgecore
     hostname: sgecore
     extra_hosts:
@@ -138,9 +138,9 @@ services:
     devices:
       - '/dev/fuse:/dev/fuse'
     cap_add:
-        - SYS_ADMIN
+      - SYS_ADMIN
     security_opt:
-        - apparmor:unconfined
+      - apparmor:unconfined
     stdin_open: true
     networks:
       - net_vre
@@ -155,9 +155,9 @@ volumes:
 networks:
   net_vre:
     name: ${NETWORK_NAME}
-  # Use this driver_opts on openStack cloud
+    # Use this driver_opts on openStack cloud
     #driver_opts:
-      #com.docker.network.driver.mtu: 1442
+    #com.docker.network.driver.mtu: 1442
     ipam:
       config:
-            - subnet: 172.21.0.0/24
+        - subnet: 172.21.0.0/24
