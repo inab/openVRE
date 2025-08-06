@@ -25,26 +25,24 @@ services:
 
   vault-server:
     container_name: vault-server
-    image: vault:1.13.3
+    image: hashicorp/vault:1.20
     environment:
-       VAULT_DEV_ROOT_TOKEN_ID: myroot
-       VAULT_ADDR: "http://0.0.0.0:8200"
-       VAULT_API_ADDR: "http://0.0.0.0:8200"
-       VAULT_ADDRESS: "http://0.0.0.0:8200"
+      VAULT_DEV_ROOT_TOKEN_ID: myroot
+      VAULT_DEV_LISTEN_ADDRESS: ${VAULT_DEV_LISTEN_ADDRESS}
+      VAULT_ADDR: ${VAULT_ADDR}
     ports:
-      - "8200:8200"
+      - "${VAULT_PORT}:8200"
       - "${VAULT_UI_PORT}:8080"
     volumes:
       - ./vault/config:/vault/config
-      - ./vault/logs:/vault/logs
+      - ./vault/vault-init.sh:/vault-init.sh
     cap_add:
       - IPC_LOCK
-    entrypoint: vault server -config /vault/config/vault.json
+    command: /bin/sh -c "vault server -dev & sleep 5 && /vault-init.sh && wait"
     networks:
              net_vre:
                 ipv4_address: 172.21.0.18
-    restart: always
-
+    restart: unless-stopped
 
   postgres:
     container_name: postgres
@@ -59,7 +57,6 @@ services:
     networks:
       net_vre:
         ipv4_address: 172.21.0.13
-
 
   keycloak:
     container_name: keycloak
@@ -149,7 +146,7 @@ services:
     networks:
       - net_vre
     ports:
-      - 6444:6444
+      - "6444:6444"
     restart: always
 
 volumes:
