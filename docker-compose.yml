@@ -97,11 +97,11 @@ services:
     image: front_end
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./volumes/openVRE/tools:/var/www/html/openVRE/public/tools
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
       - ./front_end/openVRE/config:/var/www/html/openVRE/config
       - ./front_end/openVRE/data:/var/www/html/openVRE/data
       - ./front_end/openVRE/apache/server.conf:/opt/docker/etc/httpd/conf.d/10-server.conf
+      - ./tools/front:/var/www/html/openVRE/public/tools
       - ./volumes/shared_data:/shared_data
     environment:
       - DOCKER_GROUP:${DOCKER_GROUP}

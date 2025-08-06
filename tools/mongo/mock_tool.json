@@ -1,0 +1,82 @@
+{
+  "_id": "mock_tool",
+  "name": "Mock tool",
+  "title": "Mock tool",
+  "short_description": "Short description",
+  "long_description": "long description",
+  "url": "https://github.com/inab/",
+  "owner": {
+    "author": "Spanish National Institute of Bioiformatics (INB)",
+    "institution": "BSC",
+    "contact": "nicolas.diazroussel@bsc.es",
+    "url": "https://www.bsc.es/discover-bsc/organisation/scientific-structure/national-institute-bioinformatics-elixir-node-0"
+  },
+  "keywords": [
+    "genomics"
+  ],
+  "keywords_tool": [
+    "Demonstrator",
+    "EGA"
+  ],
+  "infrastructure": {
+    "memory": 4,
+    "cpus": 2,
+    "container_image": "vre_mock_tool:latest",
+    "executable": "/home/vre_template_tool/VRE_RUNNER",
+    "clouds": {
+      "local": {
+        "launcher": "docker_SGE",
+        "default_cloud": true,
+        "queue": "local.q"
+      }
+    }
+  },
+  "input_files": [
+    {
+      "name": "text_file",
+      "allow_multiple": true,
+      "data_type": [
+        "id_list"
+      ],
+      "file_type": [
+        "TXT"
+      ],
+      "description": "Select file(s)",
+      "required": true
+    }
+  ],
+  "arguments": [
+    {
+      "name": "argument",
+      "description": "Argument description",
+      "type": "string"
+    }
+  ],
+  "output_files": [
+    {
+      "name": "results_file",
+      "required": true,
+      "allow_multiple": true,
+      "file": {
+        "file_type": "TXT",
+        "data_type": "sample_information_file",
+        "meta_data": {
+          "visible": true,
+          "tool": "mock_tool",
+          "description": "Demo TXT output file."
+        },
+        "file_path": "results_file.txt"
+      }
+    }
+  ],
+  "external": true,
+  "status": 1,
+  "input_files_combinations": [
+    {
+      "description": "Input files description",
+      "input_files": [
+        "text_file"
+      ]
+    }
+  ]
+}
