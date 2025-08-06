@@ -32,7 +32,6 @@ services:
       VAULT_ADDR: ${VAULT_ADDR}
     ports:
       - "${VAULT_PORT}:8200"
-      - "${VAULT_UI_PORT}:8080"
     volumes:
       - ./vault/config:/vault/config
       - ./vault/vault-init.sh:/vault-init.sh

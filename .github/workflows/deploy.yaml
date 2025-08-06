@@ -34,7 +34,6 @@ jobs:
           echo "NETWORK_NAME=${{ vars.NETWORK_NAME }}" >> .env
           echo "FRONTEND_PORT=${{ vars.FRONTEND_PORT }}" >> .env
           echo "VAULT_PORT=${{ vars.VAULT_PORT }}" >> .env
-          echo "VAULT_UI_PORT=${{ vars.VAULT_UI_PORT }}" >> .env
           echo "VAULT_ADDR=${{ vars.VAULT_ADDR }}" >> .env
           echo "VAULT_DEV_LISTEN_ADDRESS=${{ vars.VAULT_DEV_LISTEN_ADDRESS }}" >> .env
           echo "POSTGRES_DB=${{ vars.POSTGRES_DB }}" >> .env
