@@ -52,7 +52,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ./volumes/keycloak_data:/var/lib/postgresql/data
+      - keycloak_data:/var/lib/postgresql/data
     networks:
       net_vre:
         ipv4_address: 172.21.0.13
@@ -150,7 +150,9 @@ services:
 
 volumes:
   mongoDB_data:
-    name: ${DATABASE_VOLUME}
+    name: ${MONGODB_VOLUME}
+  keycloak_data:
+    name: ${KEYCLOAK_DB_VOLUME}
 
 networks:
   net_vre:
