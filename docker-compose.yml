@@ -102,9 +102,7 @@ services:
       - ./front_end/openVRE/data:/var/www/html/openVRE/data
       - ./front_end/openVRE/apache/server.conf:/opt/docker/etc/httpd/conf.d/10-server.conf
       - ./tools/front:/var/www/html/openVRE/public/tools
-      - ./volumes/shared_data:/shared_data
-    environment:
-      - DOCKER_GROUP:${DOCKER_GROUP}
+      - ./shared_data:/shared_data
     links:
       - my-mongodb
     depends_on:
@@ -128,13 +126,14 @@ services:
     extra_hosts:
       - ${FRONTEND_HOSTNAME}:172.21.0.14
     environment:
-      - DOCKER_GROUP:${DOCKER_GROUP}
+      SHARED_DATA_UID: ${UID}
+      SHARED_DATA_GID: ${GID}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rprivate
       - ./sge/configuration:/tmp/configuration:rprivate
       - ./sge/configuration:/etc/gridengine/configuration:rprivate
       - ./sge/shared_scripts:/shared_scripts:rshared
-      - ./volumes/shared_data:/shared_data:rshared
+      - ./shared_data:/shared_data:rshared
     devices:
       - '/dev/fuse:/dev/fuse'
     cap_add:
