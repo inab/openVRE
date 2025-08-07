@@ -77,9 +77,9 @@ $GLOBALS['adminToken']             = $GLOBALS['authServer']."/realms/master/prot
 $GLOBALS['adminRealm']             = $GLOBALS['authServer']."/admin/realms/".$GLOBALS['authRealm']; // admin keycloak users
 
 // Vault integration and roles
-$GLOBALS['vaultUrl'] = 'http://localhost:8200';
+$GLOBALS['vaultUrl'] = 'http://vault-server:8200/v1';
 $GLOBALS['vaultToken'] = 'root';
-//$jwtToken = $_SESSION['User']['JWT'];
+$GLOBALS['vaultCredentialsSuffix'] = "_credentials.txt";
 $GLOBALS['vaultRolename'] = 'demo';
 $GLOBALS['secretPath'] = 'secret/mysecret/data/';
 
