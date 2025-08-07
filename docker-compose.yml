@@ -22,6 +22,7 @@ services:
     networks:
       net_vre:
         ipv4_address: 172.21.0.10
+    restart: on-failure:2
 
   vault-server:
     container_name: vault-server
@@ -41,7 +42,7 @@ services:
     networks:
       net_vre:
         ipv4_address: 172.21.0.18
-    restart: unless-stopped
+    restart: on-failure:2
 
   postgres:
     container_name: postgres
@@ -56,6 +57,7 @@ services:
     networks:
       net_vre:
         ipv4_address: 172.21.0.13
+    restart: on-failure:2
 
   keycloak:
     container_name: keycloak
@@ -85,6 +87,7 @@ services:
         ipv4_address: 172.21.0.12
     depends_on:
       - postgres
+    restart: on-failure:2
 
   front_end:
     pull_policy: never
@@ -115,6 +118,7 @@ services:
     networks:
       net_vre:
         ipv4_address: 172.21.0.14
+    restart: on-failure:2
 
   sgecore:
     pull_policy: never
@@ -148,7 +152,7 @@ services:
       - net_vre
     ports:
       - "6444:6444"
-    restart: always
+    restart: on-failure:2
 
 volumes:
   mongoDB_data:
