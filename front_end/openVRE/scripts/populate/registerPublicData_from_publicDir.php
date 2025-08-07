@@ -20,7 +20,6 @@ $GLOBALS['shared']     = "/gpfs/vre-dev/"; // VRE data directory
 $GLOBALS['pubDir']     = $GLOBALS['shared'] . "public/"; // Public data directory
 
 // db
-$GLOBALS['db_credentials'] = __DIR__ . "/mongo.conf"; // Mongo access 
 $GLOBALS['dbname_VRE']     = "oeb_submission_dev"; // Database name
 
 

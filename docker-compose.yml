@@ -95,6 +95,10 @@ services:
     build:
       context: ./front_end/
     image: front_end
+    environment:
+      MONGODB_CREDENTIALS: ${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}
+      MONGODB_SERVER: ${MONGO_SERVER}
+      MONGODB_PORT: ${MONGO_PORT}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
