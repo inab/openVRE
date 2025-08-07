@@ -12,8 +12,8 @@ $GLOBALS['AppPrefix'] = "PROJECT"; // project url acronym
 $GLOBALS['NAME']      = "PROJECT_NAME"; // project name
 $GLOBALS['SITETITLE'] = "PROJECT_TITLE | Virtual Research Environment"; // site title
 $GLOBALS['TIMEOUT']   = 3600; // session and cookies timeout
-$GLOBALS['host_volumes_path'] = "/your_system_path/dockerized_vre/volumes";
-$GLOBALS['vre_network_name'] = "open-vre";  //Docker vnet name - make sure consistent with Docker Compose file
+$GLOBALS['host_path'] = "/your_system_path/dockerized_vre/volumes";
+$GLOBALS['vre_network_name'] = "net_vre";  //Docker vnet name - make sure consistent with Docker Compose file
 
 
 // Email
@@ -49,12 +49,10 @@ $GLOBALS['timezone'] = "UTC";
 $GLOBALS['datetime'] = "Y.M.dd HH:mm"; // https://unicode-org.github.io/icu/userguide/format_parse/datetime/#date-field-symbol-table
 $GLOBALS['logs_datetime'] = "dd.M.Y HH:mm:ss";
 
-
 // Interactive tools
 $GLOBALS['NETWORK_IP'] = "172.17.0.1"; # default host ip for docker
 $GLOBALS['interactive_range_start_port'] = 9001;
 $GLOBALS['max_parallel_independent_tools'] = 10;
-
 
 
 // Tool integration models and templates
@@ -167,8 +165,8 @@ $GLOBALS['clouds'] = Array(
                         "pubDir_fs"         => "/NFS/export/path/public/",   // export path for NFS server
                         "dataDir_virtual"   => $GLOBALS['dataDir'],
                         "pubDir_virtual"    => $GLOBALS['pubDir'],
-                        "dataDir_host"    => $GLOBALS["host_volumes_path"].$GLOBALS['dataDir'],
-                        "pubDir_host"    => $GLOBALS["host_volumes_path"].$GLOBALS['pubDir'],
+                        "dataDir_host"    => $GLOBALS["host_path"].$GLOBALS['dataDir'],
+                        "pubDir_host"    => $GLOBALS["host_path"].$GLOBALS['pubDir'],
                         "PMESserver_domain" => "pmes.mydomain.com",
                         "PMESserver_port"   => "80",
                         "PMESserver_address"=> "/",
@@ -210,4 +208,3 @@ $GLOBALS['clouds'] = Array(
 			)
 	    )
 );
-
