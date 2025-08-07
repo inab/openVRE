@@ -31,6 +31,7 @@ jobs:
           echo "MONGO_SERVER=${{ vars.MONGO_SERVER }}" >> .env
           echo "MONGO_DB=${{ vars.MONGO_DB }}" >> .env
           echo "MONGO_INITDB_COLLECTION=${{ vars.MONGO_INITDB_COLLECTION }}" >> .env
+          echo "MONGODB_VOLUME=${{ vars.MONGODB_VOLUME }}" >> .env
           echo "NETWORK_NAME=${{ vars.NETWORK_NAME }}" >> .env
           echo "FRONTEND_PORT=${{ vars.FRONTEND_PORT }}" >> .env
           echo "VAULT_PORT=${{ vars.VAULT_PORT }}" >> .env
@@ -48,9 +49,15 @@ jobs:
           echo "KEYCLOAK_PORT=${{ vars.KEYCLOAK_PORT }}" >> .env
           echo "KEYCLOAK_USER=${{ vars.KEYCLOAK_USER }}" >> .env
           echo "KEYCLOAK_PASSWORD=${{ vars.KEYCLOAK_PASSWORD }}" >> .env
+          echo "KEYCLOAK_REALM=${{ vars.KEYCLOAK_REALM }}" >> .env
+          echo "KEYCLOAK_DB_VOLUME=${{ vars.KEYCLOAK_DB_VOLUME }}" >> .env
+          echo "KEYCLOAK_CLIENT=${{ vars.KEYCLOAK_CLIENT }}" >> .env
           echo "FRONTEND_PORT=${{ vars.FRONTEND_PORT }}" >> .env
           echo "FRONTEND_HOSTNAME=${{ vars.FRONTEND_HOSTNAME }}" >> .env
           echo "DOCKER_GROUP=${{ vars.DOCKER_GROUP }}" >> .env
+          echo "UID=${{ vars.UID }}" >> .env
+          echo "GID=${{ vars.GID }}" >> .env
+
 
       - name: Check Docker Compose
         run: |
