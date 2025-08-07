@@ -17,7 +17,6 @@ $GLOBALS['vre_network_name'] = "net_vre";  //Docker vnet name - make sure consis
 
 
 // Email
-$GLOBALS['mail_credentials'] = __DIR__."/mail.conf"; // SMTP credentials
 $GLOBALS['FROMNAME']  = "VRE"; // 'From' for VRE tickets and notifications
 $GLOBALS['ADMINMAIL'] = "admin@mail.es"; // BBC address for VRE ticket emails
 
@@ -63,8 +62,6 @@ $GLOBALS['tool_io_dev_sample']  = $GLOBALS['root']."/install/data/tool_schemas/t
 
 // Oauth2 authentification
 $GLOBALS['auth_required']          = False; // Forces login
-$GLOBALS['auth_credentials']       = __DIR__."/oauth2.conf"; // oauth2 client credentials
-$GLOBALS['authAdmin_credentials']  = __DIR__."/oauth2_admin.conf"; // oauth2 client credentials with admin privileges
 $GLOBALS['authServer']             = 'http://172.21.0.12:8080/auth'; // internal oauth2 server
 $GLOBALS['authRealm']              = getenv('KEYCLOAK_REALM'); // keycloak realm
 $GLOBALS['urlAuthorize' ]          = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/auth';     //get autorization_code

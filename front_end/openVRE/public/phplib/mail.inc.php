@@ -4,30 +4,17 @@
 //require_once('classes/class.phpmailer.php');
 //require_once('classes/Email.php');
 
-function sendEmail($recipient, $subject, $body, $reply = null, $bcc = null){
-
-	$confFile = $GLOBALS['mail_credentials'];
-	$conf = array();
-	if (($F = fopen($confFile, "r")) !== FALSE) {
-	    while (($data = fgetcsv($F, 1000, ";")) !== FALSE) {
-    		foreach ($data as $a){
-               	    $r = explode(":",$a);
-                    if (isset($r[1])){array_push($conf,$r[1]);}
-	        }
-            }
-            fclose($F);
-    	}   
-	
+function sendEmail($recipient, $subject, $body, $reply = null, $bcc = null){	
 	$mail = new PHPMailer(); // create a new object
 	$mail->IsSMTP(); // enable SMTP
 	$mail->SMTPDebug = 0; // debugging: 0 = no messages, 1 = errors and messages, 2 = messages only
 	$mail->SMTPAuth = true; // authentication enabled
 	$mail->SMTPSecure = 'ssl'; // secure transfer enabled REQUIRED for Gmail
-	$mail->Host = $conf[2];
+	$mail->Host = getenv('MAIL_HOST');
 	$mail->Port = 465; // or 587
 	$mail->IsHTML(true);
-	$mail->Username = $conf[0];
-	$mail->Password = $conf[1];
+	$mail->Username = getenv('MAIL_USER');
+	$mail->Password = getenv('MAIL_PASS');
 
 	if(!isset($reply)) $reply = $GLOBALS['ADMINMAIL'];
 
