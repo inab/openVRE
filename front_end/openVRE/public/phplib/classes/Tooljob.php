@@ -1036,8 +1036,10 @@ class Tooljob
 			fi
 		EOF;
 
+		$networkName = getenv('NETWORK_NAME');
+
 		$createNetwork = <<<EOF
-			NET_NAME={$GLOBALS['vre_network_name']};
+			NET_NAME={$networkName};
 			NET_ID=\$(docker network inspect \$NET_NAME --format "{{.Id}}" 2>/dev/null || docker network create --driver bridge "\$NET_NAME");
 		EOF;
 
