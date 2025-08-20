@@ -5,28 +5,15 @@
 ##
 
 function get_keycloak_admintoken(){
-     $confFile = $GLOBALS['authAdmin_credentials'];
-     $conf = array();
-     if (($F = fopen($confFile, "r")) !== FALSE) {
-        while (($data = fgetcsv($F, 1000, ";")) !== FALSE) {
-    	    foreach ($data as $a){
-               $r = explode(":",$a);
-               if (isset($r[1])){array_push($conf,$r[1]);}
-	    }
-        }
-        fclose($F);
-    }   
-
-    $clientUser   = $conf[0];
-    $clientSecret = $conf[1];
-    $clientId     = trim($conf[2]);
+    $clientUser   = getenv('KEYCLOAK_USER');
+    $clientSecret = getenv('KEYCLOAK_PASSWORD');
 
     $url     = $GLOBALS['authServer']."/realms/master/protocol/openid-connect/token";
     $headers = array("Content-Type: application/x-www-form-urlencoded" );
     $data    = array("username"   => $clientUser,
                      "password"   => $clientSecret,
                      "grant_type" => "password",
-                     "client_id"  => $clientId
+                     "client_id"  => "admin-cli"
                  );
     $data = http_build_query($data);
 

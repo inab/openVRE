@@ -20,22 +20,9 @@ class MuG_Oauth2Provider extends GenericProvider {
              $options['urlLogout'] = $GLOBALS['urlLogout'];
         
         // set VRE as openID client
-        if (!isset($options['clientId']) && !isset($options['clientSecret'])){
-	    $confFile = $GLOBALS['auth_credentials'];
-    	    $conf = array();
-	    if (($F = fopen($confFile, "r")) !== FALSE) {
-	        while (($data = fgetcsv($F, 1000, ";")) !== FALSE) {
-    		    foreach ($data as $a){
-               	        $r = explode(":",$a);
-                        if (isset($r[1])){array_push($conf,$r[1]);}
-	            }
-                }
-                fclose($F);
-    	    }   
-            if ($conf[0])
-                $options['clientId']     = $conf[0];
-            if ($conf[1])
-                $options['clientSecret'] = $conf[1];
+        if (!isset($options['clientId']) && !isset($options['clientSecret'])) {
+            $options['clientId']     = getenv('KEYCLOAK_CLIENT');
+            $options['clientSecret'] = getenv('KEYCLOAK_SECRET');
         }
 
         // add urlLogout property

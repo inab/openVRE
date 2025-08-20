@@ -1,0 +1,11 @@
+[
+    {
+        "_id": "basic",
+        "name": "Basic",
+        "sample_path": "basic/",
+        "status": {
+            "$numberInt": "0"
+        },
+        "short_description": "Basic sample data, used new accounts"
+    }
+]

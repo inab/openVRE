@@ -12,12 +12,10 @@ $GLOBALS['AppPrefix'] = "PROJECT"; // project url acronym
 $GLOBALS['NAME']      = "PROJECT_NAME"; // project name
 $GLOBALS['SITETITLE'] = "PROJECT_TITLE | Virtual Research Environment"; // site title
 $GLOBALS['TIMEOUT']   = 3600; // session and cookies timeout
-$GLOBALS['host_volumes_path'] = "/your_system_path/dockerized_vre/volumes";
-$GLOBALS['vre_network_name'] = "open-vre";  //Docker vnet name - make sure consistent with Docker Compose file
+$GLOBALS['host_path'] = "/your_system_path/dockerized_vre/volumes";
 
 
 // Email
-$GLOBALS['mail_credentials'] = __DIR__."/mail.conf"; // SMTP credentials
 $GLOBALS['FROMNAME']  = "VRE"; // 'From' for VRE tickets and notifications
 $GLOBALS['ADMINMAIL'] = "admin@mail.es"; // BBC address for VRE ticket emails
 
@@ -25,7 +23,6 @@ $GLOBALS['ADMINMAIL'] = "admin@mail.es"; // BBC address for VRE ticket emails
 $GLOBALS['queueTask']  = "local.q"; //default queue
 
 // Mongo databases
-$GLOBALS['db_credentials'] = __DIR__."/mongo.conf"; // Mongo access
 $GLOBALS['dbname_VRE']     = "openVRE"; // Database name
 
 //VRE installation paths
@@ -50,12 +47,10 @@ $GLOBALS['timezone'] = "UTC";
 $GLOBALS['datetime'] = "Y.M.dd HH:mm"; // https://unicode-org.github.io/icu/userguide/format_parse/datetime/#date-field-symbol-table
 $GLOBALS['logs_datetime'] = "dd.M.Y HH:mm:ss";
 
-
 // Interactive tools
 $GLOBALS['NETWORK_IP'] = "172.17.0.1"; # default host ip for docker
 $GLOBALS['interactive_range_start_port'] = 9001;
 $GLOBALS['max_parallel_independent_tools'] = 10;
-
 
 
 // Tool integration models and templates
@@ -66,10 +61,8 @@ $GLOBALS['tool_io_dev_sample']  = $GLOBALS['root']."/install/data/tool_schemas/t
 
 // Oauth2 authentification
 $GLOBALS['auth_required']          = False; // Forces login
-$GLOBALS['auth_credentials']       = __DIR__."/oauth2.conf"; // oauth2 client credentials
-$GLOBALS['authAdmin_credentials']  = __DIR__."/oauth2_admin.conf"; // oauth2 client credentials with admin privileges
 $GLOBALS['authServer']             = 'http://172.21.0.12:8080/auth'; // internal oauth2 server
-$GLOBALS['authRealm']              = 'open-vre'; // keycloak realm
+$GLOBALS['authRealm']              = getenv('KEYCLOAK_REALM'); // keycloak realm
 $GLOBALS['urlAuthorize' ]          = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/auth';     //get autorization_code
 $GLOBALS['urlAccessToken']         = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/token';    //get token
 $GLOBALS['urlResourceOwnerDetails']= $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/userinfo'; //get user details
@@ -78,9 +71,9 @@ $GLOBALS['adminToken']             = $GLOBALS['authServer']."/realms/master/prot
 $GLOBALS['adminRealm']             = $GLOBALS['authServer']."/admin/realms/".$GLOBALS['authRealm']; // admin keycloak users
 
 // Vault integration and roles
-$GLOBALS['vaultUrl'] = 'http://localhost:8200';
+$GLOBALS['vaultUrl'] = 'http://vault-server:8200/v1';
 $GLOBALS['vaultToken'] = 'root';
-//$jwtToken = $_SESSION['User']['JWT'];
+$GLOBALS['vaultCredentialsSuffix'] = "_credentials.txt";
 $GLOBALS['vaultRolename'] = 'demo';
 $GLOBALS['secretPath'] = 'secret/mysecret/data/';
 
@@ -168,8 +161,8 @@ $GLOBALS['clouds'] = Array(
                         "pubDir_fs"         => "/NFS/export/path/public/",   // export path for NFS server
                         "dataDir_virtual"   => $GLOBALS['dataDir'],
                         "pubDir_virtual"    => $GLOBALS['pubDir'],
-                        "dataDir_host"    => $GLOBALS["host_volumes_path"].$GLOBALS['dataDir'],
-                        "pubDir_host"    => $GLOBALS["host_volumes_path"].$GLOBALS['pubDir'],
+                        "dataDir_host"    => $GLOBALS["host_path"].$GLOBALS['dataDir'],
+                        "pubDir_host"    => $GLOBALS["host_path"].$GLOBALS['pubDir'],
                         "PMESserver_domain" => "pmes.mydomain.com",
                         "PMESserver_port"   => "80",
                         "PMESserver_address"=> "/",
@@ -211,4 +204,3 @@ $GLOBALS['clouds'] = Array(
 			)
 	    )
 );
-

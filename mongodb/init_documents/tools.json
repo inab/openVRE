@@ -13,7 +13,7 @@
       "contact": "Your email account"
     },
     "status": 1,
-    "external": true,
+    "external": false,
     "keywords": [
       "next gen seq",
       "dna"
