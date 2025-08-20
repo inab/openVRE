@@ -55,6 +55,7 @@ jobs:
           echo "FRONTEND_PORT=${{ vars.FRONTEND_PORT }}" >> .env
           echo "FRONTEND_HOSTNAME=${{ vars.FRONTEND_HOSTNAME }}" >> .env
           echo "DOCKER_GROUP=${{ vars.DOCKER_GROUP }}" >> .env
+          echo "NETWORK_NAME=${{ vars.NETWORK_NAME }}" >> .env
           echo "UID=${{ vars.UID }}" >> .env
           echo "GID=${{ vars.GID }}" >> .env
 
