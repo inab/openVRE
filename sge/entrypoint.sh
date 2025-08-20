@@ -1,7 +1,5 @@
 #!/bin/bash
 set -e
-echo uid is "${SHARED_DATA_UID}"
-echo gid is "${SHARED_DATA_GID}"
 
 mkdir -p /shared_data
 mkdir -p /shared_data/public
