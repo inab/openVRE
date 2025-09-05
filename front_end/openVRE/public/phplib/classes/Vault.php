@@ -252,28 +252,6 @@ class VaultClient
 		return $response;
 	}
 
-	public function pre_checkFileInVault($filePath)
-	{
-		$endpoint = $this->vaultUrl . 'secret/' . $filePath;
-
-		try {
-			$response = $this->httpClient->get($endpoint, [
-				'headers' => [
-					'X-Vault-Token' => $this->vaultToken
-				]
-			]);
-
-			if ($response->getStatusCode() === 200) {
-				echo "File exists in Vault.\n";
-				echo "File path:" . $endpoint;
-			} else {
-				echo "File does not exist in Vault.\n";
-			}
-		} catch (Exception $e) {
-			echo "Error occurred: " . $e->getMessage() . "\n";
-		}
-	}
-
 
 	function listSecretsInVault($token, $url, $secretPath, $userName)
 	{
