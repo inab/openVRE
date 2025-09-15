@@ -24,6 +24,7 @@ vault write auth/jwt/role/user-role role_type="jwt" bound_audiences="account" us
 JWT_ACCESSOR=$(vault auth list -format=json | jq -r '."jwt/".accessor')
 sed "s/JWT_ACCESSOR/$JWT_ACCESSOR/g" jwt-user-policies-template.hcl > jwt-user-policies.hcl
 vault policy write user-policy jwt-user-policies.hcl
+vault write secret/config max_versions=1
 
 # No need to run 'vault secrets enable -path=secret kv-v2' in dev mode, it's auto-enabled
 
