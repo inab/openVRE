@@ -316,14 +316,14 @@ protected function set_cloudName($tool = array()) {
 
 
 
-public function handleFileLocation($location, $file_path, $local_file_path, $vaultUrl, $vaultToken, $vaultRole) {
+public function handleFileLocation($location, $file_path, $local_file_path, $vaultUrl, $vaultRole) {
 	
 	if (isset($_SESSION['userToken']['access_token']) && !empty($_SESSION['userToken']['access_token'])) {
 		$accessToken = $_SESSION['userToken']['access_token'];	
 		
 		print "</br> $vaultUrl </br>";
 
-		$vaultClient = new VaultClient($vaultUrl, $vaultToken, $accessToken, $vaultRole, $_POST['username']);
+		$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRole, $_POST['username']);
 		$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
 		if (empty($vaultKey)) {
 			$_SESSION['errorData']['Error'][] = "No key to access Vault, check the User credentials.";
@@ -381,7 +381,7 @@ public function handleFileLocation($location, $file_path, $local_file_path, $vau
 		echo "Vault Key: $vaultKey<br>";
 		echo "Vault Url: $vaultUrl<br>";
 
-		$credentials = $vaultClient->retrieveDatafromVault('Swift', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $_SESSION['User']['_id'] . '_credentials.txt');
+		$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'Swift');
 // ($system, $clientToken, $url, $secretPath, $filename)
 		echo "System <br></br>";
     		echo strtoupper("swift");
@@ -407,7 +407,7 @@ public function handleFileLocation($location, $file_path, $local_file_path, $vau
 		echo "Vault Key: $vaultKey<br>";
                 echo "Vault Url: $vaultUrl<br>";
 
-		$credentials = $vaultClient->retrieveDatafromVault('SSH', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $_SESSION['User']['_id'] . '_credentials.txt');
+		$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
 
 		//var_dump($credentials);
 		return $credentials;

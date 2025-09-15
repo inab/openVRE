@@ -1,9 +1,5 @@
-path "auth/jwt/role/demo" {
-  capabilities = ["create", "read", "update", "delete"]
-}
-
-path "secret/*" {
-  capabilities = ["create", "read", "update", "delete"]
+path "secret/data/{{identity.entity.aliases.JWT_ACCESSOR.name}}/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
 }
 
 path "auth/token/lookup-self" {

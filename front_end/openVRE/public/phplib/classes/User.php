@@ -4,6 +4,7 @@ class User
 {
     public $_id;
     public $Email;
+    public $secretsId;
     public $Surname;
     public $Name;
     public $Inst;
@@ -17,7 +18,7 @@ class User
     public $id; // TODO: diff with _id?
     public $activeProject;
 
-    public function __construct(string $email, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject, ?string $jwt)
+    public function __construct(string $email, string $secretsId, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject, ?string $jwt)
     {
         if ($type != UserType::Guest->value && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return 0;
@@ -29,6 +30,7 @@ class User
 
         $this->Type = $type ?? UserType::Registered->value; // TODO: check if this is ok
         $this->Email = sanitizeString($email);
+        $this->secretsId = sanitizeString($secretsId);
         $this->_id = sanitizeString($email);
         $this->Surname = ucfirst(sanitizeString($surname));
         $this->Name = ucfirst(sanitizeString($name));
@@ -52,19 +54,15 @@ class User
         $this->Name    = ucfirst($this->Name);
 
         $_SESSION['userVaultInfo'] = array(
-            "vaultClient" => array(
-                "jwtToken"    => $jwt ??  "",
-                "credentials" => array("data" => array("SSH" => array()))
-            ),
+            "jwt"          => $jwt ??  "",
             "vaultKey"     => null,
             "secretPath"   => $GLOBALS['secretPath'] ?? '',
             "vaultRolename" => $GLOBALS['vaultRolename'] ?? '',
-            "vaultToken"   => $GLOBALS['vaultToken'] ?? '',
             "vaultUrl"     => $GLOBALS['vaultUrl'] ?? ''
         );
     }
 
-    
+
     public function getType(): int
     {
         return $this->Type;
@@ -83,6 +81,16 @@ class User
     public function setEmail(string $email): void
     {
         $this->Email = $email;
+    }
+
+    public function getSecretsId(): string
+    {
+        return $this->secretsId;
+    }
+
+    public function setSecretsId(string $secretsId): void
+    {
+        $this->secretsId = $secretsId;
     }
 
     public function get_id(): string

@@ -172,7 +172,6 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
 	$vaultClient = new VaultClient(
 		$GLOBALS['vaultUrl'],
-		$_SESSION['userVaultInfo']['vaultToken'],
 		$accessToken,
 		$_SESSION['userVaultInfo']['vaultRolename'],
 		$postData['username']
@@ -310,7 +309,6 @@ function handleObjectStorageAccount($action, $userId, $postData)
 
 	$vaultClient = new VaultClient(
 		$GLOBALS['vaultUrl'],
-		$_SESSION['userVaultInfo']['vaultToken'],
 		$accessToken,
 		$_SESSION['userVaultInfo']['vaultRolename'],
 		$postData['user_key']
@@ -364,10 +362,9 @@ function handleEgaAccount($action, $userId, $postData)
 		handleInvalidAction();
 	}
 
-	$accessToken = json_decode($_SESSION['User']['JWT'], true)["access_token"];
+	$accessToken = json_decode($_SESSION['userVaultInfo']['jwt'], true)["access_token"];
 	$vaultClient = new VaultClient(
 		$GLOBALS['vaultUrl'],
-		$_SESSION['userVaultInfo']['vaultToken'],
 		$accessToken,
 		$_SESSION['userVaultInfo']['vaultRolename'],
 		$postData['username']

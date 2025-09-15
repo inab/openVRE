@@ -5,6 +5,7 @@ front_end/openVRE/config/*.conf
 shared_data
 vault/config/public-key.pem
 vault/file/*
+vault/config/jwt-user-policies.hcl
 vendor/
 volumes/
 *.crt

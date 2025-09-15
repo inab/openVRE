@@ -1194,9 +1194,8 @@ class Tooljob
 			$cmd_envs .= "-e $env_key=$env_value ";
 		}
 
-		$userEmail = $_SESSION['User']['Email'];
 		$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-		$vaultAddress = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $userEmail . $GLOBALS['vaultCredentialsSuffix'];
+		$vaultAddress = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $_SESSION['User']['secretsId'] . '/EGA';
 		$userFolder = "/shared_data/userdata/" . $_SESSION['User']['id'];
 		$configFilePath = $userFolder . '/env.yml';
 		$configContent = "VAULT_TOKEN={$vaultKey}\nVAULT_ADDRESS={$vaultAddress}\n";
@@ -1900,12 +1899,12 @@ class Tooljob
 		return 1;
 	}
 
-	public function getSSHCred($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username, $remote_dir, $siteId)
+	public function getSSHCred($vaultUrl, $accessToken, $vaultRolename, $username, $remote_dir, $siteId)
 	{
 		#retrieve the credential and update the site collection with it
-		$vaultClient = new VaultClient($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
+		$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
 		$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-		$credentials = $vaultClient->retrieveDatafromVault('SSH', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $_SESSION['User']['_id'] . '_credentials.txt');
+		$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
 		if ($credentials) {
 			$sshPrivateKey = $credentials['priv_key'];
 			$sshPublicKey = $credentials['pub_key'];
@@ -1944,12 +1943,11 @@ class Tooljob
 	{
 		if ($cloudName == 'marenostrum') {
 			$vaultUrl = $GLOBALS['vaultUrl'];
-			$vaultToken = $_SESSION['userVaultInfo']['vaultToken'];
 			$accessToken = $_SESSION['userToken']['access_token'];
 			$vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
 
 			//Get the credentials
-			$remoteSSH = $this->getSSHCred($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username, null, $cloudName);
+			$remoteSSH = $this->getSSHCred($vaultUrl, $accessToken, $vaultRolename, $username, null, $cloudName);
 			if (isset($remoteSSH['error'])) {
 				$_SESSION['errorData']['Internal Error'][] = "Failed to retrieve SSH credentials: " . $remoteSSH['error'];
 				return 0;

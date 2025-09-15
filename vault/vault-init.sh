@@ -2,6 +2,8 @@
 
 set -e
 
+apk add jq
+
 until vault status > /dev/null 2>&1; do
   sleep 1
 done
@@ -12,15 +14,18 @@ echo "Vault is ready. Applying configuration..."
 vault login "$VAULT_DEV_ROOT_TOKEN_ID"
 
 vault auth enable jwt
-vault auth enable oidc
 
 cd vault/config
-vault policy write jwt-role-demo jwt-role-demo.hcl
-vault policy write oidc-role-myrole oidc-role-myrole-policy.hcl
 
-vault write auth/oidc/role/myrole allowed_redirect_uris="[$VAULT_ADDR/ui/vault/auth/oidc/oidc/callback, http://localhost:8250/oidc/callback]" user_claim="sub"
-vault write auth/jwt/role/demo bound_audiences="account" allowed_redirect_uris="http://localhost:8250/oidc/callback" user_claim="sub" policies=jwt-role-demo role_type=jwt ttl=1h
-vault write auth/jwt/role/demo role_type="jwt"
-vault write auth/jwt/config default_role=demo bound_issuer="$FQDN_HOST_PROTOCOL://$FQDN_HOST:$KEYCLOAK_PORT/auth/realms/$KEYCLOAK_REALM" jwt_validation_pubkeys=@public-key.pem bound_audiences="account"
+vault write auth/jwt/config oidc_discovery_url="$KEYCLOAK_SERVER/realms/$KEYCLOAK_REALM" bound_issuer="$KEYCLOAK_SERVER/realms/$KEYCLOAK_REALM"
+
+vault write auth/jwt/role/user-role role_type="jwt" bound_audiences="account" user_claim="sub" policies="user-policy" ttl="1h"
+
+JWT_ACCESSOR=$(vault auth list -format=json | jq -r '."jwt/".accessor')
+sed "s/JWT_ACCESSOR/$JWT_ACCESSOR/g" jwt-user-policies-template.hcl > jwt-user-policies.hcl
+vault policy write user-policy jwt-user-policies.hcl
+vault write secret/config max_versions=1
+
+# No need to run 'vault secrets enable -path=secret kv-v2' in dev mode, it's auto-enabled
 
 echo "Vault initialization complete."

@@ -31,6 +31,8 @@ services:
       VAULT_DEV_ROOT_TOKEN_ID: myroot
       VAULT_DEV_LISTEN_ADDRESS: ${VAULT_DEV_LISTEN_ADDRESS}
       VAULT_ADDR: ${VAULT_ADDR}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_SERVER: "http://172.21.0.12:8080/auth" # temporary hack for this keycloak v15.0.2
     ports:
       - "${VAULT_PORT}:8200"
     volumes:
@@ -73,7 +75,7 @@ services:
       KEYCLOAK_USER: ${KEYCLOAK_USER}
       KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
       PROXY_ADDRESS_FORWARDING: "false"
-      KEYCLOAK_FRONTEND_URL: "http://172.21.0.12:8080/auth" # temporary hack for this keycloak version
+      KEYCLOAK_FRONTEND_URL: "http://172.21.0.12:8080/auth" # temporary hack for this keycloak v15.0.2
     #KEYCLOAK_FRONTEND_URL: ${FQDN_HOST_PROTOCOL}://${FQDN_HOST}/auth
     volumes:
       - ./keycloak/realms:/opt/jboss/keycloak/imports

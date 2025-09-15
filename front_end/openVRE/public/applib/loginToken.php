@@ -42,7 +42,7 @@ if (!isset($_GET['code'])) {
         $resourceOwnerO = $provider->getResourceOwner($accessTokenO);
         $resourceOwner  = array_map('trim', $resourceOwnerO->toArray());
     } catch (\Exception $e) {
-        exit("Internal login service error: cannot obtain user access token from authorization code: " . $e->getMessage());
+        exit("Internal login service error: cannot obtain resource owner from user access token from authorization code: " . $e->getMessage());
     }
 
     // Check received token claims
