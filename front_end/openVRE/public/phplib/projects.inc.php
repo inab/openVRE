@@ -1966,7 +1966,7 @@ function refresh_vault_token($force = false)
 
 	$existingToken = $_SESSION['userVaultInfo']['vaultKey'];
 	//add them to mongo
-	$provider = new VaultClient($_SESSION['userVaultInfo']['vaultUrl'], $_SESSION['userVaultInfo']['vaultToken'], $_SESSION['userToken']['access_token'], $_SESSION['userVaultInfo']['vaultRole'], $_POST['username']);
+	$provider = new VaultClient($_SESSION['userVaultInfo']['vaultUrl'], $_SESSION['userToken']['access_token'], $_SESSION['userVaultInfo']['vaultRole'], $_POST['username']);
 
 	$expirationTime = $provider->getTokenExpirationTime($_SESSION['userVaultInfo']['vaultUrl'], $existingToken);
 	if ($force || ($expirationTime !== false)) {

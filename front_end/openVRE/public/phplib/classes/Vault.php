@@ -7,7 +7,6 @@ class VaultClient
 {
 
 	private $vaultUrl;
-	private $vaultToken;
 	private $httpClient;
 	private $roleName;
 	private $jwtToken;
@@ -15,11 +14,10 @@ class VaultClient
 
 
 
-	public function __construct($vaultUrl, $vaultToken, $jwtToken, $roleName, $username)
+	public function __construct($vaultUrl, $jwtToken, $roleName, $username)
 	{
 
 		$this->vaultUrl = $vaultUrl;
-		$this->vaultToken = $vaultToken;
 		$this->jwtToken = $jwtToken;
 		$this->roleName = $roleName;
 		$this->username = $username;
@@ -228,9 +226,9 @@ class VaultClient
 
 	}
 
-	function uploadFileToVault($url, $secretPath, $username, $token, $data)
+	function uploadFileToVault($url, $secretPath, $userSecretsId, $secretName, $token, $data)
 	{
-		$vaultUrl = $url . "/" . $secretPath . $username;
+		$vaultUrl = $url . "/" . $secretPath . $userSecretsId . '/' . $secretName;
 		$headers = [
 			'X-Vault-Token: ' . $token,
 			'Content-Type: application/json'
@@ -405,19 +403,14 @@ class VaultClient
 					}
 
 
-					$secretPath = 'secret/mysecret/data/';
-					if (isset($data['data']['SSH']['_id'])) {
-						$filename = $data['data']['SSH']['_id'] . '_credentials.txt';
-					} elseif (isset($data['data']['Swift']['_id'])) {
-						$filename = $data['data']['Swift']['_id'] . '_credentials.txt';
-					}
+					$secretPath = $GLOBALS['secretPath'];
 					// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
 					//	var_dump($rz);
 					//	echo json_encode($rz, JSON_PRETTY_PRINT);
 					//$rx = $this->listSecretsInVault($clientToken, $this->vaultUrl, $secretPath, $filename);
 					//	echo json_encode($rx, JSON_PRETTY_PRINT);
 					//$system = 'SSH';
-					$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
+					$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "SSH", $vaultToken, $data);
 					//	echo 'BHOOOOOOOOOO';
 					//$xx = $this->retrieveDatafromVault($system, $clientToken, $this->vaultUrl, $secretPath, $filename);
 					//var_dump($xx);
@@ -457,20 +450,14 @@ class VaultClient
 				$vaultToken = $respondeData["auth"]["client_token"];
 				//echo "Vault Client Token: " . $vaultToken . "\n";
 
-				$secretPath = 'secret/mysecret/data/';
+				$secretPath = $GLOBALS['secretPath'];
 				//echo "Swift Data: " . print_r($data['data']['Swift'], true) . "\n";
-
-				if (isset($data['data']['Swift']['_id'])) {
-					$filename = $data['data']['Swift']['_id'] . '_credentials.txt';
-				} elseif (isset($data['data']['Swift']['_id'])) {
-					$filename = $data['data']['Swift']['_id'] . '_credentials.txt';
-				}
 
 				//echo "Filename: " . $filename . "\n";
 				// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
 				// uploadFileToVault($url, $secretPath, $username, $token, $data)
 
-				$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
+				$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "Swift", $vaultToken, $data);
 				//echo "Upload Result: " . print_r($rz, true) . "\n";
 				return $vaultToken;
 			} catch (Exception $e) {
@@ -481,18 +468,15 @@ class VaultClient
 				$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
 				$responseArray = $token["response"];
 				$respondeData = json_decode($responseArray, true);
-				if ($respondeData["statusCode"] != 200) {
+				if ($token["statusCode"] != 200) {
 					error_log("Error: " . $respondeData["error"]);
 				}
-				
+
 				$vaultToken = $respondeData["auth"]["client_token"];
-				$secretPath = 'secret/mysecret/data/';
-				if (isset($data['data']['EGA']['_id'])) {
-					$filename = $data['data']['EGA']['_id'] . '_credentials.txt';
-				}
+				$secretPath = $GLOBALS['secretPath'];
 
 				// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
-				$this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $vaultToken, $data);
+				$this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "EGA", $vaultToken, $data);
 				return $vaultToken;
 			} catch (Exception $e) {
 				error_log("Error: " . $e->getMessage());
@@ -581,14 +565,9 @@ class VaultClient
 						//echo "client token:";
 						//echo  $responseArray;
 
-						$secretPath = 'secret/mysecret/data/';
-						if (isset($data['data']['SSH']['_id'])) {
-							$filename = $data['data']['SSH']['_id'] . '_credentials.txt';
-						} elseif (isset($data['data']['Swift']['_id'])) {
-							$filename = $data['data']['Swift']['_id'] . '_credentials.txt';
-						}
+						$secretPath = $GLOBALS['secretPath'];
 						// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
-						$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $filename, $clientToken, $data);
+						$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "SSH", $clientToken, $data);
 						//var_dump($rz);
 						//echo json_encode($rz, JSON_PRETTY_PRINT);
 						//$rx = $this->listSecretsInVault($clientToken, $this->vaultUrl, $secretPath, $filename);
@@ -616,11 +595,9 @@ class VaultClient
 	}
 
 
-	public function retrieveDatafromVault($system, $vaultToken, $url, $secretPath, $filename)
+	public function retrieveDatafromVault($vaultToken, $url, $secretPath, $userSecretsId, $system)
 	{
-		// Set up cURL options
-
-		$vaultUrl = $url . $secretPath . $filename;
+		$vaultUrl = $url . "/" . $secretPath . $userSecretsId . '/' . $system;
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $vaultUrl);
@@ -629,62 +606,28 @@ class VaultClient
 			'X-Vault-Token: ' . $vaultToken,
 		]);
 
-		// Execute cURL request and store the response
 		$response = curl_exec($ch);
 
-		// Check for cURL errors
 		if (curl_errno($ch)) {
 			echo 'Error: ' . curl_error($ch);
 			return null;
 		}
 
 		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-		// Log the request details for debugging purposes
-		$requestDetails = [
-			'URL' => $url,
-			'Method' => 'POST',
-			'Headers' => $headers,
-			'Data' => $data,
-			'HTTP Code' => $httpCode,
-			'Response' => $response,
-		];
-
-		//echo "<pre>";
-		//print_r($requestDetails);
-		//echo "</pre>";
-
 		if ($httpCode === 403) {
-			// Call the function to renew the token
-			//$_SESSION['errorData']['Error'][] = "Check the Token User permission.";
 			if ($this->isTokenExpired($url, $vaultToken)) {
 				$_SESSION['errorData']['Error'][] = "The Vault token has expired, need to refresh it in the User section.";
 			} else {
 				$_SESSION['errorData']['Error'][] = "The Vault token is still valid.";
 			}
-
-			//$this->retrieveDatafromVault($system, $newToken, $url, $secretPath, $filename);
-		} else {
-			// Handle other HTTP response codes or set an error message in session data
-			// For example, you can use session_start() if not already started
-			//$_SESSION['errorData']['Error'][] = "Something is wrong with the credentials, check the User permission.";
 		}
 
-		// Close cURL resource
 		curl_close($ch);
-
-		// Parse JSON response
 		$data = json_decode($response, true);
-		// Check if the JSON decoding was successful
 		if ($data === null) {
 			return null;
 		}
 		if ($system == 'Swift') {
-			// Extract app_id and app_secret from the JSON data
-			//
-			//
-			//echo ("COLOR VIOLET");
-			//var_dump($data);
 			$user_id = $data['data']['data']['Swift']['_id'];
 			$app_id = $data['data']['data']['Swift']['app_id'];
 			$app_secret = $data['data']['data']['Swift']['app_secret'];

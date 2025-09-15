@@ -75,10 +75,15 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
         if (isset($userinfo['provider'])) {
             $userAttributes['AuthProvider'] = $userinfo['provider'];
         }
+
+        if (isset($userinfo['sub'])) {
+            $userAttributes['secretsId'] = $userinfo['sub'];
+        }
+
         $_SESSION['tokenInfo'] = $userinfo;
     }
 
-    $objUser = new User($userAttributes['Email'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", $userAttributes['JWT']);
+    $objUser = new User($userAttributes['Email'], $userAttributes['secretsId'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", $userAttributes['JWT']);
     if (!$objUser) {
         return false;
     }
@@ -142,7 +147,7 @@ function createUserAnonymous($sampleData)
         "AuthProvider" => "VRE"
     );
 
-    $objUser = new User($userAttributes['Email'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", "");
+    $objUser = new User($userAttributes['Email'], "", $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", "");
     if (!$objUser) {
         return false;
     }
@@ -398,12 +403,19 @@ function loadUserWithToken($userinfo, $token, $jwt)
 
     $auxlastlog = $user['lastLogin'];
     $user['lastLogin'] = moment();
-    $user['JWT']       = $jwt;
     $_SESSION['userToken'] = $token;
     $_SESSION['tokenInfo'] = $userinfo;
 
     updateUser($user);
     setUser($user, $auxlastlog);
+
+    $_SESSION['userVaultInfo'] = array(
+        "jwt"          => $jwt ??  "",
+        "vaultKey"     => null,
+        "secretPath"   => $GLOBALS['secretPath'] ?? '',
+        "vaultRolename" => $GLOBALS['vaultRolename'] ?? '',
+        "vaultUrl"     => $GLOBALS['vaultUrl'] ?? ''
+    );
 
     return $user;
 }

@@ -72,10 +72,8 @@ $GLOBALS['adminRealm']             = $GLOBALS['authServer']."/admin/realms/".$GL
 
 // Vault integration and roles
 $GLOBALS['vaultUrl'] = 'http://vault-server:8200/v1';
-$GLOBALS['vaultToken'] = 'root';
-$GLOBALS['vaultCredentialsSuffix'] = "_credentials.txt";
-$GLOBALS['vaultRolename'] = 'demo';
-$GLOBALS['secretPath'] = 'secret/mysecret/data/';
+$GLOBALS['vaultRolename'] = 'user-role';
+$GLOBALS['secretPath'] = 'secret/data/';
 
 // EGA
 $GLOBALS['EGA_METADATA_TOKEN_ENDPOINT'] = 'https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token';

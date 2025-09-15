@@ -186,7 +186,7 @@ foreach ($files as $fnId => $file) {
 		    }
 		    $path_file = $r[0]['path'];
 		    $local_path_file =  $r[0]['local_path'];
-		    $prova = $jobData->handleFileLocation($location, $path_file, $local_path_file, $GLOBALS['vaultUrl'], $_SESSION['userVaultInfo']['vaultToken'], $_SESSION['userVaultInfo']['vaultRolename']);
+		    $prova = $jobData->handleFileLocation($location, $path_file, $local_path_file, $GLOBALS['vaultUrl'], $_SESSION['userVaultInfo']['vaultRolename']);
 		    if (!$prova) {
 			    $_SESSION['errorData']['Error'][]= "Null files";
 		    }  elseif ($prova === 0) {

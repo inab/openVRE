@@ -197,9 +197,6 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 						// show Error messages		
 						print printErrorDivision();
 
-						//var_dump($_SESSION['User']['JWT'],"<br/>");
-//								var_dump($_SESSION['User'],"<br/>");
-						
 						// fetch tool of lists
 						$toolsList = getTools_List();
 						sort($toolsList);

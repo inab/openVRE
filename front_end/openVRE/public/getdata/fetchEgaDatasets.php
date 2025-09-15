@@ -10,7 +10,7 @@ try {
 
     $userEmail = $_SESSION['User']['Email'];
     $vaultToken = $_SESSION['userVaultInfo']['vaultKey'];
-    $vaultAddress = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $userEmail . $GLOBALS['vaultCredentialsSuffix'];
+    $vaultAddress = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $_SESSION['User']['secretsId'] . '/EGA';
 
     function fetchVaultData($vaultAddress, $vaultToken)
     {
