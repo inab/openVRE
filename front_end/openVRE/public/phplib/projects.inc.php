@@ -1221,7 +1221,7 @@ function processPendingFiles($sessionId, $files = array())
 
 			if ($jobProcess['state'] == "RUNNING" && $job['job_type'] == "interactive") {
 				$fileDummy['pending'] = "ACTIVE SESSION";
-        $fileDummy['toolContainerName'] = $_SESSION['User']['lastjobs'][$pid]['containerName'];
+				$fileDummy['toolContainerName'] = $_SESSION['User']['lastjobs'][$pid]['containerName'];
 			}
 
 			//list job in workspace
@@ -1667,7 +1667,7 @@ function  build_outputs_list($tool, $stageout_job, $stageout_file)
 
 	// check tool output_files
 
-  if (!$tool['infrastructure']['interactive'] && !(isset($tool['output_files']) || count($tool['output_files']) == 0)) {
+	if (!$tool['infrastructure']['interactive'] && !(isset($tool['output_files']) || count($tool['output_files']) == 0)) {
 		$_SESSION['errorData']['Internal'][] = "Tool " . $tool['name'] . " has not list of 'output_files'. Invalid tool registration";
 		$_SESSION['errorData']['Error'][] = "Cannot obtain results from execution '" . dirname($stageout_file) . "'";
 		return $outs_meta;
@@ -2200,9 +2200,7 @@ function deleteFiles($fileIds, $force = false)
 		}
 
 		// delete file from disk
-		if (file_exists($filePath)) {
-			unlink($filePath);
-			if (error_get_last()) {
+		if (file_exists($filePath) && !unlink($filePath)) {
 				$_SESSION['errorData']['Error'][] = "Errors encountered while deleting file '" . basename($fileLocalPath) . "'.";
 				$_SESSION['errorData']['Error'][] = error_get_last()["message"];
 				$result = false;
