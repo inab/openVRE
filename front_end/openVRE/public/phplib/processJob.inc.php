@@ -193,7 +193,7 @@ function getPidFromOutfile($outfile)
             return $data['_id'];
         }
     }
-    
+
     return $pid;
 }
 
@@ -252,10 +252,8 @@ function delJobFromOutfiles($outfiles)
                             continue;
                         }
                     }
-                    if (is_file($rfn)) {
-                        unlink($rfn);
-                        if (error_get_last())
-                            $_SESSION['errorData']['SGE'][] = "Cannot unlink $rfn" . error_get_last()["message"];
+                    if (is_file($rfn) && !unlink($rfn)) {
+                        $_SESSION['errorData']['SGE'][] = "Cannot unlink $rfn" . error_get_last()["message"];
                     }
                 }
                 //update pending jobs
