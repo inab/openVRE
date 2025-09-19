@@ -1,51 +1,44 @@
-# Dockerized OpenVRE
-
-Deployment of a full openVRE-based analysis platform, including:
-
-- openVRE module (frontend and backend): https://github.com/inab/openVRE/tree/dockerized
-- Keycloak Authentication server
-- Cluster SGE 
-
-## Architecture
-
-![architecture openvre (1)](https://user-images.githubusercontent.com/57795749/201643520-3e7b6cdf-b6c4-4985-9385-9a7b738174eb.png)
-=======
-# new_dockerized_vre
 
 
+***⚠️ This documentation is under construction***
 
-## Getting started
+# Open Virtual Research Environment core development (openVRE-core-dev)
 
-Cloning this directory in your system: 
+OpenVRE (Open Virtual Research Environment) is an open-source, cloud-based platform designed to facilitate the creation, 
+management and customization of Virtual Research Environments (VREs). OpenVRE bridges the gap between HPC resources, 
+sensitive data infrastructures and analytical tools and workflows, providing a flexible environment that enables secure 
+data access, scalable computation and collaboration.
+
+This repository contains the source code for the OpenVRE core development version, which includes the core components of
+the platform. Other software pieces as the tools, visualizers and data are specific to the each openVRE deployment.
+
+A production ready version of openVRE can be found in the [openVRE](https://github.com/inab/openVRE) repository. It also
+includes a complete documentation of the platform at the respository [wiki](https://github.com/inab/openVRE/wiki).
 
 
+## Installation
 
-```
-git clone https://gitlab.bsc.es/disc4all/openvre/new_vre.git
+### Quickstart
 
-cd new_vre
-
-mv new_vre dockerized_vre
-
-cd dockerized_vre 
-
-docker compose build
-
-docker compose up -d 
+For a straightforward installation with default configuration, follow the steps below:
 
 ```
+git clone https://github.com/inab/openVRE-core-dev.git
 
-## Fixes 
+cd openVRE-core-dev
 
+cp .env.sample .env
+cp front_end/openVRE/config/globals.inc.php.sample front_end/openVRE/config/globals.inc.php
 
-Manually entering the SGEcore container and modify the docker group permission:
+docker compose --profile "local_auth" up -d 
 
 ```
 
-docker exec -ti sgecore /bin/bash
+### Custom Configuration
 
-in the container -> groupmod -g 120 docker
+To customize the installation, you can use the provided configuration files and modify them according to your specific needs.
+The following configuration files are available:
 
-in the container -> usermod -aG docker application
-
-```
+- `.env`: Environment variables configuration file.
+- `front_end/openVRE/config/globals.inc.php`: Configuration file for the front-end and back-end services (both included 
+in the front_end service).
