@@ -1036,13 +1036,6 @@ class Tooljob
 			fi
 		EOF;
 
-		$networkName = getenv('NETWORK_NAME');
-
-		$createNetwork = <<<EOF
-			NET_NAME={$networkName};
-			NET_ID=\$(docker network inspect \$NET_NAME --format "{{.Id}}" 2>/dev/null || docker network create --driver bridge "\$NET_NAME");
-		EOF;
-
 		$runContainer = <<<EOF
 			CONTAINER_ID=\$(docker run \
 			--rm \
@@ -1092,7 +1085,7 @@ class Tooljob
 			echo '# End time:' \$(date) >> $this->log_file_virtual;
 		EOF;
 
-		return $checkEnvironment . "\n" . $configureDockerGroup . "\n" . $createNetwork . "\n" . $runContainer . "\n" . $checkContainerStatus . "\n" . $reportContainerInfo . "\n" . $monitorContainer;
+		return $checkEnvironment . "\n" . $configureDockerGroup . "\n" . $runContainer . "\n" . $checkContainerStatus . "\n" . $reportContainerInfo . "\n" . $monitorContainer;
 	}
 
 
