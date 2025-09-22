@@ -1,6 +1,6 @@
 
 
-***⚠️ This documentation is under construction***
+***⚠️ This documentation is under construction. More content is expected to be added.***
 
 # Open Virtual Research Environment core development (openVRE-core-dev)
 
@@ -20,7 +20,7 @@ includes a complete documentation of the platform at the respository [wiki](http
 
 ### Dependencies
 
-You will need to have Docker Compose installed on your system. You can find instructions for installing Docker Compose [here](https://docs.docker.com/compose/install/).
+You will need to have Docker Compose installed on your system. You can find instructions [here](https://docs.docker.com/compose/install/).
 
 ### Quickstart
 Before you run the installation, it is likely that you will need to change some environment variables:
