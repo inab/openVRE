@@ -2205,7 +2205,6 @@ function deleteFiles($fileIds, $force = false)
 				$_SESSION['errorData']['Error'][] = error_get_last()["message"];
 				$result = false;
 				continue;
-			}
 		}
 
 		// if is an associated file, update master file
