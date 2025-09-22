@@ -53,4 +53,5 @@ The following configuration files are available:
 - `.env`: Environment variables configuration file.
 - `front_end/openVRE/config/globals.inc.php`: Configuration file for the front-end and back-end services (both included 
 in the front_end service).
+- `docker-compose.yml`: Docker Compose configuration file.
 
