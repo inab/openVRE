@@ -1,7 +1,4 @@
 
-
-***⚠️ This documentation is under construction. More content is expected to be added.***
-
 # Open Virtual Research Environment core development (openVRE-core-dev)
 
 OpenVRE (Open Virtual Research Environment) is an open-source, cloud-based platform designed to facilitate the creation, 
@@ -14,6 +11,8 @@ the platform. Other software pieces as the tools, visualizers and data are speci
 
 A production-ready version of openVRE can be found in the [openVRE](https://github.com/inab/openVRE) repository. It also
 includes a complete documentation of the platform at the respository [wiki](https://github.com/inab/openVRE/wiki).
+
+⚠️ This documentation is a work in progress and it may not correspond with the production version repository documentation.
 
 
 ## Installation
