@@ -12,13 +12,23 @@ data access, scalable computation and collaboration.
 This repository contains the source code for the OpenVRE core development version, which includes the core components of
 the platform. Other software pieces as the tools, visualizers and data are specific to the each openVRE deployment.
 
-A production ready version of openVRE can be found in the [openVRE](https://github.com/inab/openVRE) repository. It also
+A production-ready version of openVRE can be found in the [openVRE](https://github.com/inab/openVRE) repository. It also
 includes a complete documentation of the platform at the respository [wiki](https://github.com/inab/openVRE/wiki).
 
 
 ## Installation
 
+### Dependencies
+
+You will need to have Docker Compose installed on your system. You can find instructions for installing Docker Compose [here](https://docs.docker.com/compose/install/).
+
 ### Quickstart
+Before you run the installation, it is likely that you will need to change some environment variables:
+- `DOCKER_GROUP`: The group ID for the docker group.
+- `KEYCLOAK_SECRET`: The secret for the Keycloak client.
+- `UID`: The user ID for the user running the services.
+- `GID`: The group ID for the user running the services.
+
 
 For a straightforward installation with default configuration, follow the steps below:
 
@@ -31,8 +41,9 @@ cp .env.sample .env
 cp front_end/openVRE/config/globals.inc.php.sample front_end/openVRE/config/globals.inc.php
 
 docker compose --profile "local_auth" up -d 
-
 ```
+
+After the installation is complete, you can access the platform at the following URL: [http://localhost:8088](http://localhost:8088).
 
 ### Custom Configuration
 
@@ -42,3 +53,4 @@ The following configuration files are available:
 - `.env`: Environment variables configuration file.
 - `front_end/openVRE/config/globals.inc.php`: Configuration file for the front-end and back-end services (both included 
 in the front_end service).
+
