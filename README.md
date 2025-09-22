@@ -6,7 +6,7 @@ management and customization of Virtual Research Environments (VREs). OpenVRE br
 sensitive data infrastructures and analytical tools and workflows, providing a flexible environment that enables secure 
 data access, scalable computation and collaboration.
 
-This repository contains the source code for the OpenVRE core development version, which includes the core components of
+This repository contains the source code for the openVRE core development version, which includes the core components of
 the platform. Other software pieces as the tools, visualizers and data are specific to the each openVRE deployment.
 
 A production-ready version of openVRE can be found in the [openVRE](https://github.com/inab/openVRE) repository. It also
