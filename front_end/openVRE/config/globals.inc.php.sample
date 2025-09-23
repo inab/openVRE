@@ -22,9 +22,6 @@ $GLOBALS['ADMINMAIL'] = "admin@mail.es"; // BBC address for VRE ticket emails
 // SGE
 $GLOBALS['queueTask']  = "local.q"; //default queue
 
-// Mongo databases
-$GLOBALS['dbname_VRE']     = "openVRE"; // Database name
-
 //VRE installation paths
 $GLOBALS['root']       = dirname(__DIR__); // VRE root directory
 $GLOBALS['shared']     = "/shared_data/"; // VRE data directory

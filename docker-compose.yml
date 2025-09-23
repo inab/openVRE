@@ -105,9 +105,10 @@ services:
       MAIL_HOST: ${MAIL_HOST}
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
-      MONGODB_CREDENTIALS: ${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}
+      MONGODB_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
       MONGODB_SERVER: ${MONGO_SERVER}
       MONGODB_PORT: ${MONGO_PORT}
+      MONGO_DB: ${MONGO_DB}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
