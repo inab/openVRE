@@ -1,7 +1,7 @@
 services:
   my-mongodb:
     hostname: my-mongodb
-    image: mongo:4.4
+    image: mongo:8.0
     container_name: my-mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
