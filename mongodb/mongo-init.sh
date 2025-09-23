@@ -3,7 +3,7 @@ set -e
 
 echo ">>>>>>> Starting MongoDB initialization script"
 
-mongo <<EOF
+mongosh <<EOF
 db = db.getSiblingDB('$MONGO_DB');
 
 // Check if the root user exists
