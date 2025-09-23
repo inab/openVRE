@@ -1,10 +1,10 @@
 <?php
 
 
-// connect DB
 try {
+	$connectionUri = "mongodb://" . getenv('MONGODB_CREDENTIALS') . "@" . getenv('MONGODB_SERVER') . ":" . getenv('MONGODB_PORT') . "/?authSource=" . getenv('MONGO_DB');
 	$VREConn =  new MongoDB\Client(
-		"mongodb://" . getenv('MONGODB_CREDENTIALS') . "@" . getenv('MONGODB_SERVER') . ":" . getenv('MONGODB_PORT'),
+		$connectionUri,
 		array(
 			'readConcernLevel' => 'local'
 		),
@@ -17,7 +17,7 @@ try {
 		)
 	);
 } catch (MongoConnectionException $e) {
-	//die('Error Connecting Mongo DB: ' . $e->getMessage());
+	error_log($e->getMessage());
 	header('Location: ' . $GLOBALS['BASEURL'] . '/htmlib/errordb.php?msg=Cannot connect to VRE MuG database');
 } catch (MongoException $e) {
 	die('Error: ' . $e->getMessage());
@@ -25,7 +25,7 @@ try {
 
 // create handlers
 
-$dbname =  $GLOBALS['dbname_VRE'];
+$dbname = getenv('MONGO_DB');
 
 $GLOBALS['db']              = $VREConn->$dbname;
 $GLOBALS['usersCol']        = $GLOBALS['db']->users;
