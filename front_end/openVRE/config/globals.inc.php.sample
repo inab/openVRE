@@ -58,7 +58,7 @@ $GLOBALS['tool_io_dev_sample']  = $GLOBALS['root']."/install/data/tool_schemas/t
 
 // Oauth2 authentification
 $GLOBALS['auth_required']          = False; // Forces login
-$GLOBALS['authServer']             = 'http://172.21.0.12:8080/auth'; // internal oauth2 server
+$GLOBALS['authServer']             = getenv('KEYCLOAK_SERVER'); // oauth2 server
 $GLOBALS['authRealm']              = getenv('KEYCLOAK_REALM'); // keycloak realm
 $GLOBALS['urlAuthorize' ]          = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/auth';     //get autorization_code
 $GLOBALS['urlAccessToken']         = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/token';    //get token
