@@ -29,7 +29,7 @@ jobs:
           echo "MONGO_INITDB_USERNAME=${{ vars.MONGO_INITDB_USERNAME }}" >> .env
           echo "MONGO_INITDB_PASSWORD=${{ vars.MONGO_INITDB_PASSWORD }}" >> .env
           echo "MONGO_SERVER=${{ vars.MONGO_SERVER }}" >> .env
-          echo "MONGO_DB=${{ vars.MONGO_DB }}" >> .env
+          echo "MONGO_MAIN_DB=${{ vars.MONGO_MAIN_DB }}" >> .env
           echo "MONGO_INITDB_COLLECTION=${{ vars.MONGO_INITDB_COLLECTION }}" >> .env
           echo "MONGODB_VOLUME=${{ vars.MONGODB_VOLUME }}" >> .env
           echo "NETWORK_NAME=${{ vars.NETWORK_NAME }}" >> .env

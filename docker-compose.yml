@@ -10,14 +10,17 @@ services:
       MONGO_INITDB_PASSWORD: ${MONGO_INITDB_PASSWORD}
       MONGO_PORT: ${MONGO_PORT}
       MONGO_SERVER: ${MONGO_SERVER}
-      MONGO_INITDB_DATABASE: ${MONGO_DB}
+      MONGO_MAIN_DB: ${MONGO_MAIN_DB}
     ports:
       - "${MONGO_PORT}:27017"
-    command: mongod --port ${MONGO_PORT}
+    command: mongod --port ${MONGO_PORT} --config /etc/mongo/mongod.conf
     volumes:
       - mongoDB_data:/data/db:rw
       - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
       - ./mongodb/init_documents:/init_documents:ro
+      - ./mongodb/mongod.conf:/etc/mongo/mongod.conf:ro
+      - ${MONGO_SSL_COMBINED_CAFILE}:${MONGO_CA_COMBINED_FILE}:ro
+      - ${MONGO_SSL_KEYFILE}:${MONGO_CERT_KEYFILE}:ro
     networks:
       net_vre:
         ipv4_address: 172.21.0.10
@@ -108,7 +111,7 @@ services:
       MONGODB_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
       MONGODB_SERVER: ${MONGO_SERVER}
       MONGODB_PORT: ${MONGO_PORT}
-      MONGO_DB: ${MONGO_DB}
+      MONGO_MAIN_DB: ${MONGO_MAIN_DB}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public

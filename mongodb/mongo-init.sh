@@ -4,7 +4,7 @@ set -e
 echo ">>>>>>> Starting MongoDB initialization script"
 
 mongosh <<EOF
-db = db.getSiblingDB('$MONGO_DB');
+db = db.getSiblingDB('$MONGO_MAIN_DB');
 
 // Check if the application user exists
 if (db.getUser("$MONGO_INITDB_USERNAME") === null) {
@@ -13,7 +13,7 @@ if (db.getUser("$MONGO_INITDB_USERNAME") === null) {
     pwd: "$MONGO_INITDB_PASSWORD",
     roles: [{
       role: "readWrite",
-      db: "$MONGO_DB"
+      db: "$MONGO_MAIN_DB"
     }]
   });
   print("Application user created.");
@@ -24,7 +24,7 @@ if (db.getUser("$MONGO_INITDB_USERNAME") === null) {
 EOF
 
 for mongo_document in /init_documents/*.json; do
-    mongoimport --db ${MONGO_DB} \
+    mongoimport --db ${MONGO_MAIN_DB} \
                 --jsonArray \
                 --port ${MONGO_PORT} \
                 --username ${MONGO_INITDB_USERNAME} \
