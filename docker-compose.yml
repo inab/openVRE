@@ -177,6 +177,8 @@ volumes:
     name: ${MONGODB_VOLUME}
   keycloak_data:
     name: ${KEYCLOAK_DB_VOLUME}
+  vault_data:
+    name: ${VAULT_DATA_VOLUME}
 
 networks:
   net_vre:
