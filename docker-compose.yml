@@ -136,8 +136,6 @@ services:
         DOCKER_GROUP: "${DOCKER_GROUP}"
     container_name: sgecore
     hostname: sgecore
-    extra_hosts:
-      - ${FRONTEND_HOSTNAME}:172.21.0.14
     environment:
       SHARED_DATA_UID: ${UID}
       SHARED_DATA_GID: ${GID}
