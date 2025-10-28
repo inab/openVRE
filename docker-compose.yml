@@ -75,7 +75,7 @@ services:
       KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
       PROXY_ADDRESS_FORWARDING: "false"
       KEYCLOAK_FRONTEND_URL: "http://172.21.0.12:8080/auth" # temporary hack for this keycloak v15.0.2
-    #KEYCLOAK_FRONTEND_URL: ${FQDN_HOST_PROTOCOL}://${FQDN_HOST}/auth
+    #KEYCLOAK_FRONTEND_URL: http://${FQDN_HOST}/auth
     volumes:
       - ./keycloak/realms:/opt/jboss/keycloak/imports
     command:
@@ -98,8 +98,8 @@ services:
       context: ./front_end/
     image: front_end
     environment:
-      KEYCLOAK_CLIENT: ${KEYCLOAK_CLIENT}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT: ${KEYCLOAK_CLIENT}
       KEYCLOAK_SECRET: ${KEYCLOAK_SECRET}
       MAIL_HOST: ${MAIL_HOST}
       MAIL_USER: ${MAIL_USER}
@@ -108,6 +108,7 @@ services:
       MONGO_SERVER: ${MONGO_SERVER}
       MONGO_PORT: ${MONGO_PORT}
       MONGO_MAIN_DB: ${MONGO_MAIN_DB}
+      SERVER_NAME: ${FQDN_HOST}:${FRONTEND_PORT}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public

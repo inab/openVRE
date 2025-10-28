@@ -22,7 +22,6 @@ jobs:
       - name: Create .env file
         run: |
           echo "FQDN_HOST=${{ vars.FQDN_HOST }}" >> .env
-          echo "FQDN_HOST_PROTOCOL=${{ vars.FQDN_HOST_PROTOCOL }}" >> .env
           echo "MONGO_INITDB_ROOT_USERNAME=${{ vars.MONGO_INITDB_ROOT_USERNAME }}" >> .env
           echo "MONGO_INITDB_ROOT_PASSWORD=${{ vars.MONGO_INITDB_ROOT_PASSWORD }}" >> .env
           echo "MONGO_PORT=${{ vars.MONGO_PORT }}" >> .env
