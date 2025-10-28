@@ -30,19 +30,19 @@ services:
     container_name: vault-server
     image: hashicorp/vault:1.20
     environment:
-      VAULT_DEV_ROOT_TOKEN_ID: myroot
-      VAULT_DEV_LISTEN_ADDRESS: ${VAULT_DEV_LISTEN_ADDRESS}
       VAULT_ADDR: ${VAULT_ADDR}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
       KEYCLOAK_SERVER: ${KEYCLOAK_SERVER}
     ports:
       - "${VAULT_PORT}:8200"
     volumes:
+      - vault_data:/vault/data
       - ./vault/config:/vault/config
-      - ./vault/vault-init.sh:/vault-init.sh
+      - "${VAULT_SSL_PEM}:${VAULT_CERT_PEM}:ro"
+      - "${VAULT_SSL_KEY}:${VAULT_CERT_KEY}:ro"
     cap_add:
       - IPC_LOCK
-    command: /bin/sh -c "vault server -dev & sleep 5 && /vault-init.sh && wait"
+    command: server
     networks:
       net_vre:
         ipv4_address: 172.21.0.18
