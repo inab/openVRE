@@ -10,7 +10,7 @@ services:
       MONGO_INITDB_PASSWORD: ${MONGO_INITDB_PASSWORD}
       MONGO_PORT: ${MONGO_PORT}
       MONGO_SERVER: ${MONGO_SERVER}
-      MONGO_INITDB_DATABASE: ${MONGO_MAIN_DB}
+      MONGO_MAIN_DB: ${MONGO_MAIN_DB}
     ports:
       - "${MONGO_PORT}:27017"
     command: mongod --port ${MONGO_PORT}
