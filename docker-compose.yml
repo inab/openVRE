@@ -100,6 +100,8 @@ services:
       context: ./front_end/
     image: front_end
     environment:
+      FRONTEND_CERT_PEM: ${FRONTEND_CERT_PEM}
+      FRONTEND_CERT_KEY: ${FRONTEND_CERT_KEY}
       KEYCLOAK_CLIENT: ${KEYCLOAK_CLIENT}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
       KEYCLOAK_SECRET: ${KEYCLOAK_SECRET}
@@ -107,10 +109,13 @@ services:
       MAIL_HOST: ${MAIL_HOST}
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
-      MONGODB_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
-      MONGODB_SERVER: ${MONGO_SERVER}
-      MONGODB_PORT: ${MONGO_PORT}
+      MONGO_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
+      MONGO_SERVER: ${MONGO_SERVER}
+      MONGO_PORT: ${MONGO_PORT}
       MONGO_MAIN_DB: ${MONGO_MAIN_DB}
+      MONGO_CA_FILE: ${MONGO_CA_FILE}
+      MONGO_CERT_KEYFILE: ${MONGO_CERT_KEYFILE}
+      SERVER_NAME: ${FQDN_HOST}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
@@ -119,10 +124,15 @@ services:
       - ./front_end/openVRE/apache/server.conf:/opt/docker/etc/httpd/conf.d/10-server.conf
       - ./tools/front:/var/www/html/openVRE/public/tools
       - ./shared_data:/shared_data
+      - ${FRONTEND_SSL_PEM}:${FRONTEND_CERT_PEM}:ro
+      - ${FRONTEND_SSL_KEY}:${FRONTEND_CERT_KEY}:ro
+      - ${MONGO_SSL_CAFILE}:${MONGO_CA_FILE}:ro
+      - ${MONGO_SSL_KEYFILE}:${MONGO_CERT_KEYFILE}:ro
+      - ${VAULT_SSL_CAFILE}:${VAULT_CERT_CAFILE}:ro
     depends_on:
       - sgecore
     ports:
-      - "${FRONTEND_PORT}:80"
+      - "${FRONTEND_PORT}:443"
     networks:
       net_vre:
         ipv4_address: 172.21.0.14
