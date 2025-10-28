@@ -10,12 +10,12 @@ services:
       MONGO_INITDB_PASSWORD: ${MONGO_INITDB_PASSWORD}
       MONGO_PORT: ${MONGO_PORT}
       MONGO_SERVER: ${MONGO_SERVER}
-      MONGO_INITDB_DATABASE: ${MONGO_DB}
+      MONGO_INITDB_DATABASE: ${MONGO_MAIN_DB}
     ports:
       - "${MONGO_PORT}:27017"
     command: mongod --port ${MONGO_PORT}
     volumes:
-      - mongoDB_data:/data/db:rw
+      - mongo_data:/data/db:rw
       - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
       - ./mongodb/init_documents:/init_documents:ro
     networks:
@@ -104,10 +104,10 @@ services:
       MAIL_HOST: ${MAIL_HOST}
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
-      MONGODB_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
-      MONGODB_SERVER: ${MONGO_SERVER}
-      MONGODB_PORT: ${MONGO_PORT}
-      MONGO_DB: ${MONGO_DB}
+      MONGO_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
+      MONGO_SERVER: ${MONGO_SERVER}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_MAIN_DB: ${MONGO_MAIN_DB}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
@@ -160,8 +160,8 @@ services:
     restart: on-failure:2
 
 volumes:
-  mongoDB_data:
-    name: ${MONGODB_VOLUME}
+  mongo_data:
+    name: ${MONGO_VOLUME}
   keycloak_data:
     name: ${KEYCLOAK_DB_VOLUME}
 

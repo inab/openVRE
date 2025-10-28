@@ -2,7 +2,7 @@
 
 
 try {
-	$connectionUri = "mongodb://" . getenv('MONGODB_CREDENTIALS') . "@" . getenv('MONGODB_SERVER') . ":" . getenv('MONGODB_PORT') . "/?authSource=" . getenv('MONGO_DB');
+	$connectionUri = "mongodb://" . getenv('MONGO_CREDENTIALS') . "@" . getenv('MONGO_SERVER') . ":" . getenv('MONGO_PORT') . "/?authSource=" . getenv('MONGO_MAIN_DB');
 	$VREConn =  new MongoDB\Client(
 		$connectionUri,
 		array(
@@ -25,7 +25,7 @@ try {
 
 // create handlers
 
-$dbname = getenv('MONGO_DB');
+$dbname = getenv('MONGO_MAIN_DB');
 
 $GLOBALS['db']              = $VREConn->$dbname;
 $GLOBALS['usersCol']        = $GLOBALS['db']->users;
