@@ -85,7 +85,7 @@ $GLOBALS['EGA_METADATA_API'] = 'https://metadata.ega-archive.org';
 
 
 // Default names and local path for VRE
-$GLOBALS['URL']       = "https://".getenv('SERVER_NAME') . $GLOBALS['BASEURL']; // full VRE URL
+$GLOBALS['URL']       = "https://" . getenv('SERVER_NAME') . $GLOBALS['BASEURL']; // full VRE URL
 $GLOBALS['URL_login'] = $GLOBALS['URL']."login.php"; // Default for auth server login
 $GLOBALS['htmlPath']  = $GLOBALS['root']. "/public/"; // Default path for public folder
 $GLOBALS['htmlib']    = $GLOBALS['htmlPath']."htmlib"; // Default path for html templates

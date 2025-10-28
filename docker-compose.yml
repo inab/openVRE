@@ -15,7 +15,7 @@ services:
       - "${MONGO_PORT}:27017"
     command: mongod --port ${MONGO_PORT} --config /etc/mongo/mongod.conf
     volumes:
-      - mongoDB_data:/data/db:rw
+      - mongo_data:/data/db:rw
       - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
       - ./mongodb/init_documents:/init_documents:ro
       - ./mongodb/mongod.conf:/etc/mongo/mongod.conf:ro
@@ -77,7 +77,7 @@ services:
       KEYCLOAK_USER: ${KEYCLOAK_USER}
       KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
       PROXY_ADDRESS_FORWARDING: "false"
-      KEYCLOAK_FRONTEND_URL: ${FQDN_HOST_PROTOCOL}://${FQDN_HOST}/auth
+      KEYCLOAK_FRONTEND_URL: ${KEYCLOAK_SERVER}
     volumes:
       - ./keycloak/realms:/opt/jboss/keycloak/imports
     command:
@@ -148,8 +148,6 @@ services:
         DOCKER_GROUP: "${DOCKER_GROUP}"
     container_name: sgecore
     hostname: sgecore
-    extra_hosts:
-      - ${FRONTEND_HOSTNAME}:172.21.0.14
     environment:
       SHARED_DATA_UID: ${UID}
       SHARED_DATA_GID: ${GID}
@@ -173,8 +171,8 @@ services:
     restart: on-failure:2
 
 volumes:
-  mongoDB_data:
-    name: ${MONGODB_VOLUME}
+  mongo_data:
+    name: ${MONGO_VOLUME}
   keycloak_data:
     name: ${KEYCLOAK_DB_VOLUME}
   vault_data:
