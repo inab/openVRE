@@ -47,6 +47,7 @@ $GLOBALS['logs_datetime'] = "dd.M.Y HH:mm:ss";
 $GLOBALS['NETWORK_IP'] = "172.17.0.1"; # default host ip for docker
 $GLOBALS['interactive_range_start_port'] = 9001;
 $GLOBALS['max_parallel_independent_tools'] = 10;
+$GLOBALS['toolsPath'] = "/tools/";
 
 
 // Tool integration models and templates
@@ -67,9 +68,9 @@ $GLOBALS['adminToken']             = $GLOBALS['authServer']."/realms/master/prot
 $GLOBALS['adminRealm']             = $GLOBALS['authServer']."/admin/realms/".$GLOBALS['authRealm']; // admin keycloak users
 
 // Vault integration and roles
-$GLOBALS['vaultUrl'] = 'http://vault-server:8200/v1';
-$GLOBALS['vaultRolename'] = 'user-role';
-$GLOBALS['secretPath'] = 'secret/data/';
+$GLOBALS['vaultUrl'] = getenv('VAULT_ADDR') . "/" . getenv('VAULT_API_VERSION');
+$GLOBALS['vaultRolename'] = getenv('VAULT_ROLENAME');
+$GLOBALS['secretPath'] = getenv('VAULT_SECRET_PATH');
 
 // EGA
 $GLOBALS['EGA_METADATA_TOKEN_ENDPOINT'] = 'https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token';

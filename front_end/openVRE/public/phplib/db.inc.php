@@ -2,7 +2,7 @@
 
 
 try {
-	$connectionUri = "mongodb://" . getenv('MONGO_CREDENTIALS') . "@" . getenv('MONGO_SERVER') . ":" . getenv('MONGO_PORT') . "/?authSource=" . getenv('MONGO_MAIN_DB');
+	$connectionUri = "mongodb://" . getenv('MONGO_CREDENTIALS') . "@" . getenv('MONGO_SERVER') . "/?authSource=" . getenv('MONGO_MAIN_DB');
 	$VREConn =  new MongoDB\Client(
 		$connectionUri,
 		array(
