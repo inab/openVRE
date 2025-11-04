@@ -11,7 +11,6 @@ $GLOBALS['AppPrefix'] = "PROJECT"; // project url acronym
 $GLOBALS['NAME']      = "PROJECT_NAME"; // project name
 $GLOBALS['SITETITLE'] = "PROJECT_TITLE | Virtual Research Environment"; // site title
 $GLOBALS['TIMEOUT']   = 3600; // session and cookies timeout
-$GLOBALS['host_path'] = "/your_system_path/dockerized_vre";
 
 
 // Email
