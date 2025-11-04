@@ -47,6 +47,7 @@ $GLOBALS['logs_datetime'] = "dd.M.Y HH:mm:ss";
 $GLOBALS['NETWORK_IP'] = "172.17.0.1"; # default host ip for docker
 $GLOBALS['interactive_range_start_port'] = 9001;
 $GLOBALS['max_parallel_independent_tools'] = 10;
+$GLOBALS['toolsPath'] = "/tools/";
 
 
 // Tool integration models and templates

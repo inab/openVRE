@@ -145,6 +145,7 @@ services:
       - ./sge/configuration:/etc/gridengine/configuration:rprivate
       - ./sge/shared_scripts:/shared_scripts:rshared
       - ./shared_data:/shared_data:rshared
+      - ./tools/docker:/tools:rshared
     devices:
       - '/dev/fuse:/dev/fuse'
     cap_add:
