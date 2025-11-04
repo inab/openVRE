@@ -190,7 +190,7 @@ redirectOutside();
                                                             <div class="form-group margin-top-30">
                                                                 <label class="control-label">You are a standard user. Do you
                                                                     want to bring your own tool?
-                                                                    <a href="https://eucanshare.bsc.es/dataportal/?page_id=629"
+                                                                    <a href="https://github.com/inab/openVRE/wiki/Bring-your-own-tool"
                                                                         target="_blank"><i class="icon-question tooltips"
                                                                             data-container="body" data-placement="right"
                                                                             data-original-title="Click here to read more about how to bring your own tool."></i></a>
