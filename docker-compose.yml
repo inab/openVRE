@@ -116,6 +116,7 @@ services:
       SERVER_NAME: ${FQDN_HOST}
       VAULT_ADDR: ${VAULT_ADDR}
       VAULT_API_VERSION: ${VAULT_API_VERSION}
+      VAULT_CERT_CAFILE: ${VAULT_CERT_CAFILE}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public

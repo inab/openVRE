@@ -42,6 +42,10 @@ class VaultClient
 		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_CAINFO, getenv('VAULT_CERT_CAFILE'));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
 
 		$response = curl_exec($ch);
 		if ($response === false) {
@@ -234,18 +238,22 @@ class VaultClient
 			'Content-Type: application/json'
 		];
 
-		$curl = curl_init($vaultUrl);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
-		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
-		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-		$response = curl_exec($curl);
+		$ch = curl_init($vaultUrl);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($ch, CURLOPT_CAINFO, getenv('VAULT_CERT_CAFILE'));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
+		$response = curl_exec($ch);
 
-		if (curl_errno($curl)) {
-			throw new Exception("Failed to send the JWT login request:" . curl_error($curl));
+		if (curl_errno($ch)) {
+			throw new Exception("Failed to send the JWT login request:" . curl_error($ch));
 		}
 
-		curl_close($curl);
+		curl_close($ch);
 
 		return $response;
 	}
@@ -261,21 +269,25 @@ class VaultClient
 		//echo ' BHOOOOOO';
 		//echo $vaultUrl;
 
-		$curl = curl_init($vaultUrl);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
-		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+		$ch = curl_init($vaultUrl);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_CAINFO, getenv('VAULT_CERT_CAFILE'));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
 
-		$response = curl_exec($curl);
+		$response = curl_exec($ch);
 
-		if (curl_errno($curl)) {
-			echo "Error occurred: " . curl_error($curl) . "\n";
+		if (curl_errno($ch)) {
+			echo "Error occurred: " . curl_error($ch) . "\n";
 		} else {
 
 			echo "Secrets in Vault:\n";
 			echo $response . "\n";
 		}
-		curl_close($curl);
+		curl_close($ch);
 	}
 
 
@@ -295,6 +307,10 @@ class VaultClient
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_CAINFO, getenv('VAULT_CERT_CAFILE'));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
 
 		$response = curl_exec($ch);
 		if (curl_errno($ch)) {
@@ -509,6 +525,10 @@ class VaultClient
 		curl_setopt($ch, CURLOPT_POST, true);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_CAINFO, getenv('VAULT_CERT_CAFILE'));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
 
 		// Execute the cURL request
 		$response = curl_exec($ch);
@@ -605,6 +625,10 @@ class VaultClient
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
 			'X-Vault-Token: ' . $vaultToken,
 		]);
+        curl_setopt($ch, CURLOPT_CAINFO, getenv('VAULT_CERT_CAFILE'));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
 
 		$response = curl_exec($ch);
 
@@ -700,6 +724,10 @@ class VaultClient
 			'X-Vault-Token: ' . $currentToken,
 			'Content-Type: application/json',
 		]);
+        curl_setopt($ch, CURLOPT_CAINFO, getenv('VAULT_CERT_CAFILE'));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
 
 		// Execute cURL request and store the response
 		$response = curl_exec($ch);
