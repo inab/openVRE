@@ -23,6 +23,7 @@ services:
 
   vault-server:
     container_name: vault-server
+    hostname: vault-server
     image: hashicorp/vault:1.20
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: myroot
@@ -106,6 +107,8 @@ services:
       MONGO_SERVER: ${MONGO_SERVER}
       MONGO_MAIN_DB: ${MONGO_MAIN_DB}
       SERVER_NAME: ${FQDN_HOST}:${FRONTEND_PORT}
+      VAULT_ADDR: ${VAULT_ADDR}
+      VAULT_API_VERSION: ${VAULT_API_VERSION}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
