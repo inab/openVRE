@@ -2,7 +2,7 @@
 
 
 try {
-	$connectionUri = "mongodb://" . getenv('MONGO_CREDENTIALS') . "@" . getenv('MONGO_SERVER') . "/?authSource=" . getenv('MONGO_MAIN_DB');
+	$connectionUri = "mongodb://" . getenv('MONGO_CREDENTIALS') . "@" . getenv('MONGO_SERVER') . "/?authSource=" . getenv('MONGO_MAIN_DB') . "&tls=true&tlsCAFile=" . getenv('MONGO_CA_FILE') . "&tlsCertificateKeyFile=" . getenv('MONGO_CERT_KEYFILE');
 	$VREConn =  new MongoDB\Client(
 		$connectionUri,
 		array(
