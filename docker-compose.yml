@@ -8,12 +8,10 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_INITDB_USERNAME: ${MONGO_INITDB_USERNAME}
       MONGO_INITDB_PASSWORD: ${MONGO_INITDB_PASSWORD}
-      MONGO_PORT: ${MONGO_PORT}
-      MONGO_SERVER: ${MONGO_SERVER}
       MONGO_MAIN_DB: ${MONGO_MAIN_DB}
     ports:
       - "${MONGO_PORT}:27017"
-    command: mongod --port ${MONGO_PORT}
+    command: mongod
     volumes:
       - mongo_data:/data/db:rw
       - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro

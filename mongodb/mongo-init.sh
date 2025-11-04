@@ -26,7 +26,6 @@ EOF
 for mongo_document in /init_documents/*.json; do
     mongoimport --db ${MONGO_MAIN_DB} \
                 --jsonArray \
-                --port ${MONGO_PORT} \
                 --username ${MONGO_INITDB_USERNAME} \
                 --password ${MONGO_INITDB_PASSWORD} \
                 --file $mongo_document
