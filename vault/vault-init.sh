@@ -1,9 +1,15 @@
-#!/bin/sh
+# Manual steps
 
-# This command should be run before  starting the vault container for the first time
-docker compose run --rm --entrypoint /bin/sh vault-server -c "chown -R $VAULT_USER:$VAULT_USER /vault/data"
+# Check vault user id and group id
+docker compose run --rm vault-server /bin/sh -c "id -u vault && id -g vault"
 
-# Manual steps to be run after initializing vault container
+VAULT_USER=100 # Change if different
+VAULT_GROUP=1000 # Change if different
+
+# Change data folder ownership inside the container (by default it's owned by root)
+docker compose run --rm --entrypoint /bin/sh vault-server -c "chown -R $VAULT_USER:$VAULT_GROUP /vault/data"
+
+# Enter the container and setup
 docker exec -it vault-server /bin/sh
 
 set -e
