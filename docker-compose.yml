@@ -30,7 +30,7 @@ services:
       VAULT_DEV_LISTEN_ADDRESS: ${VAULT_DEV_LISTEN_ADDRESS}
       VAULT_ADDR: ${VAULT_ADDR}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
-      KEYCLOAK_SERVER: "http://172.21.0.12:8080/auth" # temporary hack for this keycloak v15.0.2
+      KEYCLOAK_SERVER: ${KEYCLOAK_SERVER}
     ports:
       - "${VAULT_PORT}:8200"
     volumes:
@@ -44,48 +44,21 @@ services:
         ipv4_address: 172.21.0.18
     restart: on-failure:2
 
-  postgres:
-    container_name: postgres
-    image: postgres:17.3
-    profiles: ["local_auth"]
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - keycloak_data:/var/lib/postgresql/data
-    networks:
-      net_vre:
-        ipv4_address: 172.21.0.13
-    restart: on-failure:2
-
   keycloak:
     container_name: keycloak
-    image: quay.io/keycloak/keycloak:15.0.2
+    hostname: keycloak
+    image: keycloak/keycloak:26.4
     profiles: ["local_auth"]
     environment:
-      DB_VENDOR: ${DB_VENDOR}
-      DB_ADDR: ${DB_ADDR}
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USER: ${DB_USER}
-      DB_SCHEMA: ${DB_SCHEMA}
-      DB_PASSWORD: ${DB_PASSWORD}
-      KEYCLOAK_USER: ${KEYCLOAK_USER}
-      KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
-      PROXY_ADDRESS_FORWARDING: "false"
-      KEYCLOAK_FRONTEND_URL: ${KEYCLOAK_SERVER}
-    volumes:
-      - ./keycloak/realms:/opt/jboss/keycloak/imports
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
     command:
-      - '-b 0.0.0.0 -Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/opt/jboss/keycloak/imports/realm-export.json -Dkeycloak.migration.strategy=IGNORE_EXISTING'
+      - start-dev
     ports:
       - ${KEYCLOAK_PORT}:8080
-    hostname: keycloak
     networks:
       net_vre:
         ipv4_address: 172.21.0.12
-    depends_on:
-      - postgres
     restart: on-failure:2
 
   front_end:
