@@ -135,8 +135,6 @@ services:
 volumes:
   mongo_data:
     name: ${MONGO_VOLUME}
-  keycloak_data:
-    name: ${KEYCLOAK_DB_VOLUME}
 
 networks:
   net_vre:
