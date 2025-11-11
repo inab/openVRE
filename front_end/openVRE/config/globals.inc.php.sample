@@ -11,7 +11,7 @@ $GLOBALS['AppPrefix'] = "PROJECT"; // project url acronym
 $GLOBALS['NAME']      = "PROJECT_NAME"; // project name
 $GLOBALS['SITETITLE'] = "PROJECT_TITLE | Virtual Research Environment"; // site title
 $GLOBALS['TIMEOUT']   = 3600; // session and cookies timeout
-
+$GLOBALS['host_path'] = "/home/openVRE-core-dev";
 
 // Email
 $GLOBALS['FROMNAME']  = "VRE"; // 'From' for VRE tickets and notifications
