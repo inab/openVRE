@@ -38,10 +38,12 @@ services:
       - ./vault/vault-init.sh:/vault-init.sh
     cap_add:
       - IPC_LOCK
-    command: /bin/sh -c "vault server -dev & sleep 5 && /vault-init.sh && wait"
+    command: /bin/sh -c "vault server -dev & sleep 30 && /vault-init.sh && wait"
     networks:
       net_vre:
         ipv4_address: 172.21.0.18
+    depends_on:
+      - keycloak
     restart: on-failure:2
 
   keycloak:
@@ -53,8 +55,10 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HOSTNAME: ${KEYCLOAK_SERVER}
-    command:
-      - start-dev
+      KEYCLOAK_SECRET: ${KEYCLOAK_SECRET}
+    volumes:
+      - ${KEYCLOAK_REALMS_DIR}:${KEYCLOAK_IMPORT_DIR}:ro
+    command: ["start-dev", "--import-realm"]
     ports:
       - ${KEYCLOAK_PORT}:8080
     networks:
@@ -78,7 +82,6 @@ services:
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
       MONGO_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
-      MONGO_SERVER: ${MONGO_SERVER}
       MONGO_MAIN_DB: ${MONGO_MAIN_DB}
       MONGO_SERVER: ${MONGO_SERVER}
       SERVER_DOMAIN: ${FQDN_HOST}
