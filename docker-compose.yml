@@ -70,11 +70,17 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: ${KEYCLOAK_DB_VENDOR}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_DB_SCHEMA: ${KEYCLOAK_DB_SCHEMA}
+      KC_DB_URL_DATABASE: ${KEYCLOAK_DB_NAME}
+      KC_DB_URL_HOST: ${KEYCLOAK_DB_HOST}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER}
       KC_HOSTNAME: ${KEYCLOAK_SERVER}
       KEYCLOAK_SECRET: ${KEYCLOAK_SECRET}
     volumes:
       - ${KEYCLOAK_REALMS_DIR}:${KEYCLOAK_IMPORT_DIR}:ro
-    command: ["start-dev", "--import-realm"]
+    command: ["start", "--import-realm"]
     ports:
       - ${KEYCLOAK_PORT}:8080
     networks:
