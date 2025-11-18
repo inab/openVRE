@@ -1,6 +1,7 @@
 .env
 composer.lock
 front_end/openVRE/config/globals.inc.php
+vault/config/jwt-user-policies.hcl
 vault/config/public-key.pem
 vendor/
 *.cnf
