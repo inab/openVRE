@@ -9,10 +9,12 @@ VAULT_GROUP=1000 # Change if different
 # Change data folder ownership inside the container (by default it's owned by root)
 docker compose run --rm --entrypoint /bin/sh vault-server -c "chown -R $VAULT_USER:$VAULT_GROUP /vault/data"
 
+# Start the container
+docker compose up vault-server -d
+
 # Enter the container and setup
 docker exec -it vault-server /bin/sh
 
-set -e
 apk add jq
 
 vault operator init
