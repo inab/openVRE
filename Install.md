@@ -4,32 +4,34 @@
 
 - **Docker Engine - Community** (Version: 26.1.0)
 - **Docker Compose** (Version: v2.26.1)
-You will need to have Docker Compose installed on your system. You can find instructions [here](https://docs.docker.com/compose/install/).
+
+You will need to have Docker Compose installed on your system.
+You can find instructions [here](https://docs.docker.com/compose/install/).
 
 ## Cloning the Repository
 
 Clone the OpenVRE core development repository using the following command:
 
-```sh
- git clone https://github.com/inab/openVRE-core-dev.git 
+```bash
+ git clone https://github.com/inab/openVRE.git 
 ```
 
 Navigate into the cloned directory:
 
-```sh
-cd openVRE-core-dev
+```bash
+cd openVRE
 ```
-
 
 ## Setup configuration files 
 
 First thing, is to create and configure your own  `.env` file:
 ```
-cd openVRE-core-dev
+cd openVRE
 cp .env.sample .env
 ```
 
-Edit the new `.env` file and adapt it to your own environment. At the moment, the default values would work in most of the systems, just make sure to setup the hostname depending on the installation environment. Examples:
+Edit the new `.env` file and adapt it to your own environment. At the moment, the default values would work in most of
+the systems, just make sure to setup the hostname depending on the installation environment. Examples:
 - `FQDN_HOST`:
     - For local development: `$FQDN_HOST=localhost`
 - `UID`: Identifier of the host user running the containers (`id`)
@@ -54,10 +56,10 @@ in the front_end service).
 You can user already build images from [GitHub Container Registry](https://github.com/mapoferri?tab=packages). 
 
 #### Option 2: build images 
-Return to the `openVRE-core-dev` folder and check the `docker-compose.yml` file before building the containers. 
+Return to the `openVRE` folder and check the `docker-compose.yml` file before building the containers. 
 
 ```
-cd openVRE-core-dev/
+cd openVRE/
 docker compose build
 ```
 Check the new images:
