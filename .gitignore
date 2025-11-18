@@ -3,8 +3,10 @@ composer.lock
 front_end/openVRE/config/globals.inc.php
 vault/config/public-key.pem
 vendor/
+*.cnf
 *.crt
 *.csr
 *.key
 *.pem
+*.srl
 .jwks
