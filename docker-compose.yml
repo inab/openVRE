@@ -30,7 +30,7 @@ services:
       VAULT_DEV_LISTEN_ADDRESS: ${VAULT_DEV_LISTEN_ADDRESS}
       VAULT_ADDR: ${VAULT_ADDR}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
-      KEYCLOAK_SERVER: "http://172.21.0.12:8080/auth" # temporary hack for this keycloak v15.0.2
+      KEYCLOAK_SERVER: ${KEYCLOAK_SERVER}
     ports:
       - "${VAULT_PORT}:8200"
     volumes:
@@ -38,54 +38,32 @@ services:
       - ./vault/vault-init.sh:/vault-init.sh
     cap_add:
       - IPC_LOCK
-    command: /bin/sh -c "vault server -dev & sleep 5 && /vault-init.sh && wait"
+    command: /bin/sh -c "vault server -dev & sleep 30 && /vault-init.sh && wait"
     networks:
       net_vre:
         ipv4_address: 172.21.0.18
-    restart: on-failure:2
-
-  postgres:
-    container_name: postgres
-    image: postgres:17.3
-    profiles: ["local_auth"]
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - keycloak_data:/var/lib/postgresql/data
-    networks:
-      net_vre:
-        ipv4_address: 172.21.0.13
+    depends_on:
+      - keycloak
     restart: on-failure:2
 
   keycloak:
     container_name: keycloak
-    image: quay.io/keycloak/keycloak:15.0.2
+    hostname: keycloak
+    image: keycloak/keycloak:26.4
     profiles: ["local_auth"]
     environment:
-      DB_VENDOR: ${DB_VENDOR}
-      DB_ADDR: ${DB_ADDR}
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USER: ${DB_USER}
-      DB_SCHEMA: ${DB_SCHEMA}
-      DB_PASSWORD: ${DB_PASSWORD}
-      KEYCLOAK_USER: ${KEYCLOAK_USER}
-      KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
-      PROXY_ADDRESS_FORWARDING: "false"
-      KEYCLOAK_FRONTEND_URL: ${KEYCLOAK_SERVER}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME: ${KEYCLOAK_SERVER}
+      KEYCLOAK_SECRET: ${KEYCLOAK_SECRET}
     volumes:
-      - ./keycloak/realms:/opt/jboss/keycloak/imports
-    command:
-      - '-b 0.0.0.0 -Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/opt/jboss/keycloak/imports/realm-export.json -Dkeycloak.migration.strategy=IGNORE_EXISTING'
+      - ${KEYCLOAK_REALMS_DIR}:${KEYCLOAK_IMPORT_DIR}:ro
+    command: ["start-dev", "--import-realm"]
     ports:
       - ${KEYCLOAK_PORT}:8080
-    hostname: keycloak
     networks:
       net_vre:
         ipv4_address: 172.21.0.12
-    depends_on:
-      - postgres
     restart: on-failure:2
 
   front_end:
@@ -104,11 +82,14 @@ services:
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
       MONGO_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
-      MONGO_SERVER: ${MONGO_SERVER}
       MONGO_MAIN_DB: ${MONGO_MAIN_DB}
-      SERVER_NAME: ${FQDN_HOST}:${FRONTEND_PORT}
+      MONGO_SERVER: ${MONGO_SERVER}
+      SERVER_DOMAIN: ${FQDN_HOST}
+      SERVER_PORT: ${FRONTEND_PORT}
       VAULT_ADDR: ${VAULT_ADDR}
       VAULT_API_VERSION: ${VAULT_API_VERSION}
+      VAULT_ROLENAME: ${VAULT_ROLENAME}
+      VAULT_SECRET_PATH: ${VAULT_SECRET_PATH}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
@@ -162,8 +143,6 @@ services:
 volumes:
   mongo_data:
     name: ${MONGO_VOLUME}
-  keycloak_data:
-    name: ${KEYCLOAK_DB_VOLUME}
 
 networks:
   net_vre:
