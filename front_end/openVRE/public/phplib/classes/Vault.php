@@ -485,7 +485,7 @@ class VaultClient
 				$responseArray = $token["response"];
 				$respondeData = json_decode($responseArray, true);
 				if ($token["statusCode"] != 200) {
-					error_log("Error: " . $respondeData["error"]);
+					error_log("Error: " . print_r($respondeData, true));
 				}
 
 				$vaultToken = $respondeData["auth"]["client_token"];

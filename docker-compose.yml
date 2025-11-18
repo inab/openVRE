@@ -64,26 +64,19 @@ services:
 
   keycloak:
     container_name: keycloak
-    image: quay.io/keycloak/keycloak:15.0.2
+    hostname: keycloak
+    image: keycloak/keycloak:26.4
     profiles: ["local_auth"]
     environment:
-      DB_VENDOR: ${DB_VENDOR}
-      DB_ADDR: ${DB_ADDR}
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USER: ${DB_USER}
-      DB_SCHEMA: ${DB_SCHEMA}
-      DB_PASSWORD: ${DB_PASSWORD}
-      KEYCLOAK_USER: ${KEYCLOAK_USER}
-      KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
-      PROXY_ADDRESS_FORWARDING: "false"
-      KEYCLOAK_FRONTEND_URL: ${KEYCLOAK_SERVER}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME: ${KEYCLOAK_SERVER}
+      KEYCLOAK_SECRET: ${KEYCLOAK_SECRET}
     volumes:
-      - ./keycloak/realms:/opt/jboss/keycloak/imports
-    command:
-      - '-b 0.0.0.0 -Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/opt/jboss/keycloak/imports/realm-export.json -Dkeycloak.migration.strategy=IGNORE_EXISTING'
+      - ${KEYCLOAK_REALMS_DIR}:${KEYCLOAK_IMPORT_DIR}:ro
+    command: ["start-dev", "--import-realm"]
     ports:
       - ${KEYCLOAK_PORT}:8080
-    hostname: keycloak
     networks:
       net_vre:
         ipv4_address: 172.21.0.12
@@ -108,15 +101,17 @@ services:
       MAIL_HOST: ${MAIL_HOST}
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
-      MONGO_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
-      MONGO_SERVER: ${MONGO_SERVER}
-      MONGO_MAIN_DB: ${MONGO_MAIN_DB}
       MONGO_CA_FILE: ${MONGO_CA_FILE}
       MONGO_CERT_KEYFILE: ${MONGO_CERT_KEYFILE}
-      SERVER_NAME: ${FQDN_HOST}
+      MONGO_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
+      MONGO_MAIN_DB: ${MONGO_MAIN_DB}
+      MONGO_SERVER: ${MONGO_SERVER}
+      SERVER_DOMAIN: ${FQDN_HOST}
       VAULT_ADDR: ${VAULT_ADDR}
       VAULT_API_VERSION: ${VAULT_API_VERSION}
       VAULT_CERT_CAFILE: ${VAULT_CERT_CAFILE}
+      VAULT_ROLENAME: ${VAULT_ROLENAME}
+      VAULT_SECRET_PATH: ${VAULT_SECRET_PATH}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
