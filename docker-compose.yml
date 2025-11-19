@@ -193,8 +193,8 @@ networks:
   net_vre:
     name: ${NETWORK_NAME}
     # Use this driver_opts on openStack cloud
-    driver_opts:
-      com.docker.network.driver.mtu: 1440
+    # driver_opts:
+    #  com.docker.network.driver.mtu: 1440
     ipam:
       config:
         - subnet: 172.21.0.0/24
