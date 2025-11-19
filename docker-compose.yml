@@ -9,16 +9,17 @@ services:
       MONGO_INITDB_USERNAME: ${MONGO_INITDB_USERNAME}
       MONGO_INITDB_PASSWORD: ${MONGO_INITDB_PASSWORD}
       MONGO_MAIN_DB: ${MONGO_MAIN_DB}
+      MONGO_TLS_MODE: ${MONGO_TLS_MODE}
     ports:
       - "${MONGO_PORT}:27017"
-    command: mongod --config /etc/mongo/mongod.conf
+    command: mongod --bind_ip_all --tlsMode ${MONGO_TLS_MODE} # --tlsCertificateKeyFile ${MONGO_CERT_KEYFILE} --tlsCAFile ${MONGO_CA_COMBINED_FILE}
     volumes:
       - mongo_data:/data/db:rw
       - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
       - ./mongodb/init_documents:/init_documents:ro
       - ./mongodb/mongod.conf:/etc/mongo/mongod.conf:ro
-      - ${MONGO_SSL_COMBINED_CAFILE}:${MONGO_CA_COMBINED_FILE}:ro
-      - ${MONGO_SSL_KEYFILE}:${MONGO_CERT_KEYFILE}:ro
+      # - ${MONGO_SSL_COMBINED_CAFILE}:${MONGO_CA_COMBINED_FILE}:ro
+      # - ${MONGO_SSL_KEYFILE}:${MONGO_CERT_KEYFILE}:ro
     networks:
       net_vre:
         ipv4_address: 172.21.0.10
@@ -113,11 +114,12 @@ services:
       MAIL_HOST: ${MAIL_HOST}
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
-      MONGO_CA_FILE: ${MONGO_CA_FILE}
-      MONGO_CERT_KEYFILE: ${MONGO_CERT_KEYFILE}
+      # MONGO_CA_FILE: ${MONGO_CA_FILE}
+      # MONGO_CERT_KEYFILE: ${MONGO_CERT_KEYFILE}
       MONGO_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
       MONGO_MAIN_DB: ${MONGO_MAIN_DB}
       MONGO_SERVER: ${MONGO_SERVER}
+      MONGO_TLS_MODE: ${MONGO_TLS_MODE}
       SERVER_DOMAIN: ${FQDN_HOST}
       VAULT_ADDR: ${VAULT_ADDR}
       VAULT_API_VERSION: ${VAULT_API_VERSION}
@@ -134,8 +136,8 @@ services:
       - ./shared_data:/shared_data
       - ${FRONTEND_SSL_PEM}:${FRONTEND_CERT_PEM}:ro
       - ${FRONTEND_SSL_KEY}:${FRONTEND_CERT_KEY}:ro
-      - ${MONGO_SSL_CAFILE}:${MONGO_CA_FILE}:ro
-      - ${MONGO_SSL_KEYFILE}:${MONGO_CERT_KEYFILE}:ro
+      # - ${MONGO_SSL_CAFILE}:${MONGO_CA_FILE}:ro
+      # - ${MONGO_SSL_KEYFILE}:${MONGO_CERT_KEYFILE}:ro
       - ${VAULT_SSL_CAFILE}:${VAULT_CERT_CAFILE}:ro
     depends_on:
       - sgecore
