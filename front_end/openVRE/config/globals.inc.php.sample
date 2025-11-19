@@ -11,7 +11,6 @@ $GLOBALS['AppPrefix'] = "PROJECT"; // project url acronym
 $GLOBALS['NAME']      = "PROJECT_NAME"; // project name
 $GLOBALS['SITETITLE'] = "PROJECT_TITLE | Virtual Research Environment"; // site title
 $GLOBALS['TIMEOUT']   = 3600; // session and cookies timeout
-$GLOBALS['host_path'] = "/home/openVRE";
 
 // Email
 $GLOBALS['FROMNAME']  = "VRE"; // 'From' for VRE tickets and notifications
@@ -155,8 +154,8 @@ $GLOBALS['clouds'] = Array(
                         "pubDir_fs"         => "/NFS/export/path/public/",   // export path for NFS server
                         "dataDir_virtual"   => $GLOBALS['dataDir'],
                         "pubDir_virtual"    => $GLOBALS['pubDir'],
-                        "dataDir_host"    => $GLOBALS["host_path"].$GLOBALS['dataDir'],
-                        "pubDir_host"    => $GLOBALS["host_path"].$GLOBALS['pubDir'],
+                        "dataDir_host"    => getenv('FRONTEND_HOST_PATH').$GLOBALS['dataDir'],
+                        "pubDir_host"    => getenv('FRONTEND_HOST_PATH').$GLOBALS['pubDir'],
                         "PMESserver_domain" => "pmes.mydomain.com",
                         "PMESserver_port"   => "80",
                         "PMESserver_address"=> "/",

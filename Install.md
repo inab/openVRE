@@ -30,14 +30,7 @@ cd openVRE
 cp .env.sample .env
 ```
 
-Edit the new `.env` file and adapt it to your own environment. At the moment, the default values would work in most of
-the systems, just make sure to setup the hostname depending on the installation environment. Examples:
-- `FQDN_HOST`:
-    - For local development: `$FQDN_HOST=localhost`
-- `UID`: Identifier of the host user running the containers (`id`)
-- `GID`: Identifier of the host group running the containers (non-privileged users should belong to `docker`group)
-- `DOCKER_GROUP`: Identifier of the `Docker` group. 
-- `KEYCLOAK_SECRET`: The secret for the Keycloak client.
+Edit the new `.env` file and adapt it to your own environment.
 
 ### Custom Configuration
 
