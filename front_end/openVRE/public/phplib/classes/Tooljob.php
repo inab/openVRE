@@ -1179,7 +1179,14 @@ EOF;
 			return 0;
 		}
 
+		$siteDetails = $this->getSiteDetailsFromMongoDB("marenostrum");
+		if (!$siteDetails) {
+			$_SESSION['errorData']['Info'][] = "Site '{$site}' not found in MongoDB collection!";
+			return 0;
+		}
 		// Absolute path to your working scratch dir (where the PROJECTUSER... folder is)
+		$rootPath = $siteDetails['root_path']; // "/gpfs/scratch/"
+		$scratchBasePath = constructingDestinationDir_MN($rootPath, $ssh_username);
 		$scratchBasePath = "/gpfs/scratch/bsc23/MN4/bsc23/bsc23829";
 		$projectUserDir = $_SESSION['User']['id']; // e.g., PROJECTUSER68245281ad3ee
 		$projectDir = $this->project;              // e.g., __PROJ68245281ad3f03.79906233
@@ -1450,7 +1457,6 @@ EOF;
 		$bashFilename = $this->submission_file;
 		$logFilename = $this->log_file;
 		$siteDetails = $this->getLauncher_SlurmInfo($siteId);
-
 		try {
 			$fout = fopen($bashFilename, "w");
 			if ($fout === false) {
@@ -1461,7 +1467,6 @@ EOF;
 			$_SESSION['errorData']['Error'][] = "Failed to create SLURM submission file. " . $e->getMessage();
 			return 0;
 		}
-
 		// Write SLURM headers
 		fwrite($fout, "#!/bin/bash\n");
 		fwrite($fout, "#SBATCH --job-name=" . $this->toolId . "_job\n");
@@ -1473,13 +1478,13 @@ EOF;
 		fwrite($fout, "#SBATCH --error=serial_%j.err\n");
 		fwrite($fout, "#SBATCH --ntasks=1\n");
 		fwrite($fout, "#SBATCH --time=01:00:00\n"); // Adjust as needed
-		
 		fwrite($fout, "$cmd");
 
 		fclose($fout);
 
 		return $bashFilename;
 	}
+
 	protected function createSubmitFile_PMES($data)
 	{
 		$jsonFile   = $this->submission_file;

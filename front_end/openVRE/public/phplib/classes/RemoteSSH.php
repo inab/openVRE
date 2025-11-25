@@ -1,11 +1,9 @@
 <?php
 
 //require_once 'vendor/autoload.php';
-
+require 'vendor/autoload.php';
 use phpseclib3\Net\SSH2;
-use phpseclib3\Crypt\RSA;
 use phpseclib3\Crypt\PublicKeyLoader;
-use phpseclib3\Net\SFTP;
 
 // Opening the SSH session with MN and access to Swift Object Storage to copy the data
 // Inputs: 

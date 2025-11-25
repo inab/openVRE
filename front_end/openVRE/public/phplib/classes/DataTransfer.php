@@ -262,7 +262,7 @@ class DataTransfer {
         return [
             'name' => $result['name'] ?? null,
             'server' => $result['server'] ?? null,
-            'root_path' => $result['openvre_remote_rootpath_default'] ?? null,
+            'root_path' => $result['launcher']['access_credentials']['rootpath_default'] ?? null,
             'job_manager' => $result['launcher']['job_manager'] ?? null,
             'container' => $result['launcher']['container'] ?? null
         ];
