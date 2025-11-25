@@ -33,20 +33,22 @@ cp .env.sample .env
 
 Edit the new `.env` file and adapt it to your own environment.
 
-Then, do the same for the `globals.inc.php` file. Default values should work for a first setup:
+Then, do the same for the `globals.inc.php` file:
 
 ``` bash
 cp front_end/openVRE/config/globals.inc.php.sample front_end/openVRE/config/globals.inc.php
 ```
 
-For advanced system administration, such as SGE fine-tuning, Keycloak integration, or Vault setup, see [Admin-Specific Configuration](https://github.com/inab/openVRE/wiki/Developing-and-Administering-OpenVRE)
+After that, you will need to manually run some [steps to set up your Vault service](https://github.com/inab/openVRE/blob/main/vault/vault-init.md). 
+
+For advanced system administration, such as SGE fine-tuning, Keycloak integration, or Vault setup, see [Admin-Specific Configuration](https://github.com/inab/openVRE/wiki/Developing-and-Administering-OpenVRE).
 
 ## Start the services
 
-Validate the `docker-compose.yml` file before creating and starting them with the following command: 
+Run the `docker-compose.yml` file once you have set up your OpenVRE instance with the following command: 
 
 ``` bash
-docker-compose --profile "local_auth" up -d 
+docker compose --profile "local_auth" up -d 
 ```
 
 and check the status of the resulting containers:
