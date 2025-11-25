@@ -4,7 +4,7 @@
 require dirname(__FILE__)."/../config/globals.inc.php";
 
 // import vendor libs
-require dirname(__FILE__)."/../vendor/autoload.php"; 
+require dirname(path: __FILE__)."/../vendor/autoload.php"; 
 
 // import local classes
 foreach(glob(dirname(__FILE__)."/../public/phplib/classes/*.php") as $lib){

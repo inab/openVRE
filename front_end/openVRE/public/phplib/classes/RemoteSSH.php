@@ -1,7 +1,7 @@
 <?php
 
-//require_once 'vendor/autoload.php';
-require 'vendor/autoload.php';
+namespace OpenVRE\SSH;
+
 use phpseclib3\Net\SSH2;
 use phpseclib3\Crypt\PublicKeyLoader;
 
@@ -22,6 +22,7 @@ use phpseclib3\Crypt\PublicKeyLoader;
 //   >> Exec command
 //   >> Copy the result file to DB or back to Swift 
 //   >> Remove tmp folder from MN 
+
 
 
 

@@ -3,7 +3,8 @@
 
 use phpseclib3\Net\SSH2;
 use phpseclib3\Crypt\PublicKeyLoader;
-require "./RemoteSSH.php";
+use OpenVRE\SSH\RemoteSSH;
+
 
 class DataTransfer {
     private array $filesId;
