@@ -196,7 +196,7 @@ var Profile = function () {
 							$('.top-menu span.username').html($('input[name="Name"]').val());
 							$('.top-menu #avatar-no-picture').html($('input[name="Name"]').val().slice(0, 1) + $('input[name="Surname"]').val().slice(0, 1));
 							$('.profile-userpic #avatar-usr-profile').html($('input[name="Name"]').val().slice(0, 1) + $('input[name="Surname"]').val().slice(0, 1));
-							if (isFirstTime == 1) location.href = baseURL + 'home';
+							if (isFirstTime == 1) location.href = baseURL + 'home/';
 
 						} else {
 							$('#err-chg-prf').fadeIn(300);

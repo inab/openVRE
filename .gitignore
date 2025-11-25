@@ -1,13 +1,13 @@
 .env
 composer.lock
 front_end/openVRE/config/globals.inc.php
-front_end/openVRE/config/*.conf
-vault/config/public-key.pem
-vault/file/*
 vault/config/jwt-user-policies.hcl
+vault/config/public-key.pem
 vendor/
-volumes/
+*.cnf
 *.crt
+*.csr
 *.key
 *.pem
+*.srl
 .jwks

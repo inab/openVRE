@@ -6,14 +6,11 @@
 
 
 // Main config
-$GLOBALS['SERVER']    = "http://localhost:8088"; // domain
 $GLOBALS['BASEURL']   = "/"; // prefix url path. Set "/" for no prefix
 $GLOBALS['AppPrefix'] = "PROJECT"; // project url acronym
 $GLOBALS['NAME']      = "PROJECT_NAME"; // project name
 $GLOBALS['SITETITLE'] = "PROJECT_TITLE | Virtual Research Environment"; // site title
 $GLOBALS['TIMEOUT']   = 3600; // session and cookies timeout
-$GLOBALS['host_path'] = "/your_system_path/dockerized_vre";
-
 
 // Email
 $GLOBALS['FROMNAME']  = "VRE"; // 'From' for VRE tickets and notifications
@@ -48,6 +45,7 @@ $GLOBALS['logs_datetime'] = "dd.M.Y HH:mm:ss";
 $GLOBALS['NETWORK_IP'] = "172.17.0.1"; # default host ip for docker
 $GLOBALS['interactive_range_start_port'] = 9001;
 $GLOBALS['max_parallel_independent_tools'] = 10;
+$GLOBALS['toolsPath'] = "/tools/";
 
 
 // Tool integration models and templates
@@ -58,7 +56,7 @@ $GLOBALS['tool_io_dev_sample']  = $GLOBALS['root']."/install/data/tool_schemas/t
 
 // Oauth2 authentification
 $GLOBALS['auth_required']          = False; // Forces login
-$GLOBALS['authServer']             = 'http://172.21.0.12:8080/auth'; // internal oauth2 server
+$GLOBALS['authServer']             = getenv('KEYCLOAK_SERVER'); // oauth2 server
 $GLOBALS['authRealm']              = getenv('KEYCLOAK_REALM'); // keycloak realm
 $GLOBALS['urlAuthorize' ]          = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/auth';     //get autorization_code
 $GLOBALS['urlAccessToken']         = $GLOBALS['authServer'].'/realms/'.$GLOBALS['authRealm'].'/protocol/openid-connect/token';    //get token
@@ -68,9 +66,9 @@ $GLOBALS['adminToken']             = $GLOBALS['authServer']."/realms/master/prot
 $GLOBALS['adminRealm']             = $GLOBALS['authServer']."/admin/realms/".$GLOBALS['authRealm']; // admin keycloak users
 
 // Vault integration and roles
-$GLOBALS['vaultUrl'] = 'http://vault-server:8200/v1';
-$GLOBALS['vaultRolename'] = 'user-role';
-$GLOBALS['secretPath'] = 'secret/data/';
+$GLOBALS['vaultUrl'] = getenv('VAULT_ADDR') . "/" . getenv('VAULT_API_VERSION');
+$GLOBALS['vaultRolename'] = getenv('VAULT_ROLENAME');
+$GLOBALS['secretPath'] = getenv('VAULT_SECRET_PATH');
 
 // EGA
 $GLOBALS['EGA_METADATA_TOKEN_ENDPOINT'] = 'https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token';
@@ -86,7 +84,7 @@ $GLOBALS['EGA_METADATA_API'] = 'https://metadata.ega-archive.org';
 
 
 // Default names and local path for VRE
-$GLOBALS['URL']       = $GLOBALS['SERVER'].$GLOBALS['BASEURL']; // full VRE URL
+$GLOBALS['URL']       = "https://" . getenv('SERVER_DOMAIN') . $GLOBALS['BASEURL']; // full VRE URL
 $GLOBALS['URL_login'] = $GLOBALS['URL']."login.php"; // Default for auth server login
 $GLOBALS['htmlPath']  = $GLOBALS['root']. "/public/"; // Default path for public folder
 $GLOBALS['htmlib']    = $GLOBALS['htmlPath']."htmlib"; // Default path for html templates
@@ -156,8 +154,8 @@ $GLOBALS['clouds'] = Array(
                         "pubDir_fs"         => "/NFS/export/path/public/",   // export path for NFS server
                         "dataDir_virtual"   => $GLOBALS['dataDir'],
                         "pubDir_virtual"    => $GLOBALS['pubDir'],
-                        "dataDir_host"    => $GLOBALS["host_path"].$GLOBALS['dataDir'],
-                        "pubDir_host"    => $GLOBALS["host_path"].$GLOBALS['pubDir'],
+                        "dataDir_host"    => getenv('FRONTEND_HOST_PATH').$GLOBALS['dataDir'],
+                        "pubDir_host"    => getenv('FRONTEND_HOST_PATH').$GLOBALS['pubDir'],
                         "PMESserver_domain" => "pmes.mydomain.com",
                         "PMESserver_port"   => "80",
                         "PMESserver_address"=> "/",

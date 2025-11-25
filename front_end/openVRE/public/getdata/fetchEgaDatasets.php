@@ -21,6 +21,11 @@ try {
             "X-Vault-Token: $vaultToken"
         ]);
 
+        curl_setopt($ch, CURLOPT_CAINFO, getenv('VAULT_CERT_CAFILE'));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
+
         $response = curl_exec($ch);
 
         if (curl_errno($ch)) {
