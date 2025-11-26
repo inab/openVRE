@@ -96,8 +96,7 @@ vault policy write user-policy jwt-user-policies.hcl
 ## Enable KV secrets engine
 
 ```bash
-vault secrets enable -path=secret kv-v2
-vault write secret/config max_versions=1
+vault secrets enable -path=secret -version=1 kv
 ```
 
 ## Revoke root token (optional but recommended)
