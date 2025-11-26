@@ -46,10 +46,14 @@ apk add jq
 vault operator init
 vault operator unseal
 vault login
-vault auth enable jwt
 ```
 
 ## Configure JWT Authentication
+
+Enable JWT signature verification method:
+```bash
+vault auth enable jwt
+```
 
 Navigate to config directory:
 
