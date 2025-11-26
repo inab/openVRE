@@ -22,10 +22,10 @@ By default, the folder is owned by `root`. Update it:
 docker compose run --rm --entrypoint /bin/sh vault-server -c "chown -R $VAULT_USER:$VAULT_GROUP /vault/data"
 ```
 
-## Start the Vault container
+## Start the Vault and Keycloak containers
 
 ```bash
-docker compose up vault-server -d
+docker compose up vault-server keycloak -d
 ```
 
 ## Enter the container and install basic tools
