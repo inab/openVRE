@@ -248,15 +248,13 @@ function InputTool_printSelectFile($input, $rerun, $ff, $multiple, $required) {
 function InputTool_printListOfFiles($input, $rerun, $required) {
 
 	$req = "field_not_required";
-	if($required) $req = "field_required";
-
+	if($required) $req = "field_required"; 
 	$output = '<div class="form-group">
 		<label class="control-label">'.$input['description'].' <i class="icon-question tooltips" data-container="body" data-html="true" data-placement="right" data-original-title="<p align=\'left\' style=\'margin:0\'>'.$input['help'].'</p>"></i></label>
 		<div class="input-group">
 			<span class="input-group-addon"><i class="fa fa-file"></i></span>
 			<select name="input_files_public_dir['.$input['name'].']" class="form-control '.$req.'">
 				<option value="">Select the '.$input['description'].'</option>';
-
 				$tool_options = $input['enum_items'];
 				for ($i=0; $i<count($tool_options['name']); $i++){
 
@@ -265,13 +263,10 @@ function InputTool_printListOfFiles($input, $rerun, $required) {
 
 					$output .= '<option value="'.$tool_options['name'][$i].'" '.$sel.'>'.$tool_options['description'][$i].'</option>';
 				} 
-
 	$output .= '</select>
 		</div>
 	</div>';
-
 	echo $output;
-
 }
 
 // print input
@@ -288,7 +283,6 @@ function InputTool_printInput($input, $type) {
 		$min = floatval($input["minimum"]);
 		$range = 'min="'.$min.'" max="'.$max.'"';
 	}
-
 	if($type == "number") {
 		if ($max !== "" && $min !== "") {
 			$diff = $max - $min;
@@ -300,17 +294,13 @@ function InputTool_printInput($input, $type) {
 		$step = 'step="'.$st.'"';
 
 	}
-
 	if( isset($input['default']) && ($input['default'] !== null) && ($input['default'] !== "null")) $value = $input['default'];
 	else $value = "";
-
 	$output = '<div class="form-group">
 				<label class="control-label">'.$input['description'].' <i class="icon-question tooltips" data-container="body" data-html="true" data-placement="right" data-original-title="<p align=\'left\' style=\'margin:0\'>'.$input['help'].'</p>"></i></label>
 				<input type="'.$type.'" '.$range.' '.$step.' name="arguments['.$input['name'].']" id="'.str_replace(":", "_", $input['name']).'" class="form-control form-field-enabled '.$req.'" value="'.$value.'">
 				</div>';
-
 	return $output;
-
 }
 
 // print input
@@ -318,14 +308,10 @@ function InputTool_printInputHidden($input, $type) {
 
 	$req = "field_not_required";
 	if($input["required"]) $req = "field_required";
-
 	if(($input['value'] !== null) && ($input['value'] !== "null")) $value = $input['value'];
 	else $value = "";
-
 	$output = '<input type="hidden" name="arguments['.$input['name'].']" id="'.str_replace(":", "_", $input['name']).'" class="form-control '.$req.'" value="'.$value.'">';
-
 	return $output;
-
 }
 
 // print select
@@ -333,20 +319,16 @@ function InputTool_printSelect($input) {
 
 	$req = "field_not_required";
 	if(isset($input["required"]) && $input["required"]) $req = "field_required";
-
 	if(($input['default'] !== null) && ($input['default'] !== "null")) $default = $input['default'];
 	else $default = "";
-
 	if($default === "false") $default = [0];
 	if($default === "true") $default = [1];
-
 	if($input["type"] == "boolean") {
 		$tool_options["name"] = [1, 0];
 		$tool_options["description"] = ["True", "False"];
 	} else {
 		$tool_options = $input['enum_items'];
 	}
-
 	$output = '<div class="form-group">
 				<label class="control-label">'.$input['description'].' <i class="icon-question tooltips" data-container="body" data-html="true" data-placement="right" data-original-title="<p align=\'left\' style=\'margin:0\'>'.$input['help'].'</p>"></i></label>
 				<select  name="arguments['.$input['name'].']" id="'.str_replace(":", "_", $input['name']).'" class="form-control '.$req.'">';
@@ -358,9 +340,7 @@ function InputTool_printSelect($input) {
 				}
 	$output .= '</select>
 		</div>';
-
 	return $output;
-
 }
 
 // print select multiple
@@ -368,12 +348,9 @@ function InputTool_printSelectMultiple($input) {
 
 	$req = "field_not_required";
 	if($input["required"]) $req = "field_required";
-
 	if(($input['default'] !== null) && ($input['default'] !== "null") && ($input['default'] !== "")) $default = array_values($input['default']);
 	else $default = "";
-
 	$tool_options = $input['enum_items'];
-
 	$output = '<div class="form-group">
 				<label class="control-label">'.$input['description'].' <i class="icon-question tooltips" data-container="body" data-html="true" data-placement="right" data-original-title="<p align=\'left\' style=\'margin:0\'>'.$input['help'].'</p>"></i></label>
 				<select  name="arguments['.$input['name'].'][]" id="'.str_replace(":", "_", $input['name']).'" class="form-control '.$req.'" multiple="multiple">';
@@ -385,9 +362,7 @@ function InputTool_printSelectMultiple($input) {
 				}
 	$output .= '</select>
 		</div>';
-
 	return $output;
-
 }
 
 // print field
@@ -398,7 +373,6 @@ function InputTool_printField($input, $rerun) {
 	$field = null;
 
 	switch($input["type"]) {
-
 		case 'string': 
 			$field = "input";
 			$type = "text";
@@ -426,7 +400,6 @@ function InputTool_printField($input, $rerun) {
 	}
 
 	switch($field) {
-
 		case "input": 
 			if ($rerun!== null && $rerun !== "") {
 				$input["default"] = $rerun;
@@ -439,61 +412,47 @@ function InputTool_printField($input, $rerun) {
 			if ($type === "number" && isset($input["default"])) {
                 $input["default"] = floatval($input["default"]); //Normalize the number to float
             }
-
 			if ($type === "hidden") {
 				$output = InputTool_printInputHidden($input, $type);
 			} else {
 				$output = InputTool_printInput($input, $type);
 			}	
 			break;
-
 		case "select": if($rerun) $input["default"] = [$rerun];
 			$output = InputTool_printSelect($input);
 			break;
-
 		case "select_multiple": if($rerun) $input["default"] = $rerun;
 			$output = InputTool_printSelectMultiple($input);
 			break;
 	}
 	return $output;
-
 }
 
 // print the whole form for standard tools
 function InputTool_printSettings($arguments, $rerun) {
-
 	$output = '';
-
 	$c = 0;
 	foreach($arguments as $arg) {
-
 		if(($c % 2) == 0) $output .= '<div class="row">';
-
 		$output .= '<div class="col-md-6">';
 		$output .= InputTool_printField($arg, $rerun[$arg['name']]);
 		$output .= '</div>';
-
 		if(($c % 2) != 0) $output .= '</div>';
-
 		$c ++;
-
 	}
-
 	echo $output;
-
 }
-
 
 
 function InputTool_generateLocationOptions($sites) {
     $options = '';
+	var_dump($sites);
     foreach ($sites as $site) {
         $op = ($site['status'] == '1') ? 'selected' : '';
         $options .= "<option {$op} value=\"{$site['site_id']}\"> {$site['name']} </option>\n";
     }
     return $options;
 }
-
 
 
 function InputTool_generateLauncherOptions($sites) {
