@@ -277,30 +277,26 @@ function InputTool_printListOfFiles($input, $rerun, $required) {
 // print input
 function InputTool_printInput($input, $type) {
 
-	$req = "field_not_required";
-	if($input["required"]) $req = "field_required";
-
-	$max  = ""; 
-	$min  = "";
-	$range= "";
+	$req = (!empty($input["required"])) ? "field_required" : "field_not_required";
+	$max  = null; 
+	$min  = null;
 	$step = "";
+	$st   = "any";
 
 	if(isset($input["maximum"]) && isset($input["minimum"])) {
-		$max = $input["maximum"]; 
-		$min = $input["minimum"];
+		$max = floatval($input["maximum"]);
+		$min = floatval($input["minimum"]);
 		$range = 'min="'.$min.'" max="'.$max.'"';
 	}
 
 	if($type == "number") {
-
-		if(isset($max) && isset($min)) {
-			if(($max - $min) > 10) $st = 1;
-			if(($max - $min) < 10 && ($max - $min) > 1) $st = 0.1;
-			if(($max - $min) < 1) $st = 0.01;
-		} else {
-			$st = "any";
+		if ($max !== "" && $min !== "") {
+			$diff = $max - $min;
+			if ($diff > 10)        $st = 1;
+			elseif ($diff > 1)     $st = 0.1;
+			elseif ($diff > 0)     $st = 0.01;
+			else                   $st = "any";
 		}
-
 		$step = 'step="'.$st.'"';
 
 	}
@@ -398,31 +394,57 @@ function InputTool_printSelectMultiple($input) {
 function InputTool_printField($input, $rerun) {
 
 	if(isset($input["required"]) && $input["required"]) $req = "field_required";
+	$type = null;
+	$field = null;
 
 	switch($input["type"]) {
 
-		case 'string': $field = "input";
-			 $type = "text";
-			 break;
-		case 'enum': 
-		case 'boolean': $field = "select";
+		case 'string': 
+			$field = "input";
+			$type = "text";
 			break;
-		case 'enum_multiple': $field = "select_multiple";
+		case 'enum': 
+		case 'boolean': 
+			$field = "select";
+			break;
+		case 'enum_multiple': 
+			$field = "select_multiple";
 			break;	
 		case 'integer':
-		case 'number': $field = "input";
-			 $type = "number";
-			 break;
-		case 'hidden': $field = "input";
-			 $type = "hidden";
-			 break;
+		case 'number': 
+			$field = "input";
+			$type = "number";
+			break;
+		case 'hidden': 
+			$field = "input";
+			$type = "hidden";
+			break;
+		case 'range': 
+			$field = "input";
+			$type = "range";
+			break;	 
 	}
 
 	switch($field) {
 
-		case "input": if($rerun) $input["default"] = $rerun;
-			if($type == "hidden") $output = InputTool_printInputHidden($input, $type);
-			else $output = InputTool_printInput($input, $type);	
+		case "input": 
+			if ($rerun!== null && $rerun !== "") {
+				$input["default"] = $rerun;
+			} else {
+				// If it's numeric and minimum is set, use min as default
+				if ($type == "number" && isset($input["minimum"])) {
+					$input["default"] = $input["minimum"];
+				}
+			}
+			if ($type === "number" && isset($input["default"])) {
+                $input["default"] = floatval($input["default"]); //Normalize the number to float
+            }
+
+			if ($type === "hidden") {
+				$output = InputTool_printInputHidden($input, $type);
+			} else {
+				$output = InputTool_printInput($input, $type);
+			}	
 			break;
 
 		case "select": if($rerun) $input["default"] = [$rerun];
