@@ -133,6 +133,7 @@ class RemoteSSH {
         chmod($tempKeyFile, 0600);
         $commands = [];
         foreach ($dataLocations as &$file) {
+            error_log("prepareSync - location: " . json_encode($file));
             $server = $file['site_details']['server'];
             $destinationPath = $this->constructingDestination_MN($file['site_details']['root_path'],$username, $userProjPath); 
             $file['remote_path'] = $destinationPath;
@@ -175,6 +176,8 @@ class RemoteSSH {
         $server = $dataLocations[0]['site_details']['server']; // Assuming all files go to the same server
         $remotePath = $dataLocations[0]['site_details']['root_path'];
         $remoteDir = $this->constructingDestination_MN($remotePath, $username, $userProjPath);
+        error_log("DEBUG: SSH connecting to $username@$server:22");
+
         // Ensure credentials are valid
         if (empty($sshPrivateKey) || empty($username) || empty($server)) {
             $_SESSION['errorData']['Error']="Error executeRsync: Missing SSH credentials.";

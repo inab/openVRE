@@ -178,8 +178,7 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 	);
 	//var_dump($data);
 	$key = $vaultClient->uploadKeystoVault($data);
-	//echo ("key");
-	//var_dump($key);
+	$_SESSION['userVaultInfo']['vaultKey'] = $key;
 	$tokenTime = $vaultClient->getTokenExpirationTime($GLOBALS['vaultUrl'], $key);
 	//echo ("TOKEN TIME" . $tokenTime);
 	if ($tokenTime !== false) {

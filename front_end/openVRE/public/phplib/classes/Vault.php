@@ -28,7 +28,7 @@ class VaultClient
 	public function checkToken($vaultUrl, $jwtToken, $roleName)
 	{
 		$headers = array("Content-Type: application/json",);
-		$url = $this->vaultUrl . "/auth/jwt/login";
+		$url = $vaultUrl . "/auth/jwt/login";
 
 		$data = [
 			'role' => $roleName,
@@ -45,8 +45,8 @@ class VaultClient
 
 		$response = curl_exec($ch);
 		if ($response === false) {
-			$error = curl_error($curl);
-			curl_close($curl);
+			$error = curl_error($ch);
+			curl_close($ch);
 			throw new Exception("Failed to send the JWT login request: $error");
 		}
 
@@ -363,18 +363,20 @@ class VaultClient
 				echo "SSH keys are set and have the correct format.";
 
 				try {
+
 					// First access the Vault with the Token provided by Keycloak
 					$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
 
-					$responseArray = $token["response"];
-					
+					$responseArray = json_decode($token["response"], true);					
 				
 					if ($token["statusCode"] !== 200) {
-						$errorMessage = isset($responseArray['errors']) ? implode(", ", $responseArray['errors']) : "Unknown error";
-						$_SESSION['errorData']['Error'][] = "Vault request failed with status: $errorMessage"; 
+						$errorMessage = isset($responseArray['errors']) ? ($responseArray['errors'][0]) : "Unknown error";
+						$_SESSION['errorData']['Error'][] = "Vault request failed with status: ". print_r($errorMessage, true); 
+						exit;
 					}
 					
 					$vaultToken = $responseArray["auth"]["client_token"];
+
 					if (empty($vaultToken)) {
 						$_SESSION['errorData']['Error'][] = " Vault authentication failed. No client token received.";
 						error_log("Vault Error: Vault authentication failed. No client token received.");
@@ -392,7 +394,9 @@ class VaultClient
 					// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
 				
 					$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "SSH", $vaultToken, $data);
+					
 					return $vaultToken;
+
 				} catch (Exception $e) {
 					echo "Error: " . $e->getMessage();
 				}
@@ -502,14 +506,14 @@ class VaultClient
 			'X-Vault-Token: ' . $vaultToken,
 		]);
 
-		$response = curl_exec($ch);
+		$response = curl_exec($curl);
 
-		if (curl_errno($ch)) {
-			echo 'Error: ' . curl_error($ch);
+		if (curl_errno($curl)) {
+			echo 'Error: ' . curl_error($curl);
 			return null;
 		}
 
-		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		if ($httpCode === 403) {
 			if ($this->isTokenExpired($url, $vaultToken)) {
 				$_SESSION['errorData']['Error'][] = "The Vault token has expired, need to refresh it in the User section.";
@@ -518,7 +522,7 @@ class VaultClient
 			}
 		}
 
-		curl_close($ch);
+		curl_close($curl);
 		$data = json_decode($response, true);
 		if ($data === null) {
 			return null;

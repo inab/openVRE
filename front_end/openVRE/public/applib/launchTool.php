@@ -7,7 +7,7 @@ use OpenStack\OpenStack;
 
 redirectOutside();
 
-$debug = 0;
+$debug = 1;
 
 $SGE_updated = getUserJobs($_SESSION['User']['id']);
 
@@ -210,7 +210,7 @@ $workDirId = $jobMeta->createWorking_dir();
 
 $workDirHost =  $jobMeta->working_dir; 
 
-$siteList = $_REQUEST['arguments_exec']['site_list'] ?? [];
+$siteList = $_REQUEST['sites']['site_list'] ?? [];
 
 if (!in_array('marenostrum', $siteList)) {
     if ($debug) {
@@ -241,11 +241,14 @@ if (!in_array('marenostrum', $siteList)) {
 		$_REQUEST['execution'], 
 		$_REQUEST['arguments_exec']
 	);
-	
+	if ($debug) {		
+		print "<br/>Data Transfer Locat</br>";	// This will show where the files will be transferred
+	}
 	//$remoteDir = $dataMeta->syncWorkingDir();
 	$dataLocations = $dataMeta->syncFiles();
 	// return jobId in async mode
 	// another pid same as $pid jobMeta  
+
 
 	
 

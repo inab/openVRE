@@ -47,9 +47,8 @@ class DataTransfer {
     public function syncFiles(): bool 
     {
         // Step 1: Get Data Locations
-    
+
         $dataLocations = $this->getDataLocation();
-        #echo "<br>Data Locations: " . print_r($dataLocations, true) . "<br>";
         // Step 2: Check if there are no files to transfer
         if ($dataLocations == 0) {
             $_SESSION['errorData']['Info'][] ="No files to transfer.";
@@ -63,7 +62,7 @@ class DataTransfer {
             $username = $_SESSION['User']['_id'];
             $sshCredentials = $this->getSSHcredentials($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
             if ($sshCredentials == 0) {
-                $_SESSION['errorData']['Info'][] = "Error: Failed to retrieve SSH credentials from Vault.";
+                $_SESSION['errorData']['Error'][] = "Error: Failed to retrieve SSH credentials from Vault.";
                 return false;
             }
 
@@ -90,6 +89,8 @@ class DataTransfer {
             }
             // o return de syncommand o añadir al object $dataTransfer
             // ASYNC or SYNC 
+            error_log("DEBUG: Executing rsync command: $syncCommand");
+            error_log("DEBUG: Updated data locations: " . json_encode($updatedDataLocations));
             // Step 6: Execute the rsync command using SSH credentials        
             $rsyncResult = $remoteSSH->executeRsyncCommand($sshCredentials, $syncCommand, $updatedDataLocations, $userProjPath);
 
@@ -204,7 +205,8 @@ class DataTransfer {
             return [];
         }
         // Determine the site (prefer 'local' if present, otherwise use first site in list)
-        $site = in_array('local', $siteList, true) ? 'local' : $siteList[0];
+        //$site = in_array('local', $siteList, true) ? 'local' : $siteList[0];
+        $site = explode('_', (in_array('local', $siteList ?? [], true) ? 'local' : ($siteList[0] ?? 'unknown')), 2)[0];
         $siteDetails = $this->getSiteDetailsFromMongoDB($site);
             if (!$siteDetails) {
                  $_SESSION['errorData']['Info'][] = "Site '{$site}' not found in MongoDB collection!";
@@ -231,15 +233,16 @@ class DataTransfer {
     public function getSSHcredentials($vaultUrl,$vaultToken,$accessToken, $vaultRolename,$username  )
     {
         $vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-        $vaultKey = $_SESSION['User']['Vault']['vaultKey'];
+        error_log("Session:" . var_dump($_SESSION['userVaultInfo']));
+        $vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
         if (!$vaultKey) {
-            $_SESSION['errorData']['Error']="Vault Key is empty, are you sure you saved your credentials?";
+            $_SESSION['errorData']['Error'][] ="Vault Key is empty, are you sure you saved your credentials?";
             exit;
         }
-        $credentials = $vaultClient->retrieveDatafromVault('SSH', $vaultKey, $vaultUrl, 'secret/mysecret/data/', $_SESSION['User']['_id'] . '_credentials.txt');
+        $credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
         if (!$credentials) {
-             $_SESSION['errorData']['Error']="Failed to retrieve SSH credentials from Vault, not present.";
-             return 0;
+            $_SESSION['errorData']['Error'][] ="Failed to retrieve SSH credentials from Vault, not present.";
+            return 0;
         }
         // Extract SSH credentials
         $sshPrivateKey = $credentials['priv_key'];
@@ -262,7 +265,7 @@ class DataTransfer {
         }
         return [
             'name' => $result['name'] ?? null,
-            'server' => $result['server'] ?? null,
+            'server' => $result['launcher']['access_credentials']['server'] ?? null,
             'root_path' => $result['launcher']['access_credentials']['rootpath_default'] ?? null,
             'job_manager' => $result['launcher']['job_manager'] ?? null,
             'container' => $result['launcher']['container'] ?? null

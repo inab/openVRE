@@ -40,7 +40,7 @@ services:
       - ./vault/vault-init.sh:/vault-init.sh
     cap_add:
       - IPC_LOCK
-    command: /bin/sh -c "vault server -dev & sleep 5 && /vault-init.sh && wait"
+    command: /bin/sh -c "vault server -dev & sleep 30 && /vault-init.sh && wait"
     networks:
       net_vre:
         ipv4_address: 172.21.0.18

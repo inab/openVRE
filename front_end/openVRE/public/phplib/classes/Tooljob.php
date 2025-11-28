@@ -76,19 +76,26 @@ class Tooljob
 		$this->arguments_exec = $arguments_exec;
 
 		// Set paths in the virtual machine
-		if (!empty($this->arguments_exec['site_list']) && count($this->arguments_exec['site_list']) >= 1) {
+		if (!empty($this->arguments_exec['site_list'])) {
 			$site_list = $this->arguments_exec['site_list'];
-			// The first element in site_list is the cloudName
-			$this->cloudName = $site_list[0];
-
-			// The second element in site_list is the launcher
-			$this->launcher = str_replace($this->cloudName . "_", "", $site_list[1]);
-		} else {
-
-			// If not enough information is provided, fall back to default method
+			// single element: marenostrum_Slurm
+			if (count($site_list) === 1) {
+				$full = $site_list[0];
+				error_log("DEBUG: single entry = $full");
+				// Split into cloudName + launcher
+				[$cloud, $launcher] = array_pad(explode('_', $full, 2), 2, '');
+				$this->cloudName = $cloud;
+				$this->launcher  = $launcher;
+				error_log("DEBUG: parsed cloudName = $cloud");
+				error_log("DEBUG: parsed launcher = $launcher");
+			}
+			} else {
+			// No site_list provided → fallback
 			$this->set_cloudName($tool);
 			$this->launcher = $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
 		}
+
+
 		switch ($this->launcher) {
 			case "SGE":
 			case "docker_SGE":
@@ -118,10 +125,12 @@ class Tooljob
 				$this->http_host = $GLOBALS['clouds'][$this->cloudName]['http_host'];
 				break;
 			case "Slurm":
-				$this->root_dir_df = $GLOBALS['clouds'][$this->cloudName]['mn_dir'] .  "/" . substr($_SESSION['User']['linked_accounts']['MN']['username'], 0, 6) . "/" . $_SESSION['User']['linked_accounts']['MN']['username'] . "/" . $GLOBALS['clouds'][$this->cloudName]['dataDir_fs'];
-				$this->pub_dir_fs = $GLOBALS['clouds'][$this->cloudName]['mn_dir'] .  "/" . substr($_SESSION['User']['linked_accounts']['MN']['username'], 0, 6) . "/" . $_SESSION['User']['linked_accounts']['MN']['username'] . "/" . $GLOBALS['clouds'][$this->cloudName]['pubDir_fs'];
-				$this->auth = $GLOBALS['clouds'][$this->cloudName]['auth'];
-				$this->http_host = $GLOBALS['clouds'][$this->cloudName]['http_host'];
+				$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'] . "/" . $_SESSION['User']['id'];
+				$this->root_dir_mug     = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
+				$this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
+				$this->pub_dir_volumes  = $GLOBALS['clouds'][$this->cloudName]['pubDir_host'];
+				$this->root_dir_volumes  = $GLOBALS['clouds'][$this->cloudName]['dataDir_host'] . "/" . $_SESSION['User']['id'];
+				$this->pub_dir_intern   = rtrim($this->pub_dir_virtual, "/") . "_tmp";
 				break;
 			default:
 				$_SESSION['errorData']['Error'][] = "Tool '$this->toolId' not properly registered. Launcher type is set to '" . $this->launcher . "'. Case not implemented.";
