@@ -227,7 +227,6 @@ class DataTransfer {
     public function getSSHcredentials($vaultUrl,$vaultToken,$accessToken, $vaultRolename,$username  )
     {
         $vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-        error_log("Session:" . var_dump($_SESSION['userVaultInfo']));
         $vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
         if (!$vaultKey) {
             $_SESSION['errorData']['Error'][] ="Vault Key is empty, are you sure you saved your credentials?";

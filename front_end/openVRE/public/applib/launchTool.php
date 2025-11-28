@@ -7,7 +7,7 @@ use OpenStack\OpenStack;
 
 redirectOutside();
 
-$debug = 1;
+$debug = 0;
 
 $SGE_updated = getUserJobs($_SESSION['User']['id']);
 
@@ -262,10 +262,10 @@ if (!in_array('marenostrum', $siteList)) {
 				redirect($_SERVER['HTTP_REFERER']);
 			}
 
-			//
+			// Adding Rsync of the Project directory to Remote System
 			// Launching Tooljob
 
-			$pid = $jobMeta->submit($tool);
+			$pid = $jobMeta->submit($tool); //Changing submit adding Slurm option through SSH session
 
 
 			if ($debug) {

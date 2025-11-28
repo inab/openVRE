@@ -4,7 +4,7 @@ require __DIR__."/../../config/bootstrap.php";
 
 redirectOutside();
 
-$debug=1;
+$debug=0;
 
 $SGE_updated = getUserJobs($_SESSION['User']['id']);
 

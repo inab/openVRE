@@ -941,8 +941,7 @@ class Tooljob
 					if (!is_file($submissionFilename)) {
 						return 0;
 					} else {
-						echo "Generated SLURM submission script:\n\n";
-    					echo file_get_contents($submissionFilename);
+						error_log("DEBUG createSubmitFile_Slurm (1) - Generated SLURM submission script:\n\n" . file_get_contents($submissionFilename));
 					}
 
 				default:
