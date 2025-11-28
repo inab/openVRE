@@ -241,32 +241,23 @@ if (!in_array('marenostrum', $siteList)) {
 		$_REQUEST['execution'], 
 		$_REQUEST['arguments_exec']
 	);
-	if ($debug) {		
-		print "<br/>Data Transfer Locat</br>";	// This will show where the files will be transferred
-	}
-	//$remoteDir = $dataMeta->syncWorkingDir();
 	$dataLocations = $dataMeta->syncFiles();
+	$_REQUEST['arguments_exec']['dataLocations'] = $dataLocations;
 	// return jobId in async mode
-	// another pid same as $pid jobMeta  
-
-
-	
-
 	if ($debug) {		
 		print "<br/>Data Transfer Locations:</br>";	
 		var_dump($dataLocations); // This will show where the files will be transferred
+		var_dump($_REQUEST['arguments_exec']);
 	}
 }
 
-		
-
 // Setting Command line. Adding parameters
-
-
 			$r = $jobMeta->prepareExecution($tool, $files, $files_pub);
 
-			if ($debug)
+			if ($debug) {
 				echo "<br/></br>PREPARE EXECUTION RETURNS ($r). <br/>";
+			}
+
 			if ($r == 0) {
 				redirect($_SERVER['HTTP_REFERER']);
 			}
@@ -277,28 +268,32 @@ if (!in_array('marenostrum', $siteList)) {
 			$pid = $jobMeta->submit($tool);
 
 
-			if ($debug)
+			if ($debug) {
 				echo "<br/></br>JOB SUBMITTED. PID = $pid<br/>";
+			}
 
-			if (!$pid)
+			if (!$pid) {
 				redirect($GLOBALS['BASEURL'] . "workspace/");
+			}
 
 
 			if ($debug) {
 				print "<br/>ERROR_DATA<br/>";
 				var_dump($_SESSION['errorData']);
 				unset($_SESSION['errorData']);
-				print "</br><br/>JOB_META END<br/>";
-				var_dump((array)$jobMeta);
+				print "</br><br/>JOB_META END<br/>"
+					. var_dump((array)$jobMeta);
 			}
 
-			if ($debug)
+			if ($debug) {
 				echo "<br/>Saving JOB MEDATA  USER <br/>";
+			}
 
 			addUserJob($_SESSION['User']['_id'], (array)$jobMeta, $jobMeta->pid);
 
-			if ($debug)
+			if ($debug) {
 				exit(0);
+			}
 
 			if (!isset($_SESSION['errorData']['Error'])) {
 				$proj = getProject($jobMeta->project);
@@ -310,3 +305,4 @@ if (!in_array('marenostrum', $siteList)) {
 			}
 
 			redirect($GLOBALS['BASEURL'] . "workspace/");
+

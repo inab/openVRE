@@ -44,8 +44,7 @@ class DataTransfer {
      *
      * @return boolean
      */
-    public function syncFiles(): bool 
-    {
+    public function syncFiles(): array {
         // Step 1: Get Data Locations
 
         $dataLocations = $this->getDataLocation();
@@ -80,8 +79,6 @@ class DataTransfer {
                 $_SESSION['errorData']['Info'][] = "Error: Failed to generate rsync command.";
                 return false; 
             }
-            
-
             foreach ($updatedDataLocations as $file) {
                 // Example: Use the updated data locations
                 // For instance, logging the updated remote path
@@ -89,30 +86,27 @@ class DataTransfer {
             }
             // o return de syncommand o añadir al object $dataTransfer
             // ASYNC or SYNC 
-            error_log("DEBUG: Executing rsync command: $syncCommand");
             error_log("DEBUG: Updated data locations: " . json_encode($updatedDataLocations));
             // Step 6: Execute the rsync command using SSH credentials        
             $rsyncResult = $remoteSSH->executeRsyncCommand($sshCredentials, $syncCommand, $updatedDataLocations, $userProjPath);
-
-            #echo "<br>" . $rsyncResult;
 
             if ($rsyncResult === true){
                 $mongoUpdate = $this->registerMongoTransferredFile($updatedDataLocations);
                 if ($mongoUpdate === true) {
                     foreach ($updatedDataLocations as $file) {
-                        #$_SESSION['errorData']['Info'][] = "File {$file['filename']} new location registered to {$file['remote_path']}/{$file['filename']}";
-                        return true;
+                        $_SESSION['errorData']['Info'][] = "File {$file['filename']} new location registered to {$file['remote_path']}/{$file['filename']}";
+                        #return true;
                     }
                 } else { 
                     $_SESSION['errorData']['Error'][] = "Something went wrong with the MongoUpdate for the file new location.";
-                    return false;
+                    return [];
                 }
             } else {
                 $_SESSION['errorData']['Error'][] = "Something went wrong with the Rsync, can't move files to remote location.";
-                return false;
+                return [];
             }
         }
-        return true;     
+        return $updatedDataLocations;     
    
     }
 
@@ -295,7 +289,7 @@ class DataTransfer {
                     error_log("Successfully updated file with _id: $fileId.");
                 } else {
                     error_log("No update was made for file with _id: $fileId.");
-                    $allFilesProcessed = false;
+                    $allFilesProcessed = true;
                 }
             } else {
                 error_log("File with _id: $fileId not found in MongoDB.");

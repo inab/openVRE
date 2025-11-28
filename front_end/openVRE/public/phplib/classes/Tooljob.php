@@ -832,6 +832,9 @@ class Tooljob
 	{
 		$launcher = $this->launcher;
 		$cloudName = $this->cloudName;
+		if (!isset($this->arguments_exec)) {
+			$this->arguments_exec = [];
+		}
 
 		if ($tool['external'] === false) {
 			switch ($launcher) {
@@ -924,11 +927,16 @@ class Tooljob
 					break;
 
 				case "Slurm":
-					$cmd = $this->setBashCmd_Singularity($tool);
+					$dataLocations = $_REQUEST['arguments_exec']['dataLocations'] ?? $this->arguments_exec['dataLocations'] ?? [];					
+					if (empty($dataLocations)) {
+						$_SESSION['errorData']['Error'][] = "Data Locations not recognized, not mirrored in remote system.";
+						print_r($dataLocations);
+						break;
+					}
+					$cmd = $this->setBashCmd_Singularity($tool, $dataLocations);
 					if (!$cmd) {
 						return 0;
 					}
-					$_SESSION['errorData']['Info'][] = "CMD:" . $cmd;
 					$submissionFilename = $this->createSubmitFile_Slurm($cloudName, $cmd); 
 					if (!is_file($submissionFilename)) {
 						return 0;
@@ -1181,47 +1189,41 @@ EOF;
 	}
 
 
-	protected function setBashCmd_Singularity($tool){
-
-		if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])) {
-			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
-			return 0;
+	protected function setBashCmd_Singularity($tool, $dataLocations){
+		error_log("setBashCmd_Singularity - dataLocations: " . json_encode($dataLocations));
+		if (empty($dataLocations)) {
+			$_SESSION['errorData']['Error'][] = "dataLocations is empty — cannot build paths.";
 		}
-
-		$siteDetails = $this->getSiteDetailsFromMongoDB("marenostrum");
-		if (!$siteDetails) {
-			$_SESSION['errorData']['Info'][] = "Site '{$site}' not found in MongoDB collection!";
-			return 0;
-		}
-		// Absolute path to your working scratch dir (where the PROJECTUSER... folder is)
-		$rootPath = $siteDetails['root_path']; // "/gpfs/scratch/"
-		$scratchBasePath = constructingDestinationDir_MN($rootPath, $ssh_username);
-		$scratchBasePath = "/gpfs/scratch/bsc23/MN4/bsc23/bsc23829";
-		$projectUserDir = $_SESSION['User']['id']; // e.g., PROJECTUSER68245281ad3ee
-		$projectDir = $this->project;              // e.g., __PROJ68245281ad3f03.79906233
-		$runId = basename($this->working_dir);  // e.g., run024
-
-		// Singularity bind mount
-		$bindPath = "$scratchBasePath/$projectUserDir:/shared_data/userdata/$projectUserDir";
-		// Singularity image and executable		
-		//$singularityImage = $tool['infrastructure']['container_image']; // e.g., seqio_tool.sif
-
-		$singularityExec = "/home/vre_template_tool/VRE_RUNNER";
+		//Singularity overlay
+		$overlayPath  = $tool['infrastructure']['singularity_overlay']; 
+		// Singularity image and executable
+		$singularityExec = $tool['infrastructure']['executable']; 		
 		$singularityImage = $tool['infrastructure']['singularity_image'];
-
-		// Tool parameters
-		$configFile     = "/shared_data/userdata/$projectUserDir/$projectDir/$runId/" . ".config.json";
-		$inputMetadata  = "/shared_data/userdata/$projectUserDir/$projectDir/$runId/" . ".input_metadata.json";
-		$outputMetadata = "/shared_data/userdata/$projectUserDir/$projectDir/$runId/" . ".results.json";
-		$logFile        = "$scratchBasePath/$projectUserDir/$projectDir/$runId/" . ".tool.log";
-
-		$cmd = "singularity exec --bind $bindPath $scratchBasePath/$singularityImage $singularityExec " .
-			"--config $configFile " .
-			"--in_metadata $inputMetadata " .
-			"--out_metadata $outputMetadata " .
-			"> $logFile 2>&1";
-
+		// Configuration files
+		$runFolder = $_REQUEST['execution'] ?? "run001";
+		$first = $dataLocations[0];
+		$pathDir = dirname($first['absolute_path']); 
+		$baseDir = dirname($pathDir);
+		// Example paths using runFolder
+		$configFile     = "$baseDir/$runFolder/config.json";
+		$inputMetadata  = "$baseDir/$runFolder/input_metadata.json";
+		$outputMetadata = "$baseDir/$runFolder/output_metadata.json";
+		$logFile        = "$baseDir/$runFolder/execution.log";
+		// Build command
+		$cmd  = "singularity exec ";
+		$cmd .= "--overlay $overlayPath ";
+		$cmd .= "--env HOST_GID=100 --env HOST_UID=1000 ";
+		$cmd .= "--bind ./public:/shared_data/public_tmp ";
+		$cmd .= "--bind ./userdata:/shared_data/userdata ";
+		$cmd .= "$singularityImage ";
+		$cmd .= "$singularityExec ";
+		$cmd .= "--config $configFile ";
+		$cmd .= "--in_metadata $inputMetadata ";
+		$cmd .= "--out_metadata $outputMetadata ";
+		$cmd .= "> $logFile 2>&1";
+	
 		return $cmd;
+
 	}
 
 	protected function setBashCmd_docker_EGA($tool)
@@ -1479,8 +1481,8 @@ EOF;
 		// Write SLURM headers
 		fwrite($fout, "#!/bin/bash\n");
 		fwrite($fout, "#SBATCH --job-name=" . $this->toolId . "_job\n");
-		fwrite($fout, "#SBATCH --chdir=.\n");
-		fwrite($fout, "#SBATCH --qos=" . $siteDetails['queue_name']);
+		fwrite($fout, "#SBATCH -q " . $siteDetails['queue_name']);
+		
 		fwrite($fout, "#SBATCH --account=" . $siteDetails['queue_p']);
 		fwrite($fout, "#SBATCH --cpus-per-task=" . $siteDetails['cpu']);
 		fwrite($fout, "#SBATCH --output=serial_%j.out\n");
