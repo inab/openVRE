@@ -1205,10 +1205,10 @@ EOF;
 		$pathDir = dirname($first['absolute_path']); 
 		$baseDir = dirname($pathDir);
 		// Example paths using runFolder
-		$configFile     = "$baseDir/$runFolder/config.json";
-		$inputMetadata  = "$baseDir/$runFolder/input_metadata.json";
-		$outputMetadata = "$baseDir/$runFolder/output_metadata.json";
-		$logFile        = "$baseDir/$runFolder/execution.log";
+		$configFile     = "$baseDir/$runFolder/.config.json";
+		$inputMetadata  = "$baseDir/$runFolder/.in_metadata.json";
+		$outputMetadata = "$baseDir/$runFolder/.results.json";
+		$logFile        = "$baseDir/$runFolder/.tool.log";
 		// Build command
 		$cmd  = "singularity exec ";
 		$cmd .= "--overlay $overlayPath ";
@@ -1466,8 +1466,12 @@ EOF;
 	{
 		$workingDir = $this->working_dir;
 		$bashFilename = $this->submission_file;
-		$logFilename = $this->log_file;
 		$siteDetails = $this->getLauncher_SlurmInfo($siteId);
+		error_log("DEBUG createSubmitFile_Slurm:"
+			. " workingDir=$workingDir"
+			. " bashFilename=$bashFilename"
+		);
+		error_log("DEBUG createSubmitFile_Slurm - siteDetails: " . json_encode($siteDetails));
 		try {
 			$fout = fopen($bashFilename, "w");
 			if ($fout === false) {
@@ -1481,15 +1485,15 @@ EOF;
 		// Write SLURM headers
 		fwrite($fout, "#!/bin/bash\n");
 		fwrite($fout, "#SBATCH --job-name=" . $this->toolId . "_job\n");
-		fwrite($fout, "#SBATCH -q " . $siteDetails['queue_name']);
-		
-		fwrite($fout, "#SBATCH --account=" . $siteDetails['queue_p']);
-		fwrite($fout, "#SBATCH --cpus-per-task=" . $siteDetails['cpu']);
+		fwrite($fout, "#SBATCH -q " . $siteDetails['queue_name'] . "\n");
+		fwrite($fout, "#SBATCH -A " . $siteDetails['domain'] . "\n");
+		fwrite($fout, "#SBATCH --cpus-per-task=" . $siteDetails['cpu_count'] . "\n");
 		fwrite($fout, "#SBATCH --output=serial_%j.out\n");
 		fwrite($fout, "#SBATCH --error=serial_%j.err\n");
-		fwrite($fout, "#SBATCH --ntasks=1\n");
-		fwrite($fout, "#SBATCH --time=01:00:00\n"); // Adjust as needed
-		fwrite($fout, "$cmd");
+		fwrite($fout, "#SBATCH -N " . $siteDetails['n_tasks'] . "\n");
+		fwrite($fout, "#SBATCH -n " . $siteDetails['n_nodes'] . "\n");
+		fwrite($fout, "#SBATCH --time=01:00:00\n\n\n"); // Adjust as needed
+		fwrite($fout, "srun " . "$cmd\n");
 
 		fclose($fout);
 
@@ -2015,12 +2019,19 @@ EOF;
 		if (!$siteDocument) {
 			return null;
 		}
-
+		$launcher = $siteDocument['launcher'] ?? [];
+		
 		$launcherInfo = [
 			'site_id' => $siteDocument['_id'],
-			'queue_name' => $siteDocument['queue'][0]['queue_name'],
-			'queue_p' => $siteDocument['queue'][0]['partition'],
-			'cpu' =>  $siteDocument['queue'][0]['cpu_total']
+			'queue_name' => $launcher['queue_name'] ?? 'default',
+        	'queue_p'    => $launcher['partition']  ?? '',
+			'cpu_count'  => $launcher['cpu_count'] ?? 1,
+			'n_tasks'    => $launcher['n_tasks']   ?? 1,
+			'n_nodes'    => $launcher['n_nodes']   ?? 1,
+			'domain'     => $launcher['access_credentials']['domain'] ?? null,
+			'server'      => $launcher['access_credentials']['server'] ?? null,
+			'root_path'   => $launcher['access_credentials']['rootpath_default'] ?? null,
+			'job_manager' => $launcher['job_manager'] ?? 'Slurm',
 		];
 		return $launcherInfo;
 	}
