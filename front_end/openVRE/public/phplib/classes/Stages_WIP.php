@@ -22,7 +22,7 @@ class StageInData implements StageInterface {
     public function __construct(Pipeline $pipeline, $files, $tool, $executionPath, $argumentsExec, $pipelineDirId, $debug = false) {
         $this->pipelineDirId = $pipelineDirId;
         $this->workingDir = $this->createWorkingDirInPipeline($pipelineDirId);
-        $this->dataMeta = new DataTransfer($files, 'async', $tool['_id'], $executionPath, $argumentsExec);
+        $this->dataMeta = new DataTransfer($files, 'async', $tool, $executionPath, $argumentsExec);
     }
 
     private function createWorkingDirInPipeline($pipelineDirId) {

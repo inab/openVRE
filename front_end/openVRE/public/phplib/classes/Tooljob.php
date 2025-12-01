@@ -1195,14 +1195,17 @@ EOF;
 		}
 		//Singularity overlay
 		$overlayPath  = $tool['infrastructure']['singularity_overlay']; 
-		// Singularity image and executable
-		$singularityExec = $tool['infrastructure']['executable']; 		
-		$singularityImage = $tool['infrastructure']['singularity_image'];
+		
 		// Configuration files
 		$runFolder = $_REQUEST['execution'] ?? "run001";
 		$first = $dataLocations[0];
 		$pathDir = dirname($first['absolute_path']); 
 		$baseDir = dirname($pathDir);
+		
+		// Singularity image and executable
+		$singularityExec = $tool['infrastructure']['executable']; 		
+		$singularityImage =  "/../../../" . $tool['infrastructure']['singularity_image']; //doing it automatically
+
 		// Example paths using runFolder
 		$configFile     = "$baseDir/$runFolder/.config.json";
 		$inputMetadata  = "$baseDir/$runFolder/.in_metadata.json";

@@ -20,22 +20,27 @@ class DataTransfer {
     private array $siteList;
     private array $arguments_exec;
     private $sshCredentials;
+    private $tool;
+    private $singularityImage = "";
 
     public function __construct(
         array $filesId,
         string $mode,
-        string $toolId,
+        array $tool,
         string $workingDirPath,
         string $execution = "",
         array $arguments_exec = [],  
+        string $singularityImage = ""
 
     ) {
         $this->filesId = $filesId;
         $this->mode = $mode;
-        $this->toolId = $toolId;
+        $this->toolId    = $tool['_id'];
         $this->workingDirPath = $workingDirPath;
         $this->execution = $execution;
-        $this->arguments_exec = $arguments_exec;   
+        $this->arguments_exec = $arguments_exec; 
+        $this->tool = $tool;
+        $this->singularityImage = $tool['infrastructure']['singularity_image'];  
     }
 
     /**
@@ -164,10 +169,12 @@ class DataTransfer {
     $server =  $siteDetails['server'];
     #username to be changed que ahora se pilla lo del correo? should be PROJECT__PROJECT/run 
     $remoteUploadPath = $this->constructingDestinationDir_MN($rootRemotePath, $sshCredentials['username']);
+    error_log("DEBUG: syncWorkingDir - remoteUploadPath: $remoteUploadPath");
     $remoteRunPath = rtrim($remoteUploadPath, "/") . "/$userProjPath" . "/$runId";
     // Step 4: Rsync full working directory to remote
     $remoteSSH = new RemoteSSH($sshCredentials);
-    $rsyncSuccess = $remoteSSH->executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteRunPath, $server);
+    $singularityImagePath = ($this->singularityImage !== null) ? $remoteUploadPath . "/" . $this->singularityImage : null;
+    $rsyncSuccess = $remoteSSH->executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteRunPath, $server, $singularityImagePath);
     if ($rsyncSuccess === true) {
         $_SESSION['errorData']['Info'][] = "Successfully synced $runId to remote path: $remoteRunPath";
         error_log("DEBUG: syncWorkingDir - successfully synced $runId to remote path: $remoteRunPath");
@@ -230,8 +237,6 @@ class DataTransfer {
     }
     return $dataLocations;
 }
-
-
     public function getSSHcredentials($vaultUrl,$vaultToken,$accessToken, $vaultRolename,$username  )
     {
         $vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);

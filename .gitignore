@@ -4,8 +4,7 @@ composer.lock
 front_end/openVRE/config/globals.inc.php
 front_end/openVRE/config/*.conf
 shared_data
-tools/front/seqio_tool
-tools/mongo/seqio_tool.json
+tools/*
 vault/config/public-key.pem
 vault/file/*
 vault/config/jwt-user-policies.hcl

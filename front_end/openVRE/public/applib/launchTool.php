@@ -205,7 +205,7 @@ if ($debug) {
 $dataMeta = new DataTransfer(
 	$files, 
 	'async', 
-	$tool['_id'], 
+	$tool, 
 	$workDirHost, 
 	$_REQUEST['execution'], 
 	$_REQUEST['arguments_exec']

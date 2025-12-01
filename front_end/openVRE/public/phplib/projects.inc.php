@@ -824,6 +824,10 @@ function formatData($data)
 	if (isset($data['file_url'])) {
 		$data['show_file_url'] = "<span style=\"margin: -8px;\" title=\"" . $data['file_url'] . "\" ><i class=\"fa fa-link font-green\"></i></span>";
 	}
+	//remote_path
+	if (isset($data['remote_path'])) {
+		$data['show_remote_path'] = "<span style=\"margin: -8px;\" title=\"" . $data['remote_path'] . "\" ><i class=\"fa fa-link font-green\"></i></span>";
+	}
 
 	// TODO for debug. Temporal. To delete
 	if ($data['filename']) {
