@@ -826,7 +826,10 @@ function formatData($data)
 	}
 	//remote_path
 	if (isset($data['remote_path'])) {
-		$data['show_remote_path'] = "<span style=\"margin: -8px;\" title=\"" . $data['remote_path'] . "\" ><i class=\"fa fa-link font-green\"></i></span>";
+		$data['show_remote_path'] =
+        "<i class='fa fa-exchange' style='color:#16a085; margin-left:8px;' title='File exists on remote system'></i>";
+	} else {
+    	$data['show_remote_path'] = ''; // nothing if no remote copy
 	}
 
 	// TODO for debug. Temporal. To delete
