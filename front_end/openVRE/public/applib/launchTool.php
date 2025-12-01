@@ -7,7 +7,7 @@ use OpenStack\OpenStack;
 
 redirectOutside();
 
-$debug = 0;
+$debug = 1;
 
 $SGE_updated = getUserJobs($_SESSION['User']['id']);
 
@@ -31,41 +31,24 @@ if ($debug) {
 		}
 	}
 }
-//
-// Get tool.
 
+// Get tool
 $tool = getTool_fromId($_REQUEST['tool'], 1);
-
-
 if (empty($tool)) {
 	$_SESSION['errorData']['Error'][] = "Tool not specified or not registered. Please, register '" . $_REQUEST['tool'] . "'";
 	redirect($GLOBALS['BASEURL'] . "workspace/");
 }
 
-//
 // Set Tooljob
-
-/*
-    if (!isset($_REQUEST['execution']) ){ ## TODO: TEMPORAL HACK TO ENSURE WE HAVE EXECUTION VAR. WAIT UNTIL GENIS MODERNIZE ALL FORMS
-    $_REQUEST['execution'] = $_REQUEST['project'];
-    $_REQUEST['project'] = "99";
-    }
- */
-
 if (!isset($_REQUEST['execution']) || !isset($_REQUEST['project'])) {
 	$_SESSION['errorData']['Internal'][] = "Error launching tool. 'execution' or 'project' are not received";
 	redirect($GLOBALS['BASEURL'] . "workspace/");
 }
-
-
 if ($debug) {
 	print "<br/>SYSTEM FOR JOB EXECUTION</br>";
 	var_dump($_REQUEST['arguments_exec']);
 }
-
-
 $jobMeta  = new Tooljob($tool, $_REQUEST['execution'], $_REQUEST['project'], $_REQUEST['description'], $_REQUEST['arguments_exec']);
-
 if ($debug) {
 	print "<br/>NEW TOOLJOB SET:</br>";
 	var_dump($jobMeta);
@@ -79,7 +62,6 @@ if (empty($tool['infrastructure']['interactive']) && empty($_REQUEST['input_file
 
 // Get input_files medatada (with associated_files)
 $files   = array(); // distinct file Objs to stage in
-
 $filesId = array();
 foreach ($_REQUEST['input_files'] as $input_file) {
 	if (is_array($input_file)) {
@@ -90,16 +72,13 @@ foreach ($_REQUEST['input_files'] as $input_file) {
 	}
 }
 $filesId = array_unique($filesId);
-
 if ($debug) {
 	print "<br/></br> FILES ID";
 	var_dump($filesId);
 }
 
-
 foreach ($filesId as $fnId) {
 	$file = getGSFile_fromId($fnId);
-
 	if (!$file) {
 		$_SESSION['errorData']['Error'][] = "Input file $fnId does not belong to current user or has been not properly registered. Stopping execution";
 		redirect($GLOBALS['BASEURL'] . "workspace/");
@@ -125,15 +104,13 @@ if ($debug) {
 	print "<br/></br>TOTAL number of FILES (including associated) : " . count(array_keys($files)) . "</br>";
 }
 
-
-//
 // Set Arguments
+
 if (!$_REQUEST['arguments']) {
 	$_REQUEST['arguments'] = array();
 }
 $jobMeta->setArguments($_REQUEST['arguments'], $tool);
 
-//
 // Set InputFiles
 $r = $jobMeta->setInput_files($_REQUEST['input_files'], $tool, $files);
 
@@ -141,168 +118,168 @@ if ($debug) {
 	print "<br/>TOOL Input_files are:</br>";
 	var_dump($jobMeta->input_files);
 }
-
 if ($r == "0") {
 	redirect($_SERVER['HTTP_REFERER']);
 }
-//
-// Checking input_files locally
 
+
+// Checking input_files locally
 foreach ($files as $fnId => $file) {
 	$fn   = getAttr_fromGSFileId($fnId, 'path');
-
 	// Check if the file is a directory
 	$isDir = getAttr_fromGSFileId($fnId, 'is_dir');
-
 	// If it's not a directory, proceed with file-specific checks
-
-
 	$rfn  = $GLOBALS['dataDir'] . "/$fn";
-
     if (!is_file($rfn)){
 	    $_SESSION['errorData']['Error'][]="File '".basename($fn)."' is not found or has size zero. Checking other locations available.";
 	}
 
 }
 
-			// Set InputFilesPublic from public directory
+$files_pub = array();
+// Set InputFilesPublic from public directory		
+if ($_REQUEST['input_files_public_dir']) {
+	if ($debug) {
+		print "<br/> HERE IS THE REQUEST INPUT FILES PUBLIC DIR</br>";
+	}
 
-			$files_pub = array();
-			if ($_REQUEST['input_files_public_dir']) {
+	//Get input_file public data  medatadata
+	$files_pub  = $jobMeta->createMetadata_from_Input_files_public($_REQUEST['input_files_public_dir'], $tool);
+	if ($debug) {
+		print "<br/>TOOL METADATA for Input_files_public are:</br>";
+		var_dump($files_pub);
+	}
+	if (!count($files_pub)) {
+		redirect($_SERVER['HTTP_REFERER']);
+	}
 
-				//Get input_file public data  medatadata
-				$files_pub  = $jobMeta->createMetadata_from_Input_files_public($_REQUEST['input_files_public_dir'], $tool);
-				if ($debug) {
-					print "<br/>TOOL METADATA for Input_files_public are:</br>";
-					var_dump($files_pub);
-				}
-				if (!count($files_pub)) {
-					redirect($_SERVER['HTTP_REFERER']);
-				}
+	// Set InputFiles public dir
+	$r = $jobMeta->setInput_files_public($_REQUEST['input_files_public_dir'], $tool, $files_pub);
+	if ($debug) {
+		print "<br/>TOOL METADATA for Input_files public are:</br>";
+		var_dump($jobMeta->input_files_pub);
+	}
+	if ($r == "0") {
+		print "<br/>TOOL METADATA for Input_files ZERO</br>";
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+}
 
-				// Set InputFiles public dir
-				$r = $jobMeta->setInput_files_public($_REQUEST['input_files_public_dir'], $tool, $files_pub);
-				if ($debug) {
-					print "<br/>TOOL Input_files public are:</br>";
-					var_dump($jobMeta->input_files_pub);
-				}
-				if ($r == "0") {
-					print "<br/>TOOL Input_files ZERO</br>";
-					redirect($_SERVER['HTTP_REFERER']);
-				}
-			}
-
-			// Stage in (fake)  TODO
-
+// Stage in (fake)  TODO
 
 
 // Create working_dir
 $workDirId = $jobMeta->createWorking_dir();
+if ($debug) {
+	echo $workDirId;
+	echo "<br/></br>WD CREATED SCCESSFULLY AT: $jobMeta->working_dir<br/>";
+}
 
-			if ($debug) {
-				echo $workDirId;
-				echo "<br/></br>WD CREATED SCCESSFULLY AT: $jobMeta->working_dir<br/>";
-			}
-
-			if (!$workDirId) {
-				redirect($_SERVER['HTTP_REFERER']);
-			}
+if (!$workDirId) {
+	redirect($_SERVER['HTTP_REFERER']);
+}
 
 $workDirHost =  $jobMeta->working_dir; 
 
 $siteList = $_REQUEST['sites']['site_list'] ?? [];
 
 if (!in_array('marenostrum', $siteList)) {
-    if ($debug) {
         echo "<br/><strong>DEBUG:</strong> Skipping DataTransfer — 'marenostrum' not in site_list.<br/>";
-    }
     // Skip DataTransfer logic
-} else {
+} else {}
 	
-	if ($debug) {
-		echo "<br/><br/><strong>DEBUG: Parameters passed to DataTransfer:</strong><br/>";
-		echo "<pre>";
-		print_r([
-			'files' => $files,
-			'mode' => 'async',
-			'tool_id' => $tool['_id'],
-			'workDirHost' => $workDirHost,
-			'execution' => $_REQUEST['execution'],
-			'arguments_exec' => $_REQUEST['arguments_exec'],
-		]);
-		echo "</pre><br/>";
-	}
+if ($debug) {
+	echo "<br/><br/><strong>DEBUG: Parameters passed to DataTransfer:</strong><br/>";
+	echo "<pre>";
+	print_r([
+		'files' => $files,
+		'mode' => 'async',
+		'tool_id' => $tool['_id'],
+		'workDirHost' => $workDirHost,
+		'execution' => $_REQUEST['execution'],
+		'arguments_exec' => $_REQUEST['arguments_exec'],
+	]);
+	echo "</pre><br/>";
+}
 	
-	$dataMeta = new DataTransfer(
-		$files, 
-		'async', 
-		$tool['_id'], 
-		$workDirHost, 
-		$_REQUEST['execution'], 
-		$_REQUEST['arguments_exec']
-	);
-	$dataLocations = $dataMeta->syncFiles();
-	$_REQUEST['arguments_exec']['dataLocations'] = $dataLocations;
-	// return jobId in async mode
-	if ($debug) {		
-		print "<br/>Data Transfer Locations:</br>";	
-		var_dump($dataLocations); // This will show where the files will be transferred
-		var_dump($_REQUEST['arguments_exec']);
-	}
+$dataMeta = new DataTransfer(
+	$files, 
+	'async', 
+	$tool['_id'], 
+	$workDirHost, 
+	$_REQUEST['execution'], 
+	$_REQUEST['arguments_exec']
+);
+$dataLocations = $dataMeta->syncFiles();
+$_REQUEST['arguments_exec']['dataLocations'] = $dataLocations;
+// return jobId in async mode
+if ($debug) {		
+	print "<br/>Data Transfer Locations:</br>";	
+	var_dump($dataLocations); // This will show where the files will be transferred
+	var_dump($_REQUEST['arguments_exec']);
 }
 
 // Setting Command line. Adding parameters
-			$r = $jobMeta->prepareExecution($tool, $files, $files_pub);
+$r = $jobMeta->prepareExecution($tool, $files, $files_pub);
 
-			if ($debug) {
-				echo "<br/></br>PREPARE EXECUTION RETURNS ($r). <br/>";
-			}
+if ($debug) {
+	echo "<br/></br>PREPARE EXECUTION RETURNS ($r). <br/>";
+}
+/*
+if ($r == 0) {
+	redirect($_SERVER['HTTP_REFERER']);
+}
+*/
+// Adding Rsync of the Project directory to Remote System
+$s = $dataMeta->syncWorkingDir();
 
-			if ($r == 0) {
-				redirect($_SERVER['HTTP_REFERER']);
-			}
+if ($debug) {
+	echo "<br/></br>RSYNC PROJECT RETURNS ($s). <br/>";
+}
 
-			// Adding Rsync of the Project directory to Remote System
-			// Launching Tooljob
+if ($s === false) {
+	$_SESSION['errorData']['Error'][] = "Failed to rsync project directory to remote system. Can not continue with the job remotely.";
+	redirect($_SERVER['HTTP_REFERER']);
+}	
 
-			$pid = $jobMeta->submit($tool); //Changing submit adding Slurm option through SSH session
-
-
-			if ($debug) {
-				echo "<br/></br>JOB SUBMITTED. PID = $pid<br/>";
-			}
-
-			if (!$pid) {
-				redirect($GLOBALS['BASEURL'] . "workspace/");
-			}
+// Launching Tooljob		
+$pid = $jobMeta->submit($tool); //Changing submit adding Slurm option through SSH session
 
 
-			if ($debug) {
-				print "<br/>ERROR_DATA<br/>";
-				var_dump($_SESSION['errorData']);
-				unset($_SESSION['errorData']);
-				print "</br><br/>JOB_META END<br/>"
-					. var_dump((array)$jobMeta);
-			}
+if ($debug) {
+	echo "<br/></br>JOB SUBMITTED. PID = $pid<br/>";
+}
 
-			if ($debug) {
-				echo "<br/>Saving JOB MEDATA  USER <br/>";
-			}
+if (!$pid) {
+	redirect($GLOBALS['BASEURL'] . "workspace/");
+}
 
-			addUserJob($_SESSION['User']['_id'], (array)$jobMeta, $jobMeta->pid);
 
-			if ($debug) {
-				exit(0);
-			}
+if ($debug) {
+	print "<br/>ERROR_DATA<br/>";
+	var_dump($_SESSION['errorData']);
+	unset($_SESSION['errorData']);
+	print "</br><br/>JOB_META END<br/>"
+		. var_dump((array)$jobMeta);
+}
 
-			if (!isset($_SESSION['errorData']['Error'])) {
-				$proj = getProject($jobMeta->project);
-				$_SESSION['errorData']['Info'][] = "Job successfully sent! Monitor it at <b>" . $proj['name'] . " &rsaquo; " . $jobMeta->execution . " &rsaquo; " . $jobMeta->title . "</b>.";
-				if ($_SESSION['User']['activeProject'] != $jobMeta->project) {
-					$projWS = getProject($_SESSION['User']['activeProject']);
-					$_SESSION['errorData']['Info'][] = "Notice that your current workspace belongs to project '" . $projWS['name'] . "'. Move to '" . $proj['name'] . "' to check out your job.";
-				}
-			}
+if ($debug) {
+	echo "<br/>Saving JOB MEDATA  USER <br/>";
+}
 
-			redirect($GLOBALS['BASEURL'] . "workspace/");
+addUserJob($_SESSION['User']['_id'], (array)$jobMeta, $jobMeta->pid);
 
+if ($debug) {
+	exit(0);
+}
+
+if (!isset($_SESSION['errorData']['Error'])) {
+	$proj = getProject($jobMeta->project);
+	$_SESSION['errorData']['Info'][] = "Job successfully sent! Monitor it at <b>" . $proj['name'] . " &rsaquo; " . $jobMeta->execution . " &rsaquo; " . $jobMeta->title . "</b>.";
+	if ($_SESSION['User']['activeProject'] != $jobMeta->project) {
+		$projWS = getProject($_SESSION['User']['activeProject']);
+		$_SESSION['errorData']['Info'][] = "Notice that your current workspace belongs to project '" . $projWS['name'] . "'. Move to '" . $proj['name'] . "' to check out your job.";
+	}
+}
+
+redirect($GLOBALS['BASEURL'] . "workspace/");

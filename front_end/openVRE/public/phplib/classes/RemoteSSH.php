@@ -176,7 +176,7 @@ class RemoteSSH {
         $server = $dataLocations[0]['site_details']['server']; // Assuming all files go to the same server
         $remotePath = $dataLocations[0]['site_details']['root_path'];
         $remoteDir = $this->constructingDestination_MN($remotePath, $username, $userProjPath);
-        error_log("DEBUG: SSH connecting to $username@$server:22");
+        error_log("DEBUG: SSH connecting to $username@$server");
 
         // Ensure credentials are valid
         if (empty($sshPrivateKey) || empty($username) || empty($server)) {

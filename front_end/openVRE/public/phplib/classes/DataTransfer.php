@@ -113,6 +113,7 @@ class DataTransfer {
 
     public function syncWorkingDir(): bool
 {
+    error_log("DEBUG: syncWorkingDir - starting to sync local dir: " . $this->workingDirPath);
     // Step 1: Define local working directory
     //$localDir = $this->workingDirPath; // e.g., /shared_data/userdata/USER/__PROJxxx/run006
     $localDir = preg_replace('#/+#', '/', $this->workingDirPath); 
@@ -120,6 +121,7 @@ class DataTransfer {
     
     if (!is_dir($localDir)) {
         $_SESSION['errorData']['Error'][] = "Local working directory does not exist: $localDir";
+        error_log("DEBUG: syncWorkingDir - local working directory does not exist: $localDir");
         return false;
     }
     //get proj and projuser
@@ -131,32 +133,36 @@ class DataTransfer {
         throw new Exception();
     }
     $_SESSION['errorData']['Info'][] = "Preparing to sync local dir $localDir to remote MN system...";
+    error_log("DEBUG: syncWorkingDir - preparing to sync local dir $localDir to remote MN system...");
     // Step 2: Get SSH credentials from Vault
-    $vaultUrl     = $GLOBALS['vaultUrl'];
-    $vaultToken   = $_SESSION['User']['Vault']['vaultToken'];
-    $accessToken  = $_SESSION['User']['Token']['access_token'];
-    $vaultRolename = $_SESSION['User']['Vault']['vaultRolename'];
+    $vaultUrl     = $_SESSION['userVaultInfo']['vaultUrl'];
+    $vaultToken   = $_SESSION['userVaultInfo']['vaultKey'];
+    $accessToken  = $_SESSION['userToken']['access_token'];
+    $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
     $username     = $_SESSION['User']['_id'];
     $sshCredentials = $this->getSSHcredentials($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
     if ($sshCredentials === 0) {
         $_SESSION['errorData']['Error'][] = "Failed to get SSH credentials from Vault.";
+        error_log("DEBUG: syncWorkingDir - failed to get SSH credentials from Vault.");
         return false;
     }
     $siteList = $this->arguments_exec['site_list'] ?? [];
     if (!is_array($siteList) || empty($siteList)) {
         $_SESSION['errorData']['Error'][] = "No valid site list provided in arguments_exec.";
+        error_log("DEBUG: syncWorkingDir - no valid site list provided in arguments_exec.");
         return 0;
     }
     // Determine the site (prefer 'local' if present, otherwise use first site in list)
-    $site = in_array('local', $siteList, true) ? 'local' : $siteList[0];
+    $site = explode('_', (in_array('local', $siteList ?? [], true) ? 'local' : ($siteList[0] ?? 'unknown')), 2)[0];
     $siteDetails = $this->getSiteDetailsFromMongoDB($site);
-        if (!$siteDetails) {
-                $_SESSION['errorData']['Info'][] = "Site '{$site}' not found in MongoDB collection!";
-            return 0;
-        }   
+    if (empty($siteDetails)) {
+        $_SESSION['errorData']['Info'][] = "Site '{$site}' not found in MongoDB collection!";
+        error_log("DEBUG: syncWorkingDir - site '{$site}' not found in MongoDB collection!");
+        return 0;
+    }   
     $rootRemotePath = $siteDetails['root_path'];
     $server =  $siteDetails['server'];
-    #username to be changed que ahora se pilla lo del correo? should be PROJECT/__PROJECT/run 
+    #username to be changed que ahora se pilla lo del correo? should be PROJECT__PROJECT/run 
     $remoteUploadPath = $this->constructingDestinationDir_MN($rootRemotePath, $sshCredentials['username']);
     $remoteRunPath = rtrim($remoteUploadPath, "/") . "/$userProjPath" . "/$runId";
     // Step 4: Rsync full working directory to remote
@@ -164,9 +170,11 @@ class DataTransfer {
     $rsyncSuccess = $remoteSSH->executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteRunPath, $server);
     if ($rsyncSuccess === true) {
         $_SESSION['errorData']['Info'][] = "Successfully synced $runId to remote path: $remoteRunPath";
+        error_log("DEBUG: syncWorkingDir - successfully synced $runId to remote path: $remoteRunPath");
         return true;
     } else {
         $_SESSION['errorData']['Error'][] = "Failed syncing $runId to remote path: $remoteRunPath";
+        error_log("DEBUG: syncWorkingDir - failed syncing $runId to remote path: $remoteRunPath");
         return false;
     }
 }
@@ -202,10 +210,10 @@ class DataTransfer {
         //$site = in_array('local', $siteList, true) ? 'local' : $siteList[0];
         $site = explode('_', (in_array('local', $siteList ?? [], true) ? 'local' : ($siteList[0] ?? 'unknown')), 2)[0];
         $siteDetails = $this->getSiteDetailsFromMongoDB($site);
-            if (!$siteDetails) {
-                 $_SESSION['errorData']['Info'][] = "Site '{$site}' not found in MongoDB collection!";
-                return [];
-            }   
+        if (empty($siteDetails)) {
+            $_SESSION['errorData']['Info'][] = "Site '{$site}' not found in MongoDB collection!";
+            return [];
+        }   
         if ($site === 'local') {
             $_SESSION['errorData']['Info'][] = "Skipping file {$fileId} as it is already local.";
             return []; 
