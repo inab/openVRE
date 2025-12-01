@@ -101,13 +101,13 @@ class RemoteSSH {
 
     public function getUrifrom($obj){
         if(!isset($obj['uri'])) {
-            throw new Exception("URI not found in object.");
+            throw new \Exception("URI not found in object.");
         }
         $array = array();
         $array['_id'] = $obj['_id'];
         $parts = explode(":",$obj['uri']);
         if (count($parts) < 2) {
-            throw new Exception("Invalid string format. Cannot split into protocol, location and path.");
+            throw new \Exception("Invalid string format. Cannot split into protocol, location and path.");
         }
         $array['protocol'] = $parts[0];
         $array['location'] = $parts[1];
@@ -244,7 +244,7 @@ class RemoteSSH {
                 error_log("Error: Rsync command failed with status code $returnVar. Output: " . implode("\n", $output));
                 return false;
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return "SSH Error: " . $e->getMessage();
         }
     }
@@ -293,7 +293,7 @@ class RemoteSSH {
                 error_log("Rsync failed: " . implode("\n", $output));
                 return false;
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $_SESSION['errorData']['Error'][] = "SSH Exception: " . $e->getMessage();
             return false;
         }
@@ -307,7 +307,7 @@ class RemoteSSH {
         $end = '-----END OPENSSH PRIVATE KEY-----';
         // Check if key contains the BEGIN and END markers
         if (strpos($singleLineKey, $start) === false || strpos($singleLineKey, $end) === false) {
-            throw new Exception("Invalid SSH key format: missing BEGIN or END markers.");
+            throw new \Exception("Invalid SSH key format: missing BEGIN or END markers.");
         }
         // Extract the key body (between BEGIN and END)
         $keyBody = str_replace(array($start, $end), "", $singleLineKey);

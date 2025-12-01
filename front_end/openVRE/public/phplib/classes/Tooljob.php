@@ -1108,7 +1108,7 @@ EOF;
 	}
 
 
-	protected function setBashCommandDockerCompose($tool)
+	protected function setBashCommandDockerCompose($tool, $cmd_envs)
 	{
 		$this->job_type = "interactive";
 		$dockerComposeFile = $GLOBALS['toolsPath'] . $tool['infrastructure']['docker_path'];
@@ -1122,23 +1122,23 @@ EOF;
 		$this->containerName = $tool['infrastructure']['container_image'];
 
 		$monitorContainer = <<<EOF
-			CONTAINER_URL="http://$this->containerName:$container_port"
-			whoami;
-			printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
-			if timeout 420 wget --retry-connrefused --tries=10 --wait=7 -O /dev/null \$CONTAINER_URL; then
-				printf '%s | %s\n' "\$(date)" "Service UP";
-			else
-				printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
-			fi
+		CONTAINER_URL="http://$this->containerName:$container_port"
+		whoami;
+		printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
+		if timeout 420 wget --retry-connrefused --tries=10 --wait=7 -O /dev/null \$CONTAINER_URL; then
+			printf '%s | %s\n' "\$(date)" "Service UP";
+		else
+			printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
+		fi
 
-			printf '%s | %s\n' "\$(date)" "Wait while container is running...";
-			exit_code="\$(docker wait $this->containerName)";
-			printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
+		printf '%s | %s\n' "\$(date)" "Wait while container is running...";
+		exit_code="\$(docker wait $this->containerName)";
+		printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
 
-			echo '# End time:' \$(date) >> $this->log_file_virtual;
+		echo '# End time:' \$(date) >> $this->log_file_virtual;
 		EOF;
 
-		return $cmd . "\n" . $monitorContainer;
+		return $cmd . "\n" . $monitorContainer . $cmd_envs;
 	}
 
 
@@ -1962,7 +1962,7 @@ EOF;
         }
     }
 
-
+	// To change the HPC request
 	protected function setHPCRequest($cloudName, $tool, $username)
 	{
 		if ($cloudName == 'marenostrum') {
