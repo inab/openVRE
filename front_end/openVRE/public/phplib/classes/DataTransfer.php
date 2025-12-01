@@ -4,7 +4,7 @@
 use phpseclib3\Net\SSH2;
 use phpseclib3\Crypt\PublicKeyLoader;
 use OpenVRE\SSH\RemoteSSH;
-
+use MongoDB\BSON\UTCDateTime;
 
 class DataTransfer {
     private array $filesId;
@@ -285,17 +285,23 @@ class DataTransfer {
         $allFilesProcessed = true;
         foreach ($updatedDataLocations as $file) {
             $fileId = $file['_id'];
+            $location = $file['site'] ?? null;
+            $date = new MongoDB\BSON\UTCDateTime();
+            $size = file_exists($file['absolute_path']) ? filesize($file['absolute_path']) : null;
             $remotePath = $file['remote_path'] . "/" . $file['filename'];
             //looking for the file in Mongo
             $fileMongo = $GLOBALS['filesCol']->findOne(["_id" => $fileId]);
             if ($fileMongo){
                 error_log("File with _id: $fileId found in Mongo");
-                $newData = array('$set' => array(
+                $newEntry = [
                     'remote_path' => $remotePath,
-                ));
+                    'location' => $location,
+                    'date' => $date,
+                    'size' => $size
+                ];
                 $updatedMongo = $GLOBALS['filesCol']->updateOne(
-                    array('_id' => $fileId),
-                    $newData
+                    ['_id' => $fileId],
+                    ['$push' => ['remote_paths' => $newEntry]]
                 ); 
                 if ($updatedMongo->getModifiedCount() > 0) {
                     error_log("Successfully updated file with _id: $fileId.");
