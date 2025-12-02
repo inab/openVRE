@@ -56,7 +56,7 @@ function getTools_ListComplete($status = 1)
 
 // list tools
 
-function getTool_fromId($toolId, $indexByName = 0)
+function getTool_fromId($toolId, $indexByName = false)
 {
 	$filterFields = [];
 	$tool = $GLOBALS['toolsCol']->findOne(['_id' => $toolId], $filterFields);
@@ -92,7 +92,7 @@ function getTool_fromId($toolId, $indexByName = 0)
 
 // list visualizers
 
-function getVisualizer_fromId($toolId, $indexByName = 0)
+function getVisualizer_fromId($toolId, $indexByName = false)
 {
 	$filterfields = array();
 	$tool = $GLOBALS['visualizersCol']->findOne(array('_id' => $toolId)/*, $filterfields*/);
@@ -125,7 +125,7 @@ function getVisualizer_fromId($toolId, $indexByName = 0)
 
 // get Tool under development
 
-function getToolDev_fromId($toolId, $indexByName = 0)
+function getToolDev_fromId($toolId, $indexByName = false)
 {
 	$tool = $GLOBALS['toolsDevMetaCol']->findOne(array('_id' => $toolId));
 

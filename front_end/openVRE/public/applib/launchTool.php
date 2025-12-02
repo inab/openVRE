@@ -34,7 +34,7 @@ if ($debug) {
 //
 // Get tool.
 
-$tool = getTool_fromId($_REQUEST['tool'], 1);
+$tool = getTool_fromId($_REQUEST['tool'], true);
 
 
 if (empty($tool)) {
