@@ -1,4 +1,5 @@
 <tr data-tt-id="##tree_id##" data-tt-parent-id="##tree_id_parent##">
+    <!-- 0: Checkbox -->
    <td>
       <label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
       <input type="checkbox" class="checkboxes" value="##_id##" name="##_id##" onchange="changeCheckbox(this)" id="##_id##" ##state##/>
@@ -6,19 +7,30 @@
       </label>
       ##lastuploaded##
    </td>
+    <!-- 1: File -->
    <td>
+      <div>
       ##show_file_url##
       <a class="##state## " href="workspace/workspace.php?op=##openFunction##&fn=##_id_URL##" title="open file ##longfilename##" target="_blank" >&nbsp;&nbsp;&nbsp;##longfilename##</a>
       <a href="javascript:viewFileMeta('##_id##', '##longfilename##', 1);" style="margin-left:5px;"><i class="fa fa-info-circle"></i></a>
-      <div style="margin-top:3px; margin-left:3px;">
+      </div>
+      
+      <div style="margin-top:3px; margin-left:20px; white-space:nowrap;">
          ##show_remote_path##
       </div>
    </td>
+    <!-- 2: File type -->
    <td>##format##</td>
+    <!-- 3: Data type -->
    <td title="##file_data_type##"><span class="truncate">##file_data_type##</span></td>
+   <!-- 4: Execution -->
    <td title="##longexecutionname##"><span class="truncate">##execution##</span></td>
+   <!-- 5: Location (NEW) -->
+   <!-- 6: Date -->
    <td title="##mtime##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
+    <!-- 7: Size -->
    <td>##size##</td>
+   <!-- 8: Actions -->
    <td>
       <div class="btn-group" style="float:left; position:absolute; margin-top:-10px!important;">
          <button class="btn btn-xs blue-madison dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
@@ -55,7 +67,10 @@
                  ##tools_list## 
          </div>-->
    </td>
+   <!-- 9: OrderNAME (hidden) -->
    <td>1</td>
+   <!-- 10: OrderDATE (hidden) -->
    <td>##mtime_parent##</td>
+   <!-- 11: OrderSIZE (hidden) -->
    <td>##size_parent##</td>
 </tr>

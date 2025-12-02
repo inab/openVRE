@@ -717,6 +717,23 @@ function formatData($data)
 	} else {
 		$data['mtime'] = "";
 	}
+
+	// remote paths for time also
+	if (!empty($data['remote_paths'])) {
+		foreach ($data['remote_paths'] as $entry) {
+			if (isset($entry['date'])) {
+				$remoteMtime = $entry['date'];
+				if (is_object($remoteMtime)) {
+					$remoteMtime = $remoteMtime->toDateTime()->format('U');
+				}
+				$remoteMtimeFormatted = datefmt_format(getDateTimeFormat(), $remoteMtime);
+	
+				// Append to mtime display
+				$data['mtime'] .= " <br><span style='font-size:10px; color:#16a085;'>[Remote: {$remoteMtimeFormatted}]</span>";
+			}
+		}
+	}
+
 	if (isset($data['atime'])) {
 		if (is_object($data['atime']))
 			$data['atime'] = $data['atime']->toDateTime()->format('U');
@@ -758,6 +775,21 @@ function formatData($data)
 	} else {
 		$data['size'] = "";
 	}
+	//size for remote_paths
+
+	if (!empty($data['remote_paths'])) {
+		foreach ($data['remote_paths'] as $entry) {
+			if (isset($entry['size']) && is_numeric($entry['size'])) {
+				$factor = floor((strlen($entry['size']) - 1) / 3);
+				$remoteSizeFormatted = sprintf("%.2f %s", $entry['size'] / pow(1024, $factor), @$sz[$factor]);
+	
+				// Append on a new line
+				$data['size'] .= "<br><span style='font-size:10px; color:#16a085;'>[Remote: {$remoteSizeFormatted}]</span>";
+			}
+		}
+	}
+
+
 	//execution dir
 	if (isset($data['parentDir'])) {
 		$data['parentDir'] = getAttr_fromGSFileId($data['parentDir'], 'path');
@@ -824,13 +856,33 @@ function formatData($data)
 	if (isset($data['file_url'])) {
 		$data['show_file_url'] = "<span style=\"margin: -8px;\" title=\"" . $data['file_url'] . "\" ><i class=\"fa fa-link font-green\"></i></span>";
 	}
-	//remote_path
-	if (isset($data['remote_path'])) {
-		$data['show_remote_path'] =
-        "<i class='fa fa-exchange' style='color:#16a085; margin-left:8px;' title='File exists on remote system'></i>";
+	//remote_path && location
+	$locationMap = [
+		'marenostrum' => 'MN',
+		'mn4'         => 'MN',
+	];
+
+	if (isset($data['remote_paths'])) {
+		$html = '';
+		foreach ($data['remote_paths'] as $entry) {  //for each entry get the location and show the location
+			$locKey = strtolower($entry['location'] ?? 'unknown');
+			$short  = $locationMap[$locKey] ?? strtoupper(substr($locKey, 0, 3)); // map the location to $locationMaps or do the 3 first letter of the system in MongoDB
+			$html .=
+            "<span style='margin-left:6px;'>
+                <i class='fa fa-exchange' style='color:#16a085;' 
+                    title='Transferred to: {$entry['location']}'>
+                </i>
+                <span style='font-weight:bold; font-size:11px; margin-left:2px; color:#16a085;'>
+				{$short}
+                </span>
+            </span>";
+		}
+		$data['show_remote_path'] = $html;
+
 	} else {
     	$data['show_remote_path'] = ''; // nothing if no remote copy
 	}
+
 
 	// TODO for debug. Temporal. To delete
 	if ($data['filename']) {

@@ -38,22 +38,30 @@ $(document).ready(function() {
 	select: true,
 	columnDefs: [
 	  // columnes d'informació
+	  // Checkboxes
 	  { targets: [0], orderable: false },
-	  { targets: [1], orderData: [ 4, 8, 1 ], orderable: false },
-	  { targets: [2], orderData: [ 4, 8, 2 ], orderable: false },
-	  { targets: [3], orderData: [ 4, 8, 3 ], orderable: false },
-	  { targets: [4], orderData: [ 4, 8, 1 ], orderable: false },
-	  { targets: [5], orderData: [ 4, 8, 9 ], orderable: false },
-	  //{ targets: [5], orderData: [ 4, 8, 5 ], orderable: false },
-	  //{ type: 'file-size', targets: 6, orderData: [ 10, 8, 6 ], orderable: false },
-		{ type: 'file-size', targets: 6, orderData: [ 4, 8, 6 ], orderable: false },
-	  //{ targets: [6], orderable: false },
-	  
-	  { targets: [7], orderable: false },
+	  // File column
+	  { targets: [1], orderData: [ 4, 9, 1 ], orderable: false },
+	  // File type column
+	  { targets: [2], orderData: [ 4, 9, 2 ], orderable: false },
+	  // Data type column
+	  { targets: [3], orderData: [ 4, 9, 3 ], orderable: false },
+	  // Execution column
+	  { targets: [4], orderData: [ 4, 9, 1 ], orderable: false },
+	  // Location column 	-  NEW
+	  { targets: [5], orderData: [ 4, 9, 5 ], orderable: false },
+	  // Date column 
+	  { targets: [6], orderData: [4, 9, 10], orderable: false },
+	  //{ targets: [5], orderData: [ 4, 8, 9 ], orderable: false }, - before location
+	  //{ type: 'file-size', targets: 6, orderData: [ 4, 8, 6 ], orderable: false }, - before location
+	  // Size column
+	  { type: 'file-size', targets: [7], orderData: [ 4, 9, 7 ], orderable: false },
+	  // Action column
+	  { targets: [8], orderable: false }, // before location - 7
 	  // columnes auxiliars d'ordenació (invisibles)
-	  { targets: [8], orderable: false, visible: false },
-	  { targets: [9], orderable: false, visible: false },
-	  { targets: [10], orderable: false, visible: false }
+	  { targets: [9], orderable: false, visible: false }, // before location - 8 
+	  { targets: [10], orderable: false, visible: false }, // before location - 9 
+	  { targets: [11], orderable: false, visible: false } // before location - 10 
    ],
    "createdRow": function( row, data, dataIndex ) {
 			

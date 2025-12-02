@@ -56,7 +56,7 @@ class DataTransfer {
         // Step 2: Check if there are no files to transfer
         if ($dataLocations == 0) {
             $_SESSION['errorData']['Info'][] ="No files to transfer.";
-            return false; 
+            return []; 
         } else {
             $_SESSION['errorData']['Info'][] = "Files are gonna be transferred in remote system.";
             $vaultUrl = $GLOBALS['vaultUrl'];
@@ -67,7 +67,8 @@ class DataTransfer {
             $sshCredentials = $this->getSSHcredentials($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
             if ($sshCredentials == 0) {
                 $_SESSION['errorData']['Error'][] = "Error: Failed to retrieve SSH credentials from Vault.";
-                return false;
+                error_log("DEBUG: getSSHcredentials - failed to retrieve SSH credentials from Vault.");
+            return [];
             }
 
             // Step 5: Create the rsync command using data locations
@@ -82,7 +83,8 @@ class DataTransfer {
 
             if (empty($syncCommand)) {
                 $_SESSION['errorData']['Info'][] = "Error: Failed to generate rsync command.";
-                return false; 
+                error_log("DEBUG: prepareSyncCommand - failed to generate rsync command.");
+                return []; 
             }
             foreach ($updatedDataLocations as $file) {
                 // Example: Use the updated data locations
@@ -100,7 +102,7 @@ class DataTransfer {
                 if ($mongoUpdate === true) {
                     foreach ($updatedDataLocations as $file) {
                         $_SESSION['errorData']['Info'][] = "File {$file['filename']} new location registered to {$file['remote_path']}/{$file['filename']}";
-                        #return true;
+                        error_log("DEBUG: File {$file['filename']} new location registered to {$file['remote_path']}/{$file['filename']}");
                     }
                 } else { 
                     $_SESSION['errorData']['Error'][] = "Something went wrong with the MongoUpdate for the file new location.";
@@ -108,6 +110,7 @@ class DataTransfer {
                 }
             } else {
                 $_SESSION['errorData']['Error'][] = "Something went wrong with the Rsync, can't move files to remote location.";
+                error_log("DEBUG: executeRsyncCommand - something went wrong with the Rsync, can't move files to remote location.");
                 return [];
             }
         }
@@ -299,14 +302,28 @@ class DataTransfer {
                     'date' => $date,
                     'size' => $size
                 ];
-                $updatedMongo = $GLOBALS['filesCol']->updateOne(
-                    ['_id' => $fileId],
-                    ['$push' => ['remote_paths' => $newEntry]]
-                ); 
-                if ($updatedMongo->getModifiedCount() > 0) {
-                    error_log("Successfully updated file with _id: $fileId.");
+                $updateResult = $GLOBALS['filesCol']->updateOne(
+                    [
+                        '_id' => $fileId,
+                        'remote_paths.remote_path' => $remotePath
+                    ],
+                    [
+                        '$set' => ['remote_paths.$' => $newEntry]
+                    ]
+                );
+                if ($updateResult->getMatchedCount() === 0) {
+                    $pushResult = $GLOBALS['filesCol']->updateOne(
+                        ['_id' => $fileId],
+                        ['$push' => ['remote_paths' => $newEntry]]
+                    );
+                    if ($pushResult->getModifiedCount() > 0) {
+                        error_log("Added new remote_path entry for file with _id: $fileId.");
+                    } else {
+                        error_log("Failed to add remote_path entry for file with _id: $fileId.");
+                        $allFilesProcessed = false;
+                    }
                 } else {
-                    error_log("No update was made for file with _id: $fileId.");
+                    error_log("Updated existing remote_path entry for file with _id: $fileId.");
                     $allFilesProcessed = true;
                 }
             } else {
