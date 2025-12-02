@@ -1566,6 +1566,8 @@ EOF;
 			case "ega_demo":
 			case "docker_SGE":
 				return $this->enqueue($tool);
+			case "Slurm":
+				return $this->enqueue($tool);
 			case "PMES":
 				return $this->callPMES();
 			default:
@@ -1577,25 +1579,27 @@ EOF;
 
 	protected function enqueue($tool)
 	{
-
-		logger("");
 		$launcherInfo = $this->getLauncher_Info($this->cloudName);
 		if (!$launcherInfo || empty($launcherInfo)) {
 			$_SESSION['errorData']['Error'][] = "Launcher information is incomplete or missing.";
 			return 0;
 		}
+		$jobManager = $launcherInfo['launcher']['job_manager'] 
+                  ?? $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
 		$memory = $launcherInfo['memory'] ?? $tool['infrastructure']['memory'];
 		$cpus = $launcherInfo['cpus'] ?? $tool['infrastructure']['cpus'];
 		$queue = $launcherInfo['queue'] ?? $tool['infrastructure']['clouds'][$this->cloudName]['queue'];
-		logger("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory");
+		error_log("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory, jobManager=$jobManager");
 
-		list($pid, $errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file);
+		list($pid, $errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file, $jobManager);
 		if (!$pid) {
-			log_addError($pid, $errMesg, NULL, $this->toolId, $this->cloudName, "SGE", $cpus, $memory);
+			//error_log($pid, $errMesg, NULL, $this->toolId, $this->cloudName, "SGE", $cpus, $memory);
+			error_log("Error: $errMesg");
 			$_SESSION['errorData']['Error'][] = "Internal error. Cannot enqueue job.";
 			return 0;
 		}
-		logger("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
+		#logger("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
+		error_log("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
 		log_addSubmission($pid, $this->toolId, $this->cloudName, "SGE", $cpus, $memory, $this->working_dir);
 
 		$this->pid = $pid;

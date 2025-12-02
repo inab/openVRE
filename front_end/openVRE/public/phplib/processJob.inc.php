@@ -5,9 +5,9 @@
 #
 
 
-function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log")
+function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log", $jobManager = "docker_SGE")
 {
-    logger("Start job submission via SGE");
+    logger("Start job submission via $jobManager");
 
     if (!isset($_SESSION['User']['id'])) {
         $_SESSION['errorData']['Error'][] = "User ID not found in session.";
@@ -28,7 +28,7 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
 
     // Validate queue
     $queue = $queue ?: ($GLOBALS['queueTask'] ?? null);
-    if (!$queue) {
+    if (!$queue && strtoupper($jobManager) === "SGE") {
         $_SESSION['errorData']['Error'][] = "Queue not provided.";
         return [0, "Queue not provided."];
     }
@@ -39,8 +39,20 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
 
     //
     // Start SGE process
-    $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
+    //$process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
 
+    switch (strtoupper($jobManager)) {
+        case "docker_SGE":
+            $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
+            break;
+        case "marenostrum_Slurm":
+            $process = new ProcessSlurm($shFile, $workDir, $logFile, $errFile);
+            break;  
+        default:
+            $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
+            break;  
+    }
+      
     $pid = $process->getPid();
 
     if (!$process->status()) {

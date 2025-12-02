@@ -98,7 +98,6 @@ class ProcessSGE{
 		$this->fullcommand = $command;
 	}
 
-
 	//list all VRE Jobs  (not used anymore)
 	public function getRunningJobs(){
 		$jobs=Array();
