@@ -186,37 +186,38 @@ $siteList = $_REQUEST['sites']['site_list'] ?? [];
 if (!in_array('marenostrum', $siteList)) {
         echo "<br/><strong>DEBUG:</strong> Skipping DataTransfer — 'marenostrum' not in site_list.<br/>";
     // Skip DataTransfer logic
-} else {}
+} else {
 	
-if ($debug) {
-	echo "<br/><br/><strong>DEBUG: Parameters passed to DataTransfer:</strong><br/>";
-	echo "<pre>";
-	print_r([
-		'files' => $files,
-		'mode' => 'async',
-		'tool_id' => $tool['_id'],
-		'workDirHost' => $workDirHost,
-		'execution' => $_REQUEST['execution'],
-		'arguments_exec' => $_REQUEST['arguments_exec'],
-	]);
-	echo "</pre><br/>";
-}
-	
-$dataMeta = new DataTransfer(
-	$files, 
-	'async', 
-	$tool, 
-	$workDirHost, 
-	$_REQUEST['execution'], 
-	$_REQUEST['arguments_exec']
-);
-$dataLocations = $dataMeta->syncFiles();
-$_REQUEST['arguments_exec']['dataLocations'] = $dataLocations;
-// return jobId in async mode
-if ($debug) {		
-	print "<br/>Data Transfer Locations:</br>";	
-	var_dump($dataLocations); // This will show where the files will be transferred
-	var_dump($_REQUEST['arguments_exec']);
+	if ($debug) {
+		echo "<br/><br/><strong>DEBUG: Parameters passed to DataTransfer:</strong><br/>";
+		echo "<pre>";
+		print_r([
+			'files' => $files,
+			'mode' => 'async',
+			'tool_id' => $tool['_id'],
+			'workDirHost' => $workDirHost,
+			'execution' => $_REQUEST['execution'],
+			'arguments_exec' => $_REQUEST['arguments_exec'],
+		]);
+		echo "</pre><br/>";
+	}
+		
+	$dataMeta = new DataTransfer(
+		$files, 
+		'async', 
+		$tool, 
+		$workDirHost, 
+		$_REQUEST['execution'], 
+		$_REQUEST['arguments_exec']
+	);
+	$dataLocations = $dataMeta->syncFiles();
+	$_REQUEST['arguments_exec']['dataLocations'] = $dataLocations;
+	// return jobId in async mode
+	if ($debug) {		
+		print "<br/>Data Transfer Locations:</br>";	
+		var_dump($dataLocations); // This will show where the files will be transferred
+		var_dump($_REQUEST['arguments_exec']);
+	}
 }
 
 // Setting Command line. Adding parameters
@@ -230,17 +231,20 @@ if ($r == 0) {
 	redirect($_SERVER['HTTP_REFERER']);
 }
 */
-// Adding Rsync of the Project directory to Remote System
-$s = $dataMeta->syncWorkingDir();
-
-if ($debug) {
-	echo "<br/></br>RSYNC PROJECT RETURNS ($s). <br/>";
+if (!in_array('marenostrum', $siteList)) {
+	echo "<br/><strong>DEBUG:</strong> Skipping DataTransfer — 'marenostrum' not in site_list.<br/>";
+// Skip DataTransfer logic
+} else {
+	// Adding Rsync of the Project directory to Remote System
+	$s = $dataMeta->syncWorkingDir();
+	if ($debug) {
+		echo "<br/></br>RSYNC PROJECT RETURNS ($s). <br/>";
+	}
+	if ($s === false) {
+		$_SESSION['errorData']['Error'][] = "Failed to rsync project directory to remote system. Can not continue with the job remotely.";
+		redirect($_SERVER['HTTP_REFERER']);
+	}	
 }
-
-if ($s === false) {
-	$_SESSION['errorData']['Error'][] = "Failed to rsync project directory to remote system. Can not continue with the job remotely.";
-	redirect($_SERVER['HTTP_REFERER']);
-}	
 
 // Launching Tooljob		
 $pid = $jobMeta->submit($tool); //Changing submit adding Slurm option through SSH session
