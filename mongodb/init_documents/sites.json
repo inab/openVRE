@@ -20,7 +20,8 @@
                 "username": null,
                 "private_key": null,
                 "public_key": null,
-                "server": ""
+                "server": "",
+                "rootpath_default":""
             },
             "partition": "",
             "cpu_count": 4,
