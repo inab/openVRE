@@ -15,7 +15,7 @@ function openHelp() {
 
 }
 
-// Alejandro: Temporal fix: lengthMenu SHOW ALL rows a get rid of pagination. Until we find
+// Temporal fix: lengthMenu SHOW ALL rows a get rid of pagination. Until we find
 // how to Select All fn can check all pages and not just the first one.
 // ORIGINAL: "lengthMenu": [[10,20],[10,20]]
 var createDatatable = function() {
@@ -265,7 +265,7 @@ var createModal = function() {
 	    //console.log(selectedFiles);
 	}
 
-	// Alejandro: Select All fn
+	// Select All fn
 	changeAllCheckbox = function(op, name, id, path, execution) {
 		names = name.split(" ");
 		ids = id.split(" ");

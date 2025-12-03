@@ -13,17 +13,11 @@ $file_selected = json_decode($_REQUEST["file_selected"]);
 
 $files_list = getGSFiles_filteredBy(["data_type" => ['$in' => $dt_list], "format" => ['$in' => $ft_list], "visible" => true]);
 
-//$files_list = getFilesFromDT($dt_list);
-
 $list = [];
 $file_arr = [];
 $project_arr = [];
 $id_arr = [];
 $execution_arr = [];
-
-//if($from == "workspace") {
-
-//var_dump($files_list);
 
 foreach ($files_list as $file) {
 	$path = getAttr_fromGSFileId($file["_id"], 'path');
@@ -47,14 +41,14 @@ foreach ($files_list as $file) {
     }
 
 	$list[] = $fileFeatures;
-	// Alejandro: Select All fn -> Create individual lists.
+	// Select All fn -> Create individual lists.
 	$file_arr[] = $fileFeatures["file"];	
 	$project_arr[] = $fileFeatures["project_name"];
 	$id_arr[] = $fileFeatures["id"];
 	$execution_arr[] = $fileFeatures["execution"];
 }
 
-// Alejandro: Select All fn -> Implode for creating a unique string from an array.
+// Select All fn -> Implode for creating a unique string from an array.
 $files = implode(" ",$file_arr);
 $projects = implode(" ",$project_arr);
 $ids = implode(" ",$id_arr);
@@ -83,7 +77,7 @@ $html = '<table id="workspace_st2" class="display" cellspacing="0" width="100%">
 		$html .= '</tr>';
     $html .= '<tr id="heading">';
 			
-	  // Alejandro: Select All fn -> Adding HTML and event listener call (onclick="changeAllCheckbox")
+	  // Select All fn -> Adding HTML and event listener call (onclick="changeAllCheckbox")
 	  // ORIGINAL -> $html .= '<th></th>';
 	  $html .= '<th style="padding-left: 15px;"> 
 	  <label class="mt-checkbox mt-checkbox-outline" style="margin-bottom: 0px; font-weight: bold">

@@ -12,8 +12,6 @@ if (!isset($_REQUEST['id'])) {
 
 $toolDevJSON = $GLOBALS['toolsDevMetaCol']->findOne(array('_id' => $_REQUEST['id']));
 
-//vaR_dump($toolDevJSON); die();
-
 if (!isset($toolDevJSON)) {
 	$_SESSION['errorData']['Error'][] = "The tool id <strong>" . $_REQUEST['toolid'] . "</strong> doesn't exist in our database.";
 	redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php');
