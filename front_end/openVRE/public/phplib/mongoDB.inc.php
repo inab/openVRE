@@ -124,9 +124,12 @@ function getGSFileId_fromPath($filePath, $asRoot = 0)
 		: array('path' => $filePath, 'owner' => $_SESSION['User']['id']);
 
 	$file = $mongoFilesCollection->findOne($filter);
-	return $file
-		? $file['_id']
-		: 0;
+	if (is_null($file)) {
+		mongoLogger()->error("File " . $filePath . " does not exist.");
+		throw new UnexpectedValueException("File " . $filePath . " does not exist for current user.");
+	}
+
+	return $file['_id'];
 }
 
 //  return File (entire, onlyMetadata, onlyData) from file_id
@@ -576,19 +579,19 @@ function absolutePathGSDir($dirPath, $asRoot = 0)
 		}
 
 		return $dirPath;
-	} else {
-		$root = $_SESSION['User']['id'];
-		if ($root != $_SESSION['curDir'] && !preg_match('/^(\/)*' . $root . '(\/|$)/', $_SESSION['curDir'])) {
-			$_SESSION['errorData']['mongoDB'][] = "Current directory " . $_SESSION['curDir'] . " is not under the home directory $root. Restart login, please";
-			return null;
-		}
-
-		if (!preg_match('/^(\/)*' . $root . '(\/|$)/', $dirPath)) {
-			return $_SESSION['curDir'] . "/" . $dirPath;
-		}
-
-		return $dirPath;
 	}
+
+	$root = $_SESSION['User']['id'];
+	if ($root != $_SESSION['curDir'] && !preg_match('/^(\/)*' . $root . '(\/|$)/', $_SESSION['curDir'])) {
+		mongoLogger()->error("Current directory " . $_SESSION['curDir'] . " is not under the home directory $root.");
+		throw new UnexpectedValueException("Current directory " . $_SESSION['curDir'] . " is not under the home directory $root.");
+	}
+
+	if (!preg_match('/^(\/)*' . $root . '(\/|$)/', $dirPath)) {
+		return $_SESSION['curDir'] . "/" . $dirPath;
+	}
+
+	return $dirPath;
 }
 
 function absolutePathGSFile($filePath, $asRoot)
@@ -622,15 +625,16 @@ function absolutePathGSFile($filePath, $asRoot)
 function createGSDirBNS($dirPath, $asRoot = 0)
 {
 	$mongoFilesCollection = $GLOBALS['filesCol'];
-	if (strlen($dirPath) == 0) {
+	if (empty($dirPath)) {
 		mongoLogger()->error("No directory path given");
-		return 0;
+		throw new InvalidArgumentException("No directory path given");
 	}
 
-	$absoluteDirPath = absolutePathGSDir($dirPath, $asRoot);
-	if ($absoluteDirPath == "0") {
+	try {
+		$absoluteDirPath = absolutePathGSDir($dirPath, $asRoot);
+	} catch (UnexpectedValueException $e) {
 		mongoLogger()->error("Cannot create $dirPath . Target not under root directory " . $_SESSION['User']['id'] . " ?");
-		return 0;
+		throw new UnexpectedValueException("Cannot create $dirPath . Target not under root directory " . $_SESSION['User']['id'] . " ?" . "\n" . $e->getMessage());
 	}
 
 	$fileId = getGSFileId_fromPath($absoluteDirPath, 1);

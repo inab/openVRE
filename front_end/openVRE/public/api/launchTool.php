@@ -43,11 +43,6 @@ function launchTool($toolId, $userEmail, $projectName, $inputFilepaths)
     for ($inputFileIndex = 0; $inputFileIndex < count($inputFilepaths); $inputFileIndex++) {
         $inputFileFullPath = $projectDirPath . "/uploads/" . $inputFilepaths[$inputFileIndex]; // Assuming input files are in uploads folder
         $inputFileId = getGSFileId_fromPath($inputFileFullPath);
-        if (empty($inputFileId)) {
-            $_SESSION['errorData']['Error'][] = "Input file '" . $inputFilepaths[$inputFileIndex] .  "' does not exist or does not belong to current user";
-            return 0;
-        }
-
         $inputFileGenericName = $tool['input_files'][$inputFilesKeys[$inputFileIndex]]['name'];
         $input_files[$inputFileGenericName][] = $inputFileId;
     }

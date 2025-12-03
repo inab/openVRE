@@ -297,16 +297,13 @@ class Tooljob
 
 
 	/**
-
-    /**
 	 * Create working directory
 	 */
 	public function createWorking_dir()
 	{
 		if (!$this->working_dir) {
 			$this->logger->error("Cannot create working_dir. Not set yet");
-			$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-			redirect($GLOBALS['BASEURL'] . "workspace/");
+			throw new UnexpectedValueException("Cannot create working_dir. Not set yet");
 		}
 
 		$dirPath = str_replace($GLOBALS['dataDir'] . "/", "", $this->working_dir);

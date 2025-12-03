@@ -4,6 +4,10 @@ require __DIR__ . "/../../config/bootstrap.php";
 
 redirectOutside();
 
+function internalErrorRedirect() {
+	$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+	redirect($GLOBALS['BASEURL'] . "workspace/");
+}
 
 $logger = LoggerFactory::getLogger('Tool launcher');
 
@@ -20,26 +24,22 @@ $tool = getTool_fromId($_REQUEST['tool'], true);
 
 if (empty($tool)) {
 	$logger->error("Tool not found: " . $_REQUEST['tool']);
-	$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-	redirect($GLOBALS['BASEURL'] . "workspace/");
+	internalErrorRedirect();
 }
 
 if (empty($_REQUEST['execution'])) {
 	$logger->error("Execution is missing");
-	$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-	redirect($GLOBALS['BASEURL'] . "workspace/");
+	internalErrorRedirect();
 }
 
 if (empty($_REQUEST['project'])) {
 	$logger->error("Project is missing");
-	$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-	redirect($GLOBALS['BASEURL'] . "workspace/");
+	internalErrorRedirect();
 }
 
 if (empty($tool['infrastructure']['interactive']) && empty($_REQUEST['input_files']) && empty($_REQUEST['input_files_public_dir'])) {
 	$logger->error("Input files are missing");
-	$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-	redirect($GLOBALS['BASEURL'] . "workspace/");
+	internalErrorRedirect();
 }
 
 $jobMeta  = new Tooljob($tool, $_REQUEST['execution'], $_REQUEST['project'], $_REQUEST['description'], $_REQUEST['arguments_exec']);
@@ -64,8 +64,7 @@ foreach ($filesId as $fileId) {
 
 	if (empty($file)) {
 		$logger->error("File not found: " . $fileId);
-		$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-		redirect($GLOBALS['BASEURL'] . "workspace/");
+		internalErrorRedirect();
 	}
 
 	$files[$file['_id']] = $file;
@@ -74,8 +73,7 @@ foreach ($filesId as $fileId) {
 		$assocFile = getGSFile_fromId($assocId);
 		if (empty($assocFile)) {
 			$logger->error("Associated file " . $assocId . " not found");
-			$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-			redirect($GLOBALS['BASEURL'] . "workspace/");
+			internalErrorRedirect();
 		}
 		$files[$assocFile['_id']] = $assocFile;
 	}

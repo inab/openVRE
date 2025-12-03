@@ -1,106 +1,85 @@
 <?php
 
-/////////////////////////////////
-/////// FROM LOCAL
-/////////////////////////////////
+function getDataLogger()
+{
+    static $logger = null;
 
-// upload file from local
+    if ($logger === null) {
+        $logger = LoggerFactory::getLogger('Get data interface');
+    }
+
+    return $logger;
+}
+
+
 function getData_fromLocal()
 {
     // set destination working_directory/uploads
     $dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
     $localWorkingDir = "$dataDirPath/uploads";
     $workingDir = $GLOBALS['dataDir'] . "/" . $localWorkingDir;
-    $workingDirId = getGSFileId_fromPath($localWorkingDir);
-
-    // check source file/s
-    if (empty($_FILES)) {
-        $_SESSION['errorData']['upload'][] = "ERROR: Receiving blank. Please select a file to upload";
-        die("ERROR: Recieving blank. Please select a file to upload0");
+    if (!is_dir($workingDir)) {
+        getDataLogger()->error("Target server directory '" . basename($localWorkingDir) . "' does not exist");
+        throw new UnexpectedValueException("Target server directory '" . basename($localWorkingDir) . "' does not exist. Please, login again.");
     }
 
-    // check target directory
-    if ($workingDirId == "0" || !is_dir($workingDir)) {
-        $_SESSION['errorData']['upload'][] = "Target server directory '" . basename($localWorkingDir) . "' does not exist. Please, login again.";
-        die("Target server directory '" . basename($localWorkingDir) . "' does not exist. Please, login again.0");
+    getGSFileId_fromPath($localWorkingDir);
+
+    if (empty($_FILES)) {
+        getDataLogger()->error("Receiving blank in $_FILES");
+        throw new UnexpectedValueException("Receiving blank. Please select a file to upload");
     }
 
     $fileIds = [];
-    // upload each source file	
     $errorCode = $_FILES['file']['error'];
-    if ($errorCode) {
+    if ($errorCode !== UPLOAD_ERR_OK) {
         $errMsg = [
-            0 => "[UPLOAD_ERR_OK]:  There is no error, the file uploaded with success",
-            1 => "[UPLOAD_ERR_INI_SIZE]: The uploaded file exceeds the upload_max_filesize directive in php.ini",
-            2 => "[UPLOAD_ERR_FORM_SIZE]: The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
-            3 => "[UPLOAD_ERR_PARTIAL]: The uploaded file was only partially uploaded",
-            4 => "[UPLOAD_ERR_NO_FILE]: No file was uploaded",
-            6 => "[UPLOAD_ERR_NO_TMP_DIR]: Missing a temporary folder",
-            7 => "[UPLOAD_ERR_CANT_WRITE]: Failed to write file to disk",
-            8 => "[UPLOAD_ERR_EXTENSION]: File upload stopped by extension"
+            UPLOAD_ERR_INI_SIZE => "The uploaded file exceeds the upload_max_filesize directive in php.ini",
+            UPLOAD_ERR_FORM_SIZE => "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
+            UPLOAD_ERR_PARTIAL => "The uploaded file was only partially uploaded",
+            UPLOAD_ERR_NO_FILE => "No file was uploaded",
+            UPLOAD_ERR_NO_TMP_DIR => "Missing a temporary folder",
+            UPLOAD_ERR_CANT_WRITE => "Failed to write file to disk",
+            UPLOAD_ERR_EXTENSION => "File upload stopped by extension"
         ];
 
         if (isset($errMsg[$errorCode])) {
-            $_SESSION['errorData']['upload'][] = "ERROR [code $errorCode] " . $errMsg[$errorCode];
-            die("ERROR [code $errorCode] " . $errMsg[$errorCode] . "0");
+            getDataLogger()->error("Error uploading file (code $errorCode): " . $errMsg[$errorCode]);
+            throw new UnexpectedValueException("Error uploading file (code $errorCode): " . $errMsg[$errorCode]);
         }
-
-        $_SESSION['errorData']['upload'][] = "Unknown upload error";
-        die("Unknown upload error 0");
     }
 
     $size = $_FILES['file']['size'];
     if (!$size || $size == 0) {
-        $_SESSION['errorData']['upload'][] = "ERROR: " . $_FILES['file']['name'] . " file size is zero";
-        die("ERROR: " . $_FILES['file']['name'] . " file size is zero 0");
+        getDataLogger()->error("File " . $_FILES['file']['name'] . " size is zero");
+        throw new UnexpectedValueException("File " . $_FILES['file']['name'] . " size is zero");
     }
 
     if ($size > return_bytes(ini_get('upload_max_filesize')) || $size > return_bytes(ini_get('post_max_size'))) {
-        $_SESSION['errorData']['upload'][] = "ERROR: File size $size larger than UPLOAD_MAX_FILESIZE (" . ini_get('upload_max_filesize') . ") ";
-        die("ERROR: File size $size larger than UPLOAD_MAX_FILESIZE (" . ini_get('upload_max_filesize') . ") 0");
+        getDataLogger()->error("File size $size larger than UPLOAD_MAX_FILESIZE (" . ini_get('upload_max_filesize') . ") 0");
+        throw new OverflowException("File size $size larger than UPLOAD_MAX_FILESIZE (" . ini_get('upload_max_filesize') . ") 0");
     }
 
     $usedDisk = (int) getUsedDiskSpace();
     $diskLimit = (int) $_SESSION['User']['diskQuota'];
     if ($size > ($diskLimit - $usedDisk)) {
-        $_SESSION['errorData']['upload'][] = "ERROR: Cannot upload file. Not enough space left in the workspace";
-        die("ERROR: Cannot upload file. Not enough space left in the workspace");
+        getDataLogger()->error("Cannot upload file. Not enough space left in the workspace");
+        throw new OverflowException("Cannot upload file. Not enough space left in the workspace");
     }
 
     $filePath = "$workingDir/" . cleanName($_FILES['file']['name']);
-    //do not overwrite, rename
     if (is_file($filePath)) {
-        foreach (range(1, 99) as $N) { // TODO: should be changed
-            if ($pos = strrpos($filePath, '.')) {
-                $name = substr($filePath, 0, $pos);
-                $extension = substr($filePath, $pos);
-            } else {
-                $name = $filePath;
-            }
-
-            $tmpFilePath = $name . '_' . $N . $extension;
-            if (!is_file($tmpFilePath)) {
-                $filePath = $tmpFilePath;
-                break;
-            }
-        }
+        getDataLogger()->error("A file with name " . $_FILES['file']['name'] . " already exists in the workspace");
+        throw new InvalidArgumentException("A file with name " . $_FILES['file']['name'] . " already exists in the workspace. Please, rename the file and try again.");
     }
 
-    //actual upload
-    if ($_FILES['file']['tmp_name']) {
-        if (!move_uploaded_file($_FILES['file']['tmp_name'], $filePath)) {
-            $_SESSION['errorData']['upload'] = "Error occurred while moving the uploaded file";
-            die("Error occurred while moving the uploaded file");
-        };
+    if ($_FILES['file']['tmp_name'] && move_uploaded_file($_FILES['file']['tmp_name'], $filePath) === false) {
+        getDataLogger()->error("Error occurred while moving the uploaded file");
+        throw new UnexpectedValueException("Error occurred while moving the uploaded file");
     }
 
-    if (!is_file($filePath)) {
-        $_SESSION['errorData']['upload'][] = "Uploaded file not correctly stored";
-        die("Uploaded file not correctly stored");
-    }
-
-    chmod($filePath, 0666);
-    $fileBasename = basename($filePath);
+    $permissions = 0666;
+    chmod($filePath, $permissions);
     $insertData = [
         'owner' => $_SESSION['User']['id'],
         'size'  => filesize($filePath),
@@ -108,10 +87,11 @@ function getData_fromLocal()
     ];
 
     $metaData = [
-        'validated' => FALSE
+        'validated' => false
     ];
 
-    $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData, FALSE);
+    $fileBasename = basename($filePath);
+    $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData, false);
     if ($fileId == "0") {
         $_SESSION['errorData']['upload'] = "Error occurred while registering the uploaded file";
         die("Error occurred while registering the uploaded file");
