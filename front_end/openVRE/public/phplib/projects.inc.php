@@ -867,13 +867,14 @@ function formatData($data)
 		foreach ($data['remote_paths'] as $entry) {  //for each entry get the location and show the location
 			$locKey = strtolower($entry['location'] ?? 'unknown');
 			$short  = $locationMap[$locKey] ?? strtoupper(substr($locKey, 0, 3)); // map the location to $locationMaps or do the 3 first letter of the system in MongoDB
+			$remote_file = basename($entry['remote_path']);
 			$html .=
             "<span style='margin-left:6px;'>
                 <i class='fa fa-exchange' style='color:#16a085;' 
                     title='Transferred to: {$entry['location']}'>
                 </i>
                 <span style='font-weight:bold; font-size:11px; margin-left:2px; color:#16a085;'>
-				{$short}
+				{$short}: {$remote_file}
                 </span>
             </span>";
 		}
