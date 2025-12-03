@@ -1,5 +1,5 @@
 <?php
-
+use OpenVRE\SSH\VaultClient;
 function addUserLinkedAccount($accountType, $action, $userId, $site_id, $postData)
 {
 	switch ($accountType) {

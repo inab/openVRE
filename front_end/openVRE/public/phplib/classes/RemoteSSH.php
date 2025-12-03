@@ -29,10 +29,7 @@ use phpseclib3\Crypt\PublicKeyLoader;
 class RemoteSSH { 
     //private $ssh;
     private $port;                // standard 22 port for ssh connection
-    private $username;            // bsc username for MN  
     private $credentials;         //Array with credentials
-    private $remote_credential;   // path of remote dir
-    private $hhtp_server;
 	public $fileList;
     private $ssh_session;
 

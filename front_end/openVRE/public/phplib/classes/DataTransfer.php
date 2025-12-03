@@ -4,6 +4,7 @@
 use phpseclib3\Net\SSH2;
 use phpseclib3\Crypt\PublicKeyLoader;
 use OpenVRE\SSH\RemoteSSH;
+use OpenVRE\SSH\VaultClient;
 use MongoDB\BSON\UTCDateTime;
 
 class DataTransfer {
@@ -63,8 +64,10 @@ class DataTransfer {
             $vaultToken = $_SESSION['User']['Vault']['vaultToken'];
             $accessToken = $_SESSION['User']['Token']['access_token'];
             $vaultRolename = $_SESSION['User']['Vault']['vaultRolename'];
+            $vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
             $username = $_SESSION['User']['_id'];
-            $sshCredentials = $this->getSSHcredentials($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
+            $vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
+            $sshCredentials = $vaultClient->getSSHcredentials($vaultUrl, $vaultKey);
             if ($sshCredentials == 0) {
                 $_SESSION['errorData']['Error'][] = "Error: Failed to retrieve SSH credentials from Vault.";
                 error_log("DEBUG: getSSHcredentials - failed to retrieve SSH credentials from Vault.");
@@ -148,7 +151,9 @@ class DataTransfer {
     $accessToken  = $_SESSION['userToken']['access_token'];
     $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
     $username     = $_SESSION['User']['_id'];
-    $sshCredentials = $this->getSSHcredentials($vaultUrl, $vaultToken, $accessToken, $vaultRolename, $username);
+    $vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
+    $vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
+    $sshCredentials = $vaultClient->getSSHcredentials($vaultUrl, $vaultKey);
     if ($sshCredentials === 0) {
         $_SESSION['errorData']['Error'][] = "Failed to get SSH credentials from Vault.";
         error_log("DEBUG: syncWorkingDir - failed to get SSH credentials from Vault.");
@@ -240,32 +245,6 @@ class DataTransfer {
     }
     return $dataLocations;
 }
-    public function getSSHcredentials($vaultUrl,$vaultToken,$accessToken, $vaultRolename,$username  )
-    {
-        $vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-        $vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-        if (!$vaultKey) {
-            $_SESSION['errorData']['Error'][] ="Vault Key is empty, are you sure you saved your credentials?";
-            exit;
-        }
-        $credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
-        if (!$credentials) {
-            $_SESSION['errorData']['Error'][] ="Failed to retrieve SSH credentials from Vault, not present.";
-            return 0;
-        }
-        // Extract SSH credentials
-        $sshPrivateKey = $credentials['priv_key'];
-        $sshPublicKey = $credentials['pub_key'];
-        $sshUsername = $credentials['hpc_username'];
-        // Store credentials in class properties instead of database
-        $this->sshCredentials = [
-            'private_key' => $sshPrivateKey,
-            'public_key' => $sshPublicKey,
-            'username' => $sshUsername
-        ];
-        return $this->sshCredentials; 
-    }
-
 
     public function getSiteDetailsFromMongoDB(string $site): array|false {
         $result = $GLOBALS['sitesCol']->findOne(['_id' => $site]);

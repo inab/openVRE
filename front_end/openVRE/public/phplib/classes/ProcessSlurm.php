@@ -1,24 +1,24 @@
 <?php
 
-define ("SRUN", "srun" );
-define ("SBATCH", "sbatch");
-define ("SCANCEL", "scancel ");
-define ("SQUEUE", "squeue ");
+const SRUN_STATUS = "srun -p %s -n %s --mem=%s -q %s --pty bash";
+const SRUN = "srun";
+const SBATCH = "sbatch";
+const SCANCEL = "scancel ";
+const SQUEUE = "squeue ";
+
+use OpenVRE\SSH\RemoteSSH;
 
 class ProcessSLURM{
         private $pid;
-        private $command;
-        private $workDir;
-	private $queue;
-	private $partition="default";
-        private $cpu=1;
-        private $mem=0;
-        private $ssh_session;
+        private $err;
+        private $fullCommand;
+	private $sshHost;
+	private $sshUsername;
         private $username;
         private $jobState = Array (
 		
 		'PD' => "PENDING",
-        	'R'  => "RUNNING",
+        	'R'  => "RUNNING", 
 		'CG' => "COMPLETING",
 	        'CD' => "COMPLETED",
 	        'F'  => "FAILED",

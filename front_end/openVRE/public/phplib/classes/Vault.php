@@ -1,6 +1,6 @@
 <?php
 
-
+namespace OpenVRE\SSH;
 use GuzzleHttp\Client;
 
 class VaultClient
@@ -564,6 +564,7 @@ class VaultClient
 				'hpc_username' => $username,
 			];
 		} elseif ($system == 'ega') {
+			
 			if ($filename == $GLOBALS['bscEgaCredentialsFilename']) {
 				$username = $data['data']['data']['username'];
 				$password = $data['data']['data']['password'];
@@ -604,18 +605,15 @@ class VaultClient
 			'X-Vault-Token: ' . $currentToken,
 			'Content-Type: application/json',
 		]);
-
 		// Execute cURL request and store the response
 		$response = curl_exec($curl);
-
-
+		// Close cURL resource
+		curl_close($curl);
 		// Check for cURL errors
-
 		if (curl_errno($curl)) {
 			echo 'Error: ' . curl_error($curl);
 			return null;
 		}
-
 		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		if ($httpCode === 200) {
 			// Extract and return the renewed token from the response
@@ -633,8 +631,28 @@ class VaultClient
 			echo 'Error: Token renewal failed. HTTP Code: ' . $httpCode;
 			return null;
 		}
+	}
 
-		// Close cURL resource
-		curl_close($ch);
+	public function getSSHCredentials($vaultUrl, $vaultKey)
+	{
+		if (!$vaultKey) {
+			$_SESSION['errorData']['Error'][] = "Vault Key is empty, are you sure you saved your credentials?";
+			exit;
+		}
+		$credentials = $this->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
+		if (!$credentials) {
+			$_SESSION['errorData']['Error'][] = "Failed to retrieve SSH credentials from Vault, not present.";
+			return 0;
+		}
+		// Extract SSH credentials
+		$sshPrivateKey = $credentials['priv_key'];
+		$sshPublicKey = $credentials['pub_key'];
+		$sshUsername = $credentials['hpc_username'];
+		// Store credentials in class properties instead of database
+		return [
+			'private_key' => $sshPrivateKey,
+			'public_key' => $sshPublicKey,
+			'username' => $sshUsername
+		];
 	}
 }

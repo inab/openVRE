@@ -46,7 +46,8 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
             $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
             break;
         case "marenostrum_Slurm":
-            $process = new ProcessSlurm($shFile, $workDir, $logFile, $errFile);
+            $process = new ProcessSlurm();
+            return $process->submitJob($shFile, $workDir, $logFile, $errFile);
             break;  
         default:
             $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
