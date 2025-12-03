@@ -1,5 +1,9 @@
 <?php
 
+require __DIR__ . '/LoggerFactory.php';
+
+use Monolog\Logger;
+
 class Tooljob
 {
 
@@ -57,6 +61,8 @@ class Tooljob
 	public $start_time      = 0;
 	public $hasExecutionFolder = true;
 
+	private Logger $logger;
+
 
 	/**
 	 * Creates new toolExecutor instance
@@ -64,6 +70,8 @@ class Tooljob
 	 */
 	public function __construct($tool, $execution = "", $project = "", $descrip = "", $arguments_exec = "", $output_dir = "")
 	{
+		$this->logger = LoggerFactory::getLogger("Tool job");
+
 		// Setting Tooljob
 		$this->toolId    = $tool['_id'];
 		$this->title     = $tool['name'] . " job";
@@ -296,39 +304,39 @@ class Tooljob
 	public function createWorking_dir()
 	{
 		if (!$this->working_dir) {
-			$_SESSION['errorData']['Internal Error'][] = "Cannot create working_dir. Not set yet";
-			return 0;
+			$this->logger->error("Cannot create working_dir. Not set yet");
+			$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+			redirect($GLOBALS['BASEURL'] . "workspace/");
 		}
 
 		$dirPath = str_replace($GLOBALS['dataDir'] . "/", "", $this->working_dir);
-		$hasExecutionFolder = $this->hasExecutionFolder;
-		// create working dir - disk and db
 		if (!is_dir($this->working_dir)) {
 			$this->_id = 1;
-			if ($hasExecutionFolder) {
+			if ($this->hasExecutionFolder) {
 				$dirId = createGSDirBNS($dirPath);
 				if ($dirId == "0") {
-					$_SESSION['errorData']['Error'][] = "Cannot create execution folder: '$this->working_dir'";
-					return 0;
+					$this->logger->error("Cannot create execution folder: '$this->working_dir'");
+					$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+					redirect($GLOBALS['BASEURL'] . "workspace/");
 				}
 
 				$this->_id = $dirId;
 			}
 
 			if (!mkdir($this->working_dir, 0777, true)) {
-				$_SESSION['errorData']['Error'][] = "Failed to create directory: '$this->working_dir'";
-				return 0;
+				$this->logger->error("Failed to create directory: '$this->working_dir'");
+				$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+				redirect($GLOBALS['BASEURL'] . "workspace/");
 			}
 
 			chmod($this->working_dir, 0777);
-
 			// if exists, recover working dir id
 		} else {
-			if ($hasExecutionFolder) {
-				$dirId = getGSFileId_fromPath($dirPath);
+			if ($this->hasExecutionFolder) {
 				$_SESSION['errorData']['Error'][] = "Cannot set job. Requested execution folder (" . basename($dirPath) . ") already exists. Please, set another execution name.<br>";
-
-				return 0;
+				$this->logger->error("Cannot set job. Requested execution folder (" . basename($dirPath) . ") already exists. Please, set another execution name.");
+				$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+				redirect($GLOBALS['BASEURL'] . "workspace/");
 			}
 
 			$this->_id = 1;
@@ -338,7 +346,9 @@ class Tooljob
 		if ($this->_id != 1) {
 			if (!is_dir($this->working_dir)) {
 				$_SESSION['errorData']['Error'][] = "Cannot write and set new execution directory: '$this->working_dir' with id '$this->_id'";
-				return 0;
+				$this->logger->error("Cannot write and set new execution directory: '$this->working_dir' with id '$this->_id'");
+				$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+				redirect($GLOBALS['BASEURL'] . "workspace/");
 			}
 
 			$input_ids = [];
@@ -357,8 +367,9 @@ class Tooljob
 
 			$addedMetadata = addMetadataBNS($this->_id, $projDirMeta);
 			if ($addedMetadata == "0") {
-				$_SESSION['errorData']['Error'][] = "Project folder created. But cannot set metada for '$this->working_dir' with id '$this->_id'";
-				return 0;
+				$this->logger->error("Project folder created. But cannot set metada for '$this->working_dir' with id '$this->_id'");
+				$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+				redirect($GLOBALS['BASEURL'] . "workspace/");
 			}
 		}
 
@@ -457,15 +468,16 @@ class Tooljob
 			if (count($tool)) {
 				// checking coherence between JSON and REQUEST
 				if (!isset($tool['arguments'][$arg_name])) {
-					$_SESSION['errorData']['Internal'][] = "Argument '$arg_name' not found in tool definition. '$this->toolId' is not properly registered";
-					return 0;
+					$this->logger->error("Argument '$arg_name' not found in tool '$this->toolId' definition");
+					$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+					redirect($GLOBALS['BASEURL'] . "workspace/");
 				}
 
-				// checking arguments requirements (TODO create 'validateArguments')
 				if ($arg_value == "") {
 					if ($tool['arguments'][$arg_name]['required']) {
-						$_SESSION['errorData']['Error'][] = "No value given for argument '$arg_name'";
-						return 0;
+						$this->logger->error("No value given for argument '$arg_name'");
+						$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+						redirect($GLOBALS['BASEURL'] . "workspace/");
 					}
 
 					continue;
@@ -474,21 +486,24 @@ class Tooljob
 				switch ($tool['arguments'][$arg_name]['type']) {
 					case "enum":
 						if (!isset($tool['arguments'][$arg_name]['enum_items']) || (!isset($tool['arguments'][$arg_name]['enum_items']['name']))) {
-							$_SESSION['errorData']['Internal'][] = "Invalid argument enum in tool definition. '$arg_name' has no 'enum_items' or 'enum_items['name].";
-							return 0;
+							$this->logger->error("Invalid argument enum in tool definition. '$arg_name' has no 'enum_items' or 'enum_items['name]");
+							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+							redirect($GLOBALS['BASEURL'] . "workspace/");
 						}
 
 						if (!in_array($arg_value, $tool['arguments'][$arg_name]['enum_items']['name'])) {
-							$_SESSION['errorData']['Error'][] = "Invalid argument. In '$arg_name' these values are accepted [" . implode(", ", $tool['arguments'][$arg_name]['enum_items']['name']) . "], but found $arg_value";
-							return 0;
+							$this->logger->error("Invalid argument. In '$arg_name' these values are accepted [" . implode(", ", $tool['arguments'][$arg_name]['enum_items']['name']) . "], but found $arg_value");
+							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+							redirect($GLOBALS['BASEURL'] . "workspace/");
 						}
 
 						break;
 
 					case "enum_multiple":
 						if (!isset($tool['arguments'][$arg_name]['enum_items']) || (!isset($tool['arguments'][$arg_name]['enum_items']['name']))) {
-							$_SESSION['errorData']['Internal'][] = "Invalid argument enum in tool definition. '$arg_name' has no 'enum_items' or 'enum_items['name].";
-							return 0;
+							$this->logger->error("Invalid argument enum in tool definition. '$arg_name' has no 'enum_items' or 'enum_items['name]");
+							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+							redirect($GLOBALS['BASEURL'] . "workspace/");
 						}
 
 						if (!is_array($arg_value)) {
@@ -497,8 +512,9 @@ class Tooljob
 
 						foreach ($arg_value as $v) {
 							if (!in_array($v, $tool['arguments'][$arg_name]['enum_items']['name'])) {
-								$_SESSION['errorData']['Error'][] = "Invalid argument. In '$arg_name' these values are accepted [" . implode(", ", $tool['arguments'][$arg_name]['enum_items']['name']) . "], but found " . implode(", ", $arg_value);
-								return 0;
+								$this->logger->error("Invalid argument. In '$arg_name' these values are accepted [" . implode(", ", $tool['arguments'][$arg_name]['enum_items']['name']) . "], but found " . implode(", ", $arg_value));
+								$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+								redirect($GLOBALS['BASEURL'] . "workspace/");
 							}
 						}
 
@@ -511,15 +527,18 @@ class Tooljob
 							$arg_value = false;
 						} else {
 							$_SESSION['errorData']['Error'][] = "Invalid argument. In '$arg_name' a boolean was expected, but found: $arg_value";
-							return 0;
+							$this->logger->error("Invalid argument. In '$arg_name' a boolean was expected, but found: $arg_value");
+							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+							redirect($GLOBALS['BASEURL'] . "workspace/");
 						}
 
 						break;
 
 					case "integer":
 						if (!is_numeric($arg_value)) {
-							$_SESSION['errorData']['Error'][] = "Invalid argument. In '$arg_name' an integer was expected, but found: $arg_value";
-							return 0;
+							$this->logger->error("Invalid argument. In '$arg_name' an integer was expected, but found: $arg_value");
+							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+							redirect($GLOBALS['BASEURL'] . "workspace/");
 						}
 
 						$arg_value = intval($arg_value);
@@ -527,8 +546,9 @@ class Tooljob
 
 					case "number":
 						if (!is_numeric($arg_value)) {
-							$_SESSION['errorData']['Error'][] = "Invalid argument. In '$arg_name' a number was expected, but found: $arg_value";
-							return 0;
+							$this->logger->error("Invalid argument. In '$arg_name' a number was expected, but found: $arg_value");
+							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+							redirect($GLOBALS['BASEURL'] . "workspace/");
 						}
 
 						break;
@@ -536,17 +556,18 @@ class Tooljob
 					case "hidden":
 					case "string":
 						if (is_array($arg_value)) {
-							$_SESSION['errorData']['Error'][] = "Invalid argument. In '$arg_name' a string was expected, but found an array: " . implode(",", $arg_value);
-							return 0;
+							$this->logger->error("Invalid argument. In '$arg_name' a string was expected, but found an array: " . implode(",", $arg_value));
+							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+							redirect($GLOBALS['BASEURL'] . "workspace/");
 						}
 
 						$arg_value = strval($arg_value);
 						break;
 
-					//case "enum": //TODO: check if the correct is the previous one
 					default:
-						$_SESSION['errorData']['Internal'][] = "Invalid argument type in tool definition. '$arg_name' is of type " . $tool['arguments'][$arg_name]['type'];
-						return 0;
+						$this->logger->error("Invalid argument type in tool definition. '$arg_name' is of type " . $tool['arguments'][$arg_name]['type']);
+						$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+						redirect($GLOBALS['BASEURL'] . "workspace/");
 				}
 			}
 
@@ -574,14 +595,16 @@ class Tooljob
 				foreach ($filenames as $filename) {
 					// checking coherence between JSON and REQUEST
 					if (!isset($tool['input_files'][$input_name])) {
-						$_SESSION['errorData']['Internal'][] = "Input file '$input_name' not found in tool definition. '$this->toolId' is not properly registered";
-						return 0;
+						$this->logger->error("Input file '$input_name' not found in tool definition. '$this->toolId' is not properly registered");
+						$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+						redirect($GLOBALS['BASEURL'] . "workspace/");
 					}
 
-					if (!$filename) {
+					if (empty($filename)) {
 						if ($tool['input_files'][$input_name]['required'] === true) {
-							$_SESSION['errorData']['Error'][] = "No file given for '$input_name'";
-							return 0;
+							$this->logger->error("No file given for '$input_name'");
+							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+							redirect($GLOBALS['BASEURL'] . "workspace/");
 						}
 
 						if (($k = array_search($filename, $filenames)) !== false) {
@@ -591,11 +614,11 @@ class Tooljob
 						continue;
 					}
 
-					if (!isset($metadata[$filename])) {
-						if ($tool['input_files'][$input_name]['required'] === true) {
-							$_SESSION['errorData']['Error'][] = "Given file in '$input_name' has no metadata";
-							return 0; // Comentarlo si no hay metadatos
-						}
+					if (!isset($metadata[$filename]) && $tool['input_files'][$input_name]['required'] === true) {
+						$_SESSION['errorData']['Error'][] = "Given file in '$input_name' has no metadata";
+						$this->logger->error("Given file in '$input_name' has no metadata");
+						$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+						redirect($GLOBALS['BASEURL'] . "workspace/");
 					}
 				}
 			}
@@ -619,45 +642,40 @@ class Tooljob
 	public function setInput_files_public($input_files_public, $tool = array(), $metadata_pub = array())
 	{
 		foreach ($input_files_public as $input_name => $input_values) {
-
 			$fns = array();
-			//checking  requirements
 			if (count($tool) && count($metadata_pub)) {
-				if (!is_array($input_values))
+				if (!is_array($input_values)) {
 					$input_values = array($input_values);
+				}
 
 				foreach ($input_values as $input_value) {
-					// checking value not empty
-					if (!$input_value) {
-						$_SESSION['errorData']['Error'][] = "No value given public file '$input_name'";
-						return 0;
+					if (empty($input_value)) {
+						$this->logger->error("No value given public file '$input_name'");
+						$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+						redirect($GLOBALS['BASEURL'] . "workspace/");
 					}
+
 					// checking coherence between JSON and REQUEST
 					if (!isset($tool['input_files_public_dir'][$input_name])) {
-						$_SESSION['errorData']['Internal'][] = "Input file public '$input_name' not found in tool definition. '$this->toolId' is not properly registered";
-						return 0;
+						$this->logger->error("Input file public '$input_name' not found in tool definition. '$this->toolId' is not properly registered");
+						$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+						redirect($GLOBALS['BASEURL'] . "workspace/");
 					}
-					// replacing file_path by fn in input_files_pub
-					$fn = "";
-					foreach ($metadata_pub as $f => $file) {
-						if ($file['file_path'] == $input_value) {
-							$fn = $f;
-						}
+
+					$fn = array_search($metadata_pub, array('file_path' => $input_value));
+					if ($fn === false) {
+						$this->logger->error("Input file public '$input_name' with value '$input_value' not found in public directory");
+						$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+						redirect($GLOBALS['BASEURL'] . "workspace/");
 					}
-					if ($fn) {
-						array_push($fns, $fn);
-					} else {
-						$_SESSION['errorData']['Error'][] = "Input file public '$input_name' with value '$input_value' not found in public directory";
-						return 0;
-					}
+
+					array_push($fns, $fn);
 				}
 			}
-			// setting input_files
+
 			$this->input_files_pub[$input_name] = $fns;
 			$this->input_paths_pub[$input_name] = $input_values[0];
 		}
-
-		return 1;
 	}
 
 	/**
@@ -823,30 +841,23 @@ class Tooljob
 	 */
 	public function prepareExecution($tool, $metadata, $metadata_pub = [])
 	{
-		$launcher = $this->launcher;
-		$cloudName = $this->cloudName;
-
 		if ($tool['external'] === false) {
-			switch ($launcher) {
-				case "SGE":
-					$cmd = $this->setBashCmd_withoutApp($tool, $metadata);
-					if (!$cmd) {
-						return 0;
-					}
-
-					$submissionFilename = $this->createSubmitFile_SGE($cmd);
-					if (!is_file($submissionFilename)) {
-						return 0;
-					}
-
-					break;
-
-				default:
-					$_SESSION['errorData']['Error'][] = "Internal Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
+			if ($this->launcher == "SGE") {
+				$cmd = $this->setBashCmd_withoutApp($tool, $metadata);
+				if (!$cmd) {
 					return 0;
-			}
+				}
 
-			return 1;
+				$submissionFilename = $this->createSubmitFile_SGE($cmd);
+				if (!is_file($submissionFilename)) {
+					return 0;
+				}
+
+				return 1;
+			} else {
+				$this->logger->error("Internal Tool not properly registered. Launcher for '" . $this->toolId . "' is set to \"" . $this->launcher . "\". Case not implemented.");
+				return 0;
+			}
 		} else {
 			$configFilename = $this->setConfiguration_file($tool);
 			if ($configFilename == "0") {
@@ -859,11 +870,11 @@ class Tooljob
 			}
 
 			if (!is_file($this->config_file) && !is_file($this->metadata_file)) {
-				$_SESSION['errorData']['Internal Error'][] = "Cannot set tool command line. It required configuration file ($this->config_file) and metadata file ($this->metadata_file)";
+				$this->logger->error("Cannot set tool command line. It required configuration file ($this->config_file) and metadata file ($this->metadata_file)");
 				return 0;
 			}
 
-			switch ($launcher) {
+			switch ($this->launcher) {
 				case "SGE":
 					$cmd  = $this->setBashCmd_SGE($tool);
 					if (!$cmd) {
@@ -918,14 +929,14 @@ class Tooljob
 
 				case "Slurm":
 					$username = $_POST['username'];
-					$cmd = $this->setHPCRequest($cloudName, $tool, $username);
+					$cmd = $this->setHPCRequest($this->cloudName, $tool, $username);
 					if (!$cmd) {
 						return 0;
 					}
 					$_SESSION['errorData']['Debug'][] = "CMD:" . $cmd;
 					break;
 				default:
-					$_SESSION['errorData']['Error'][] = "Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
+					$this->logger->error("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$this->launcher\". Case not implemented.");
 					return 0;
 			}
 
@@ -1159,7 +1170,7 @@ class Tooljob
 
 			$cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d" .
 				" " . $cmd_envs .
-				"--memory=" . $tool['infrastructure']['memory']. "g" .
+				"--memory=" . $tool['infrastructure']['memory'] . "g" .
 				" -v " . $this->pub_dir_volumes . ":" . $GLOBALS['shared'] . "public_tmp/ " .
 				" -v " . $this->root_dir_volumes . ":" . $GLOBALS['shared'] . "userdata_tmp/{$_SESSION['User']['id']}" .
 				" " . $tool['infrastructure']['container_image'] . " $cmd_vre";
@@ -1535,7 +1546,7 @@ class Tooljob
 			case "PMES":
 				return $this->callPMES();
 			default:
-				$_SESSION['errorData']['Error'][] = "Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"" . $tool['infrastructure']['clouds'][$this->cloudName]['launcher'] . "\". Case not implemented.";
+				$this->logger->error("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"" . $tool['infrastructure']['clouds'][$this->cloudName]['launcher'] . "\". Case not implemented.");
 				return 0;
 		}
 	}
@@ -1751,49 +1762,52 @@ class Tooljob
 			if (count($tool)) {
 				// checking coherence between JSON and REQUEST
 				if (!isset($tool['input_files_public_dir'][$input_name])) {
-					$_SESSION['errorData']['Internal'][] = "Input file public '$input_name' not found in tool definition. '$this->toolId' is not properly registered";
-					return $metadata_public;
+					$this->logger->error("Input file public '$input_name' not found in tool definition. '$this->toolId' is not properly registered");
+					$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+					redirect($GLOBALS['BASEURL'] . "workspace/");
 				}
-				if ($input_value != "") {
-					$rfn_public = 1;
 
-					// check input_files_public_dir
+				if ($input_value != "") {
 					switch ($tool['input_files_public_dir'][$input_name]['type']) {
 						case 'enum':
 							if (!isset($tool['input_files_public_dir'][$input_name]['enum_items']) || (!isset($tool['input_files_public_dir'][$input_name]['enum_items']['name']))) {
-								$_SESSION['errorData']['Internal'][] = "Invalid input_files_public_dir enum in tool definition. '$input_name' has no 'enum_items' or 'enum_items['name].";
-								$rfn_public = 0;
+								$this->logger->error("Invalid input_files_public_dir enum in tool definition. '$input_name' has no 'enum_items' or 'enum_items['name].");
+								$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+								redirect($GLOBALS['BASEURL'] . "workspace/");
 							}
+
 							if (!in_array($input_value, $tool['input_files_public_dir'][$input_name]['enum_items']['name'])) {
-								$_SESSION['errorData']['Error'][] = "Invalid input_files_public_dir. In '$input_name' these values are accepted [" . implode(", ", $tool['input_files_public_dir'][$input_name]['enum_items']['name']) . "], but found $input_value";
-								$rfn_public = 0;
+								$this->logger->error("Invalid input_files_public_dir. In '$input_name' these values are accepted [" . implode(", ", $tool['input_files_public_dir'][$input_name]['enum_items']['name']) . "], but found $input_value");
+								$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+								redirect($GLOBALS['BASEURL'] . "workspace/");
 							}
+
 							$input_value = strval($input_value);
 							break;
 						case 'hidden':
 						case 'string':
 							if (is_array($input_value)) {
-								$_SESSION['errorData']['Error'][] = "Invalid file public. In '$input_name' a string was expected, but found an array: " . implode(",", $input_value);
-								$rfn_public = 0;
+								$this->logger->error("Invalid file public. In '$input_name' a string was expected, but found an array: " . implode(",", $input_value));
+								$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+								redirect($GLOBALS['BASEURL'] . "workspace/");
 							}
 							$input_value = strval($input_value);
 							break;
 						default:
-							$_SESSION['errorData']['Internal'][] = "Input file public '$input_name' has unsupported type (" . $tool['input_files_public_dir'][$arg_name]['type'] . "). '$this->toolId' is not properly registered";
-							$rfn_public = 0;
-					}
-					if ($rfn_public == 0) {
-						continue;
+							$this->logger->error("Input file public '$input_name' has unsupported type (" . $tool['input_files_public_dir'][$input_name]['type'] . "). '$this->toolId' is not properly registered");
+							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+							redirect($GLOBALS['BASEURL'] . "workspace/");
 					}
 
-					// find file in public dir
 					$rfn_public = $this->pub_dir . "/$input_value";
-					if (!is_file($rfn_public) && (!is_dir($rfn_public)) && (!preg_match('/\$\(.+\)/', $rfn_public))) {
+					if (!is_file($rfn_public) && !is_dir($rfn_public) && !preg_match('/\$\(.+\)/', $rfn_public)) {
 						$_SESSION['errorData']['Error'][] = "Input file public '$input_name' not found in public directory: $rfn_public";
-						continue;
+						$this->logger->error("Input file public '$input_name' not found in public directory: $rfn_public");
+						$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
+						redirect($GLOBALS['BASEURL'] . "workspace/");
 					}
-					// get fn and  metadata from DMP #TODO : right now this data is not registered!!
 
+					// get fn and  metadata from DMP #TODO : right now this data is not registered!!
 					// create fake metadata
 					$fn  = createLabel() . "_dummy";
 					$file = array(
@@ -1820,6 +1834,7 @@ class Tooljob
 				}
 			}
 		}
+
 		return $metadata_public;
 	}
 
