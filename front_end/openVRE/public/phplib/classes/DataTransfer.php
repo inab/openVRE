@@ -61,7 +61,6 @@ class DataTransfer {
         } else {
             $_SESSION['errorData']['Info'][] = "Files are gonna be transferred in remote system.";
             $vaultUrl = $GLOBALS['vaultUrl'];
-            $vaultToken = $_SESSION['User']['Vault']['vaultToken'];
             $accessToken = $_SESSION['User']['Token']['access_token'];
             $vaultRolename = $_SESSION['User']['Vault']['vaultRolename'];
             $vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
@@ -147,7 +146,6 @@ class DataTransfer {
     error_log("DEBUG: syncWorkingDir - preparing to sync local dir $localDir to remote MN system...");
     // Step 2: Get SSH credentials from Vault
     $vaultUrl     = $_SESSION['userVaultInfo']['vaultUrl'];
-    $vaultToken   = $_SESSION['userVaultInfo']['vaultKey'];
     $accessToken  = $_SESSION['userToken']['access_token'];
     $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
     $username     = $_SESSION['User']['_id'];

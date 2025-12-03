@@ -145,9 +145,7 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 			$updateResult = $GLOBALS['sitesCol']->updateOne(
 				['_id' => $site_id],  // Match document by siteId    
 				['$set' => [  // Use the $unset operator to remove fields
-					'launcher.access_credentials.private_key' => null,
-					'launcher.access_credentials.public_key' => null,
-					'launcher.access_credentials.user_key' => null
+					'launcher.access_credentials.username' => null
 				]]
 			);
 

@@ -7,14 +7,21 @@ const SCANCEL = "scancel ";
 const SQUEUE = "squeue ";
 
 use OpenVRE\SSH\RemoteSSH;
+use OpenVRE\SSH\VaultClient;
 
-class ProcessSLURM{
+class ProcessSlurm {
         private $pid;
-        private $err;
         private $fullCommand;
 	private $sshHost;
 	private $sshUsername;
         private $username;
+        private $sshCredentials;
+        private $sshRemotePath;
+        private $shFile;
+        private $workDir;
+        private $logFile;
+        private $errFile;
+        private $remote_system;
         private $jobState = Array (
 		
 		'PD' => "PENDING",
@@ -29,187 +36,226 @@ class ProcessSLURM{
 	        'S'  => "SUSPENDED",
     
 	);
-		// cl is command line
-        public function __construct($cl=false,$workDir="",$partition="default", $jobname="",$cpu=1,$mem=0){
-                // Assumptions:
-                // user has to set up mn account at vre
-                // write down info into YML file and store it in $hpc_credentials userdata/$USER_ID/.dev/MN_account.yml
-                // contents: host, userid, remote_dir, public_key, queue, queue_type if not slurm
-                //
-                // TODO
-                // load yaml_parse_file php function --> $data
-                // start ssh session with phpsecli or ssh2_auth_pukbkey_file()
-                // $this->ssh_session=$ssh store the ssh session
+        public function __construct($shFile, $workDir, $logFile, $errFile, $remote_system){
+                error_log("ProcessSlurm: __construct called with remote_system = $remote_system");
 
-//              $current_user = posix_getpwuid(posix_geteuid()); //user executing the php and same in the remote --> no!
-                // read it from the yaml
-                //$this->username  = $current_user['name'];
-                $this->username  = $credentials['userid'];
+                // Set class properties
+                $this->shFile = $shFile;
+                $this->workDir = $workDir;
+                $this->logFile = $logFile;
+                $this->errFile = $errFile;
+                $this->remote_system = $remote_system;
 
+                // Retrieve all the Vault/session and ssh credentials
+                $vaultUrl      = $_SESSION['userVaultInfo']['vaultUrl']     ?? $GLOBALS['vaultUrl'] ?? null;
+                $accessToken   = $_SESSION['userToken']['access_token']  ?? null;
+                $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'] ?? null;
+                $username      = $_SESSION['User']['_id'] ?? null;
+                $vaultKey      = $_SESSION['userVaultInfo']['vaultKey'] ?? null;
 
-                if ($cl != false){    //if the command is given
-                        $this->workDir = $credentials['remote_workdir'];
-                        $this->command = $cl;
-                        $this->queue   = $credentials['remote_workdir'];
-                        $this->cpu     = $cpu; //from Mongo
-                        $this->mem     = $mem; //from Mongo
-
-                        if ($jobname)
-                                $this->jobname = $jobname;
-                        else
-                                $this->jobname = basename($cl);
-
-            // $this->ssh_session=$ssh; 
-                        $this->runCom();
-        }
-        return $this;
-        }
-
-
-        // execute srun command
-        private function runCom(){
-                $this->setFullCommand();
-        $command = $this->fullcommand;
-                logger("SGE job submission has CML = '$command'");
-
-        //chdir($this->workDir);
-        //exec($command,$op);
-
-        $proc = proc_open($command,[
-                         1 => ['pipe','w'],
-                         2 => ['pipe','w'],
-                        ],$pipes, $this->workDir);
-                $this->stdout = stream_get_contents($pipes[1]);
-                fclose($pipes[1]);
-                $this->stderr = stream_get_contents($pipes[2]);
-                fclose($pipes[2]);
-        proc_close($proc);
-
-        if (preg_match('/job (\d+)/',$this->stdout,$m)){
-                                $this->pid=(int)$m[1];
-                                $msg = trim(preg_replace('/\s\s+/', ' ', "Job STDOUT returns: ".$this->stdout));
-                                logger($msg);
-                }else{
-                                $this->pid=0;
-                                $msg = trim(preg_replace('/\s\s+/', ' ', "Job STDERR returns: ".$this->stdout." Error: ". $this->stderr));
-                                logger($msg);
-                                $_SESSION['errorData']['Error'][] = $this->stdout." Error: ". $this->stderr;
+                error_log("ProcessSlurm: __construct has vaultUrl = $vaultUrl, accessToken = $accessToken, vaultRolename = $vaultRolename, username = $username, vaultKey = $vaultKey");
+                
+                if (!$vaultUrl || !$vaultKey || !$vaultRolename || !$accessToken || !$username) {
+                        $_SESSION['errorData']['Error'][] =
+                            "ProcessSlurm: Missing required Vault or session credentials.";
+                        throw new Exception("Missing Vault/session parameters.");
                 }
-        }
-        // build Submit (srun) command
-        public function setFullCommand(){
-                $workDir = $this->workDir;
-                $command = SRUN.$script.$this->queue."\n";
-                // if ($this->cpu > 1)
-                //      $command .= " -l cpu=". $this->cpu;
-                $command .= " ".$this->command;
-                $this->fullcommand = $command;
-        }
 
-        public function checkAcceSSH(){
-                // here function to check the ssh connection? or before?
-        }
+                // Create Vault client
+                $vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
+                // Retrieve SSH credentials
+                $sshCredentials = $vaultClient->getSSHcredentials($vaultUrl, $vaultKey);
 
+                if (!$sshCredentials || !is_array($sshCredentials)) {
+                        $_SESSION['errorData']['Error'][] = "ProcessSlurm: Failed to retrieve SSH credentials from Vault.";
+                        throw new Exception("SSH credentials not found.");
+                    }
 
-        //list all VRE Jobs  (not used anymore)
-        public function getRunningJobs(){
-                $jobs=Array();
-                $command = SQUEUE." -u $this->username | awk '$1 ~ /[0-9]+/ {print $1\"\t\"$5\"\t\"$6 $7}'";
-                exec($command,$queueJobs);
+                    $this->sshCredentials = [
+                        "private_key" => $sshCredentials['private_key'],
+                        "public_key"  => $sshCredentials['public_key'],
+                        "username"    => $sshCredentials['username']
+                    ];
+                    if (
+                        empty($this->sshCredentials['private_key']) ||
+                        empty($this->sshCredentials['username'])
+                    ) {
+                        $_SESSION['errorData']['Error'][] = "ProcessSlurm: Incomplete SSH credentials retrieved.";
+                        throw new Exception("Incomplete SSH credentials.");
+                    }
+                
+                    $remote_details = Tooljob::getLauncher_SlurmInfo($remote_system);
+                    $this->sshHost = $remote_details['server'];
+                    $this->sshUsername = $remote_details['username'];
+                    $this->sshRemotePath = $remote_details['root_path'];
 
-                if (!isset($queueJobs[0])){
-            log_addInfo($jobid,"Job not running anymore");
-                        return $jobs;
-        }else{
-                        foreach ($queueJobs as $jobLine){
-                                list($pid,$state,$start)=explode("\t",$jobLine);
-                                $cmd = SQUEUE. " -j $pid | grep job_name | cut -d: -f2 | tr -d \" \"";
-                                exec($cmd,$jobName);
-                                $jobs[$pid]=Array(
-                                        'name'  => $jobName[0],
-                                        'start' => $start,
-                                        'state' => $this->jobState[$state]
-                                );
-                        }
                 }
+
+
+        public function setFullCommand($remoteSh, $workDir, $remoteOut, $remoteErr): void
+        {
+                // Remote paths
+                $remoteWorkDir = rtrim($workDir, "/");
+                $cmd  = "cd \"$remoteWorkDir\" && ";
+                $cmd .= "sbatch --output=\"$remoteOut\" --error=\"$remoteErr\" \"$remoteSh\"";
+        
+                $this->fullcommand = $cmd;
+        }
+
+        public function submitJob(): array
+        {
+                if (empty($this->fullCommand)) {
+                        $this->setFullCommand($this->shFile, $this->workDir, $this->logFile, $this->errFile);
+        }
+
+        try {
+                // Execute SLURM job submission command on remote cluster
+                $output = $this->ssh->execute($this->fullCommand);
+
+                // Extract SLURM Job ID
+                preg_match('/Submitted batch job (\d+)/', $output, $matches);
+                $pid = $matches[1] ?? null;
+
+                // Store in class property for later use
+                $this->pid = $pid;
+
+                return [
+                        'success' => true,
+                        'pid'     => $pid,
+                        'output'  => $output
+                ];
+
+        } catch (\Exception $e) {
+                return [
+                        'success' => false,
+                        'error'   => $e->getMessage()
+                ];
+        }
+        }
+
+        /**
+         * Get the full command that will be executed on the remote cluster.
+         * This command string is built by calling setFullCommand() and is
+         * used to submit the job to the remote cluster.
+         *
+         * @return string The full command that will be executed on the remote cluster.
+         */
+        public function getFullCommand()
+        {
+                return $this->fullCommand ?? "";
+        }
+
+        public function getPid()
+        {
+                return $this->pid ?? 0;
+        }  
+        
+        public function getErr()
+        {
+            return $this->err ?? "";
+        }
+
+        public function status()
+        {
+                if (!$this->pid) {
+                        return "UNKNOWN";
+        }
+        $info = $this->getRunningJobInfo($this->pid);
+        if (!$info || !isset($info['state'])) {
+                return "UNKNOWN";
+        }
+        return $info['state'];
+        }
+
+        private function connectSSH()
+        {
+                $ssh = new SSH2($this->sshHost);
+                $ssh->setTimeout(30);
+
+                $formattedKey = RemoteSSH::formatSSHPrivateKey($this->sshCredentials['private_key']);
+                $key = PublicKeyLoader::load($formattedKey);
+
+        if (!$ssh->login($this->sshCredentials['username'], $key)) {
+                throw new Exception("SSH authentication failed.");
+        }
+
+        return $ssh;
+        }
+
+        public function getRunningJobs()
+        {
+        try {
+                $ssh = $this->connectSSH();
+                $cmd = "squeue -u " . escapeshellarg($this->sshCredentials['username']) . " -o \"%i|%t|%j\"";
+                $output = $ssh->exec($cmd);
+                if (!$output) return [];
+                $lines = explode("\n", trim($output));
+                array_shift($lines); // remove header
+                $jobs = [];
+                foreach ($lines as $line) {
+                        if (!trim($line)) continue;
+                        list($id, $state, $name) = explode("|", $line);
+                        $jobs[] = [
+                                "job_id" => trim($id),
+                                "state"  => $this->jobState[$state] ?? $state,
+                                "name"   => trim($name)
+                        ];
+                } 
+                return $jobs;
+
+        } catch (\Exception $e) {
+                return [];
+        }
         }
 
 
-        //list user Jobs
-        public function getRunningJobInfo($pid){
-                $job=Array();
-                if (! $pid)
-                return $job;
-                if (! $this->pid)
-                        $this->pid = $pid;
-                $cmd = SQUEUE. " -j $pid | awk '$0~/:/ {print $0}'";
-                exec($cmd,$jobInfo);
+        public function getRunningJobInfo($pid)
+        {
+        try {
+                $ssh = $this->connectSSH();
 
-                if(count($jobInfo) == 0 )
-                return $job;
+                $cmd = "squeue -j " . escapeshellarg($pid) . " -h -o \"%i|%t|%j|%u|%M|%D\"";
+                $output = trim($ssh->exec($cmd));
 
-                foreach ($jobInfo as $line){
-                        $fields =explode(":",$line);
-                        $k = trim(array_shift($fields));
-                        $v = trim(implode(":",$fields));
-                        $job[$k]=$v;
+                if (!$output) {
+                        return null; // job not found
                 }
-                $cmd = SQUEUE." -u $this->username | grep $pid | awk '$1 ~ /[0-9]+/ {print $1\"\t\"$5\"\t\"$6 $7}'";
-                exec($cmd,$jobState);
 
-                if (!isset($jobState[0]) ){
-                        $job['state']="FINISHING";
-            log_addInfo($jobid,"Job not running anymore. State: ".$job['state']);
-                }else{
-                        list($pid,$state,$start) = explode("\t",$jobState[0]);
-                        $job['state']= $this->jobState[$state];
-                }
-                $job['pid']=$pid;
+                list($id, $state, $name, $user, $time, $nodes) = explode("|", $output);
 
-            return $job;
+                return [
+                        "job_id" => trim($id),
+                        "state"  => $this->jobState[$state] ?? $state,
+                        "raw_state" => $state,
+                        "name"   => trim($name),
+                        "user"   => trim($user),
+                        "time"   => trim($time),
+                        "nodes"  => trim($nodes)
+                ];
+
+        } catch (\Exception $e) {
+                return null;
+        }
+        }
+
+        public function cancelJob($pid)
+        {
+        try {
+                $ssh = $this->connectSSH();
+                $cmd = "scancel " . escapeshellarg($pid);
+                $ssh->exec($cmd);
+                return true;
+
+        } catch (\Exception $e) {
+                return false;
+        }
         }
 
 
-        public function getFullCommand(){
-                return $this->fullcommand;
-        }
-
-        public function getPid(){
-                return $this->pid;
-        }
-
-        public function getErr(){
-                if ($this->stderr)
-                        return $this->stout.$this->stderr;
-                else
-                        return NULL;
-        }
-        public function status(){
-                # No need to specify a queue, pids are unique in the same SGE system.
-                $pidForm = sprintf("%7s",$this->pid);
-                $command = SQUEUE.' -u '.$this->username.' | grep "^'.$pidForm.'"';
-                exec($command,$op);
-
-                if (!isset($op[0]))return false;
-                else return true;
-        }
-
-        public function start(){
-                if ($this->command != '')$this->runCom();
-                else return true;
-        }
-
-    public function stop($pid=NULL){
-        if (!$pid){
-            return array(false,"No job id '$pid' given");
-        }
-                $command = SCANCEL.' '.$pid;
-        exec($command,$r);
-        $res = join(" ",$r);
-        log_addInfo($jobid,"SLURM/scancel: ".$res);
-        if (preg_match('/has deleted/i',$res) || preg_match('/registered the job \d+ for deletion/',$res))
-            return array(true,$res);
-        else
-            return array(false,$res);
+        public function __destruct(){
+                unset($this->sshCredentials);
+                unset($this->sshHost);
+                unset($this->sshUsername);
+                unset($this->sshRemotePath);
         }
 }

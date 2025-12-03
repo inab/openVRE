@@ -1,5 +1,7 @@
 <?php
 
+use OpenVRE\SSH\RemoteSSH;
+use OpenVRE\SSH\VaultClient;
 
 function getOpenstackUser($vaultUrl, $accessToken, $vaultRolename, $username)
 {

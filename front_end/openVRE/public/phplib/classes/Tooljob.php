@@ -1946,7 +1946,7 @@ EOF;
 		return $launcherInfo;
 	}
 
-	function  getLauncher_SlurmInfo($siteId)
+	public static function getLauncher_SlurmInfo($siteId)
 	{	
 		$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
 		if (!$siteDocument) {
@@ -1964,6 +1964,7 @@ EOF;
 			'domain'     => $launcher['access_credentials']['domain'] ?? null,
 			'server'      => $launcher['access_credentials']['server'] ?? null,
 			'root_path'   => $launcher['access_credentials']['rootpath_default'] ?? null,
+			'username'    => $launcher['access_credentials']['username'] ?? null,
 			'job_manager' => $launcher['job_manager'] ?? 'Slurm',
 		];
 		return $launcherInfo;

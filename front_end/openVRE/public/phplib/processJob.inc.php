@@ -8,6 +8,7 @@
 function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log", $jobManager = "docker_SGE")
 {
     logger("Start job submission via $jobManager");
+    error_log("DEBUG- execJob: Start job submission via $jobManager");
 
     if (!isset($_SESSION['User']['id'])) {
         $_SESSION['errorData']['Error'][] = "User ID not found in session.";
@@ -41,14 +42,18 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
     // Start SGE process
     //$process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
 
-    switch (strtoupper($jobManager)) {
+    switch ($jobManager) {
         case "docker_SGE":
+            error_log("DEBUG: Submitting job via docker_SGE. Parameters: shFile=$shFile, workDir=$workDir, queue=$queue, jobname=$jobname, cpus=$cpus, mem=$mem, logFile=$logFile, errFile=$errFile");
             $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
             break;
-        case "marenostrum_Slurm":
-            $process = new ProcessSlurm();
-            return $process->submitJob($shFile, $workDir, $logFile, $errFile);
-            break;  
+        case "Slurm":
+            $remote_system = $_REQUEST['sites']['site_list'][0];
+            error_log("DEBUG: Submitting job via Slurm to $remote_system. Parameters: shFile=$shFile, workDir=$workDir, logFile=$logFile, errFile=$errFile");
+            $process = new ProcessSlurm($shFile, $workDir, $logFile, $errFile, $remote_system);
+            break;
+            return $process->submitJob();
+            break;
         default:
             $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
             break;  
@@ -64,7 +69,7 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
     }
 
     error_log("Process started successfully: PID = $pid");
-    logger("The process $cmd is currently running PID = $pid");
+    logger("The process is currently running PID = $pid");
     return array($pid, "");
 }
 

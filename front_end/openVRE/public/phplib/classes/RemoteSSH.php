@@ -306,7 +306,7 @@ class RemoteSSH {
         }
     }
 
-    private function formatSSHPrivateKey($singleLineKey) {
+    public static function formatSSHPrivateKey($singleLineKey) {
         // Function to insert newlines every 64 characters in the key
          // First, ensure the key content is well-formatted by removing existing newlines or spaces
         // Extract the BEGIN and END markers
