@@ -81,13 +81,12 @@ class Tooljob
 			// single element: marenostrum_Slurm
 			if (count($site_list) === 1) {
 				$full = $site_list[0];
-				error_log("DEBUG: single entry = $full");
 				// Split into cloudName + launcher
 				[$cloud, $launcher] = array_pad(explode('_', $full, 2), 2, '');
 				$this->cloudName = $cloud;
 				$this->launcher  = $launcher;
-				error_log("DEBUG: parsed cloudName = $cloud");
-				error_log("DEBUG: parsed launcher = $launcher");
+				//error_log("DEBUG: parsed cloudName = $cloud");
+				//error_log("DEBUG: parsed launcher = $launcher");
 			}
 			} else {
 			// No site_list provided → fallback
@@ -942,7 +941,7 @@ class Tooljob
 					if (!is_file($submissionFilename)) {
 						return 0;
 					} else {
-						error_log("DEBUG createSubmitFile_Slurm (1) - Generated SLURM submission script:\n\n" . file_get_contents($submissionFilename));
+						//error_log("DEBUG createSubmitFile_Slurm (1) - Generated SLURM submission script:\n\n" . file_get_contents($submissionFilename));
 					}
 					break;
 
@@ -1191,7 +1190,7 @@ EOF;
 
 
 	protected function setBashCmd_Singularity($tool, $dataLocations){
-		error_log("setBashCmd_Singularity - dataLocations: " . json_encode($dataLocations));
+		//error_log("setBashCmd_Singularity - dataLocations: " . json_encode($dataLocations));
 		if (empty($dataLocations)) {
 			$_SESSION['errorData']['Error'][] = "dataLocations is empty — cannot build paths.";
 		}
@@ -1203,11 +1202,13 @@ EOF;
 		$first = $dataLocations[0];
 		$pathDir = dirname($first['absolute_path']); 
 		$baseDir = dirname($pathDir);
+		//error_log("setBashCmd_Singularity - runFolder: $runFolder, dataLocations: " . json_encode($dataLocations) . ", baseDir: $baseDir");
 		
 		// Singularity image and executable
 		$singularityExec = $tool['infrastructure']['executable']; 		
-		$singularityImage =  "/../../../" . $tool['infrastructure']['singularity_image']; //doing it automatically
-
+		$singularityImage =  dirname(dirname($baseDir)) . "/" ."public/" . $tool['infrastructure']['singularity_image']; //doing it automatically
+		error_log("setBashCmd_Singularity - singularityExec: $singularityExec, singularityImage: $singularityImage");
+		
 		// Example paths using runFolder
 		$configFile     = "$baseDir/$runFolder/.config.json";
 		$inputMetadata  = "$baseDir/$runFolder/.in_metadata.json";
@@ -1471,11 +1472,11 @@ EOF;
 		$workingDir = $this->working_dir;
 		$bashFilename = $this->submission_file;
 		$siteDetails = $this->getLauncher_SlurmInfo($siteId);
-		error_log("DEBUG createSubmitFile_Slurm:"
+		/* error_log("DEBUG createSubmitFile_Slurm:"
 			. " workingDir=$workingDir"
 			. " bashFilename=$bashFilename"
 		);
-		error_log("DEBUG createSubmitFile_Slurm - siteDetails: " . json_encode($siteDetails));
+		error_log("DEBUG createSubmitFile_Slurm - siteDetails: " . json_encode($siteDetails));*/
 		try {
 			$fout = fopen($bashFilename, "w");
 			if ($fout === false) {
@@ -1591,7 +1592,7 @@ EOF;
 		$memory = $launcherInfo['memory'] ?? $tool['infrastructure']['memory'];
 		$cpus = $launcherInfo['cpus'] ?? $tool['infrastructure']['cpus'];
 		$queue = $launcherInfo['queue'] ?? $tool['infrastructure']['clouds'][$this->cloudName]['queue'];
-		error_log("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory, jobManager=$jobManager");
+		// error_log("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory, jobManager=$jobManager");
 
 		list($pid, $errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file, $jobManager);
 		if (!$pid) {
@@ -1601,7 +1602,7 @@ EOF;
 			return 0;
 		}
 		#logger("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
-		error_log("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
+		//error_log("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
 		log_addSubmission($pid, $this->toolId, $this->cloudName, "SGE", $cpus, $memory, $this->working_dir);
 
 		$this->pid = $pid;

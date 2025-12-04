@@ -104,10 +104,9 @@ class ProcessSlurm {
         {
                 // Remote paths
                 error_log("ProcessSlurm: setFullCommand - remoteSh = $remoteSh, workDir = $workDir, remoteOut = $remoteOut, remoteErr = $remoteErr");
-                $remoteWorkDir = DataTransfer::constructingDestinationDir_MN($this->sshRemotePath, $this->sshUsername);
+                $remoteWorkDir = DataTransfer::synchronizeDestinationDir_MN($this->sshRemotePath, $this->sshUsername);
                 $cmd  = "cd \"$remoteWorkDir\" && ";
-                $cmd .= "sbatch --output=\"$remoteWorkDir"+"$remoteOut\" --error=\"$remoteWorkDir"+"/$remoteErr\" \"$remoteWorkDir/$remoteSh\"";
-                
+                $cmd .= 'sbatch --output="' . rtrim($remoteWorkDir, '/') . $remoteOut . '" --error="' . rtrim($remoteWorkDir, '/') . $remoteErr . '" "' . rtrim($remoteWorkDir, '/') . $remoteSh . '"';
                 error_log("ProcessSlurm: setFullCommand - fullCommand = $cmd");
         
                 $this->fullCommand = $cmd;

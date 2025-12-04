@@ -72,14 +72,18 @@ class DataTransfer {
                 error_log("DEBUG: getSSHcredentials - failed to retrieve SSH credentials from Vault.");
             return [];
             }
-
+            
             // Step 5: Create the rsync command using data locations
             $localDir = preg_replace('#/+#', '/', $this->workingDirPath);
             if (preg_match('#/shared_data/userdata/([^/]+/[^/]+)/#', $localDir, $matches)) {
-                $userProjPath = $matches[1]; // Result: PROJECTUSER68245281ad3ee/__PROJ68245281ad3f03.79906233
+                $userProjPath = '/shared_data/userdata/' . $matches[1]; // Result: PROJECTUSER68245281ad3ee/__PROJ68245281ad3f03.79906233
             } else {
                 throw new Exception("Invalid working directory format: $localDir");
             }
+            error_log("DEBUG: syncFiles - localDir: $localDir");
+            error_log("DEBUG: syncFiles - workingDirPath: " . $this->workingDirPath);
+            error_log("DEBUG: syncFiles - userProjPath: $userProjPath");
+
             $remoteSSH = new RemoteSSH($sshCredentials);
             list($updatedDataLocations, $syncCommand) = $remoteSSH->prepareSyncCommand($dataLocations, $sshCredentials, $userProjPath);
 
@@ -179,7 +183,7 @@ class DataTransfer {
     $remoteRunPath = rtrim($remoteUploadPath, "/") . "/$userProjPath" . "/$runId";
     // Step 4: Rsync full working directory to remote
     $remoteSSH = new RemoteSSH($sshCredentials);
-    $singularityImagePath = ($this->singularityImage !== null) ? $remoteUploadPath . "/" . $this->singularityImage : null;
+    $singularityImagePath = ($this->singularityImage !== null) ? $remoteUploadPath . "/../public/" . $this->singularityImage : null;
     $rsyncSuccess = $remoteSSH->executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteRunPath, $server, $singularityImagePath);
     if ($rsyncSuccess === true) {
         $_SESSION['errorData']['Info'][] = "Successfully synced $runId to remote path: $remoteRunPath";
@@ -345,9 +349,26 @@ class DataTransfer {
         $dynamicDir2 = substr($numericPartWithoutZero, 0, 5);
         // Now construct the full destination path dynamically
         if (empty($filename)) {
-            $destinationPath = "{$rootPath}bsc{$dynamicDir1}/MN4/bsc{$dynamicDir1}/bsc{$dynamicDir2}/";
+            $destinationPath = "{$rootPath}bsc{$dynamicDir1}/MN4/bsc{$dynamicDir1}/bsc{$dynamicDir2}/shared_data/userdata";
         } else {
-            $destinationPath = "{$rootPath}bsc{$dynamicDir1}/MN4/bsc{$dynamicDir1}/bsc{$dynamicDir2}/";
+            $destinationPath = "{$rootPath}bsc{$dynamicDir1}/MN4/bsc{$dynamicDir1}/bsc{$dynamicDir2}/shared_data/userdata";
+        }
+        return $destinationPath;
+
+    }
+    public static function synchronizeDestinationDir_MN ( string $rootPath, string $username, string $filename = '') {
+
+        //Constructing MN Path
+        // Taking the numeric part from Username
+        $numericPart = substr($username, 3);
+        $numericPartWithoutZero = ltrim($numericPart, '0'); // To adjust to old path of MN4 still maintained in MN5
+        $dynamicDir1 = substr($numericPartWithoutZero, 0, 2);
+        $dynamicDir2 = substr($numericPartWithoutZero, 0, 5);
+        // Now construct the full destination path dynamically
+        if (empty($filename)) {
+            $destinationPath = "{$rootPath}bsc{$dynamicDir1}/MN4/bsc{$dynamicDir1}/bsc{$dynamicDir2}";
+        } else {
+            $destinationPath = "{$rootPath}bsc{$dynamicDir1}/MN4/bsc{$dynamicDir1}/bsc{$dynamicDir2}";
         }
         return $destinationPath;
 
