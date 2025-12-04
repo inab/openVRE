@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/LoggerFactory.php';
+require_once __DIR__ . '/LoggerFactory.php';
 
 use Monolog\Logger;
 
