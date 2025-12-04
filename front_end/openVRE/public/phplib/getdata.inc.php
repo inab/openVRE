@@ -195,26 +195,21 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
     $dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
     $localWorkingDir = "{$dataDirPath}/{$outdir}";
     $workingDir = $GLOBALS['dataDir'] . "/" . $localWorkingDir;
-    $workingDirId = getGSFileId_fromPath($localWorkingDir);
 
-    if ($workingDirId == "0") {
-        //creating repository directory. Old users dont have it
-        $workingDirId  = createGSDirBNS($localWorkingDir, 1);
-        $_SESSION['errorData']['Info'][] = "Creating '$outdir' directory: $localWorkingDir ($workingDirId)";
-        if ($workingDirId == "0") {
-            $msg = "Cannot create repository directory in $dataDirPath";
-            if ($referer == "die") {
-                die($msg);
-            }
-
-            $_SESSION['errorData']['Error'][] = $msg;
+    if (!isFilePresentFromPath($localWorkingDir)) {
+        try {
+            $workingDirId  = createGSDirBNS($localWorkingDir, 1);
+        } catch (UnexpectedValueException $e) {
+            getDataLogger()->error("Cannot create repository directory in $dataDirPath");
             redirect($referer);
         }
 
-        $IsMetadataAdded = addMetadataBNS($workingDirId, [
+        getDataLogger()->info("Creating '$outdir' directory: $localWorkingDir ($workingDirId)");
+        $IsMetadataAdded = addMetadataToFile($workingDirId, [
             "expiration" => -1,
             "description" => "Remote personal data"
         ]);
+
         if ($IsMetadataAdded == "0") {
             $msg = "Cannot set '$outdir' directory $localWorkingDir";
             if ($referer == "die") {
@@ -679,7 +674,7 @@ function getData_fromRepository($url, $datatype, $filetype, $description, $oeb_d
             redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $addedMetadata = addMetadataBNS($workingDirId, [
+        $addedMetadata = addMetadataToFile($workingDirId, [
             "expiration" => -1,
             "description" => "Remote personal data"
         ]);

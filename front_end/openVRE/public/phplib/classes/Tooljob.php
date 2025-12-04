@@ -362,7 +362,7 @@ class Tooljob
 				'arguments'       => array_merge($this->arguments, $this->input_paths_pub)
 			];
 
-			$addedMetadata = addMetadataBNS($this->_id, $projDirMeta);
+			$addedMetadata = addMetadataToFile($this->_id, $projDirMeta);
 			if ($addedMetadata == "0") {
 				$this->logger->error("Project folder created. But cannot set metada for '$this->working_dir' with id '$this->_id'");
 				$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";

@@ -87,7 +87,7 @@ function updateProject($project_id,$project_attr, $asRoot=0,$owner=0){
         $_SESSION['errorData']['Error'][]= "Given project (code $project_id) not found. Cannot edit it.";
         return 0;
     }
-    return addMetadataBNS($project_id, $project_attr);
+    return addMetadataToFile($project_id, $project_attr);
 }
 
 
@@ -138,7 +138,7 @@ function createProjectDir($dirfn,$dirrfn,$project_attr=Array(), $asRoot=0,$owner
         $project_attr['description'] ="This is a VRE project";
 
  
-    $r = addMetadataBNS($dirId, $project_attr);
+    $r = addMetadataToFile($dirId, $project_attr);
     if ($r == "0"){
         $_SESSION['errorData']['Error'][]="Project folder created. But cannot set metada for '$dirfn' with id '$dirId'";
         return 0;

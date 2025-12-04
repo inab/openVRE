@@ -116,6 +116,18 @@ function getGSFilesFromDir($dataSelection = array(), $onlyVisible = 0)
 	return $files;
 }
 
+function isFilePresentFromPath($filePath, $asRoot = 0)
+{
+	$mongoFilesCollection = $GLOBALS['filesCol'];
+	$filter = $asRoot
+		? array('path' => $filePath)
+		: array('path' => $filePath, 'owner' => $_SESSION['User']['id']);
+	$file = $mongoFilesCollection->findOne($filter);
+
+	return $file != null;
+}
+
+
 function getGSFileId_fromPath($filePath, $asRoot = 0)
 {
 	$mongoFilesCollection = $GLOBALS['filesCol'];
@@ -124,9 +136,10 @@ function getGSFileId_fromPath($filePath, $asRoot = 0)
 		: array('path' => $filePath, 'owner' => $_SESSION['User']['id']);
 
 	$file = $mongoFilesCollection->findOne($filter);
+
 	if (is_null($file)) {
-		mongoLogger()->error("File " . $filePath . " does not exist.");
-		throw new UnexpectedValueException("File " . $filePath . " does not exist for current user.");
+		mongoLogger()->error("File " . $filePath . " does not exist for user " . $_SESSION['User']['id']);
+		throw new NotFoundException("File " . $filePath . " does not exist.");
 	}
 
 	return $file['_id'];
@@ -277,7 +290,7 @@ function addAssociatedFiles_OBSOLETE($masterId, $assocIds)
 	// update associated files metadata
 	foreach ($assocIds as $assocId) {
 		array_push($meta_master['associated_files'], $assoc);
-		addMetadataBNS($assocId, array('associated_id' => $masterId));
+		addMetadataToFile($assocId, array('associated_id' => $masterId));
 	}
 	// update master file metadata
 	modifyMetadataBNS($masterId, $meta_master);
@@ -621,7 +634,24 @@ function absolutePathGSFile($filePath, $asRoot)
 }
 
 
-// create new directory registry
+function determineParentDirId(string $absoluteDirPath, bool $asRoot): ?string
+{
+	// Root-like directory? No parent
+	if (isRootLevelDir($absoluteDirPath, $asRoot)) {
+		return null;
+	}
+
+	$parentPath = dirname($absoluteDirPath);
+
+	try {
+		return getGSFileId_fromPath($parentPath, 1);
+	} catch (NotFoundException $e) {
+		// Create parent recursively and re-fetch
+		return createGSDirBNS($parentPath, $asRoot);
+	}
+}
+
+
 function createGSDirBNS($dirPath, $asRoot = 0)
 {
 	$mongoFilesCollection = $GLOBALS['filesCol'];
@@ -637,30 +667,30 @@ function createGSDirBNS($dirPath, $asRoot = 0)
 		throw new UnexpectedValueException("Cannot create $dirPath . Target not under root directory " . $_SESSION['User']['id'] . " ?" . "\n" . $e->getMessage());
 	}
 
-	$fileId = getGSFileId_fromPath($absoluteDirPath, 1);
-	if ($fileId != "0") {
-		return $fileId;
+	if (isFilePresentFromPath($absoluteDirPath, $asRoot)) {
+		return getGSFileId_fromPath($absoluteDirPath, 1);
 	}
 
-	if ($absoluteDirPath == $_SESSION['User']['id'] || ($asRoot && (preg_match('/^' . preg_quote($GLOBALS['dataDir'], '/') . '(\/)*[^\/.]+$/', $absoluteDirPath)))) {
-		$parentId = 0;
-	} elseif ($asRoot && (preg_match('/^' . preg_quote($GLOBALS['dataDir'], '/') . '(\/)*[^\/.]+$/', $absoluteDirPath))) {
-		$parentId = 0;
-	} elseif ($asRoot && (preg_match('/^[^\/.]+$/', $absoluteDirPath))) {
-		$parentId = 0;
+	$isRootLevelDir = ($absoluteDirPath == $_SESSION['User']['id'])
+		|| ($asRoot && (
+			preg_match('/^' . preg_quote($GLOBALS['dataDir'], '/') . '(\/)*[^\/.]+$/', $absoluteDirPath)
+			|| preg_match('/^[^\/.]+$/', $absoluteDirPath)));
+	if ($isRootLevelDir) {
+		$parentDirId = null;
 	} else {
 		$parentPath = dirname($absoluteDirPath);
-		$parentId = getGSFileId_fromPath($parentPath, 1);
-		if ($parentId == "0" && createGSDirBNS($parentPath) == "0") {
-			return 0;
+		if (isFilePresentFromPath($parentPath, 1)) {
+			$parentDirId = getGSFileId_fromPath($parentPath, 1);
+		} else {
+			createGSDirBNS($parentPath);
 		}
 	}
 
-	if ($parentId != "0") {
-		$parentObj = $mongoFilesCollection->findOne(['_id' => $parentId, 'owner' => $_SESSION['User']['id']]);
-		if (isset($parentObj['permissions']) && $parentObj['permissions'] == "000") {
+	if (!is_null($parentDirId)) {
+		$parentDir = $mongoFilesCollection->findOne(['_id' => $parentDirId, 'owner' => $_SESSION['User']['id']]);
+		if (isset($parentDir['permissions']) && $parentDir['permissions'] == "000") {
 			mongoLogger()->error("Not permissions to modify parent directory $parentPath");
-			return 0;
+			throw new UnexpectedValueException("Not permissions to modify parent directory $parentPath");
 		}
 	}
 
@@ -673,8 +703,6 @@ function createGSDirBNS($dirPath, $asRoot = 0)
 		}
 	}
 
-	//set project # TODO : take proj as argument
-	$project = $_SESSION['User']['activeProject'];
 	$dirId = createLabel();
 	$mongoFilesCollection->updateOne(
 		['_id' => $dirId],
@@ -685,19 +713,19 @@ function createGSDirBNS($dirPath, $asRoot = 0)
 				'owner'      => $owner,
 				'size'       => 0,
 				'path'       => $absoluteDirPath,
-				'project'    => $project,
+				'project'    => $_SESSION['User']['activeProject'],
 				'mtime'      => new MongoDB\BSON\UTCDateTime(strtotime("now") * 1000),
 				'atime'      => new MongoDB\BSON\UTCDateTime(strtotime("now") * 1000),
 				'files'      => [],
-				'parentDir'  => $parentId
+				'parentDir'  => $parentDirId
 			]
 		],
 		['upsert' => true]
 	);
 
-	if ($parentId != "0") {
+	if (!is_null($parentDirId)) {
 		$mongoFilesCollection->updateOne(
-			["_id" => $parentId],
+			["_id" => $parentDirId],
 			['$addToSet' => ["files" => $dirId]]
 		);
 	}
@@ -922,17 +950,17 @@ function modifyMetadataBNS($fileId, $metadata)
 
 //insert metadata for a file
 //add new metadata keys to previous metadata
-function addMetadataBNS($fileId, $metadata)
+function addMetadataToFile($fileId, $metadata)
 {
 	if (empty($GLOBALS['filesCol']->findOne(array('_id' => $fileId)))) {
-		$_SESSION['errorData']['mongoDB'][] = "Cannot add metadata for $fileId. File not in the repository";
-		return 0;
+		mongoLogger()->error("Cannot add metadata for $fileId. File not in the repository");
+		throw new NotFoundException("Cannot add metadata for $fileId. File not in the repository");
 	}
 
-	foreach ($metadata as $k => $v) {
+	foreach ($metadata as $key => $value) {
 		$GLOBALS['filesMetaCol']->updateOne(
 			['_id' => $fileId],
-			['$set' => [$k => $v]],
+			['$set' => [$key => $value]],
 			['upsert' => true]
 		);
 	}

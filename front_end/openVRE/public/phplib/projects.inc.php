@@ -53,7 +53,7 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $ver
 			$_SESSION['errorData']['Error'][] = "Cannot create main user directory $homeDir";
 			return 0;
 		}
-		$r = addMetadataBNS($homeDirId, array(
+		$r = addMetadataToFile($homeDirId, array(
 			"expiration" => -1,
 			"description" => "Root user data"
 		));
@@ -100,7 +100,7 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $ver
 				$_SESSION['errorData']['Error'][] = "Cannot create uploads directory in $dataDir ($dataDirId) ";
 				return 0;
 			}
-			$r = addMetadataBNS($upDirId, array(
+			$r = addMetadataToFile($upDirId, array(
 				"expiration" => -1,
 				"description" => "Uploaded personal data"
 			));
@@ -122,7 +122,7 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $ver
 				$_SESSION['errorData']['Error'][] = "Cannot create repository directory in $dataDir ($dataDirId) ";
 				return 0;
 			}
-			$r = addMetadataBNS($repDirId, array(
+			$r = addMetadataToFile($repDirId, array(
 				"expiration" => -1,
 				"description" => "Remote personal data"
 			));
@@ -143,7 +143,7 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $ver
 				$_SESSION['errorData']['Error'][] = "Cannot create repository directory in $dataDir ($dataDirId) ";
 				return 0;
 			}
-			$r = addMetadataBNS($repDirId, array(
+			$r = addMetadataToFile($repDirId, array(
 				"expiration" => -1,
 				"description" => "RStudio personal data"
 			));
@@ -382,7 +382,7 @@ function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type, $v
 				return 0;
 			}
 
-			if (addMetadataBNS($newId, $metadata) == "0") {
+			if (addMetadataToFile($newId, $metadata) == "0") {
 				$_SESSION['errorData']['login'][] = "Cannot register data sample '" . $validatedMetadata['file_path'] . "'";
 				return 0;
 			}
@@ -1409,7 +1409,7 @@ function processPendingFiles($sessionId, $files = array())
 								print "<br>VRE METADATA SEND TO addMetadata IS:<br/>\n";
 								var_dump($metadata);
 							}
-							$ok = addMetadataBNS($fileId, $metadata);
+							$ok = addMetadataToFile($fileId, $metadata);
 							if ($ok == "0")
 								$_SESSION['errorData']['Warning'][] = "Sorry, could update '" . basename($rfn) . "' metadata.";
 						}
@@ -1494,7 +1494,7 @@ function processPendingFiles($sessionId, $files = array())
 								}
 								$file_assoc['associated_files'] = $assocs;
 							}
-							$ok = addMetadataBNS($assoc_id, $file_assoc);
+							$ok = addMetadataToFile($assoc_id, $file_assoc);
 							if ($ok == "0")
 								$_SESSION['errorData']['Warning'][] = "Sorry, could not add reference to '" . basename($rfn) . "' in the metadata of the associated file '$assoc_id'";
 							$ff = getGSFile_fromId($assoc_id);
@@ -2201,10 +2201,10 @@ function deleteFiles($fileIds, $force = false)
 
 		// delete file from disk
 		if (file_exists($filePath) && !unlink($filePath)) {
-				$_SESSION['errorData']['Error'][] = "Errors encountered while deleting file '" . basename($fileLocalPath) . "'.";
-				$_SESSION['errorData']['Error'][] = error_get_last()["message"];
-				$result = false;
-				continue;
+			$_SESSION['errorData']['Error'][] = "Errors encountered while deleting file '" . basename($fileLocalPath) . "'.";
+			$_SESSION['errorData']['Error'][] = error_get_last()["message"];
+			$result = false;
+			continue;
 		}
 
 		// if is an associated file, update master file
@@ -2215,7 +2215,7 @@ function deleteFiles($fileIds, $force = false)
 				//print "FILE IS an associated FILE! update $master_id<br/>";
 				if (($k = array_search($fileId, $master['associated_files'])) !== false) {
 					unset($master['associated_files'][$k]);
-					$r = addMetadataBNS($master_id, $master);
+					$r = addMetadataToFile($master_id, $master);
 					if ($r == "0") {
 						$_SESSION['errorData']['Error'][] = "File '" . basename($fileLocalPath) . "' successfully deleted, but cannot update its master file $master_id metadata";
 						$result = false;
