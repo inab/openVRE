@@ -872,7 +872,8 @@ class Tooljob
 				$_SESSION['errorData']['Internal Error'][] = "Cannot set tool command line. It required configuration file ($this->config_file) and metadata file ($this->metadata_file)";
 				return 0;
 			}
-			
+
+			$_SESSION['errorData']['Error'][] = "Launcher '$launcher' not implemented.";
 			switch ($launcher) {
 				case "SGE":
 					$cmd  = $this->setBashCmd_SGE($tool);
@@ -943,9 +944,10 @@ class Tooljob
 					} else {
 						error_log("DEBUG createSubmitFile_Slurm (1) - Generated SLURM submission script:\n\n" . file_get_contents($submissionFilename));
 					}
+					break;
 
 				default:
-					$_SESSION['errorData']['Error'][] = "Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
+					$_SESSION['errorData']['Error'][] = "prepareExec - Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
 					return 0;
 			}
 
@@ -1571,7 +1573,7 @@ EOF;
 			case "PMES":
 				return $this->callPMES();
 			default:
-				$_SESSION['errorData']['Error'][] = "Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"" . $tool['infrastructure']['clouds'][$this->cloudName]['launcher'] . "\". Case not implemented.";
+				$_SESSION['errorData']['Error'][] = "submit - Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"" . $tool['infrastructure']['clouds'][$this->cloudName]['launcher'] . "\". Case not implemented.";
 				return 0;
 		}
 	}

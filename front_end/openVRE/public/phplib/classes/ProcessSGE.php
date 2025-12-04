@@ -53,7 +53,6 @@ class ProcessSGE{
             
             $this->runCom();
         }
-        return $this;
 	}
 
 

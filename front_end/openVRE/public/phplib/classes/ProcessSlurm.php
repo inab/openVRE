@@ -8,6 +8,8 @@ const SQUEUE = "squeue ";
 
 use OpenVRE\SSH\RemoteSSH;
 use OpenVRE\SSH\VaultClient;
+use phpseclib3\Net\SSH2;
+use phpseclib3\Crypt\PublicKeyLoader;
 
 class ProcessSlurm {
         private $pid;
@@ -65,7 +67,6 @@ class ProcessSlurm {
                 $vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
                 // Retrieve SSH credentials
                 $sshCredentials = $vaultClient->getSSHcredentials($vaultUrl, $vaultKey);
-
                 if (!$sshCredentials || !is_array($sshCredentials)) {
                         $_SESSION['errorData']['Error'][] = "ProcessSlurm: Failed to retrieve SSH credentials from Vault.";
                         throw new Exception("SSH credentials not found.");
@@ -83,11 +84,18 @@ class ProcessSlurm {
                         $_SESSION['errorData']['Error'][] = "ProcessSlurm: Incomplete SSH credentials retrieved.";
                         throw new Exception("Incomplete SSH credentials.");
                     }
-                
+
+                    error_log("ProcessSlurm: SSH credentials retrieved: " . json_encode($this->sshCredentials));
+
                     $remote_details = Tooljob::getLauncher_SlurmInfo($remote_system);
                     $this->sshHost = $remote_details['server'];
-                    $this->sshUsername = $remote_details['username'];
                     $this->sshRemotePath = $remote_details['root_path'];
+                    $this->sshUsername = $this->sshCredentials['username'];
+
+                    error_log("ProcessSlurm: SSH connection details: sshHost = $this->sshHost, sshUsername = $this->sshUsername, sshRemotePath = $this->sshRemotePath");
+
+
+                    $this->submitJob();
 
                 }
 
@@ -95,11 +103,14 @@ class ProcessSlurm {
         public function setFullCommand($remoteSh, $workDir, $remoteOut, $remoteErr): void
         {
                 // Remote paths
-                $remoteWorkDir = rtrim($workDir, "/");
+                error_log("ProcessSlurm: setFullCommand - remoteSh = $remoteSh, workDir = $workDir, remoteOut = $remoteOut, remoteErr = $remoteErr");
+                $remoteWorkDir = DataTransfer::constructingDestinationDir_MN($this->sshRemotePath, $this->sshUsername);
                 $cmd  = "cd \"$remoteWorkDir\" && ";
-                $cmd .= "sbatch --output=\"$remoteOut\" --error=\"$remoteErr\" \"$remoteSh\"";
+                $cmd .= "sbatch --output=\"$remoteWorkDir"+"$remoteOut\" --error=\"$remoteWorkDir"+"/$remoteErr\" \"$remoteWorkDir/$remoteSh\"";
+                
+                error_log("ProcessSlurm: setFullCommand - fullCommand = $cmd");
         
-                $this->fullcommand = $cmd;
+                $this->fullCommand = $cmd;
         }
 
         public function submitJob(): array
@@ -110,12 +121,14 @@ class ProcessSlurm {
 
         try {
                 // Execute SLURM job submission command on remote cluster
-                $output = $this->ssh->execute($this->fullCommand);
-
+                $ssh = $this->connectSSH();
+                $output = $ssh->exec($this->fullCommand);
+                error_log("ProcessSlurm: submitJob: fullCommand = $this->fullCommand");
+                error_log("ProcessSlurm: submitJob: output = $output");
                 // Extract SLURM Job ID
                 preg_match('/Submitted batch job (\d+)/', $output, $matches);
                 $pid = $matches[1] ?? null;
-
+                error_log("ProcessSlurm: submitJob: pid = $pid");
                 // Store in class property for later use
                 $this->pid = $pid;
 
@@ -125,7 +138,7 @@ class ProcessSlurm {
                         'output'  => $output
                 ];
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
                 return [
                         'success' => false,
                         'error'   => $e->getMessage()
@@ -175,11 +188,12 @@ class ProcessSlurm {
                 $formattedKey = RemoteSSH::formatSSHPrivateKey($this->sshCredentials['private_key']);
                 $key = PublicKeyLoader::load($formattedKey);
 
-        if (!$ssh->login($this->sshCredentials['username'], $key)) {
-                throw new Exception("SSH authentication failed.");
-        }
+                if (!$ssh->login($this->sshCredentials['username'], $key)) {
+                        error_log("ProcessSlurm: connectSSH: SSH authentication failed. Username: " . $this->sshCredentials['username']);
+                        throw new Exception("SSH authentication failed.");
+                }
 
-        return $ssh;
+                return $ssh;
         }
 
         public function getRunningJobs()

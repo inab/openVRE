@@ -52,22 +52,19 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
             error_log("DEBUG: Submitting job via Slurm to $remote_system. Parameters: shFile=$shFile, workDir=$workDir, logFile=$logFile, errFile=$errFile");
             $process = new ProcessSlurm($shFile, $workDir, $logFile, $errFile, $remote_system);
             break;
-            return $process->submitJob();
-            break;
         default:
             $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
             break;  
     }
-      
-    $pid = $process->getPid();
-
+ 
     if (!$process->status()) {
-        $_SESSION['errorData']['Error'][] = "Job submission failed.<br/>" . $process->getFullCommand . "<br/>" . $process->getErr();
-        $errMesg = "ERROR: Job submission failed. FullCommand: '" . $process->getFullCommand . "'. ErrorSGE: '" . $process->getErr() . "'";
+        $_SESSION['errorData']['Error'][] = "Job submission failed.<br/>" . $process->getFullCommand() . "<br/>" . $process->getErr();
+        $errMesg = "ERROR: Job submission failed. FullCommand: '" . $process->getFullCommand() . "'. ErrorSGE: '" . $process->getErr() . "'";
         logger($errMesg);
         return array(0, $errMesg);
     }
 
+    $pid = $process->getPid();
     error_log("Process started successfully: PID = $pid");
     logger("The process is currently running PID = $pid");
     return array($pid, "");

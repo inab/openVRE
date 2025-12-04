@@ -335,7 +335,7 @@ class DataTransfer {
     }
 
    
-    private function constructingDestinationDir_MN ( string $rootPath, string $username, string $filename = '') {
+    public static function constructingDestinationDir_MN ( string $rootPath, string $username, string $filename = '') {
 
         //Constructing MN Path
         // Taking the numeric part from Username
