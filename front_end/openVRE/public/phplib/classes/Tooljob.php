@@ -1208,12 +1208,13 @@ EOF;
 		$singularityExec = $tool['infrastructure']['executable']; 		
 		$singularityImage =  dirname(dirname($baseDir)) . "/" ."public/" . $tool['infrastructure']['singularity_image']; //doing it automatically
 		error_log("setBashCmd_Singularity - singularityExec: $singularityExec, singularityImage: $singularityImage");
-		
+
 		// Example paths using runFolder
 		$configFile     = "$baseDir/$runFolder/.config.json";
 		$inputMetadata  = "$baseDir/$runFolder/.in_metadata.json";
 		$outputMetadata = "$baseDir/$runFolder/.results.json";
 		$logFile        = "$baseDir/$runFolder/.tool.log";
+		
 		// Build command
 		$cmd  = "singularity exec ";
 		$cmd .= "--overlay $overlayPath ";
@@ -1225,7 +1226,6 @@ EOF;
 		$cmd .= "--config $configFile ";
 		$cmd .= "--in_metadata $inputMetadata ";
 		$cmd .= "--out_metadata $outputMetadata ";
-		$cmd .= "> $logFile 2>&1";
 	
 		return $cmd;
 

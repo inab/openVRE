@@ -106,6 +106,7 @@ class ProcessSlurm {
                 error_log("ProcessSlurm: setFullCommand - remoteSh = $remoteSh, workDir = $workDir, remoteOut = $remoteOut, remoteErr = $remoteErr");
                 $remoteWorkDir = DataTransfer::synchronizeDestinationDir_MN($this->sshRemotePath, $this->sshUsername);
                 $cmd  = "cd \"$remoteWorkDir\" && ";
+                $cmd .= "module load singularity/4.1.5  && ";
                 $cmd .= 'sbatch --output="' . rtrim($remoteWorkDir, '/') . $remoteOut . '" --error="' . rtrim($remoteWorkDir, '/') . $remoteErr . '" "' . rtrim($remoteWorkDir, '/') . $remoteSh . '"';
                 error_log("ProcessSlurm: setFullCommand - fullCommand = $cmd");
         
