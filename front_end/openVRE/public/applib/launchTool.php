@@ -62,7 +62,7 @@ $files = array();
 foreach ($filesId as $fileId) {
 	$file = getGSFile_fromId($fileId);
 
-	if (empty($file)) {
+	if (is_null($file)) {
 		$logger->error("File not found: " . $fileId);
 		internalErrorRedirect();
 	}
@@ -71,7 +71,7 @@ foreach ($filesId as $fileId) {
 	$associated_files = getAssociatedFiles_fromId($fileId);
 	foreach ($associated_files as $assocId) {
 		$assocFile = getGSFile_fromId($assocId);
-		if (empty($assocFile)) {
+		if (is_null($assocFile)) {
 			$logger->error("Associated file " . $assocId . " not found");
 			internalErrorRedirect();
 		}

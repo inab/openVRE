@@ -3,6 +3,17 @@
 
 use League\OAuth2\Client\Token\AccessToken;
 
+function getProjectLogger()
+{
+	static $logger = null;
+
+	if ($logger === null) {
+		$logger = LoggerFactory::getLogger('ProjectZz interface');
+	}
+
+	return $logger;
+}
+
 function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData = array(), $verbose = FALSE, $asRoot = 0)
 {
 	// set current directory
@@ -2243,7 +2254,6 @@ function deleteFiles($fileIds, $force = false)
 
 function moveFiles($fns, $target_fn)
 {
-
 	$result	 = true;
 	$multipleFiles  = FALSE;
 
@@ -2302,10 +2312,10 @@ function moveFiles($fns, $target_fn)
 			}
 			$target_dir_rfn  = $GLOBALS['dataDir'] . "/$target_dir";
 
-			// move file from DMP
-			$r = moveGSFileBNS($file_fn, "$target_dir/$target_filename");
-			if ($r == "0") {
-				$_SESSION['errorData']['Error'][] = "Error while moving file '" . basename($file_fn) . "'";
+			// move file
+			try {
+				moveGSFileBNS($file_fn, "$target_dir/$target_filename");
+			} catch (Exception $e) {
 				$result = false;
 				continue;
 			}
@@ -2313,16 +2323,17 @@ function moveFiles($fns, $target_fn)
 			// move file in disk
 			rename($file_rfn, "$target_dir_rfn/$target_filename");
 			if (!is_file("$target_dir_rfn/$target_filename")) {
-				$_SESSION['errorData']['Error'][] = "Error while writting moved file";
+				getProjectLogger()->error("Error while writting moved file");
 				$result = false;
-				continue;
+				//continue;
 			}
 
 			// move associated ids
-			if (isset($file['associated_files'])) {
+			/*
+						if (isset($file['associated_files'])) {
 				foreach ($file['associated_files'] as $assoc_id) {
 					$assoc = getGSFile_fromId($assoc_id);
-					if ($assoc) {
+					if (isset($assoc)) {
 						$r = moveGSFileBNS($assoc['path'], "$target_dir/" . basename($assoc_path));
 						if ($r == "0") {
 							$_SESSION['errorData']['Warning'][] = "File '" . basename($file_fn) . "' successfully moved, but  not its associated file (" . basename($assoc['path']) . ").";
@@ -2331,6 +2342,7 @@ function moveFiles($fns, $target_fn)
 					}
 				}
 			}
+			*/
 		}
 	}
 

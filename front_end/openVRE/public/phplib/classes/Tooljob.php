@@ -136,24 +136,25 @@ class Tooljob
 		}
 
 		// Creating execution folder
-		if ($execution != "0") {
-			//create Project Folder 
-			$this->hasExecutionFolder = true;
-			$this->__setWorking_dir($execution);
-			$this->output_dir = $this->working_dir;
-		} else {
+		if (empty($execution)) {
 			//internalTool
 			$this->hasExecutionFolder = false;
 			$this->__setWorking_inTmp($tool['_id']);
 			$this->output_dir = $output_dir;
+		} else {
+			//create Project Folder
+			$this->hasExecutionFolder = true;
+			$this->__setWorking_dir($execution);
+			$this->output_dir = $this->working_dir;
 		}
 
 		// Set description
-		if ($descrip != "")
+		if (!empty($descrip)) {
 			$this->setDescription($descrip, $tool['name']);
+		}
 
 		// Set project
-		if ($project == "0" || $project == "") {
+		if (empty($project)) {
 			$this->project = $_SESSION['User']['activeProject'];
 		} else {
 			//TODO Check project exists

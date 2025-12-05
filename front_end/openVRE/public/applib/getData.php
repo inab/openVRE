@@ -23,18 +23,12 @@ switch ($_REQUEST['uploadType']) {
 	case 'txt':
 		getData_fromTXT();
 		break;
-	case 'id':
-		$source = getSourceURL();
-		getData_fromURL($source['url'], $source['ext'],"id");
-        	break;
 	case 'repository':
 		$url = $_REQUEST['url'];
 		$datatype = $_REQUEST['data_type'] ?? "";
 		$filetype = $_REQUEST['filetype'] ?? "";
 		$descrip = $_REQUEST['description'] ?? "";
-		$oeb_dataset_id = $_REQUEST['oeb_dataset_id'];
-		$oeb_community_ids = $_REQUEST['oeb_community_ids'];
-		getData_fromRepository($url, $datatype, $filetype, $descrip, $oeb_dataset_id, $oeb_community_ids);
+		getData_fromRepository($url, $datatype, $filetype, $descrip);
         break;
 
 	case 'repositoryTest':

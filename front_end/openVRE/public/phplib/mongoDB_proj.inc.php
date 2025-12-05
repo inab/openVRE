@@ -48,8 +48,9 @@ function getProject($query,$asRoot=0,$owner=0){
 
     $query_type = (preg_match('/__PROJ/',$query)?"path":"_id");
 
-    if (!$owner || !$asRoot)
+    if (!$owner || !$asRoot) {
         $owner = $_SESSION['User']['id'];
+    }
 
     if ($query_type == "_id" ){
         return getGSFile_fromId($query);

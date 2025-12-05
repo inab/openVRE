@@ -1,6 +1,9 @@
 <?php
 
 
+// To be updated and refactored
+
+
 function launchTool($toolId, $userEmail, $projectName, $inputFilepaths)
 {
     $tool = getTool_fromId($toolId, 1);
@@ -65,7 +68,7 @@ function launchTool($toolId, $userEmail, $projectName, $inputFilepaths)
     foreach ($filesId as $fnId) {
         $file = getGSFile_fromId($fnId);
 
-        if (!$file) {
+        if (is_null($file)) {
             continue;
         }
         $files[$file['_id']] = $file;
@@ -73,7 +76,7 @@ function launchTool($toolId, $userEmail, $projectName, $inputFilepaths)
         $associated_files = getAssociatedFiles_fromId($fnId);
         foreach ($associated_files as $assocId) {
             $assocFile = getGSFile_fromId($assocId);
-            if (!$assocFile) {
+            if (is_null($assocFile)) {
                 $_SESSION['errorData']['Error'][] = "File associated to " . basename($file['path']) . " ($assocId) does not belong to current user or has been not properly registered. Stopping execution";
                 redirect($GLOBALS['BASEURL'] . "workspace/");
             }

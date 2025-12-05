@@ -20,10 +20,14 @@ function getData_fromLocal()
     $workingDir = $GLOBALS['dataDir'] . "/" . $localWorkingDir;
     if (!is_dir($workingDir)) {
         getDataLogger()->error("Target server directory '" . basename($localWorkingDir) . "' does not exist");
-        throw new UnexpectedValueException("Target server directory '" . basename($localWorkingDir) . "' does not exist. Please, login again.");
+        throw new UnexpectedValueException("Target server directory '" . basename($localWorkingDir) . "' does not exist.");
     }
 
-    getGSFileId_fromPath($localWorkingDir);
+    $workingDirId = getGSFileId_fromPath($localWorkingDir);
+    if (is_null($workingDirId)) {
+        getDataLogger()->error("Target server directory '" . basename($localWorkingDir) . "' is not registered in the database");
+        throw new NotFoundException("Target server directory '" . basename($localWorkingDir) . "' is not registered in the database.");
+    }
 
     if (empty($_FILES)) {
         getDataLogger()->error("Receiving blank in $_FILES");
@@ -191,34 +195,25 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
     }
 
     curl_close($ch);
-    // setting output directory
+
     $dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
     $localWorkingDir = "{$dataDirPath}/{$outdir}";
     $workingDir = $GLOBALS['dataDir'] . "/" . $localWorkingDir;
+    $workingDirId = getGSFileId_fromPath($localWorkingDir);
 
-    if (!isFilePresentFromPath($localWorkingDir)) {
+    if (is_null($workingDirId)) {
         try {
             $workingDirId  = createGSDirBNS($localWorkingDir, 1);
         } catch (UnexpectedValueException $e) {
-            getDataLogger()->error("Cannot create repository directory in $dataDirPath");
-            redirect($referer);
+            getDataLogger()->error("Cannot create repository directory '$localWorkingDir' in '$dataDirPath'");
+            throw $e;
         }
 
         getDataLogger()->info("Creating '$outdir' directory: $localWorkingDir ($workingDirId)");
-        $IsMetadataAdded = addMetadataToFile($workingDirId, [
+        addMetadataToFile($workingDirId, [
             "expiration" => -1,
             "description" => "Remote personal data"
         ]);
-
-        if ($IsMetadataAdded == "0") {
-            $msg = "Cannot set '$outdir' directory $localWorkingDir";
-            if ($referer == "die") {
-                die($msg);
-            }
-
-            $_SESSION['errorData']['Error'][] = $msg;
-            redirect($referer);
-        }
 
         if (!is_dir($workingDir)) {
             mkdir($workingDir, 0775);
@@ -226,43 +221,33 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
     }
 
     if (!is_dir($workingDir)) {
-        $msg = "Target server directory '$localWorkingDir' is not a directory. Your user account is corrupted. Please, report to <a href=\"mailto:helpdesk@multiscalegenomics.eu\">helpdesk@multiscalegenomics.eu</a>";
-        if ($referer == "die") {
-            die($msg);
-        }
-
-        $_SESSION['errorData']['Error'][] = $msg;
-        redirect($referer);
+        getDataLogger()->error("Target server directory '$localWorkingDir' is not a directory. User account of user '{$_SESSION['User']['username']}' is corrupted");
+        throw new UnexpectedValueException("Target server directory '$localWorkingDir' is not a directory. Your user account is corrupted.");
     }
 
-    // Check file already registered
     $filePath = "$workingDir/$filename";
     $filePathLocal = "$localWorkingDir/$filename";
     $fileId = getGSFileId_fromPath($filePathLocal);
-    if ($fileId) {
-        $_SESSION['errorData']['Error'][] = "Resource file ('" . $url . "') is already available in the workspace: $filePath";
+    if (isset($fileId)) {
+        getDataLogger()->error("Resource file '$url' is already available in the workspace: $filePath");
         redirect("../getdata/editFile.php?fn[]=$fileId");
     }
-    //output_dir will be where fn is expected to be created
-    $output_dir = $workingDir;
 
     // working_dir will be set in user temporal dir. Checking it
     // TODO Or NO! maybe we decide to run directly on uploads/
     $dirTmp = $GLOBALS['dataDir'] . "/" . $dataDirPath . "/" . $GLOBALS['tmpUser_dir'];
     if (!is_dir($dirTmp) && !mkdir($dirTmp, 0775, true)) {
-        $_SESSION['errorData']['error'][] = "Cannot create temporal file '$dirTmp'.Please, try it later.";
+        getDataLogger()->error("Cannot create temporal file '$dirTmp'.Please, try it later.");
     }
 
-    // setting tool	arguments
     $toolArgs  = [
-        "url"    => $toolArgs["url"] = $url_withCredentials ?: $url,
+        "url"    => $url_withCredentials ?: $url,
         "output" => $filePath
-    ];           // Tool is responsible to create outputs in the output_dir
+    ];
 
-    // setting tool outputs -- metadata to save in DMP during tool output_file registration
     $descrip = "File imported from URL '$url'";
     $taxon = $meta['taxon'] ?? "";
-    [$fileExtension, $compressed, $fileBaseName] = getFileExtension($filePath);
+    [$fileExtension, $compressed] = getFileExtension($filePath);
     $filetypes = getFileTypeFromExtension($fileExtension);
     $filetype = array_keys($filetypes)[0] ?? "";
     $fileOut = [
@@ -280,7 +265,7 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
     ];
 
     $toolOuts = ["output_files" => [$fileOut]];
-    return [$toolArgs, $toolOuts, $output_dir];
+    return [$toolArgs, $toolOuts, $workingDir];
 }
 
 
@@ -630,7 +615,7 @@ function process_URL($url)
 }
 
 // import from Repository (URL) to user workspace
-function getData_fromRepository($url, $datatype, $filetype, $description, $oeb_dataset_id, $oeb_community_ids)
+function getData_fromRepository($url, $datatype, $filetype, $description)
 {
     $url_data = process_URL($url);
     $status = $url_data['status'];
@@ -664,24 +649,19 @@ function getData_fromRepository($url, $datatype, $filetype, $description, $oeb_d
     $workingDir = $GLOBALS['dataDir'] . "/" . $localWorkingDir;
     $workingDirId = getGSFileId_fromPath($localWorkingDir);
 
-    if ($workingDirId == "0") {
-        //creating repository directory. Old users dont have it
-        $workingDirId  = createGSDirBNS($localWorkingDir, 1);
-        $_SESSION['errorData']['Info'][] = "Creating repository directory: $localWorkingDir ($workingDirId)";
-
-        if ($workingDirId == "0") {
-            $_SESSION['errorData']['Internal error'][] = "Cannot create repository directory in $dataDirPath";
-            redirect($_SERVER['HTTP_REFERER']);
+    if (is_null($workingDirId)) {
+        try {
+            $workingDirId  = createGSDirBNS($localWorkingDir, 1);
+        } catch (UnexpectedValueException $e) {
+            getDataLogger()->error("Cannot create repository directory '$localWorkingDir' in '$dataDirPath'");
+            throw $e;
         }
 
-        $addedMetadata = addMetadataToFile($workingDirId, [
+        getDataLogger()->info("Creating repository directory: $localWorkingDir ($workingDirId)");
+        addMetadataToFile($workingDirId, [
             "expiration" => -1,
             "description" => "Remote personal data"
         ]);
-        if ($addedMetadata == "0") {
-            $_SESSION['errorData']['Internal error'][] = "Cannot set 'repository' directory $localWorkingDir";
-            redirect($_SERVER['HTTP_REFERER']);
-        }
 
         if (!is_dir($workingDir)) {
             mkdir($workingDir, 0775);
@@ -689,35 +669,27 @@ function getData_fromRepository($url, $datatype, $filetype, $description, $oeb_d
     }
 
     if (!is_dir($workingDir)) {
-        $_SESSION['errorData']['Error'][] = "Target server directory '$localWorkingDir' is not a directory. Your user account is corrupted. Please, report to ...";
-        redirect($_SERVER['HTTP_REFERER']);
+        getDataLogger()->error("Target server directory '$localWorkingDir' is not a directory. User account of user '{$_SESSION['User']['username']}' is corrupted");
+        throw new UnexpectedValueException("Target server directory '$localWorkingDir' is not a directory. Your user account is corrupted.");
     }
 
-    // Check file already registered
     $filePath  = "$workingDir/$filename";
     $localFilePath = "$localWorkingDir/$filename";
-    $filenameId = getGSFileId_fromPath($localFilePath);
-    if ($filenameId) {
-        $_SESSION['errorData']['Error'][] = "Resource file ('$url') is already available in the workspace: $filePath";
-        redirect("../getdata/editFile.php?fn[]=$filenameId");
+    $fileId = getGSFileId_fromPath($localFilePath);
+    if (isset($fileId)) {
+        getDataLogger()->error("Resource file '$url' is already available in the workspace: $filePath");
+        redirect("../getdata/editFile.php?fn[]=$fileId");
     }
-
-    //asyncronous download file (internal tool wget)
-
-    //FIXME START - This is a temporal fix. In future, files should not be downloaded, only registered
-
-    //output_dir will be where fn is expeted to be created: repository
-    $output_dir = $workingDir;
 
     // working_dir will be set in user temporal dir. Checking it
     // TODO Or NO! maybe we decide to run directly on uploads/
-    $tmpDir = $GLOBALS['dataDir'] . "/" . $dataDirPath . "/" . $GLOBALS['tmpUser_dir'];
-    if (!is_dir($tmpDir)) {
-        if (!mkdir($tmpDir, 0775, true)) {
-            $_SESSION['errorData']['error'][] = "Cannot create temporal file $tmpDir . Please, try it later.";
-            #break;
-        }
+    $dirTmp = $GLOBALS['dataDir'] . "/" . $dataDirPath . "/" . $GLOBALS['tmpUser_dir'];
+    if (!is_dir($dirTmp) && !mkdir($dirTmp, 0775, true)) {
+        getDataLogger()->error("Cannot create temporal file '$dirTmp'.Please, try it later.");
     }
+
+    //asyncronous download file (internal tool wget)
+    //FIXME START - This is a temporal fix. In future, files should not be downloaded, only registered
 
     $toolId = "wget";
     $toolInputs = [];
@@ -729,8 +701,8 @@ function getData_fromRepository($url, $datatype, $filetype, $description, $oeb_d
     // setting tool outputs. Metadata will be saved in DB during tool output_file registration
     $description = $description ?: "Remote file extracted from <a target='_blank' href=\"$url\">$url</a>";
 
-    if (!$filetype) {
-        [$fileExtension, $compressed, $fileBaseName] = getFileExtension($filePath);
+    if (empty($filetype)) {
+        [$fileExtension, $compressed] = getFileExtension($filePath);
         $filetypes = getFileTypeFromExtension($fileExtension);
         $filetype = array_keys($filetypes)[0] ?? "";
     }
@@ -751,20 +723,12 @@ function getData_fromRepository($url, $datatype, $filetype, $description, $oeb_d
         ]
     ];
 
-    if (isset($oeb_dataset_id)) {
-        $fileOut['meta_data']["oeb_dataset_id"] = $oeb_dataset_id;
-    }
-
-    if (isset($oeb_community_ids)) {
-        $fileOut['meta_data']["oeb_community_ids"] = $oeb_community_ids;
-    }
-
     $toolOuts = ["output_files" => [$fileOut]];
     $logName = basename($filePath) . ".log";
-    $pid = launchToolInternal($toolId, $toolInputs, $toolArgs, $toolOuts, $output_dir, $logName);
+    $pid = launchToolInternal($toolId, $toolInputs, $toolArgs, $toolOuts, $workingDir, $logName);
 
     if ($pid == 0) {
-        $_SESSION['errorData']['Error'][] = "Resource file '" . basename($filePath) . "' cannot be imported. Error occurred while preparing the job 'Get remote file'";
+        getDataLogger()->error("Resource file '" . basename($filePath) . "' cannot be imported. Error occurred while preparing the job 'Get remote file'");
         redirect($_SERVER['HTTP_REFERER']);
     }
 

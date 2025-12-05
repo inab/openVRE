@@ -1,8 +1,18 @@
 <?php
 
-//require "classes/Tooljob.php";
+use Auth0\SDK\Exception\ArgumentException;
 
-// list tools
+function getToolsLogger()
+{
+    static $logger = null;
+
+    if ($logger === null) {
+        $logger = LoggerFactory::getLogger('Tools interface');
+    }
+
+    return $logger;
+}
+
 
 function getTools_List($status = 1)
 {
@@ -224,38 +234,32 @@ function hasTool_custom_visualizer($toolId)
 
 
 // launch tool - used for internal tools
-
 function launchToolInternal($toolId, $inputs = [], $args = [], $outs = [], $output_dir = "", $logName = "")
 {
-	$tool = getTool_fromId($toolId, 1);
+	$tool = getTool_fromId($toolId, true);
 	if (empty($tool)) {
-		$_SESSION['errorData']['Error'][] = "Tool internal not specified or not registered. Please, register '$toolId'";
-		return 0;
+		getToolsLogger()->error("Tool '$toolId' not registered");
+		throw new NotFoundException("Internal tool not registered");
 	}
 
-	if ($tool['external'] !== false) {
-		$_SESSION['errorData']['Error'][] = "Selected tool ($toolId) expected to be Internal but specification states: {'external':false}";
-		return 0;
+	if ($tool['external']) {
+		getToolsLogger()->error("Tool '$toolId' is not internal");
+		throw new UnexpectedValueException("Tool is not internal");
 	}
 
-	// Set Tool job - tmp working dir
-	$execution = 0;   // internal tool do not create a execution folder
-	$project = 0;   // internal tool do not have an associated project
 	$descrip = "Internal job execution of " . $tool['name'];
-	$jobMeta = new Tooljob($tool, $execution, $project, $descrip, $output_dir);
+	$jobMeta = new Tooljob($tool, descrip: $descrip, arguments_exec: $output_dir);
 
 	if (strlen($logName)) {
 		$jobMeta->setLog($logName);
 	}
 
-	// Stage in (fake)  TODO
-
 	// Checking files locally
-	$files = []; // distinct file Objs to stage in 
+	$files = []; // distinct file Objs to stage in
 	foreach ($inputs as $inName => $inIds) {
 		foreach ($inIds as $inId) {
 			$file = getGSFile_fromId($inId);
-			if (!$file) {
+			if (is_null($file)) {
 				$_SESSION['errorData']['Error'][] = "Input file $inId does not belong to current user or has been not properly registered. Stopping internal tool execution";
 				return 0;
 			}
