@@ -177,7 +177,11 @@ class DataTransfer {
     }   
     $rootRemotePath = $siteDetails['root_path'];
     $server =  $siteDetails['server'];
-    #username to be changed que ahora se pilla lo del correo? should be PROJECT__PROJECT/run 
+    if (empty($rootRemotePath) || empty($server)) {
+        $_SESSION['errorData']['Error'][] = "Sync not possible - missing root remote path or server for site '{$site}'";
+        throw new Exception();
+    }
+
     $remoteUploadPath = $this->constructingDestinationDir_MN($rootRemotePath, $sshCredentials['username']);
     error_log("DEBUG: syncWorkingDir - remoteUploadPath: $remoteUploadPath");
     $remoteRunPath = rtrim($remoteUploadPath, "/") . "/$userProjPath" . "/$runId";
@@ -272,44 +276,46 @@ class DataTransfer {
             $location = $file['site'] ?? null;
             $date = new MongoDB\BSON\UTCDateTime();
             $size = file_exists($file['absolute_path']) ? filesize($file['absolute_path']) : null;
-            $remotePath = $file['remote_path'] . "/" . $file['filename'];
+            $remotePath = $file['remote_path'] . $file['filename'];
+            error_log("DEBUG: registerMongoTransferredFile - remotePath: '" . $remotePath . "'");
             //looking for the file in Mongo
             $fileMongo = $GLOBALS['filesCol']->findOne(["_id" => $fileId]);
             if ($fileMongo){
                 error_log("File with _id: $fileId found in Mongo");
-                $newEntry = [
-                    'remote_path' => $remotePath,
-                    'location' => $location,
-                    'date' => $date,
-                    'size' => $size
-                ];
-                $updateResult = $GLOBALS['filesCol']->updateOne(
-                    [
-                        '_id' => $fileId,
-                        'remote_paths.remote_path' => $remotePath
-                    ],
-                    [
-                        '$set' => ['remote_paths.$' => $newEntry]
+                $filter = ['_id' => $fileId, 'remote_paths.remote_path' => $remotePath];
+                $update = ['$set' => [
+                    'remote_paths.$[remote_paths.remote_path="' . $remotePath . '"]' => [
+                        'remote_path' => $remotePath,
+                        'location' => $location,
+                        'date' => $date,
+                        'size' => $size
                     ]
-                );
-                if ($updateResult->getMatchedCount() === 0) {
-                    $pushResult = $GLOBALS['filesCol']->updateOne(
-                        ['_id' => $fileId],
-                        ['$push' => ['remote_paths' => $newEntry]]
-                    );
-                    if ($pushResult->getModifiedCount() > 0) {
-                        error_log("Added new remote_path entry for file with _id: $fileId.");
-                    } else {
-                        error_log("Failed to add remote_path entry for file with _id: $fileId.");
-                        $allFilesProcessed = false;
-                    }
-                } else {
+                ]];
+                $updateResult = $GLOBALS['filesCol']->updateOne($filter, $update);
+                if ($updateResult->getModifiedCount() > 0) {
                     error_log("Updated existing remote_path entry for file with _id: $fileId.");
-                    $allFilesProcessed = true;
+                } else {
+                    error_log("Failed to update remote_path entry for file with _id: $fileId.");
+                    $allFilesProcessed = false;
                 }
             } else {
-                error_log("File with _id: $fileId not found in MongoDB.");
-                $allFilesProcessed = false;
+                error_log("File with _id: $fileId not found in MongoDB. Creating new entry.");
+                $insertData = [
+                    '_id' => $fileId,
+                    'remote_paths' => [[
+                        'remote_path' => $remotePath,
+                        'location' => $location,
+                        'date' => $date,
+                        'size' => $size
+                    ]]
+                ];
+                $insertResult = $GLOBALS['filesCol']->insertOne($insertData);
+                if ($insertResult->getInsertedCount() > 0) {
+                    error_log("Created new remote_path entry for file with _id: $fileId.");
+                } else {
+                    error_log("Failed to create remote_path entry for file with _id: $fileId.");
+                    $allFilesProcessed = false;
+                }
             }
         }
         return $allFilesProcessed;
