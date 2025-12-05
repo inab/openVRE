@@ -267,61 +267,83 @@ class DataTransfer {
     }
     
 
-    public function registerMongoTransferredFile($updatedDataLocations): bool
+    public function registerMongoTransferredFile($updatedDataLocations)
     {
-        // Example of logging transfer to MongoDB (actual implementation needed)
         $allFilesProcessed = true;
+    
         foreach ($updatedDataLocations as $file) {
+    
             $fileId = $file['_id'];
             $location = $file['site'] ?? null;
             $date = new MongoDB\BSON\UTCDateTime();
             $size = file_exists($file['absolute_path']) ? filesize($file['absolute_path']) : null;
             $remotePath = $file['remote_path'] . $file['filename'];
-            error_log("DEBUG: registerMongoTransferredFile - remotePath: '" . $remotePath . "'");
-            //looking for the file in Mongo
-            $fileMongo = $GLOBALS['filesCol']->findOne(["_id" => $fileId]);
-            if ($fileMongo){
-                error_log("File with _id: $fileId found in Mongo");
-                $filter = ['_id' => $fileId, 'remote_paths.remote_path' => $remotePath];
-                $update = ['$set' => [
-                    'remote_paths.$[remote_paths.remote_path="' . $remotePath . '"]' => [
-                        'remote_path' => $remotePath,
-                        'location' => $location,
-                        'date' => $date,
-                        'size' => $size
-                    ]
-                ]];
-                $updateResult = $GLOBALS['filesCol']->updateOne($filter, $update);
-                if ($updateResult->getModifiedCount() > 0) {
-                    error_log("Updated existing remote_path entry for file with _id: $fileId.");
-                } else {
-                    error_log("Failed to update remote_path entry for file with _id: $fileId.");
-                    $allFilesProcessed = false;
-                }
-            } else {
-                error_log("File with _id: $fileId not found in MongoDB. Creating new entry.");
+    
+            $fileMongo = $GLOBALS['filesCol']->findOne(['_id' => $fileId]);
+    
+            // If no document exists → create a new one with remote_paths array
+            if (!$fileMongo) {
                 $insertData = [
                     '_id' => $fileId,
                     'remote_paths' => [[
                         'remote_path' => $remotePath,
-                        'location' => $location,
-                        'date' => $date,
-                        'size' => $size
+                        'location'    => $location,
+                        'date'        => $date,
+                        'size'        => $size
                     ]]
                 ];
-                $insertResult = $GLOBALS['filesCol']->insertOne($insertData);
-                if ($insertResult->getInsertedCount() > 0) {
-                    error_log("Created new remote_path entry for file with _id: $fileId.");
-                } else {
-                    error_log("Failed to create remote_path entry for file with _id: $fileId.");
-                    $allFilesProcessed = false;
+                $GLOBALS['filesCol']->insertOne($insertData);
+                continue;
+            }
+    
+            // Build new array (always rewritten)
+            $newRemotePaths = [];
+            $found = false;
+    
+            if (isset($fileMongo['remote_paths'])) {
+                foreach ($fileMongo['remote_paths'] as $rp) {
+    
+                    if ($rp['remote_path'] === $remotePath) {
+                        // FOUND: update this entry
+                        $rp['location'] = $location;
+                        $rp['date']     = $date;
+                        $rp['size']     = $size;
+                        $found = true;
+                    }
+    
+                    // Always copy existing entry (updated or not)
+                    $newRemotePaths[] = $rp;
                 }
             }
+    
+            // If NOT found → append NEW entry
+            if (!$found) {
+                $newRemotePaths[] = [
+                    'remote_path' => $remotePath,
+                    'location'    => $location,
+                    'date'        => $date,
+                    'size'        => $size
+                ];
+            }
+    
+            // Now always rewrite the array
+            $updateResult = $GLOBALS['filesCol']->updateOne(
+                ['_id' => $fileId],
+                ['$set' => ['remote_paths' => $newRemotePaths]]
+            );
+    
+            if ($updateResult->getModifiedCount() == 0) {
+                error_log("WARNING: No update performed for _id: $fileId");
+                $allFilesProcessed = false;
+            }
         }
+    
         return $allFilesProcessed;
     }
 
-    private function generateFinalPath($workingDir, $originalPath) {
+
+    private function generateFinalPath($workingDir, $originalPath)
+    {
         // Normalize paths: Remove trailing slashes from the working directory
         $workingDir = rtrim($workingDir, DIRECTORY_SEPARATOR);
         // Ensure originalPath is relative to the base folder (remove extra directories like 'runXXX')

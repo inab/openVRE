@@ -181,13 +181,13 @@ if (!$workDirId) {
 
 $workDirHost =  $jobMeta->working_dir; 
 
+// Save working dir and sync checkbox
+$doSync = !empty($_REQUEST['sync_files']);
 $siteList = $_REQUEST['sites']['site_list'] ?? [];
 
-if (!in_array('marenostrum', $siteList)) {
-        echo "<br/><strong>DEBUG:</strong> Skipping DataTransfer — 'marenostrum' not in site_list.<br/>";
-    // Skip DataTransfer logic
-} else {
-	
+if ($doSync && in_array('marenostrum', $siteList)) {
+	echo "<script>document.getElementById('syncStatus').innerHTML='Starting file transfer...';</script>";
+    ob_flush(); flush();
 	if ($debug) {
 		echo "<br/><br/><strong>DEBUG: Parameters passed to DataTransfer:</strong><br/>";
 		echo "<pre>";
@@ -218,7 +218,13 @@ if (!in_array('marenostrum', $siteList)) {
 		var_dump($dataLocations); // This will show where the files will be transferred
 		var_dump($_REQUEST['arguments_exec']);
 	}
-}
+	echo "<script>document.getElementById('syncStatus').innerHTML='Files synchronized successfully!';</script>";
+    ob_flush(); flush();
+	} else if ($doSync) {
+		echo "<script>document.getElementById('syncStatus').innerHTML='Skipping DataTransfer — Marenostrum not selected.';</script>";
+   		ob_flush(); flush();
+		echo "<br/><strong>DEBUG:</strong> Skipping DataTransfer — 'marenostrum' not in site_list.<br/>";
+	}
 
 // Setting Command line. Adding parameters
 $r = $jobMeta->prepareExecution($tool, $files, $files_pub);
@@ -231,10 +237,8 @@ if ($r == 0) {
 	redirect($_SERVER['HTTP_REFERER']);
 }
 */
-if (!in_array('marenostrum', $siteList)) {
-	echo "<br/><strong>DEBUG:</strong> Skipping DataTransfer — 'marenostrum' not in site_list.<br/>";
-// Skip DataTransfer logic
-} else {
+if ($doSync && in_array('marenostrum', $siteList)) {
+	
 	// Adding Rsync of the Project directory to Remote System
 	$s = $dataMeta->syncWorkingDir();
 	if ($debug) {
@@ -243,8 +247,12 @@ if (!in_array('marenostrum', $siteList)) {
 	if ($s === false) {
 		$_SESSION['errorData']['Error'][] = "Failed to rsync project directory to remote system. Can not continue with the job remotely.";
 		redirect($_SERVER['HTTP_REFERER']);
-	}	
+	}	 
+// Skip DataTransfer logic
+} else {
+	echo "<br/><strong>DEBUG:</strong> Skipping DataTransfer — 'marenostrum' not in site_list.<br/>";
 }
+
 
 // Launching Tooljob		
 $pid = $jobMeta->submit($tool); //Changing submit adding Slurm option through SSH session
