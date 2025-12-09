@@ -470,7 +470,7 @@ n++;
 n++;
 prevCount = dataCount;
 }dataCount = 1;
-isset = !isset;
+isset = is_null;
 }}
 sb.appendC (' ').appendI (dataCount).appendC ('\n');
 return n;
@@ -496,7 +496,7 @@ dataCount++;
 J.jvxl.data.JvxlCoder.jvxlAppendEncodedNumber (sb, dataCount, 35, 90);
 n++;
 dataCount = 1;
-isset = !isset;
+isset = is_null;
 }}
 J.jvxl.data.JvxlCoder.jvxlAppendEncodedNumber (sb, dataCount, 35, 90);
 sb.appendC ('\n');
@@ -526,7 +526,7 @@ var next =  Clazz.newIntArray (1, 0);
 while ((dataCount = J.jvxl.data.JvxlCoder.jvxlParseEncodedInt (data, base, range, next)) != -2147483648) {
 if (isset) bs.setBits (ptr, ptr + dataCount);
 ptr += dataCount;
-isset = !isset;
+isset = is_null;
 }
 return bs;
 }, "~S,~N,~N");
@@ -576,7 +576,7 @@ continue;
 }if (isset) bs.setBits (ptr, ptr + dataCount);
 ptr += dataCount;
 lastCount = dataCount;
-isset = !isset;
+isset = is_null;
 }
 return bs;
 }, "~S");

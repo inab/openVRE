@@ -144,7 +144,7 @@ class RemoteSSH {
 
 
     public function getUrifrom($obj){
-            if(!isset($obj['uri'])) {
+            if(is_null($obj['uri'])) {
                     throw new Exception("URI not found in object.");
             }
 

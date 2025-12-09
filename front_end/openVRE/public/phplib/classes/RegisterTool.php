@@ -77,7 +77,7 @@ class RegisterTool {
     $project   = $this->project;
 
     // check tool_io
-    if (!isset($this->tool_io['_id']) || !isset($this->tool_io['input_files']) || !isset($this->tool_io['arguments']) || !isset($this->tool_io['output_files'])){
+    if (is_null($this->tool_io['_id']) || is_null($this->tool_io['input_files']) || is_null($this->tool_io['arguments']) || is_null($this->tool_io['output_files'])){
         $_SESSION['errorData']['Error'][]="Cannot create test configuration file. The given inputs/outputs definition is not correct";
 		return 0;
     }
@@ -192,7 +192,7 @@ class RegisterTool {
 	    //checking  requirements
 	    if (count($tool_io)){
 		// checking coherence between JSON and REQUEST
-		if (!isset($tool_io['arguments'][$arg_name])){
+		if (is_null($tool_io['arguments'][$arg_name])){
 			$_SESSION['errorData']['Internal'][]="Argument '$arg_name' not found in tool definition. '$this->toolId' is not properly registered";
 			return 0;
 		}
@@ -207,7 +207,7 @@ class RegisterTool {
 		}
 		switch ($tool_io['arguments'][$arg_name]['type']){
 		    case "enum":
-			if (!isset($tool_io['arguments'][$arg_name]['enum_items']) || (!isset($tool_io['arguments'][$arg_name]['enum_items']['name']))){
+			if (is_null($tool_io['arguments'][$arg_name]['enum_items']) || (is_null($tool_io['arguments'][$arg_name]['enum_items']['name']))){
 			    $_SESSION['errorData']['Internal'][]="Invalid argument enum in tool definition. '$arg_name' has no 'enum_items' or 'enum_items['name].";
 		 	    return 0;
 			}
@@ -217,7 +217,7 @@ class RegisterTool {
 			}
 			break;
 		    case "enum_multiple":
-			if (!isset($tool_io['arguments'][$arg_name]['enum_items']) || (!isset($tool_io['arguments'][$arg_name]['enum_items']['name']))){
+			if (is_null($tool_io['arguments'][$arg_name]['enum_items']) || (is_null($tool_io['arguments'][$arg_name]['enum_items']['name']))){
 			    $_SESSION['errorData']['Internal'][]="Invalid argument enum in tool definition. '$arg_name' has no 'enum_items' or 'enum_items['name].";
 		 	    return 0;
 			}
@@ -299,7 +299,7 @@ class RegisterTool {
                                        "path" => $file_path,
                                        "project" => $this->project);
 
-                    if (!isset($user_metadata[$input_name]))
+                    if (is_null($user_metadata[$input_name]))
                         $user_metadata[$input_name]=array();
                     list($fileData,$fileMeta) = setVREFile_fromScratch(array_merge($fileInput,$user_metadata[$input_name]));
                     $meta[$fileData['_id']]= array_merge($fileData,$fileMeta);
@@ -756,7 +756,7 @@ class RegisterTool {
         if (isset($file['taxon_id'])){
 			$mugfile['taxon_id'] = $file['taxon_id'];
         }else{
-		 	if(!isset($file['refGenome'])){
+		 	if(is_null($file['refGenome'])){
 				$mugfile['taxon_id'] = 0;
             }else{
                 $mugfile['taxon_id'] =(isset($this->refGenome_to_taxon[$file['refGenome']])?$this->refGenome_to_taxon[$file['refGenome']]:0);

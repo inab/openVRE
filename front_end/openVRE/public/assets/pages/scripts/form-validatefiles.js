@@ -365,67 +365,6 @@ function showProcessValidation(obj, id) {
 }
 
 
-
-/*function sendMetadata(id, op) {
-
-	// mandatory field ref genome not completed
-	if(($('#data_type_sel' + id).val() == '') && !$('#data_type_sel' + id).prop('disabled')) {
-
-		console.log(id);
-		
-		$('#data_type_sel' + id + ' .warn1').show();
-		$('#data_type_sel' + id).css('border-color', '#e73d4a');		
-	
-	}else{
-		
-		// clean error messages
-		$('#refGenomeTR' + id + ' .warn-ref-gen').hide();
-		$('#refGenomeTR' + id + ' select').css('border-color', '#c2cad8');	
-	
-		// disable send / validate button
-		if(op == 1) {
-			$('#formInputs' + id + ' .snd-metadata-btn').prop('disabled', true);
-			$('#formInputs' + id + ' .snd-metadata-btn').val('SENDING METADATA...');
-		}else{
-			$('#formInputs' + id + ' .val-metadata-btn').prop('disabled', true);
-			$('#formInputs' + id + ' .val-metadata-btn').val('VALIDATING METADATA...');
-		}
-
-		// generate query
-		data = $('#uploadFiles #formInputs' + id + ' input, #uploadFiles #formInputs' + id + ' select, #uploadFiles #formInputs' + id + ' textarea').serialize() + '&op=' + op;
-		var re1 = new RegExp("paired" + id, "g");
-		data = data.replace(re1, 'paired');
-		var re2 = new RegExp("sorted" + id, "g");
-		data = data.replace(re2, 'sorted');
-
-		console.log(data);
-
-		$.ajax({
-			type: "POST",
-			url: baseURL + "applib/processValidation.php",
-			data: data, 
-			success: function(data) {
-				d = data.replace(/(\r\n|\n|\r|\t)/gm,"");
-				var json = JSON.parse(d);
-				showProcessValidation(json, id);
-			}
-		});
-
-	}
-	
-}*/
-
-
-
-/*sendMetadata = function(id, op) {
-
-	var data = $('#uploadFiles #formInputs' + id).serialize();
-		  						//location.href = baseURL + "applib/launchTool.php?" + data;
-                	console.log(data);
-
-}*/
-
-
 var ValidateForm = function() {
 
     var handleForm = function() {

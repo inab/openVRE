@@ -6,7 +6,7 @@ if($_REQUEST){
 
 	$data_json = json_decode($_REQUEST['json_tool'], true);
 	
-	if(!isset($data_json["_id"])) {
+	if(is_null($data_json["_id"])) {
 		$_SESSION['errorData']['Error'][] = "You are not allowed to remove '_id' field.";
 		redirect($GLOBALS['BASEURL'].'admin/jsonTestValidator.php?id='.$_REQUEST['toolid']);
 	}
@@ -18,7 +18,7 @@ if($_REQUEST){
 
 	$data = $GLOBALS['toolsDevMetaCol']->findOne(array('_id' => $_REQUEST['toolid']));
 
-	if(!isset($data)) {
+	if(is_null($data)) {
 		$_SESSION['errorData']['Error'][] = "Tool id unexisting.";
 		redirect($GLOBALS['BASEURL'].'admin/jsonTestValidator.php?id='.$_REQUEST['toolid']);
 	}

@@ -5,7 +5,7 @@ require __DIR__ . "/../../config/bootstrap.php";
 
 $data = $GLOBALS['toolsDevMetaCol']->findOne(array('_id' => $_REQUEST['toolid']));
 
-if (!isset($data)) {
+if (is_null($data)) {
     $_SESSION['errorData']['Error'][] = "Tool id unexisting.";
     redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php?id=' . $_REQUEST['toolid']);
 }
@@ -34,7 +34,7 @@ $messageUser = '
     Request type: ' . $subject . '<br>
     Request subject: Creation of new tool <strong>' . $_REQUEST['toolid'] . '</strong><br>
     Comments: ' . $_REQUEST['comments'] . '<br><br>
-    MuG VRE Technical Team';
+    OpenVRE Technical Team';
 
 if (sendEmail($GLOBALS['ADMINMAIL'], "[" . $ticketnumber . "]: " . $subject, $message, $_SESSION["User"]["Email"])) {
 

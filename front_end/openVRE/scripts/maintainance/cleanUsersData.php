@@ -57,7 +57,7 @@ $errors = array();
 //foreach ( array_values(iterator_to_array($fu)) as $v ){
 foreach ($user_data as $v) {
 
-    if (!isset($v['id'])) {
+    if (is_null($v['id'])) {
         print "\n-----> Cleaning user " . $v['_id'] . " (" . $v['id'] . ")\n";
         $msg = "ERROR: User " . $v['_id'] . " has no identifier\n";
         print $msg;
@@ -66,7 +66,7 @@ foreach ($user_data as $v) {
     }
 
     // check user object is well formed
-    if (!isset($v['dataDir']) || !$v['dataDir']) {
+    if (is_null($v['dataDir']) || !$v['dataDir']) {
         print "\n-----> Cleaning user " . $v['_id'] . " (" . $v['id'] . ")\n";
 
         if ($v['Type'] == UserType::Guest->value) {
@@ -165,10 +165,10 @@ foreach ($user_data as $v) {
 
     // delete user file's based on expiration date
     foreach ($files as $f) {
-        if (!isset($f['_id'])) {
+        if (is_null($f['_id'])) {
             continue;
         }
-        if (!isset($f['type']) || $f['type'] == "file") {
+        if (is_null($f['type']) || $f['type'] == "file") {
 
             $msg_fn = "-- " . $f['_id'] . "  " . $f['path'] . "\n";
 
@@ -176,7 +176,7 @@ foreach ($user_data as $v) {
             $tobedeleted_evenSoftMode = false;
 
             // ignore if file has no expiration date
-            if (!isset($f['expiration'])) {
+            if (is_null($f['expiration'])) {
                 $msg = "ERROR: Expiration date not set for '" . $f['_id'] . ". Not cleaning file. Doing nothing\n";
                 print $msg_fn;
                 print $msg;
@@ -188,7 +188,7 @@ foreach ($user_data as $v) {
             if (preg_match('/README.md/', $f['path'])) {
 
                 // ignore files without mtime
-                if (!isset($f['mtime'])) {
+                if (is_null($f['mtime'])) {
                     $msg = "ERROR: Creation time not set for README '" . $f['_id'] . "'. Not cleaning file. Doing nothing.\n";
                     print $msg_fn;
                     print $msg;
@@ -314,10 +314,10 @@ foreach ($user_data as $v) {
     $files_after = getGSFilesFromDir(array('_id' => $v['dataDir']));
     $num_files   = 0;
     foreach ($files_after as $f) {
-        if (!isset($f['_id'])) {
+        if (is_null($f['_id'])) {
             continue;
         }
-        if (!isset($f['type']) || $f['type'] == "file") {
+        if (is_null($f['type']) || $f['type'] == "file") {
             $num_files++;
         }
     }

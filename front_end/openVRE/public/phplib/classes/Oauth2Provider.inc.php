@@ -1,26 +1,26 @@
 <?php
 
-namespace MuG_Oauth2Provider;
+namespace Oauth2Provider;
 use League\OAuth2\Client\Provider\GenericProvider;
 
-class MuG_Oauth2Provider extends GenericProvider {
+class Oauth2Provider extends GenericProvider {
 
     protected $urlLogout;
 
     public function __construct(array $options = [], array $collaborators = [])
     {
         // set openID endpoints from global app conf
-        if (!isset($options['urlAuthorize']) && $GLOBALS['urlAuthorize'])
+        if (is_null($options['urlAuthorize']) && $GLOBALS['urlAuthorize'])
              $options['urlAuthorize'] = $GLOBALS['urlAuthorize'];
-        if (!isset($options['urlAccessToken']) && $GLOBALS['urlAccessToken'])
+        if (is_null($options['urlAccessToken']) && $GLOBALS['urlAccessToken'])
              $options['urlAccessToken'] = $GLOBALS['urlAccessToken'];
-        if (!isset($options['urlResourceOwnerDetails']) && $GLOBALS['urlResourceOwnerDetails'])
+        if (is_null($options['urlResourceOwnerDetails']) && $GLOBALS['urlResourceOwnerDetails'])
              $options['urlResourceOwnerDetails'] = $GLOBALS['urlResourceOwnerDetails'];
-        if (!isset($options['urlLogout']) && $GLOBALS['urlLogout'])
+        if (is_null($options['urlLogout']) && $GLOBALS['urlLogout'])
              $options['urlLogout'] = $GLOBALS['urlLogout'];
         
         // set VRE as openID client
-        if (!isset($options['clientId']) && !isset($options['clientSecret'])) {
+        if (is_null($options['clientId']) && is_null($options['clientSecret'])) {
             $options['clientId']     = getenv('KEYCLOAK_CLIENT');
             $options['clientSecret'] = getenv('KEYCLOAK_SECRET');
         }

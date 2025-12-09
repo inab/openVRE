@@ -465,7 +465,7 @@ class Tooljob
 		foreach ($arguments as $arg_name => $arg_value) {
 			if (count($tool)) {
 				// checking coherence between JSON and REQUEST
-				if (!isset($tool['arguments'][$arg_name])) {
+				if (is_null($tool['arguments'][$arg_name])) {
 					$this->logger->error("Argument '$arg_name' not found in tool '$this->toolId' definition");
 					$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
 					redirect($GLOBALS['BASEURL'] . "workspace/");
@@ -483,7 +483,7 @@ class Tooljob
 
 				switch ($tool['arguments'][$arg_name]['type']) {
 					case "enum":
-						if (!isset($tool['arguments'][$arg_name]['enum_items']) || (!isset($tool['arguments'][$arg_name]['enum_items']['name']))) {
+						if (is_null($tool['arguments'][$arg_name]['enum_items']) || (is_null($tool['arguments'][$arg_name]['enum_items']['name']))) {
 							$this->logger->error("Invalid argument enum in tool definition. '$arg_name' has no 'enum_items' or 'enum_items['name]");
 							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
 							redirect($GLOBALS['BASEURL'] . "workspace/");
@@ -498,7 +498,7 @@ class Tooljob
 						break;
 
 					case "enum_multiple":
-						if (!isset($tool['arguments'][$arg_name]['enum_items']) || (!isset($tool['arguments'][$arg_name]['enum_items']['name']))) {
+						if (is_null($tool['arguments'][$arg_name]['enum_items']) || (is_null($tool['arguments'][$arg_name]['enum_items']['name']))) {
 							$this->logger->error("Invalid argument enum in tool definition. '$arg_name' has no 'enum_items' or 'enum_items['name]");
 							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
 							redirect($GLOBALS['BASEURL'] . "workspace/");
@@ -592,7 +592,7 @@ class Tooljob
 
 				foreach ($filenames as $filename) {
 					// checking coherence between JSON and REQUEST
-					if (!isset($tool['input_files'][$input_name])) {
+					if (is_null($tool['input_files'][$input_name])) {
 						$this->logger->error("Input file '$input_name' not found in tool definition. '$this->toolId' is not properly registered");
 						$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
 						redirect($GLOBALS['BASEURL'] . "workspace/");
@@ -612,7 +612,7 @@ class Tooljob
 						continue;
 					}
 
-					if (!isset($metadata[$filename]) && $tool['input_files'][$input_name]['required'] === true) {
+					if (is_null($metadata[$filename]) && $tool['input_files'][$input_name]['required'] === true) {
 						$_SESSION['errorData']['Error'][] = "Given file in '$input_name' has no metadata";
 						$this->logger->error("Given file in '$input_name' has no metadata");
 						$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
@@ -654,7 +654,7 @@ class Tooljob
 					}
 
 					// checking coherence between JSON and REQUEST
-					if (!isset($tool['input_files_public_dir'][$input_name])) {
+					if (is_null($tool['input_files_public_dir'][$input_name])) {
 						$this->logger->error("Input file public '$input_name' not found in tool definition. '$this->toolId' is not properly registered");
 						$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
 						redirect($GLOBALS['BASEURL'] . "workspace/");
@@ -685,7 +685,7 @@ class Tooljob
 	 */
 	public function setStageout_data($out_files, $tool = [], $metadata = [])
 	{
-		if (!isset($out_files['output_files'])) {
+		if (is_null($out_files['output_files'])) {
 			$_SESSION['errorData']['Error'][] = "Internal tool may have problems registering outfiles: Stageout_data mal formatted";
 			return 0;
 		}
@@ -710,11 +710,11 @@ class Tooljob
 	 */
 	protected function validateInput_file($inputReq, $inputMetadata)
 	{
-		if (!isset($inputReq['file_type']) && !isset($inputReq['data_type'])) {
+		if (is_null($inputReq['file_type']) && is_null($inputReq['data_type'])) {
 			$_SESSION['errorData']['Warning'][] = "Ommitting format and type control for input file '" . $inputReq['name'] . ". Tool has no 'file_type' nor 'data_type' set.";
 			return 1;
 		}
-		if (!isset($inputMetadata['format']) && !isset($inputReq['data_type'])) {
+		if (is_null($inputMetadata['format']) && is_null($inputReq['data_type'])) {
 			$_SESSION['errorData']['Warning'][] = "Ommitting format and type control for input file '" . $inputReq['name'] . ". Given file has no 'file_type' nor 'data_type' set.";
 			return 1;
 		}
@@ -944,7 +944,7 @@ class Tooljob
 
 	protected function setBashCmd_SGE($tool)
 	{
-		if (!isset($tool['infrastructure']['executable'])) {
+		if (is_null($tool['infrastructure']['executable'])) {
 			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' property";
 			return 0;
 		}
@@ -960,7 +960,7 @@ class Tooljob
 
 	protected function setBashCommandDockerSge_TOBEDELETED($tool)
 	{
-		if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])) {
+		if (is_null($tool['infrastructure']['executable']) && is_null($tool['infrastructure']['container_image'])) {
 			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
 			return 0;
 		}
@@ -1134,7 +1134,7 @@ class Tooljob
 
 	protected function setBashCommandDockerSge($tool)
 	{
-		if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])) {
+		if (is_null($tool['infrastructure']['executable']) && is_null($tool['infrastructure']['container_image'])) {
 			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
 
 			return 0;
@@ -1180,7 +1180,7 @@ class Tooljob
 
 	protected function setBashCmd_docker_EGA($tool)
 	{
-		if (!isset($tool['infrastructure']['executable']) && !isset($tool['infrastructure']['container_image'])) {
+		if (is_null($tool['infrastructure']['executable']) && is_null($tool['infrastructure']['container_image'])) {
 			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
 			return 0;
 		}
@@ -1223,17 +1223,17 @@ class Tooljob
 	protected function setPMESrequest($tool)
 	{
 		$data = [];
-		if (!isset($tool['infrastructure']['executable'])) {
+		if (is_null($tool['infrastructure']['executable'])) {
 			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' property";
 			return 0;
 		}
 
 		//Setting defaults from tool definition 
-		if (!isset($tool['infrastructure']['wallTime'])) {
+		if (is_null($tool['infrastructure']['wallTime'])) {
 			$tool['infrastructure']['wallTime'] = "1440"; // 24h
 		}
 
-		if (!isset($tool['infrastructure']['interpreter'])) {
+		if (is_null($tool['infrastructure']['interpreter'])) {
 			$tool['infrastructure']['interpreter'] = "";  // only required if "Single". Examples:  "bash", "python3" 
 		}
 
@@ -1243,7 +1243,7 @@ class Tooljob
 		$cloud['limitVMs'] ??= "1"; // TODO OBSOLETE (=== maximumVMs)?
 		$cloud['initialVMs'] ??= "1"; // if workflow_type = "Single" -> 1
 		$cloud['disk'] ??= "1.0"; // TODO OBSOLETE?
-		if (!isset($cloud['imageType'])) {
+		if (is_null($cloud['imageType'])) {
 			//Assign imageType (size) from CPUS and RAM
 			$flavor = $this->setImageType($tool['infrastructure']['cpus'], $tool['infrastructure']['memory']);
 			$cloud['imageType'] = $flavor['id'];
@@ -1272,7 +1272,7 @@ class Tooljob
 					// get and save new token
 					if (!$token) {
 						$token  = openstack_getAccessToken();
-						if (!isset($token['id'])) {
+						if (is_null($token['id'])) {
 							$_SESSION['errorData']['Error'] = "Cannot submit job. Failed to get access token for $this->cloudName username.";
 							return $data;
 						}
@@ -1359,7 +1359,7 @@ class Tooljob
 
 	protected function setBashCmd_withoutApp($tool, $metadata)
 	{
-		if (!isset($tool['infrastructure']['executable'])) {
+		if (is_null($tool['infrastructure']['executable'])) {
 			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' property";
 			return 0;
 		}
@@ -1386,7 +1386,7 @@ class Tooljob
 	{
 
 		// Ensure that the tool has a registered module to be loaded
-		if (!isset($tool['infrastructure']['module'])) {
+		if (is_null($tool['infrastructure']['module'])) {
 			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'module' property.";
 			return 0;
 		}
@@ -1759,7 +1759,7 @@ class Tooljob
 		foreach ($input_files_public as $input_name => $input_value) {
 			if (count($tool)) {
 				// checking coherence between JSON and REQUEST
-				if (!isset($tool['input_files_public_dir'][$input_name])) {
+				if (is_null($tool['input_files_public_dir'][$input_name])) {
 					$this->logger->error("Input file public '$input_name' not found in tool definition. '$this->toolId' is not properly registered");
 					$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
 					redirect($GLOBALS['BASEURL'] . "workspace/");
@@ -1768,7 +1768,7 @@ class Tooljob
 				if ($input_value != "") {
 					switch ($tool['input_files_public_dir'][$input_name]['type']) {
 						case 'enum':
-							if (!isset($tool['input_files_public_dir'][$input_name]['enum_items']) || (!isset($tool['input_files_public_dir'][$input_name]['enum_items']['name']))) {
+							if (is_null($tool['input_files_public_dir'][$input_name]['enum_items']) || (is_null($tool['input_files_public_dir'][$input_name]['enum_items']['name']))) {
 								$this->logger->error("Invalid input_files_public_dir enum in tool definition. '$input_name' has no 'enum_items' or 'enum_items['name].");
 								$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
 								redirect($GLOBALS['BASEURL'] . "workspace/");

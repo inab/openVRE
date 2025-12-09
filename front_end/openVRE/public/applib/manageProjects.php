@@ -6,7 +6,7 @@ if(!$_REQUEST){
     redirect($GLOBALS['URL']);
 }
 
-if (!isset($_REQUEST['op'])){
+if (is_null($_REQUEST['op'])){
     $_SESSION['errorData']['Internal'][]="Error. Cannot manage project. No 'op' set.";
     redirect($GLOBALS['BASEURL']."workspace/");
 }
@@ -97,7 +97,7 @@ if ($_REQUEST['op'] == "new"){
  
 if ($_REQUEST['pr_id']){
     $proj_code="";
-    if (!isset($_REQUEST['pr_code'])){
+    if (is_null($_REQUEST['pr_code'])){
         $proj_fn   = getAttr_fromGSFileId($_REQUEST['pr_id'],"path");
         $_REQUEST['pr_code']= basename($proj_fn);
 
@@ -112,7 +112,7 @@ if ($_REQUEST['pr_id']){
 
     // print info message
     if ($_SESSION['User']['dataDir'] != $dataDir_ant){
-        if (!isset($_REQUEST['pr_name'])){$_REQUEST['pr_name']= getAttr_fromGSFileId($_SESSION['User']['dataDir'],"name");}
+        if (is_null($_REQUEST['pr_name'])){$_REQUEST['pr_name']= getAttr_fromGSFileId($_SESSION['User']['dataDir'],"name");}
         $_SESSION['errorData']['Info'][] = "Moving displayed workspace from project <b>'$dataDir_ant_name'</b> to project <b>'".$_REQUEST['pr_name']."'</b>";
     }
 }

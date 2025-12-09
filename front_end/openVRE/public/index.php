@@ -15,7 +15,7 @@ if (isset($_REQUEST['id']) && $_REQUEST['id']) {
     // Load WS with sample data, if tool requested
     if (isset($_REQUEST['from']) && $_REQUEST['from']) {
         $tool = getTool_fromId($_REQUEST['from'], 1);
-        if (!isset($tool['_id'])) {
+        if (is_null($tool['_id'])) {
             $_SESSION['userData']['Warning'][] = "Cannot load '" . $_REQUEST['from'] . "'. Tool not found";
             redirect("../home/redirect.php");
         }

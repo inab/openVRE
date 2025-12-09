@@ -144,7 +144,7 @@ redirectOutside();
                                                 <!-- PERSONAL INFO TAB -->
                                                 <div class="tab-pane active" id="tab_1_1">
 
-                                                    <?php if (!isset($_SESSION['lastUserLogin'])) { ?>
+                                                    <?php if (is_null($_SESSION['lastUserLogin'])) { ?>
                                                         <p>As you have signed up the VRE from
                                                             <?php echo $_SESSION['User']['AuthProvider']; ?>, you should
                                                             complete some fields of your profile in this form.</p>
@@ -159,7 +159,7 @@ redirectOutside();
                                                     <form role="form" action="javascript:;" id="form-change-profile">
                                                         <input type="hidden" id="base-url"
                                                             value="<?php echo $GLOBALS['BASEURL']; ?>" />
-                                                        <?php if (!isset($_SESSION['lastUserLogin'])) { ?>
+                                                        <?php if (is_null($_SESSION['lastUserLogin'])) { ?>
                                                             <input type="hidden" id="is-first-time" value="1" />
                                                         <?php } ?>
                                                         <div class="form-group">
@@ -481,7 +481,7 @@ redirectOutside();
 
                                                     <div style="padding-left: 15px;border-left: 2px solid lightgray;">
                                                         <?php
-                                                        if (!isset($_SESSION['User']['linked_accounts']['mn'])) { ?>
+                                                        if (is_null($_SESSION['User']['linked_accounts']['mn'])) { ?>
                                                             <p>
                                                                 <span style="color: #666;font-weight: bold;">
                                                                     Do you have an account to an HPC facility?

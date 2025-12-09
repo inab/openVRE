@@ -220,7 +220,7 @@ class DataTransfer
     
     public function getUrifrom($obj)
     {
-        if (!isset($obj['file_url'])) {
+        if (is_null($obj['file_url'])) {
             $_SESSION['ErrorData']['Error'][] = "URI not found in object. Expected 'uri' atribute in object File";
         }
         $array = [];

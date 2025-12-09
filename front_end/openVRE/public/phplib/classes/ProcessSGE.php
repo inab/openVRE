@@ -106,7 +106,7 @@ class ProcessSGE{
 		exec($command,$queueJobs);
 		log_addInfo($jobid,$command);
 
-		if (!isset($queueJobs[0])){
+		if (is_null($queueJobs[0])){
             log_addInfo($jobid,"Job not running anymore");
 			return $jobs;
         }else{
@@ -145,7 +145,7 @@ class ProcessSGE{
 		$cmd = QSTAT." -u $this->username | grep $pid | awk '$1 ~ /[0-9]+/ {print $1\"\t\"$5\"\t\"$6 $7}'";
 		exec($cmd,$jobState);
 
-		if (!isset($jobState[0]) ){
+		if (is_null($jobState[0]) ){
 			$job['state']="FINISHING";
             log_addInfo($jobid,"Job not running anymore. State: ".$job['state']);
 		}else{
@@ -178,7 +178,7 @@ class ProcessSGE{
 		$command = QSTAT.' -u '.$this->username.' | grep "^'.$pidForm.'"';
 		exec($command,$op);
 
-		if (!isset($op[0]))return false;
+		if (is_null($op[0]))return false;
 		else return true;
 	}
 

@@ -10,10 +10,10 @@ redirectOutside();
 //
 // Check operation and input files
 
-if (!isset($_REQUEST['op'])) {
+if (is_null($_REQUEST['op'])) {
 	header("location:../workspace/");
 }
-if (!isset($_REQUEST['fn']) && !isset($_REQUEST['fnPath']) && !preg_match('/cancelJob/',$_REQUEST['op']) ) {
+if (is_null($_REQUEST['fn']) && is_null($_REQUEST['fnPath']) && !preg_match('/cancelJob/',$_REQUEST['op']) ) {
 	$_SESSION['errorData']['Error'][] = "Selected operation ('".$_REQUEST['op']."') requires at least one file. Any file name received.";
 	header("location:../workspace/");
 }

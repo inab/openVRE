@@ -42,14 +42,14 @@ if (empty($tool_io)){
 //
 // Start RegisterTool process to generate test files
 
-if (!isset($_REQUEST['execution']) ){
+if (is_null($_REQUEST['execution']) ){
     $_SESSION['errorData']['Internal'][]="Error creating test data for tool '".$_REQUEST['toolid']."'. 'execution' not received";
     if ($debug){ exit(0);}
     ?><script type="text/javascript">window.history.go(-1);</script><?php
     exit(0);
 }
 
-if (!isset($_REQUEST['tool_lib']) ){
+if (is_null($_REQUEST['tool_lib']) ){
     $_REQUEST['tool_lib']=0;
 }
 
@@ -63,7 +63,7 @@ if ($debug){
 //
 // Check input file requirements
 
-if (!isset($_REQUEST['input_files'])){
+if (is_null($_REQUEST['input_files'])){
     $_SESSION['errorData']['Error'][]="Tool is not receiving input files. Please, select them from your workspace table.";
     if ($debug){ exit(0);}
     ?><script type="text/javascript">window.history.go(-1);</script><?php
@@ -238,7 +238,7 @@ if($r == "0"){
 //
 $r  = $submitTool->save_form_data("step1",$_REQUEST);
 
-if (!isset($_SESSION['errorData']['Error'])){
+if (is_null($_SESSION['errorData']['Error'])){
     $_SESSION['errorData']['Info'][]="Test files successfully generated! </br>";
 }
 

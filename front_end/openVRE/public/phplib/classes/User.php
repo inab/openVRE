@@ -24,7 +24,7 @@ class User
             return 0;
         }
 
-        if (!isset($_SESSION['userToken']) && $type != UserType::Guest->value) {
+        if (is_null($_SESSION['userToken']) && $type != UserType::Guest->value) {
             return 0;
         }
 

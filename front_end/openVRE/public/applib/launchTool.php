@@ -137,7 +137,7 @@ $logger->debug("Job submitted. PID = $pid");
 
 addUserJob($_SESSION['User']['_id'], (array)$jobMeta, $jobMeta->pid);
 
-if (!isset($_SESSION['errorData']['Error'])) {
+if (is_null($_SESSION['errorData']['Error'])) {
 	$proj = getProject($jobMeta->project);
 	$_SESSION['errorData']['Info'][] = "Job successfully sent! Monitor it at <b>" . $proj['name'] . " &rsaquo; " . $jobMeta->execution . " &rsaquo; " . $jobMeta->title . "</b>.";
 	if ($_SESSION['User']['activeProject'] != $jobMeta->project) {

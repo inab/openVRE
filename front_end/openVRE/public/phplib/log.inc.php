@@ -237,7 +237,7 @@ function aggregateJobLogs($filters=array()){
         $jobs[$pid]["logs"]     = $j['jobLog'];
 
         //ensure success is there
-        if (!isset($jobs[$pid]["success"])) {$jobs[$pid]["success"] = "";}
+        if (is_null($jobs[$pid]["success"])) {$jobs[$pid]["success"] = "";}
       }
     }
     return $jobs;

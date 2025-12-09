@@ -16,7 +16,7 @@ function sendEmail($recipient, $subject, $body, $reply = null, $bcc = null){
 	$mail->Username = getenv('MAIL_USER');
 	$mail->Password = getenv('MAIL_PASS');
 
-	if(!isset($reply)) $reply = $GLOBALS['ADMINMAIL'];
+	if(is_null($reply)) $reply = $GLOBALS['ADMINMAIL'];
 
 	$mail->AddReplyTo($reply, $GLOBALS['FROMNAME']);
 	$mail->SetFrom($reply, $GLOBALS['FROMNAME']);

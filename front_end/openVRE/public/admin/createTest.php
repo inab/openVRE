@@ -4,7 +4,7 @@ require __DIR__ . "/../../config/bootstrap.php";
 
 redirectToolDevOutside();
 
-if (!isset($_REQUEST['id'])) {
+if (is_null($_REQUEST['id'])) {
 
 	$_SESSION['errorData']['Error'][] = "Please provide a tool id.";
 	redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php');
@@ -12,7 +12,7 @@ if (!isset($_REQUEST['id'])) {
 
 $toolDevJSON = $GLOBALS['toolsDevMetaCol']->findOne(array('_id' => $_REQUEST['id']));
 
-if (!isset($toolDevJSON)) {
+if (is_null($toolDevJSON)) {
 	$_SESSION['errorData']['Error'][] = "The tool id <strong>" . $_REQUEST['toolid'] . "</strong> doesn't exist in our database.";
 	redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php');
 }
@@ -22,7 +22,7 @@ if ($_SESSION['User']['Type'] != UserType::Admin->value)
 else
 	$toolDevMetaJSON = $GLOBALS['toolsDevMetaCol']->findOne(array('_id' => $_REQUEST['id']));
 
-if (!isset($toolDevMetaJSON) && ($_SESSION['User']['Type'] != UserType::Admin->value)) {
+if (is_null($toolDevMetaJSON) && ($_SESSION['User']['Type'] != UserType::Admin->value)) {
 	$_SESSION['errorData']['Error'][] = "The tool id <strong>" . $_REQUEST['toolid'] . "</strong> you are trying to edit doesn't belong to you.";
 	redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php');
 }
@@ -123,7 +123,7 @@ if (!$toolDevMetaJSON["step1"]["tool_io_validated"]) {
 												</label>
 												<?php
 												$val = $toolDevMetaJSON["step1"]["form_data"]["execution"];
-												if (!isset($val)) $val = "/test/execution/directory";
+												if (is_null($val)) $val = "/test/execution/directory";
 												?>
 												<input type="text" name="execution" placeholder="/local/development/env/path/tests/run000" class="form-control input-file-path " value="<?php echo $val; ?>">
 											</div>
@@ -135,7 +135,7 @@ if (!$toolDevMetaJSON["step1"]["tool_io_validated"]) {
 												</label>
 												<?php
 												$val = $toolDevMetaJSON["step1"]["form_data"]["tool_executable"];
-												if (!isset($val)) $val = "/main/mg-tool/executable.py";
+												if (is_null($val)) $val = "/main/mg-tool/executable.py";
 												?>
 												<input type="text" name="tool_executable" placeholder="/local/development/env/path/tests/run000" class="form-control" value="<?php echo $val; ?>">
 											</div>
@@ -161,7 +161,7 @@ if (!$toolDevMetaJSON["step1"]["tool_io_validated"]) {
 												</label>
 												<?php
 												$vte = $toolDevMetaJSON["step1"]["form_data"]["tool_lib"];
-												if (!isset($vte) || $vte === 0) $vte = "/packages/to/add/into/pythonpath";
+												if (is_null($vte) || $vte === 0) $vte = "/packages/to/add/into/pythonpath";
 												?>
 												<input type="text" name="tool_lib" id="tool_lib" placeholder="/local/development/env/path/tests/run000" class="form-control input-file-path " <?php echo ($val != "compss" ? 'disabled' : '') ?> value="<?php echo $vte; ?>">
 											</div>
@@ -206,7 +206,7 @@ if (!$toolDevMetaJSON["step1"]["tool_io_validated"]) {
 														<div class="form-group">
 															<label class="control-label">
 																<?php echo $feature; ?>
-																<a href="http://www.multiscalegenomics.eu/MuGVRE/integration-of-tools/test-job-configuration-files/" target="_blank"><i class="icon-question tooltips" data-container="body" data-html="true" data-original-title="Click here to open the Input metadata file help section" data-trigger="hover" data-placement="right"></i></a>
+																<a href="<?php echo $GLOBALS['BASEURL']; ?>admin/help/" target="_blank"><i class="icon-question tooltips" data-container="body" data-html="true" data-original-title="Click here to open the Input metadata file help section" data-trigger="hover" data-placement="right"></i></a>
 															</label>
 															<?php $val = $toolDevMetaJSON["step1"]["form_data"]["metadata"][$inputf["name"]]; ?>
 															<input type="text" name="metadata[<?php echo $inputf["name"]; ?>][<?php echo $feature; ?>]" value="<?php echo $val[$feature]; ?>" class="form-control input-files" style="width:95%;">
@@ -270,7 +270,7 @@ if (!$toolDevMetaJSON["step1"]["tool_io_validated"]) {
 																<div class="form-group">
 																	<label class="control-label">
 																		<?php echo $feature; ?>
-																		<a href="http://www.multiscalegenomics.eu/MuGVRE/integration-of-tools/test-job-configuration-files/" target="_blank"><i class="icon-question tooltips" data-container="body" data-html="true" data-original-title="Click here to open the Input metadata file help section" data-trigger="hover" data-placement="right"></i></a>
+																		<a href="<?php echo $GLOBALS['BASEURL']; ?>admin/help/" target="_blank"><i class="icon-question tooltips" data-container="body" data-html="true" data-original-title="Click here to open the Input metadata file help section" data-trigger="hover" data-placement="right"></i></a>
 																	</label>
 																	<?php $val = $toolDevMetaJSON["step1"]["form_data"]["metadata"][$inputf["name"]]; ?>
 																	<input type="text" name="metadata[<?php echo $inputf["name"]; ?>][<?php echo $feature; ?>]" value="<?php echo $val[$feature]; ?>" class="form-control input-files" style="width:95%;">

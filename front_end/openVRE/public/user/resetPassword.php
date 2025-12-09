@@ -4,7 +4,7 @@ require __DIR__."/../../config/bootstrap.php";
 
 logoutUser();
 
-if(!isset($_GET['q'])) redirect($GLOBALS['URL']);
+if(is_null($_GET['q'])) redirect($GLOBALS['URL']);
 
 ?>
 

@@ -34,7 +34,6 @@ function getData_fromLocal()
         throw new UnexpectedValueException("Receiving blank. Please select a file to upload");
     }
 
-    $fileIds = [];
     $errorCode = $_FILES['file']['error'];
     if ($errorCode !== UPLOAD_ERR_OK) {
         $errMsg = [
@@ -95,16 +94,10 @@ function getData_fromLocal()
     ];
 
     $fileBasename = basename($filePath);
-    $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData, false);
-    if ($fileId == "0") {
-        $_SESSION['errorData']['upload'] = "Error occurred while registering the uploaded file";
-        die("Error occurred while registering the uploaded file");
-    }
-
-    array_push($fileIds, $fileId);
-
-    print implode(",", $fileIds);
+    uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData);
+    getDataLogger()->info("File $fileBasename uploaded");
 }
+
 
 /////////////////////////////////
 /////// FROM URL or ID
@@ -303,29 +296,30 @@ function getData_fromTXT()
     $filename = $_REQUEST['filename'];
     $data = $_REQUEST['txtdata'];
 
-    // getting working directory
     $dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
     $localWorkingDir = $dataDirPath . "/uploads";
 
     $workingDir  = $GLOBALS['dataDir'] . "/" . $localWorkingDir;
     $workingDirId = getGSFileId_fromPath($localWorkingDir);
 
-    // check target directory
-    if ($workingDirId == "0" || !is_dir($workingDir)) {
-        die("ERROR: Target server directory '" . basename($localWorkingDir) . "' does not exist. Please, login again.");
+    if (is_null($workingDirId) || !is_dir($workingDir)) {
+        getDataLogger()->error("Target server directory '" . basename($localWorkingDir) . "' does not exist. Please, login again.");
+        throw new UnexpectedValueException("Target server directory '" . basename($localWorkingDir) . "' does not exist. Please, login again.");
     }
 
     $filePath = "$workingDir/" . cleanName($filename);
     $size = strlen($data);
 
     if ($size == 0) {
-        die("ERROR: " . $filename . " file size is zero");
+        getDataLogger()->error("File size is zero");
+        throw new UnexpectedValueException("File size is zero");
     }
 
     $usedDisk = (int) getUsedDiskSpace();
     $diskLimit = (int) $_SESSION['User']['diskQuota'];
     if ($size > ($diskLimit - $usedDisk)) {
-        die("ERROR: Cannot upload file. Not enough space left in the workspace");
+        getDataLogger()->error("Not enough space left in the workspace");
+        throw new UnexpectedValueException("Not enough space left in the workspace");
     }
 
     if (is_file($filePath)) {
@@ -350,7 +344,8 @@ function getData_fromTXT()
     fclose($file);
 
     if (!is_file($filePath)) {
-        die("ERROR: Uploaded file not correctly stored.");
+        getDataLogger()->error("Uploaded file not correctly stored.");
+        throw new UnexpectedValueException("Uploaded file not correctly stored.");
     }
 
     chmod($filePath, 0666);
@@ -365,13 +360,8 @@ function getData_fromTXT()
         'validated' => false
     ];
 
-    $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData, false);
-    if ($fileId == "0") {
-        unlink($filePath);
-        die("ERROR: Error occurred while registering the uploaded file.");
-    }
-
-    echo $fileId;
+    uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData);
+    getDataLogger()->info("File '" . $fileBasename . "' uploaded");
 }
 
 /////////////////////////////////
@@ -840,14 +830,7 @@ function getData_fromEGA($datasetIds, $fileIds, $filenames, $fileSizes)
         ];
 
         $fileBasename = basename($filePath);
-        $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData, false);
-        if ($fileId == "0") {
-            unlink($filePath);
-            die("ERROR: Error occurred while registering the uploaded file.");
-        }
-
-        echo "EGA file uploaded";
+        uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData);
+        getDataLogger()->info("File $fileBasename uploaded");
     }
-
-    return;
 }

@@ -207,7 +207,7 @@ function setUser($f, $lastLogin = false)
     $_SESSION['User']   = $aux;
     $_SESSION['curDir'] = $_SESSION['User']['id'];
 
-    if (!isset($_SESSION['lastUserLogin']) && $lastLogin) $_SESSION['lastUserLogin'] = $lastLogin;
+    if (is_null($_SESSION['lastUserLogin']) && $lastLogin) $_SESSION['lastUserLogin'] = $lastLogin;
 }
 
 function delUser($id, $asRoot = 1, $force = false)
@@ -223,8 +223,6 @@ function delUser($id, $asRoot = 1, $force = false)
     }
 
     if ($homeId) {
-        $home   = getGSFile_fromId($homeId, "all", $asRoot);
-
         $r = deleteGSDirBNS($homeId, $asRoot, $force);
         if ($r == 0) {
             $_SESSION['errorData']['Error'][] = "Cannot delete $homeId directory from database.";
@@ -248,69 +246,6 @@ function delUser($id, $asRoot = 1, $force = false)
     $GLOBALS['usersCol']->deleteOne(array('id' => $id));
 
     return 1;
-}
-
-
-function injectMugIdToKeycloak($login, $id)
-{
-
-    $kc_token = get_keycloak_admintoken();
-
-    if ($kc_token  && isset($kc_token['access_token'])) {
-        $kc_user = get_keycloak_user($login, $kc_token['access_token']);
-        print "\n\n\nKC USER\n";
-        var_dump($kc_user);
-        if ($kc_user && isset($kc_user['id'])) {
-            $attributes = array();
-            if ($kc_user['attributes'])
-                $attributes = $kc_user['attributes'];
-            $attributes['vre_id'] = array($id);
-            $data = array("attributes" => $attributes);
-            print "\nPOST DATA\n";
-            var_dump(json_encode($data));
-            $r = update_keycloak_user($kc_user['id'], json_encode($data), $kc_token['access_token']);
-
-            if (!$r) {
-                $_SESSION['errorData']['Warning'][] = "User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Cannot update " . $aux['_id'] . " in its registry";
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            $_SESSION['errorData']['Warning'][] = "User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Cannot get " . $aux['_id'] . " from its registry";
-            return false;
-        }
-    } else {
-        $_SESSION['errorData']['Warning'][] = "User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Token not created";
-        return false;
-    }
-}
-
-function resetPasswordViaKeycloak($login, $id)
-{
-
-    $kc_token = get_keycloak_admintoken();
-
-    if ($kc_token  && isset($kc_token['access_token'])) {
-        $kc_user = get_keycloak_user($login, $kc_token['access_token']);
-        if ($kc_user && isset($kc_user['id'])) {
-
-            $r = update_keycloak_userPass($kc_user['id'], $kc_token['access_token']);
-
-            if (!$r) {
-                $_SESSION['errorData']['Warning'][] = "Cannot reset password from VRE. Cannot update " . $aux['_id'] . " registration entry";
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            $_SESSION['errorData']['Warning'][] = "Cannot reset password from VRE.";
-            return false;
-        }
-    } else {
-        $_SESSION['errorData']['Warning'][] = "Cannot reset password from VRE. Token not created";
-        return false;
-    }
 }
 
 

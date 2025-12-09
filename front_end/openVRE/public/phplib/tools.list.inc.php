@@ -314,7 +314,7 @@ function parse_configFile_OBSOLETE($configFile)
 	$configParsed['input_files'] = array();
 	if ($config->input_files) {
 		foreach ($config->input_files as $input) {
-			if (!isset($configParsed['input_files'][$input->name]))
+			if (is_null($configParsed['input_files'][$input->name]))
 				$configParsed['input_files'][$input->name] = array();
 			$input_fn = getAttr_fromGSFileId($input->value, 'path');
 			if ($input_fn)

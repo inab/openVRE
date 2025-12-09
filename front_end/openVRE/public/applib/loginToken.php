@@ -2,14 +2,14 @@
 
 require __DIR__ . "/../../config/bootstrap.php";
 
-use MuG_Oauth2Provider\MuG_Oauth2Provider;
+use Oauth2Provider\Oauth2Provider;
 
 
 // Setting auth server
-$provider = new MuG_Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . "applib/loginToken.php"]);
+$provider = new Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . "applib/loginToken.php"]);
 
 // Get auth code. Redirect user to the authorization URL
-if (!isset($_GET['code'])) {
+if (is_null($_GET['code'])) {
 
     // Fetch the authorization URL from the provider; returns urlAuthorize and generates state
     $authorizationUrl = $provider->getAuthorizationUrl();
@@ -46,7 +46,7 @@ if (!isset($_GET['code'])) {
     }
 
     // Check received token claims
-    if (!isset($resourceOwner['email'])) {
+    if (is_null($resourceOwner['email'])) {
         $_SESSION['errorData']['Error'][] = "User is authentified, but the claims on the received OIDC token are not correct. At least 'email' attribute is expected.";
         redirect("../home/redirect.php");
     }
@@ -82,13 +82,13 @@ if (!isset($_GET['code'])) {
     $u = getUserById(sanitizeString($resourceOwner['email']));
 
     // If new user, create or import from anon 
-    if (!isset($u) || !$u) {
+    if (is_null($u) || !$u) {
         // create new user
         $r = createUserFromToken($resourceOwner['email'], $accessToken, $jwt, $resourceOwner, false);
         if (!$r)
             exit('Login error: cannot create local VRE user');
         $u = getUserById(sanitizeString($resourceOwner['email']));
-        if (!isset($u))
+        if (is_null($u))
             exit('Login error: failed to create local VRE user');
     }
 

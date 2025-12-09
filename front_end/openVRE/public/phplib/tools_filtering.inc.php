@@ -226,7 +226,7 @@ function getSingleTool_Help($toolID, $op)
 
 	$c = 0;
 
-	if (!isset($tool["input_files_combinations"])) {
+	if (is_null($tool["input_files_combinations"])) {
 		$_SESSION['errorData']['Error'][] = "TOOL " . $tool['_id'] . " no internal comb";
 		next;
 	}
@@ -285,7 +285,7 @@ function getTools_Help()
 
 	foreach ($dt as $tool) {
 
-		if (!isset($tool["input_files_combinations"])) {
+		if (is_null($tool["input_files_combinations"])) {
 			$_SESSION['errorData']['Error'][] = "TOOL " . $tool['_id'] . " no internal comb";
 			next;
 		}

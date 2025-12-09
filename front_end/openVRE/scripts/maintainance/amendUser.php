@@ -25,7 +25,7 @@ if (defined('STDIN')) {
             array_push($ids,$_REQUEST['id']);
     }
 }
-if (!isset($_SESSION['errorData'])){
+if (is_null($_SESSION['errorData'])){
     $_SESSION['errorData']=array();
 }
 
@@ -42,7 +42,7 @@ foreach ( array_values(iterator_to_array($fu)) as $u ){
 
     // ckeck if user exists in mongo
     $u = getUserById($id);
-    if (!isset($_SESSION['User'])){
+    if (is_null($_SESSION['User'])){
         $_SESSION['User'] = $u;
     }
 

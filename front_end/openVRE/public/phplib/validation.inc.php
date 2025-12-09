@@ -205,7 +205,7 @@ function getChrFromWIG($wigFn){
 	if ($trackLines){
 		foreach (explode(PHP_EOL, $trackLines) as $line){
 			if (preg_match('/chrom=(\S+)/',$line,$m)){
-				if (!isset($m[1])){continue;}
+				if (is_null($m[1])){continue;}
 				array_push($chrNames,$m[1]);
 			}
 		}
@@ -301,7 +301,7 @@ function getChrFromBAM($bamFn){
 	if (count($SQs)){
 		foreach (explode("\n",$SQs) as $SQ){
 			if (preg_match('/SN:(\w+)\s/',$SQ,$m)){
-				if (!isset($m[1])){continue;}
+				if (is_null($m[1])){continue;}
 				array_push($chrNames,$m[1]);
 			}
 		}		
@@ -367,7 +367,7 @@ function validateWIG($inFn,$refGenome){
 	if (count($trackLines)) {
 		foreach (explode("\n",$trackLines) as $line){
 			if (preg_match('/chrom=(\S+)/',$line,$m)){
-				if (!isset($m[1])){continue;}
+				if (is_null($m[1])){continue;}
 				$chr=$m[1];
 				if ( in_array($chr,$chrRef) ){
 					$chrs[$chr]=$chr;
@@ -434,7 +434,7 @@ function validateBAM($bamFn,$refGenome){
 	if (count($SQs)) {
 		foreach (explode("\n",$SQs) as $SQ){
 			if (preg_match('/SN:(\w+)\s/',$SQ,$m)){
-				if (!isset($m[1])){continue;}
+				if (is_null($m[1])){continue;}
 				$chr=$m[1];
 				if ( in_array($chr,$chrRef) ){
 					$chrs[$chr]=$chr;
@@ -613,7 +613,7 @@ function processUPLOAD($inId){
         $r = deleteGSFileBNS($inId);
 
         // create new file from DMP
-        $r = uploadGSFileBNS($in, $inFn, $insertData,$fileMeta,false);
+        $r = uploadGSFileBNS($in, $inFn, $insertData,$fileMeta);
 		if ($r == "0")
 			return false;
     }
@@ -683,20 +683,20 @@ function prepMetadataResult($meta,$fnPath=0){
 		$extension = pathinfo("$fnPath",PATHINFO_EXTENSION);
 	        $extension = preg_replace('/_\d+$/',"",$extension);
 	}
-	if (!isset($meta['format']) && $fnPath){
+	if (is_null($meta['format']) && $fnPath){
 		$meta['format']= strtoupper($extension);
 	}
-	if (!isset($meta['tracktype']) && $fnPath ){
+	if (is_null($meta['tracktype']) && $fnPath ){
 		$meta['tracktype']=format2trackType($meta['format'],basename($fnPath));
 	}
-	if (!isset($meta['refGenome'])){
+	if (is_null($meta['refGenome'])){
 	    if (isset($meta['in']) ){
                 $inpObj = $GLOBALS['filesMetaCol']->findOne(array('_id'  => $meta['in']));
                 if (!empty($inpObj)){
                         $meta['refGenome']= $inpObj['refGenome'];
 		}
 	    }
-            if (!isset($meta['refGenome']) && !in_array($meta['format'],array("LOG","SH","ERR")) && $fnPath ){
+            if (is_null($meta['refGenome']) && !in_array($meta['format'],array("LOG","SH","ERR")) && $fnPath ){
                 $prefix   = "";
 		$validated= true;
                 $refGenome= "";
@@ -723,10 +723,10 @@ function prepMetadataResult($meta,$fnPath=0){
                 }
 	    }
 	}
-	if (!isset($meta['validated'])){
+	if (is_null($meta['validated'])){
 		$meta['validated']=1;
 	}
-	if (!isset($meta['visible']) && $fnPath){
+	if (is_null($meta['visible']) && $fnPath){
 		$meta['visible']=((in_array($extension,hiddenFiles()))?0:1);
 	}
 	return $meta;

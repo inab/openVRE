@@ -182,7 +182,7 @@ class ProcessPMES{
         if (isset($GLOBALS['cloud']) and isset($GLOBALS['clouds'][$GLOBALS['cloud']]) ){
             return $GLOBALS['clouds'][$GLOBALS['cloud']];
         }
-		if (!isset($_SERVER['HTTP_X_FORWARDED_SERVER'])){
+		if (is_null($_SERVER['HTTP_X_FORWARDED_SERVER'])){
             return 0;
         }else{
             $serverName = explode(",",$_SERVER['HTTP_X_FORWARDED_SERVER'])[0];
@@ -198,7 +198,7 @@ class ProcessPMES{
 
     private function openstack_getAccessToken(){
 
-        if ( !isset($this->cloud['auth']) ){
+        if ( is_null($this->cloud['auth']) ){
             $_SESSION['errorData']['Error'][]="No authorization data set. Cannot connect to openstack cloud.";
             return 0;
         }
@@ -235,7 +235,7 @@ class ProcessPMES{
         //$headers = array('Content-Type: application/json');
         //list($r,$info) = post($data_string,$url,$headers);
 
-        if (!isset($r['access']["token"])){
+        if (is_null($r['access']["token"])){
             if ($_SESSION['errorData']['Error']){
                 $_SESSION['errorData']['Error'] = "Cannot access to the requestes cloud. Authorization failed.";
                 logger("ERROR: Cannot access to the requestes cloud. Authorization failed. Response: $r");

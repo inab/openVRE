@@ -7,11 +7,6 @@ $job = getUserJobPid($_SESSION['User']['_id'],$_REQUEST["pid"]);
 $mt = $job[$_REQUEST["pid"]];
 
 
-/***********************************/
-/****** FAKE LOG FILE **************/
-//$fake_log_file = "/var/www/html/files/MuGUSER5a0c19c86901e/__PROJ5b51b5d4d86f59.95768162/testProgress1/.tool.log";
-/***********************************/
-
 /*
  * POSSIBLE STATES:
  *

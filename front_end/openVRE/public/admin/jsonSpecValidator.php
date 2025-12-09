@@ -4,7 +4,7 @@ require __DIR__ . "/../../config/bootstrap.php";
 
 redirectToolDevOutside();
 
-if (!isset($_REQUEST['id'])) {
+if (is_null($_REQUEST['id'])) {
 
 	$_SESSION['errorData']['Error'][] = "Please provide a tool id.";
 	redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php');
@@ -12,14 +12,14 @@ if (!isset($_REQUEST['id'])) {
 
 $toolDevJSON = $GLOBALS['toolsDevMetaCol']->findOne(array('_id' => $_REQUEST['id']));
 
-if (!isset($toolDevJSON)) {
+if (is_null($toolDevJSON)) {
 	$_SESSION['errorData']['Error'][] = "The tool id <strong>" . $_REQUEST['toolid'] . "</strong> doesn't exist in our database.";
 	redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php');
 }
 
 $toolDevMetaJSON = $GLOBALS['toolsDevMetaCol']->findOne(array('_id' => $_REQUEST['id'], 'user_id' => $_SESSION['User']['id']));
 
-if (!isset($toolDevMetaJSON) && ($_SESSION['User']['Type'] != UserType::Admin->value)) {
+if (is_null($toolDevMetaJSON) && ($_SESSION['User']['Type'] != UserType::Admin->value)) {
 	$_SESSION['errorData']['Error'][] = "The tool id <strong>" . $_REQUEST['toolid'] . "</strong> you are trying to edit doesn't belong to you.";
 	redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php');
 }
@@ -95,11 +95,11 @@ if (!isset($toolDevMetaJSON) && ($_SESSION['User']['Type'] != UserType::Admin->v
 						<div class="row">
 							<div class="col-md-12">
 								<p style="margin-top:0;">Paste or write your JSON code in the text area below. Once the JSON is correct,
-									you can validate it against our <a href="https://raw.githubusercontent.com/Multiscale-Genomics/VRE_tool_jsons/dev/tool_specification/tool_schema.json" target="_blank">JSON Schema</a>. Click the buttons below for further information:</p>
+									you can validate it against our <a href="" target="_blank">JSON Schema</a>. Click the buttons below for further information:</p>
 								<p>
-									<a class="btn btn-xs green" href="http://multiscalegenomics.eu/MuGVRE/tool-specification-attributes/" target="_blank"><i class="fa fa-tag" aria-hidden="true"></i> Attribute's help</a>
-									<a class="btn btn-xs green" href="http://multiscalegenomics.eu/MuGVRE/file-types/" target="_blank"><i class="fa fa-list" aria-hidden="true"></i> Available File Types</a>
-									<a class="btn btn-xs green" href="http://multiscalegenomics.eu/MuGVRE/data-types/" target="_blank"><i class="fa fa-list" aria-hidden="true"></i> Available Data Type</a>
+									<a class="btn btn-xs green" href="" target="_blank"><i class="fa fa-tag" aria-hidden="true"></i> Attribute's help</a>
+									<a class="btn btn-xs green" href="" target="_blank"><i class="fa fa-list" aria-hidden="true"></i> Available File Types</a>
+									<a class="btn btn-xs green" href="" target="_blank"><i class="fa fa-list" aria-hidden="true"></i> Available Data Type</a>
 									<a class="btn btn-xs green" href="javascript:;" target="_blank"><i class="fa fa-list" aria-hidden="true"></i> List of keywords</a>
 								</p>
 								<!-- BEGIN EXAMPLE TABLE PORTLET-->

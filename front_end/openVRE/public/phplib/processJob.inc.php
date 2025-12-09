@@ -9,7 +9,7 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
 {
     logger("Start job submission via SGE");
 
-    if (!isset($_SESSION['User']['id'])) {
+    if (is_null($_SESSION['User']['id'])) {
         $_SESSION['errorData']['Error'][] = "User ID not found in session.";
         return [0, "User ID not found in session."];
     }
@@ -96,7 +96,7 @@ function getRunningJobs(){
         $jobs=Array();
         $command = QSTAT." -u www-data | awk '$1 ~ /[0-9]+/ {print $1\"\t\"$5\"\t\"$6 $7}'";
         exec($command,$queueJobs);
-        if (!isset($queueJobs[0]))
+        if (is_null($queueJobs[0]))
                 return $jobs;
         else{
                 foreach ($queueJobs as $jobLine){

@@ -5,7 +5,7 @@ redirectToolDevOutside();
 
 $data = $GLOBALS['toolsDevMetaCol']->findOne(array('_id' => $_REQUEST['toolid']));
 
-if(!isset($data)) {
+if(is_null($data)) {
         $_SESSION['errorData']['Error'][] = "Tool id unexisting.";
         redirect($GLOBALS['BASEURL'].'admin/myNewTools.php?id='.$_REQUEST['toolid']);
 }

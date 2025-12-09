@@ -121,7 +121,7 @@ if((count($_REQUEST['fn']) > 2) && ((in_array('PDB', $formats) || in_array('GRO'
 					
 <?php
 
-						if(!isset($vis_type)) {
+						if(is_null($vis_type)) {
 								$_SESSION['errorData']['NGL'][] = "ERROR: incorrect format for NGL Viewer. If you provided a DCD file, remember to provide a PDB file too.";
 								header('Location: '.$GLOBALS['BASEURL'].'visualizers/error.php');
 						}

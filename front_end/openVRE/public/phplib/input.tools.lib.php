@@ -52,7 +52,7 @@ function getArrayJS($array) {
 
 // check if data request is correct
 function InputTool_checkRequest($request) {
-	if (!isset($request['fn']) && !isset($request['rerunDir']) && !isset($request['op'])){
+	if (is_null($request['fn']) && is_null($request['rerunDir']) && is_null($request['op'])){
 		$_SESSION['errorData']['Error'][]="Please, before running this tool, select the correct files from the workspace or launch tool from the side menu.";
 		redirect($GLOBALS["BASEURL"].'workspace/');
 	}
@@ -89,7 +89,7 @@ function InputTool_getPathsAndRerun($request) {
 
 	if (isset($request['rerunDir']) && $request['rerunDir']){
 		$dirMeta = $GLOBALS['filesMetaCol']->findOne(array('_id' => $request['rerunDir'])); 
-		if (!is_array($dirMeta['input_files']) && !isset($dirMeta['arguments'])){
+		if (!is_array($dirMeta['input_files']) && is_null($dirMeta['arguments'])){
 			$_SESSION['errorData']['Error'][]="Cannot rerun job ".$request['rerunDir'].". Some folder metadata is missing.";
 			redirect($GLOBALS["BASEURL"].'workspace/');
 		}
@@ -105,7 +105,7 @@ function InputTool_getPathsAndRerun($request) {
 		}
 		$output[0] = $dirMeta['arguments'];
 	}else{
-		if (!isset($request['fn']))
+		if (is_null($request['fn']))
 			$request['fn']=array();
 		
 		if (!is_array($request['fn']))

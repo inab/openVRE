@@ -1,5 +1,18 @@
 <?php
 
+
+function getObjectStorageLogger()
+{
+	static $logger = null;
+
+	if ($logger === null) {
+		$logger = LoggerFactory::getLogger('Object storage interface');
+	}
+
+	return $logger;
+}
+
+
 function getOpenstackUser($vaultUrl, $accessToken, $vaultRolename, $username)
 {
 
@@ -50,7 +63,7 @@ function getSSHClient($vaultUrl, $accessToken, $vaultRolename, $username, $remot
 	$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
 	$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
 	$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
-	
+
 	if ($credentials) {
 		$sshPrivateKey = $credentials['private_key'];
 		$sshPublicKey = $credentials['public_key'];
@@ -134,76 +147,42 @@ function initiateFileDownload($swiftClient, $fileUrl, $container)
 	$wdP = $GLOBALS['dataDir'] . "/" . $wd;
 
 	// Log paths for debugging
-	error_log("Data directory path: $dataDirPath");
-	error_log("Working directory (wd): $wd");
-	error_log("Working directory path (wdP): $wdP");
-	error_log("File URL: $fileUrl");
+	getObjectStorageLogger()->debug("Data directory: $dataDirPath");
+	getObjectStorageLogger()->debug("Working directory (wd): $wd");
+	getObjectStorageLogger()->debug("Working directory path (wdP): $wdP");
+	getObjectStorageLogger()->debug("File URL: $fileUrl");
 
 	// Ensure the output directory exists
-	if (!is_dir($wdP)) {
-		if (!mkdir($wdP, 0775, true)) {
-			error_log("Failed to create working directory: $wdP");
-			return false;
-		}
+	if (!is_dir($wdP) && !mkdir($wdP, 0775, true)) {
+		error_log("Failed to create working directory: $wdP");
+		getObjectStorageLogger()->error("Failed to create working directory: $wdP.");
+		throw new UnexpectedValueException("Failed to create working directory: $wdP");
 	}
 
-	// Extract file name and relative path
 	$fileName = basename($fileUrl);
-	//$relativePath = dirname($fileUrl);
-
-	// Full path to save the file
 	$fullPath = $wdP . '/' . $fileName;
-
-	// Adjust fileUrl to remove any leading slashes if necessary
 	$fileUrl = ltrim($fileUrl, '/');
-
-
 	$downloadSuccess = $swiftClient->runDownloadFile($wdP . '/', $container, $fileUrl);
-	error_log("Command output: $downloadSuccess");
+	getObjectStorageLogger()->debug("Download success: $downloadSuccess");
 
-	error_log("basename: $fileName");
-	error_log("Full path: $fullPath");
-	if ($downloadSuccess) {
-		// Handle successful download
-		error_log("File downloaded successfully to $fullPath");
-
-		chmod($fullPath, 0666);
-		$insertData = array(
-			'owner' => $_SESSION['User']['id'],
-			'size' => filesize($fullPath),
-			'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($fullPath) * 1000)
-		);
-		$metaData = array(
-			'validated' => false
-		);
-
-		error_log("primo input: $wd/$fileName");
-		error_log("fullPath $fullPath");
-		error_log("fullPath $fileUrl");
-
-		error_log("fullPath $wd/$fileName");
-
-
-		// Save the path with the directory structure in the database
-		$fnId = uploadGSFileBNS("$wd/$fileName", $fullPath, $insertData, $metaData, false);
-
-		error_log("fnId: $fnId");
-		if ($fnId == "0") {
-
-			$errorMsg = "Error occurred while registering the downloaded file";
-			$_SESSION['errorData']['upload'] = $errorMsg;
-			error_log($errorMsg);
-			return array('status' => 'error', 'message' => $errorMsg);
-		} else {
-			// Successfully registered the file
-			error_log("File registered successfully with ID: $fnId");
-			return json_encode(array('status' => 'success', 'fileId' => $fnId));
-		}
-	} else {
-		// Handle download failure
-
-		$errorMsg = "Failed to download file: $fileName";
-		error_log($errorMsg);
-		return array('status' => 'error', 'message' => $errorMsg);
+	if (!$downloadSuccess) {
+		getObjectStorageLogger()->error("Failed to download file: $fileName");
+		throw new UnexpectedValueException("Failed to download file: $fileName");
 	}
+
+	chmod($fullPath, 0666);
+	$insertData = array(
+		'owner' => $_SESSION['User']['id'],
+		'size' => filesize($fullPath),
+		'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($fullPath) * 1000)
+	);
+
+	$metaData = array(
+		'validated' => false
+	);
+
+	// Save the path with the directory structure in the database
+	$fnId = uploadGSFileBNS("$wd/$fileName", $fullPath, $insertData, $metaData);
+	getObjectStorageLogger()->info("File registered successfully with ID: $fnId");
+	return $fnId;
 }

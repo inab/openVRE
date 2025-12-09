@@ -71,7 +71,7 @@ if (!$mt) {
 
 							// Validated
 
-							if (!isset($mt["validated"]) || $mt["validated"]) {
+							if (is_null($mt["validated"]) || $mt["validated"]) {
 								$mt['validated'] = "true";
 							} else {
 								$mt['validated'] = "false";
@@ -106,12 +106,12 @@ if (!$mt) {
 								$dt = $GLOBALS['dataTypesCol']->findOne(array('_id' => $mt["data_type"]));
 
 								// show taxon_id and assembly
-								if (!isset($mt["oeb_dataset_id"])) {
+								if (is_null($mt["oeb_dataset_id"])) {
 									$datasetId = "N/A";
 								} else {
 									$datasetId = $mt['oeb_dataset_id'];
 								}
-								if (!isset($mt["oeb_community_ids"])) {
+								if (is_null($mt["oeb_community_ids"])) {
 									$community  = "N/A";
 								} else {
 									$communities = getCommunities();
@@ -136,9 +136,9 @@ if (!$mt) {
 			</tr>
 			<tr>
 				<td><?php echo $dt["name"];
-								if (!isset($dt["name"])) echo "N/A"; ?></td>
+								if (is_null($dt["name"])) echo "N/A"; ?></td>
 				<td><?php echo $mt["format"];
-								if (!isset($mt["format"])) echo "N/A"; ?></td>
+								if (is_null($mt["format"])) echo "N/A"; ?></td>
 			</tr>
 		</tbody>
 	</table>
@@ -362,7 +362,7 @@ if (isset($mt["arguments"])) {
 // cloudName, memory and cpus
 $mem = "";
 $cpus = "";
-if (!isset($mt['cloudName']) || strlen($mt["cloudName"]) == 0)
+if (is_null($mt['cloudName']) || strlen($mt["cloudName"]) == 0)
 	$mt['cloudName'] = $GLOBALS['cloud'];
 
 if (isset($mt['imageType'])) {

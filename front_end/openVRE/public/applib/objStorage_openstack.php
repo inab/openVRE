@@ -1,11 +1,25 @@
 <?php
 header('Content-Type: application/json');
 
-require __DIR__."/../../config/bootstrap.php";
+require __DIR__ . "/../../config/bootstrap.php";
 
-function logError($errorMessage, $responseText = '') {
+
+function getObjectStorageOpenstackLogger()
+{
+    static $logger = null;
+
+    if ($logger === null) {
+        $logger = LoggerFactory::getLogger('Object storage OpenStack interface');
+    }
+
+    return $logger;
+}
+
+
+function logError($errorMessage, $responseText = '')
+{
     session_start();
-    if (!isset($_SESSION['errorData']['error'])) {
+    if (is_null($_SESSION['errorData']['error'])) {
         $_SESSION['errorData']['error'] = ['Info' => []];
     }
     $_SESSION['errorData']['error'][] = $errorMessage;
@@ -14,9 +28,10 @@ function logError($errorMessage, $responseText = '') {
     }
 }
 
-function logSuccess($successMessage) {
+function logSuccess($successMessage)
+{
     session_start();
-    if (!isset($_SESSION['errorData']['Info'])) {
+    if (is_null($_SESSION['errorData']['Info'])) {
         $_SESSION['errorData']['Info'] = ['Info' => []];
     }
     $_SESSION['errorData']['Info'][] = $successMessage;
@@ -70,25 +85,25 @@ if ($_REQUEST) {
 
     // Get container files
     if (isset($_REQUEST['action']) && $_REQUEST['action'] == "getContainerFiles" && isset($_POST['container'])) {
-	    $container = $_POST['container'];
-	    error_log("Main script - received container: $container");
-	    $vaultUrl = $GLOBALS['vaultUrl'];
-	    $accessToken = $_SESSION['userToken']['access_token'];
-	    $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
-	    $username = $_POST['username'];
-    
-	    $swiftClient = getSwiftClient($vaultUrl, $accessToken, $vaultRolename, $username);
-    
-	    if (!$swiftClient) {
-		    logError('Failed to obtain Swift client.');
-		    echo json_encode(array('error' => 'Failed to obtain Swift client.'));
-		    exit;
-	    }
-	    $files = getContainerFiles($container, $swiftClient);
-	    error_log("Main script - files: " . print_r($files, true));
+        $container = $_POST['container'];
+        error_log("Main script - received container: $container");
+        $vaultUrl = $GLOBALS['vaultUrl'];
+        $accessToken = $_SESSION['userToken']['access_token'];
+        $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
+        $username = $_POST['username'];
 
-	    echo json_encode($files);
-	    exit;
+        $swiftClient = getSwiftClient($vaultUrl, $accessToken, $vaultRolename, $username);
+
+        if (!$swiftClient) {
+            logError('Failed to obtain Swift client.');
+            echo json_encode(array('error' => 'Failed to obtain Swift client.'));
+            exit;
+        }
+        $files = getContainerFiles($container, $swiftClient);
+        error_log("Main script - files: " . print_r($files, true));
+
+        echo json_encode($files);
+        exit;
     }
 
     // Download file
@@ -109,20 +124,13 @@ if ($_REQUEST) {
             exit;
         }
 
-        $success = initiateFileDownload($swiftClient, $fileName, $container);
-        if (!$success) {
-            logError('File download failed.');
-            echo json_encode(array('error' => 'File download failed.'));
-            exit;
-        } else {
-            logSuccess('File downloaded successfully. File ID: ' . $success['fileId'] . ' is present in the workspace.');
-            echo json_encode($success);
-            exit;
+        try {
+            $fileId = initiateFileDownload($swiftClient, $fileName, $container);
+            getObjectStorageOpenstackLogger()->info("File downloaded successfully. File ID: " . $fileId . " is present in the workspace.");
+            echo json_encode(array('status' => 'success', 'fileId' => $fileId));
+        } catch (Exception $e) {
+            getObjectStorageOpenstackLogger()->error("File download failed: " . $e->getMessage());
+            echo json_encode(array('status' => 'error', 'message' => $e->getMessage()));
         }
     }
 }
-
-echo '{}';
-exit;
-?>
-
