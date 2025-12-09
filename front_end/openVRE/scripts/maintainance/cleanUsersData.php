@@ -78,7 +78,7 @@ foreach ($user_data as $v) {
             $msg = "ERROR: User " . $v['_id'] . " has no dataDir attribute. Deleting ANON user";
             print $msg;
             array_push($errors, $msg);
-            $r = delUser($v['id'], 1, true);
+            $r = delUser($v['id']);
             if ($r === false || $r == 0) {
                 $msg = "ERROR: cannot delete ANON user " . $v['id'] . ". " . join("; ", $_SESSION['errorData']['Error']) . "\n";
                 print $msg;
@@ -115,7 +115,7 @@ foreach ($user_data as $v) {
             $msg = "ERROR: dataDir for user " . $v['_id'] . " not found ($rdir). Deleting ANON user\n";
             print $msg;
             array_push($errors, $msg);
-            $r = delUser($v['id'], 1, true);
+            $r = delUser($v['id']);
             if ($r === false || $r == 0) {
                 $msg = "ERROR deleting user " . $v['id'] . ". " . join("; ", $_SESSION['errorData']['Error']) . "\n";
                 print $msg;
@@ -146,7 +146,7 @@ foreach ($user_data as $v) {
                 print "Dry run ON - doing nothing\n";
                 continue;
             }
-            $r = delUser($v['id'], 1, true);
+            $r = delUser($v['id']);
             if ($r === false || $r == 0) {
                 $msg = "ERROR: cannot delete user " . $v['id'] . ". " . join("; ", $_SESSION['errorData']['Error']) . "\n";
                 print $msg;
@@ -327,7 +327,7 @@ foreach ($user_data as $v) {
         if ($dry_run === true) {
             continue;
         }
-        $r = delUser($v['id'], 1, true);
+        $r = delUser($v['id']);
         if ($r === false || $r == 0) {
             $msg = "ERROR: cannot delete empty user " . $v['id'] . ". " . join("; ", $_SESSION['errorData']['Error']) . "\n";
             array_push($errors, $msg);

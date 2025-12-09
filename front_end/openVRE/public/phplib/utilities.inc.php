@@ -27,17 +27,6 @@ function subprocess($cmd, &$stdout = null, &$stderr = null, $cwd = null)
     return proc_close($proc);
 }
 
-/*
-// create random string uses as salt for crypting password
-function randomSalt( $length ) {
-    $possible = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    $str = '';
-    while (strlen($str) < $length)
-        $str .= substr($possible, (rand() % strlen($possible)), 1);
-
-    return $str;
-}
- */
 
 function mkpath($path)
 {

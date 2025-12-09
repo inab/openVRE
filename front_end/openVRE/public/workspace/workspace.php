@@ -479,10 +479,6 @@ if (isset($_REQUEST['op'])) {
 				if ($r == 0)
 					break;
 
-				//			$r = deleteGSFileBNS($_REQUEST['fn']);
-				//			if ($r == 0)
-				//				break;
-
 			} else {
 				$_SESSION['errorData']['error'][] = "Compressed ZIP file not created.";
 				if ($output)
@@ -492,11 +488,6 @@ if (isset($_REQUEST['op'])) {
 			break;
 
 		case 'tar':
-			//		$cmd = "tar --touch  -cf \"" . $_REQUEST['fn'] . ".tar\" \"" . $_REQUEST['fn'] . "\" 2>&1";
-			//		chdir($_SESSION['curDir']);
-			//		exec($cmd, $output);
-			//		$_SESSION['errorData']['error'][] = implode(" ", $output);
-			//		chdir($_SESSION['User']->dataDir);
 			break;
 
 

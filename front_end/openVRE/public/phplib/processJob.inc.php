@@ -5,6 +5,18 @@
 #
 
 
+function getJobProcessLogger()
+{
+    static $logger = null;
+
+    if ($logger === null) {
+        $logger = LoggerFactory::getLogger('Job process interface');
+    }
+
+    return $logger;
+}
+
+
 function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log")
 {
     logger("Start job submission via SGE");
@@ -89,30 +101,6 @@ function execJobPMES($cloudName, $data)
     return array($jobid, "");
 }
 
-
-# getAllRunningJobs
-/*
-function getRunningJobs(){
-        $jobs=Array();
-        $command = QSTAT." -u www-data | awk '$1 ~ /[0-9]+/ {print $1\"\t\"$5\"\t\"$6 $7}'";
-        exec($command,$queueJobs);
-        if (is_null($queueJobs[0]))
-                return $jobs;
-        else{
-                foreach ($queueJobs as $jobLine){
-                        list($pid,$state,$start)=explode("\t",$jobLine);
-                        $cmd = QSTAT. " -j $pid | grep job_name | cut -d: -f2 | tr -d \" \"";
-                        exec($cmd,$jobName);
-                        $jobs[$pid]=Array(
-                    'name'=>$jobName[0],
-                    'start'=>$start,
-                    'state'=>jobStateDicc($state)
-           );
-                }
-        }
-    return $jobs;
-}
-*/
 
 function getRunningJobInfo($pid, $launcherType = null, $cloudName = "local")
 {
@@ -246,9 +234,10 @@ function delJobFromOutfiles($outfiles)
                     $rfn = $GLOBALS['dataDir'] . "/$fn";
                     $ofn = $GLOBALS['filesCol']->findOne(array('_id' => $fn));
                     if (!empty($ofn)) {
-                        $ok = deleteGSFileBNS($fn);
-                        if (!$ok) {
-                            $_SESSION['errorData']['SGE'][] = "Job " . basename($outfile) . " deleted. But errors occured while cleaning temporal files.";
+                        try {
+                            deleteGSFileBNS($fn);
+                        } catch (Exception $e) {
+                            getJobProcessLogger()->error("Job " . basename($outfile) . " deleted. But errors occured while cleaning temporal files." . $e);
                             continue;
                         }
                     }

@@ -210,31 +210,26 @@ function setUser($f, $lastLogin = false)
     if (is_null($_SESSION['lastUserLogin']) && $lastLogin) $_SESSION['lastUserLogin'] = $lastLogin;
 }
 
-function delUser($id, $asRoot = 1, $force = false)
+
+//delete user data from Mongo and disk
+function delUser($id)
 {
-
-    //delete data from Mongo and disk
-
     $homePath =  $id;
-    $homeId = getGSFileId_fromPath($homePath, $asRoot);
-    if (!$homeId) {
-        $homePath =  "$id/";
-        $homeId = getGSFileId_fromPath($homePath, $asRoot);
+    $homeId = getGSFileId_fromPath($homePath, 1);
+    if (is_null($homeId)) {
+        deleteGSDirBNS($homeId, 1);
     }
 
     if ($homeId) {
-        $r = deleteGSDirBNS($homeId, $asRoot, $force);
+        $r = deleteGSDirBNS($homeId, 1);
         if ($r == 0) {
-            $_SESSION['errorData']['Error'][] = "Cannot delete $homeId directory from database.";
-            if (!$force) {
-                return 0;
-            }
+            //$_SESSION['errorData']['Error'][] = "Cannot delete $homeId directory from database.";
         }
     } else {
-        if (!$force) {
-            $_SESSION['errorData']['Error'][] = "Cannot delete user. It has no data registered, at least homeDir '$id/' is not found in DB";
-            return 0;
-        }
+        /*
+                    $_SESSION['errorData']['Error'][] = "Cannot delete user. It has no data registered, at least homeDir '$id/' is not found in DB";
+        return 0;
+        */
     }
 
     $rfn =  $GLOBALS['dataDir'] . "/" . $homePath;

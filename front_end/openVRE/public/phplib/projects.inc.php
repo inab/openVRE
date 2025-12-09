@@ -2009,9 +2009,10 @@ function deleteFiles($fileIds, $force = false)
 		}
 
 		// delete file from DMP
-		$r = deleteGSFileBNS($fileId);
-		if ($r == 0) {
-			$_SESSION['errorData']['Error'][] = "Cannot delete file '" . basename($fileLocalPath) . "'. Cannot delete entry from the repository.";
+		try {
+			deleteGSFileBNS($fileId);
+		} catch (Exception $e) {
+			getProjectLogger()->error("Cannot delete file '" . basename($fileLocalPath) . "'. Cannot delete entry from the repository." . $e->getMessage());
 			$result = false;
 			continue;
 		}

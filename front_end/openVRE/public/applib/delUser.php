@@ -18,7 +18,7 @@ if ($_REQUEST) {
 		}
 
 		//delete user
-		$r = delUser($_REQUEST["id"], 1, 1);
+		$r = delUser($_REQUEST["id"]);
 
 		redirect($GLOBALS['URL'] . '/admin/adminUsers.php');
 	} else {

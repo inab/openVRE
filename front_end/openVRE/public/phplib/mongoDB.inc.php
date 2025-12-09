@@ -935,108 +935,101 @@ function modifyGSFileBNS($fileId, $attribute, $value)
 
 
 // delete file registry
-function deleteGSFileBNS($fn, $asRoot = 0, $force = false)
-{ //fn == fnId
+function deleteGSFileBNS($fn, $asRoot = 0)
+{
+	$file = $asRoot
+		? $GLOBALS['filesCol']->findOne(array('_id' => $fn))
+		: $GLOBALS['filesCol']->findOne(array('_id' => $fn, 'owner' => $_SESSION['User']['id']));
 
-	// check file
-	if ($asRoot == 1)
-		$file  = $GLOBALS['filesCol']->findOne(array('_id' => $fn));
-	else
-		$file  = $GLOBALS['filesCol']->findOne(array('_id' => $fn, 'owner' => $_SESSION['User']['id']));
-
-	if (empty($file)) {
-		$_SESSION['errorData']['Warning'][] = " Cannot remove file with id=$fn. File was not there anymore.";
-		if (!$force) {
-			return 0;
-		}
-	}
-	if (!$force && isset($file['permissions']) && $file['permissions'] == "000") {
-		$_SESSION['errorData']['mongoDB'][] = " Not permissions to remove $fn";
-		return 0;
-	}
-	if (!$force && isGSDirBNS($GLOBALS['filesCol'], $fn)) {
-		$_SESSION['errorData']['mongoDB'][] = " Expected file type, but directory type for $fn";
-		return 0;
+	if (is_null($file)) {
+		getMongoLogger()->warning("Cannot remove file with id = $fn. File is not there anymore.");
+		throw new NotFoundException("Cannot remove file with id = $fn. File is not there anymore.");
 	}
 
-	//check parent
+	if (isGSDirBNS($GLOBALS['filesCol'], $fn)) {
+		getMongoLogger()->error(" Expected file type, but directory type for $fn");
+		throw new UnexpectedValueException(" Expected file type, but directory type for $fn");
+	}
+
+	if (!$asRoot && isset($file['permissions']) && $file['permissions'] == "000") {
+		getMongoLogger()->error(" Not permissions to remove $fn");
+		throw new UnexpectedValueException(" Not permissions to remove $fn");
+	}
+
 	$parentId = "";
 	$parentPath = "";
 
-	if (!empty($file)) {
-
-		// get parent dir
+	if (isset($file)) {
 		if (isset($file['parentDir']) && $file['parentDir'] != "0") {
 			$parentId = $file['parentDir'];
 		} else {
 			$filePath  = $file['path'];
 			$parentPath = dirname($filePath);
-			if ($parentPath == ".")
+			if ($parentPath == ".") {
 				$parentPath = $_SESSION['User']['id'];
+			}
+
 			$parentId  = getGSFileId_fromPath($parentPath, $asRoot);
 		}
-		// check parent dir
-		if (!$parentId or !isGSDirBNS($GLOBALS['filesCol'], $parentId)) {
-			$_SESSION['errorData']['mongoDB'][] = " Cannot remove $filePath. 'parentPath' ($parentId)  is not a directory.";
-			return 0;
-		}
-		if (($parentPath == $_SESSION['User']['id'] || $parentId == "0") && !$asRoot) {
-			$_SESSION['errorData']['mongoDB'][] = " Cannot remove home directory.";
-			return 0;
+
+		if (!$parentId || !isGSDirBNS($GLOBALS['filesCol'], $parentId)) {
+			getMongoLogger()->error("Cannot remove $filePath. 'parentPath' ($parentId)  is not a directory.");
+			throw new UnexpectedValueException("Cannot remove $filePath. 'parentPath' ($parentId)  is not a directory.");
 		}
 
-		// delete file
+		if (($parentPath == $_SESSION['User']['id'] || $parentId == "0") && !$asRoot) {
+			getMongoLogger()->error("Cannot remove home directory.");
+			throw new UnexpectedValueException("Cannot remove home directory.");
+		}
+
 		$GLOBALS['filesCol']->deleteOne(array('_id' => $fn));
 		$GLOBALS['filesMetaCol']->deleteOne(array('_id' => $fn));
-
-		// update parent dir
 		$GLOBALS['filesCol']->updateOne(
 			array('_id' => $parentId),
 			array('$pull' => array("files" => $fn))
 		);
 	}
-	return 1;
 }
 
-// delete directory registry
 
-function deleteGSDirBNS($fn, $asRoot = 0, $force = false)
+// delete directory registry
+function deleteGSDirBNS($fn, $asRoot = 0)
 {
-	if ($asRoot == 1)
-		$dir  = $GLOBALS['filesCol']->findOne(array('_id' => $fn));
-	else
-		$dir  = $GLOBALS['filesCol']->findOne(array('_id' => $fn, 'owner' => $_SESSION['User']['id']));
+	$dir = $asRoot
+		? $GLOBALS['filesCol']->findOne(array('_id' => $fn))
+		: $GLOBALS['filesCol']->findOne(array('_id' => $fn, 'owner' => $_SESSION['User']['id']));
+
+	if (is_null($dir)) {
+		getMongoLogger()->error(" Cannot remove directory with id = $fn. Directory is not there anymore.");
+		throw new NotFoundException(" Cannot remove directory with id = $fn. Directory is not there anymore.");
+	}
 
 	if (is_null($dir['parentDir'])) {
-		$_SESSION['errorData']['mongoDB'][] = " Cannot find parent directory attribute for $fn . </br> <a href=\"javascript:history.go(-1)\">[ OK ]</a>";
-		return 0;
+		getMongoLogger()->error("Cannot find parent directory attribute for $fn.");
+		throw new NotFoundException(" Cannot find parent directory attribute for $fn.");
 	}
 
 	$parentId = $dir['parentDir'];
-
 	if ($parentId == "0" && !$asRoot) {
-		$_SESSION['errorData']['mongoDB'][] = " Cannot remove home directory.";
-		return 0;
+		getMongoLogger()->error(" Cannot remove home directory.");
+		throw new UnexpectedValueException(" Cannot remove home directory.");
 	}
 
 	foreach ($dir['files'] as $f) {
 		if (isGSDirBNS($GLOBALS['filesCol'], $f)) {
-			$r = deleteGSDirBNS($f, 1, $force);
+			deleteGSDirBNS($f, 1);
 		} else {
-			$r = deleteGSFileBNS($f, 1, $force);
+			deleteGSFileBNS($f, 1);
 		}
-		if ($r == 0)
-			return 0;
 	}
 
 	$GLOBALS['filesCol']->deleteOne(array('_id' => $fn));
 	$GLOBALS['filesMetaCol']->deleteOne(array('_id' => $fn));
-
 	$GLOBALS['filesCol']->updateOne(
 		array('_id' => $parentId),
 		array('$pull' => array("files" => $fn))
 	);
-	return 1;
+
 }
 
 
