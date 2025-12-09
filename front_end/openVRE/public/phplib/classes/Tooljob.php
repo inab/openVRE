@@ -1231,6 +1231,8 @@ EOF;
 		$cmd .= "--config $configFile ";
 		$cmd .= "--in_metadata $inputMetadata ";
 		$cmd .= "--out_metadata $outputMetadata ";
+		$cmd .= "--log_file $logFile ";
+		$cmd .= " >> $logFile 2>&1";
 	
 		return $cmd;
 

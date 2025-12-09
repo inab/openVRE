@@ -24,21 +24,21 @@ class ProcessSlurm {
         private $logFile;
         private $errFile;
         private $remote_system;
-        private $jobState = Array (
-		
-		'PD' => "PENDING",
-        	'R'  => "RUNNING", 
-		'CG' => "COMPLETING",
-	        'CD' => "COMPLETED",
-	        'F'  => "FAILED",
-	        'TO' => "TIMEOUT",
-	        'NF' => "NODE_FAIL",
-	        'CA' => "CANCELLED",
-	        'RE' => "REQUEUED",
-	        'S'  => "SUSPENDED",
-    
-	);
-        public function __construct($shFile, $workDir, $logFile, $errFile, $remote_system){
+        private $jobState = [
+                "R"  => "RUNNING",
+                "PD" => "PENDING",
+                "CG" => "COMPLETING",
+                "CD" => "COMPLETED",
+                "F"  => "FAILED",
+                "TO" => "TIMEOUT",
+                "CA" => "CANCELLED",
+                "NF" => "NODE_FAIL",
+                "S"  => "SUSPENDED",
+                "PR" => "PREEMPTED",
+                "ST" => "STOPPED"
+            ];
+
+        public function __construct($shFile="", $workDir="", $logFile="job_output.log", $errFile="job_error.log", $remote_system="marenostrum") {
                 error_log("ProcessSlurm: __construct called with remote_system = $remote_system");
 
                 // Set class properties
@@ -55,7 +55,7 @@ class ProcessSlurm {
                 $username      = $_SESSION['User']['_id'] ?? null;
                 $vaultKey      = $_SESSION['userVaultInfo']['vaultKey'] ?? null;
 
-                error_log("ProcessSlurm: __construct has vaultUrl = $vaultUrl, accessToken = $accessToken, vaultRolename = $vaultRolename, username = $username, vaultKey = $vaultKey");
+                //error_log("ProcessSlurm: __construct has vaultUrl = $vaultUrl, accessToken = $accessToken, vaultRolename = $vaultRolename, username = $username, vaultKey = $vaultKey");
                 
                 if (!$vaultUrl || !$vaultKey || !$vaultRolename || !$accessToken || !$username) {
                         $_SESSION['errorData']['Error'][] =
@@ -85,7 +85,7 @@ class ProcessSlurm {
                         throw new Exception("Incomplete SSH credentials.");
                     }
 
-                    error_log("ProcessSlurm: SSH credentials retrieved: " . json_encode($this->sshCredentials));
+                    //error_log("ProcessSlurm: SSH credentials retrieved: " . json_encode($this->sshCredentials));
 
                     $remote_details = Tooljob::getLauncher_SlurmInfo($remote_system);
                     $this->sshHost = $remote_details['server'];
@@ -94,8 +94,9 @@ class ProcessSlurm {
 
                     error_log("ProcessSlurm: SSH connection details: sshHost = $this->sshHost, sshUsername = $this->sshUsername, sshRemotePath = $this->sshRemotePath");
 
-
-                    $this->submitJob();
+                    if (!empty($this->shFile) && !empty($this->workDir)) {
+                        $this->submitJob();
+                    }
 
                 }
 
@@ -221,35 +222,55 @@ class ProcessSlurm {
                 return [];
         }
         }
-
-
         public function getRunningJobInfo($pid)
         {
-        try {
-                $ssh = $this->connectSSH();
-
-                $cmd = "squeue -j " . escapeshellarg($pid) . " -h -o \"%i|%t|%j|%u|%M|%D\"";
-                $output = trim($ssh->exec($cmd));
-
-                if (!$output) {
-                        return null; // job not found
+                $job = [];
+                if (!$pid) {
+                        return $job;
                 }
 
-                list($id, $state, $name, $user, $time, $nodes) = explode("|", $output);
+                try {
+                        $ssh = $this->connectSSH();
+                        $cmd = "scontrol show job " . escapeshellarg($pid);
+                        $raw = trim($ssh->exec($cmd));
 
-                return [
-                        "job_id" => trim($id),
-                        "state"  => $this->jobState[$state] ?? $state,
-                        "raw_state" => $state,
-                        "name"   => trim($name),
-                        "user"   => trim($user),
-                        "time"   => trim($time),
-                        "nodes"  => trim($nodes)
-                ];
+                        if (!$raw || strpos($raw, "JobId=") === false) {
+                                logger("ProcessSlurm: getRunningJobInfo: no such job $pid");
+                                return $job;   // no such job
+                        }
 
-        } catch (\Exception $e) {
-                return null;
-        }
+                        // Parse Key=Value fields
+                        preg_match_all('/(\w+)=(".*?"|\S+)/', $raw, $matches, PREG_SET_ORDER);
+
+                        foreach ($matches as $m) {
+                                $key   = $m[1];
+                                $value = trim($m[2], '"');
+                                $job[$key] = $value;
+                        }
+
+                        $cmd = "squeue -j " . escapeshellarg($pid) . " -h -o \"%i|%t|%M|%D\"";
+                        $line = trim($ssh->exec($cmd));
+
+                        if (!$line) {
+                                logger("ProcessSlurm: getRunningJobInfo: job not running anymore. State: FINISHING");
+                                $job['state'] = "FINISHING";
+                                // log message like SGE version:
+                                log_addInfo($pid, "Job not running anymore. State: " . $job['state']);
+                        } else {
+                                list($id, $state, $time, $nodes) = explode("|", $line);
+                                // Map SLURM state → readable state
+                                $job['state']     = $this->jobState[$state] ?? $state;
+                                $job['raw_state'] = $state;
+                                $job['time']      = $time;
+                                $job['nodes']     = $nodes;
+                        }
+                        $job['pid'] = $pid;
+                        return $job;
+
+                } catch (\Exception $e) {
+                        logger("ProcessSlurm: getRunningJobInfo: Exception: " . $e->getMessage());
+                        return $job;
+                }
         }
 
         public function cancelJob($pid)

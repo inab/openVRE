@@ -136,6 +136,8 @@ function getRunningJobInfo($pid, $launcherType = NULL, $cloudName = "local")
     if (! $pid)
         return $job;
 
+    logger("getRunningJobInfo: start processing $pid");
+
     // guess launcher
     if (!$launcherType) {
         if (is_numeric($pid))
@@ -144,6 +146,8 @@ function getRunningJobInfo($pid, $launcherType = NULL, $cloudName = "local")
             $launcherType = "PMES";
     }
 
+    logger("getRunningJobInfo: launcherType = $launcherType");
+
     // create new jobProcess
     if ($launcherType == "SGE" || $launcherType == "docker_SGE") {
         $process = new ProcessSGE();
@@ -151,10 +155,18 @@ function getRunningJobInfo($pid, $launcherType = NULL, $cloudName = "local")
     } elseif ($launcherType == "PMES") {
         $process = new ProcessPMES($cloudName);
         $job = $process->getRunningJobInfo($pid);
+    } elseif ($launcherType == "Slurm") {
+        $process = new ProcessSlurm();
+        $job = $process->getRunningJobInfo($pid);
+        logger("getRunningJobInfo: $job");
     } else {
-        $_SESSION['errorData']['Error'][] = "Cannot monitor job '$pid' of type '$launcher'. Launcher not implemented.";
+        logger("getRunningJobInfo: error due to unknown launcher type '$launcherType'");
+        $_SESSION['errorData']['Error'][] = "Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.";
         return $job;
     }
+
+    logger("getRunningJobInfo: end processing $pid");
+
     // return job info
     return $job;
 }

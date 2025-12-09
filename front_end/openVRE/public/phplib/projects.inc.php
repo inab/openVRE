@@ -1157,8 +1157,7 @@ function updatePendingFiles($sessionId, $singleJob = array())
 			//get qstat info
 			logger("Start processPendingFiles -> getRunningJobInfo $pid. Log= " . $job['log_file']);
 			$jobProcess = getRunningJobInfo($pid, $job['launcher'], $job['cloudName']);
-
-			// TODO: PMES will redirect log info to log_file. Now, info extracted from $jobProcess
+			logger("End processPendingFiles -> getRunningJobInfo $jobProcess. Log= " . $job['log_file']);
 			updateLogFromJobInfo($job['log_file'], $pid, $job['launcher']);
 
 			//job keeps running: maintain original job data 
