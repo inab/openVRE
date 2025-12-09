@@ -409,7 +409,7 @@ if (isset($_REQUEST['op'])){
 				$insertMeta = $fileMeta;
 				$insertMeta['compress'] = 0;
 	
-				$r = uploadGSFileBNS($fn_Tmp,$rfn_Tmp,$insertData,$insertMeta,FALSE);
+				$r = uploadGSFileBNS($fn_Tmp,$rfn_Tmp,$insertData,$insertMeta,false);
 				if ($r == 0)
 					break;
 
@@ -466,7 +466,7 @@ if (isset($_REQUEST['op'])){
 			$insertMeta = $fileMeta;
 			$insertMeta['compressed'] = "zip";
 			
-			$r = uploadGSFileBNS($fn_TmpZip,$rfn_TmpZip,$insertData,$insertMeta,FALSE);
+			$r = uploadGSFileBNS($fn_TmpZip,$rfn_TmpZip,$insertData,$insertMeta,false);
 			if ($r == 0)
 				break;
 
@@ -501,7 +501,7 @@ if (isset($_REQUEST['op'])){
         // Move file/s
         $r = moveFiles($_REQUEST['fn'],$_REQUEST['target']);
                 
-        if ($r === FALSE){
+        if ($r === false){
             $msg = printErrorData();
 			print('{"error":true, "msg": "'.$msg.'"}');die();
         }else{

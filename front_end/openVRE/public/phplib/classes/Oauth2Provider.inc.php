@@ -48,7 +48,7 @@ class MuG_Oauth2Provider extends GenericProvider {
 
         if ($info['http_code'] == 400){
             if ($resp){
-                $err = json_decode($resp,TRUE);
+                $err = json_decode($resp,true);
                 throw new Exception("Logout client session unauthorized. [".$err['error']."]: ".$err['error_description']);
             }else{
                 throw new Exception("Logout client session unauthorized.");

@@ -563,7 +563,7 @@ function processBAM($bamId,$type,$cores){
 //               'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($bamFn)*1000)
 //        );
 //		$fileMeta = $GLOBALS['filesMetaCol']->findOne(array('_id' => $bam));
-//		$r = uploadGSFileBNS($bam, $bamFn, $insertData,$fileMeta,FALSE);
+//		$r = uploadGSFileBNS($bam, $bamFn, $insertData,$fileMeta,false);
 //		if ($r == 0 )
 //			return (false);
 //	}
@@ -613,7 +613,7 @@ function processUPLOAD($inId){
         $r = deleteGSFileBNS($inId);
 
         // create new file from DMP
-        $r = uploadGSFileBNS($in, $inFn, $insertData,$fileMeta,FALSE);
+        $r = uploadGSFileBNS($in, $inFn, $insertData,$fileMeta,false);
 		if ($r == "0")
 			return false;
     }

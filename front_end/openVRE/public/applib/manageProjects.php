@@ -67,7 +67,7 @@ if ($_REQUEST['op'] == "new"){
 // delete project
 }elseif($_REQUEST['op'] == "deleteMsg"){ 
 
-    print printProjectContent($_REQUEST['pr_id'],TRUE);
+    print printProjectContent($_REQUEST['pr_id'],true);
     die(0);
 
  

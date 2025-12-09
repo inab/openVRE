@@ -55,7 +55,7 @@ function getGSFilesFromDir($dataSelection = array(), $onlyVisible = 0)
 	if (count($dataSelection) == 0) {
 		if (!isset($_SESSION['curDir'])) {
 			$_SESSION['errorData']['internal'][] = "Cannot retrieve files from the database. Given query is not valid. Please, try it later or mail <a href=\"mailto:" . $GLOBALS['helpdeskMail'] . "\">" . $GLOBALS['helpdeskMail'] . "</a>";
-			return FALSE;
+			return false;
 		}
 		$dataSelection = array(
 			'owner' => $_SESSION['User']['id'],
@@ -72,12 +72,12 @@ function getGSFilesFromDir($dataSelection = array(), $onlyVisible = 0)
 		if (isset($GLOBALS['helpdeskMail'])) {
 			$_SESSION['errorData']['Error'][] = "Please, try it later or mail <a href=\"mailto:" . $GLOBALS['helpdeskMail'] . "\">" . $GLOBALS['helpdeskMail'] . "</a>";
 		}
-		return FALSE;
+		return false;
 	}
 
 	if (!isset($dirData['files']) || count($dirData['files']) == 0) {
 		$_SESSION['errorData']['Warning'][] = "No data to display in the given directory.";
-		return FALSE;
+		return false;
 	}
 
 	// retrieve File Data and Metada for each file in directory
@@ -714,7 +714,7 @@ function createGSDirBNS($dirPath, $asRoot = 0)
 
 
 // create new file registry
-// load file content to GRID, if load2grid===TRUE
+// load file content to GRID, if load2grid===true
 function uploadGSFileBNS($localFilePath, $filePath, $attributes = [], $meta = [], $load2grid = false, $asRoot = 0)
 {
 	$mongoFilesCollection = $GLOBALS['filesCol'];
@@ -872,9 +872,9 @@ function uploadGSFileBNS_fromURL($url, $parentPath, $attributes = array(), $meta
 			$attributes['mtime'] = new MongoDB\BSON\UTCDateTime(strtotime("now") * 1000);
 		if (! isset($attributes['size'])) {
 			$ch = curl_init($params['url']);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-			curl_setopt($ch, CURLOPT_HEADER, TRUE);
-			curl_setopt($ch, CURLOPT_NOBODY, TRUE);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_HEADER, true);
+			curl_setopt($ch, CURLOPT_NOBODY, true);
 			$attributes['size'] = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
 			curl_close($ch);
 		}
@@ -1226,9 +1226,9 @@ function uploadGSFile($collection, $localFilePath, $filePath)
 
 function createLabel()
 {
-	$label = uniqid($_SESSION['User']['id'] . "_", TRUE);
+	$label = uniqid($_SESSION['User']['id'] . "_", true);
 	if (! empty($GLOBALS['filesCol']->findOne(array('_id' => $label)))) {
-		$label = uniqid($_SESSION['User']['id'] . "_", TRUE);
+		$label = uniqid($_SESSION['User']['id'] . "_", true);
 	}
 	return $label;
 }

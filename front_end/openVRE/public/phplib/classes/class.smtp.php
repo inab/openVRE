@@ -179,7 +179,7 @@ class SMTP
      * Indexes of the array are extension names.
      * Value at index 'HELO' or 'EHLO' (according to command that was sent)
      * represents the server name. In case of HELO it is the only element of the array.
-     * Other values can be boolean TRUE or an array containing extension options.
+     * Other values can be boolean true or an array containing extension options.
      * If null, no HELO/EHLO string has yet been received.
      * @var array|null
      */

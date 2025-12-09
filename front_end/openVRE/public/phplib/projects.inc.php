@@ -14,7 +14,7 @@ function getProjectLogger()
 	return $logger;
 }
 
-function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData = array(), $verbose = FALSE, $asRoot = 0)
+function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData = array(), $verbose = false, $asRoot = 0)
 {
 	// set current directory
 	$_SESSION['curDir'] = $homeDir;
@@ -42,7 +42,7 @@ function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData
 	return $dataDirId;
 }
 
-function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $verbose = FALSE, $asRoot = 0)
+function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $verbose = false, $asRoot = 0)
 {
 	if ($verbose)
 		$_SESSION['errorData']['Info'][] = "Preparing user workspace named '$homeDir' with sample data '$sampleData'";
@@ -271,7 +271,7 @@ function setUserWorkSpace_sampleData($sampleName, $dataDir, $verbose = true)
 }
 
 
-function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type, $verbose = TRUE)
+function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type, $verbose = true)
 {
 	$sampleData = getSampleData($sampleName);
 	$sampleDataPath = $GLOBALS['sampleDataPath'] . "/" . $sampleData['sample_path'] . "/" . $metadata['file_path'];
@@ -402,7 +402,7 @@ function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type, $v
 				$_SESSION['errorData']['Info'][] = "Sample data imported in your workspace. New Project: '<strong>" . basename($metadata['file_path']) . "</strong>'";
 			}
 		} elseif ($type == "file") {
-			$newId = uploadGSFileBNS($validatedMetadata['file_path'], $userDataPath, $file, $metadata, FALSE, 1);
+			$newId = uploadGSFileBNS($validatedMetadata['file_path'], $userDataPath, $file, $metadata, false, 1);
 			if ($newId == "0") {
 				$_SESSION['errorData']['Error'][] = "Cannot register data sample '" . $validatedMetadata['file_path'] . "'";
 				return 0;
@@ -1529,7 +1529,7 @@ function processPendingFiles($sessionId, $files = array())
 
 
 			if ($job_in_err) {
-				log_addOutregister($pid, "Failed to register all job outfiles", FALSE);
+				log_addOutregister($pid, "Failed to register all job outfiles", false);
 				logger("JOB $pid FINISHED but with errors");
 				$logFileP = $job['log_file'];
 				$logFile  = fromAbsPath_toPath($job['log_file']);
@@ -1581,7 +1581,7 @@ function processPendingFiles($sessionId, $files = array())
 			*/
 				}
 			} else {
-				log_addOutregister($pid, "Output files successfully registed", TRUE);
+				log_addOutregister($pid, "Output files successfully registed", true);
 			}
 		}
 	}
@@ -1659,7 +1659,7 @@ function saveResults($filePath, $metaData = array(), $job = array(), $rfn = 0, $
 	}
 
 	#save to MONGO
-	$fnId = uploadGSFileBNS($filePath, $rfn, $insertData, $metaData, FALSE, $asRoot);
+	$fnId = uploadGSFileBNS($filePath, $rfn, $insertData, $metaData, false, $asRoot);
 
 	if ($fnId) {
 		$insertData['mtime'] = $insertData['mtime']->toDateTime()->format('U');
@@ -2255,7 +2255,7 @@ function deleteFiles($fileIds, $force = false)
 function moveFiles($fns, $target_fn)
 {
 	$result	 = true;
-	$multipleFiles  = FALSE;
+	$multipleFiles  = false;
 
 	//check target
 	$target_fn      = rtrim($target_fn, "/");
@@ -2265,7 +2265,7 @@ function moveFiles($fns, $target_fn)
 
 	// is a single fn given, target must be a file
 	if (!is_array($fns)) {
-		$multipleFiles  = FALSE;
+		$multipleFiles  = false;
 		$fns = array($fns);
 		if ($targetId) {
 			$_SESSION['errorData']['Error'][] = "Cannot move file into target path '$target_fn'. File already exists";
@@ -2277,7 +2277,7 @@ function moveFiles($fns, $target_fn)
 
 		// is array of fn given, target must be a directory
 	} else {
-		$multipleFiles  = TRUE;
+		$multipleFiles  = true;
 		if (!$targetId || !is_dir($GLOBALS['dataDir'] . "/$target_fn")) {
 			$_SESSION['errorData']['Error'][] = "Cannot move multiple files into target directory '" . $GLOBALS['dataDir'] . "/$target_fn'. Target must be un existing directory";
 			$result = false;
@@ -2307,7 +2307,7 @@ function moveFiles($fns, $target_fn)
 			}
 
 			// set complete target path
-			if ($multipleFiles === TRUE) {
+			if ($multipleFiles === true) {
 				$target_filename = basename($file_fn);
 			}
 			$target_dir_rfn  = $GLOBALS['dataDir'] . "/$target_dir";

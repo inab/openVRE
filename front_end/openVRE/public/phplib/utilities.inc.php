@@ -36,7 +36,7 @@ function mkpath($path){
 // define JBrowse tracktype from file format
 function format2trackType($format,$fn=NULL){
         if (!isset ($format) ){
-                return FALSE;
+                return false;
         }
         $program = NULL;
         if ($fn){
@@ -355,7 +355,7 @@ function setVREfile_fromScratch($file_data=array()){
 
     //set file
     if (!isset($file_data['_id'])){
-        $file['_id']= uniqid("unique_file_id_",TRUE);
+        $file['_id']= uniqid("unique_file_id_",true);
     }else{
         $file['_id']= $file_data['_id'];
     }
@@ -402,7 +402,7 @@ function setVREfile_fromScratch($file_data=array()){
         unset($file_data['atime']);
     }
     if (!isset($file_data['parentDir'])){
-        $file['parentDir']= uniqid("unique_file_id_",TRUE);
+        $file['parentDir']= uniqid("unique_file_id_",true);
     }else{
         $file['parentDir']= $file_data['parentDir'];
         unset($file_data['parentDir']);
@@ -925,7 +925,7 @@ function indexFiles_zip($zip_rfn){
     return array($files,$zip_out);
 }
 
-function create_png_from_text($text="My Text",$png_file=FALSE){
+function create_png_from_text($text="My Text",$png_file=false){
 
     // setting image properties
     $img = array();

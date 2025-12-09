@@ -180,8 +180,8 @@ if ($_REQUEST['export'] == 1) {
                                                             </td>
                                                             <td rowspan="<?php echo $rowspan; ?>">
                                                                 <b><?php
-                                                                    if ($jobInfo['success'] == "TRUE") {
-                                                                        print "<span class='font-green-meadow'>TRUE</span>";
+                                                                    if ($jobInfo['success'] == "true") {
+                                                                        print "<span class='font-green-meadow'>true</span>";
                                                                     } elseif ($jobInfo['success'] == "ERR") {
                                                                         print "<span class='font-red'>ERR</span>";
                                                                     } else {

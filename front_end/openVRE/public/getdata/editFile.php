@@ -178,7 +178,7 @@ redirectOutside();
 					'refGenome'  => "",
 					//specific for BAM
 					'paired'     => 'paired',
-					'sorted'     => TRUE,
+					'sorted'     => true,
 				);*/
 
 

@@ -129,7 +129,7 @@ foreach ( array_values(iterator_to_array($fu)) as $u ){
         $proj_sd   = "0";
         $proj_data = array("name"=> "MyProject", "keywords"=> "compatibilityMode","description"=> "This is an automatic project that puts together all your data. It has been set to ensure the compatibility of your workspace data with the new MuGVRE - where user's data is organized by 'projects'. You can manage it as any other project!");
 
-        $proj_id = prepUserWorkSpace($id,$proj_code,$proj_sd,$proj_data,FALSE,1);
+        $proj_id = prepUserWorkSpace($id,$proj_code,$proj_sd,$proj_data,false,1);
         //$proj_id = "MuGUSER5a0c0314c20d1_5b4e0c02e1f354.18716647";
         $proj    = getProject($proj_id,1,$id);  
         print "- Foo project created [code (id)] = $proj_code ($proj_id)<br/>\n";
@@ -158,7 +158,7 @@ foreach ( array_values(iterator_to_array($fu)) as $u ){
             $proj_sd   = "0";
             $proj_data = array("name"=> "MyProject", "keywords"=> "compatibilityMode","description"=> "This is an automatic project that puts together all your data. It has been set to ensure the compatibility of your workspace data with the new MuGVRE - where user's data is organized by 'projects'. You can manage it as any other project!");
     
-            $proj_id = prepUserWorkSpace($id,$proj_code,$proj_sd,$proj_data,FALSE,1);
+            $proj_id = prepUserWorkSpace($id,$proj_code,$proj_sd,$proj_data,false,1);
             $proj    = getProject($proj_id,1,$id);  
             print "- Foo project created [code (id)] = $proj_code ($proj_id)<br/>\n";
         }

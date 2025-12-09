@@ -201,7 +201,7 @@ function getUsersByFilter($filter, $options = array())
 
 
 // load user to SESSION
-function setUser($f, $lastLogin = FALSE)
+function setUser($f, $lastLogin = false)
 {
     $aux = (array)$f;
     $_SESSION['User']   = $aux;
@@ -364,8 +364,8 @@ function loadUser($login, $pass)
     }
     // check pass/token verifies - except when loading an ANON or when impersonating
     $pass_verified =  check_password($pass, null);
-    $impersonating =  (isset($_SESSION['User']) && $_SESSION['User']['Type'] == UserType::Admin->value && $pass == 99 ? TRUE : FALSE);
-    $loadingAnon   =  ($user['Type'] == UserType::Guest ? TRUE : FALSE);
+    $impersonating =  (isset($_SESSION['User']) && $_SESSION['User']['Type'] == UserType::Admin->value && $pass == 99 ? true : false);
+    $loadingAnon   =  ($user['Type'] == UserType::Guest ? true : false);
 
     if (!$pass_verified) {
         if (!$loadingAnon  && !$impersonating) {

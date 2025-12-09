@@ -174,7 +174,7 @@ function initiateFileDownload($swiftClient, $fileUrl, $container)
 			'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($fullPath) * 1000)
 		);
 		$metaData = array(
-			'validated' => FALSE
+			'validated' => false
 		);
 
 		error_log("primo input: $wd/$fileName");
@@ -185,7 +185,7 @@ function initiateFileDownload($swiftClient, $fileUrl, $container)
 
 
 		// Save the path with the directory structure in the database
-		$fnId = uploadGSFileBNS("$wd/$fileName", $fullPath, $insertData, $metaData, FALSE);
+		$fnId = uploadGSFileBNS("$wd/$fileName", $fullPath, $insertData, $metaData, false);
 
 		error_log("fnId: $fnId");
 		if ($fnId == "0") {

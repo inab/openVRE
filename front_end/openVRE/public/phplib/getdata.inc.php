@@ -135,11 +135,11 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
 
     //validate URL: get status and size and filename
     $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
-    curl_setopt($ch, CURLOPT_HEADER, TRUE);
-    curl_setopt($ch, CURLOPT_VERBOSE, TRUE);
-    curl_setopt($ch, CURLOPT_NOBODY, TRUE);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_HEADER, true);
+    curl_setopt($ch, CURLOPT_VERBOSE, true);
+    curl_setopt($ch, CURLOPT_NOBODY, true);
     if ($user && $pass) {
         curl_setopt($ch, CURLOPT_USERPWD, "$user:$pass");
     }
@@ -362,10 +362,10 @@ function getData_fromTXT()
     ];
 
     $metaData = [
-        'validated' => FALSE
+        'validated' => false
     ];
 
-    $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData, FALSE);
+    $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData, false);
     if ($fileId == "0") {
         unlink($filePath);
         die("ERROR: Error occurred while registering the uploaded file.");
@@ -395,9 +395,9 @@ function getData_fromRepository_ToPublic($params = array())
     // Get URL headers
 
     $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
-    curl_setopt($ch, CURLOPT_HEADER, TRUE);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_HEADER, true);
     $curl_data = curl_exec($ch);
 
     // Validate HTTP status
@@ -835,12 +835,12 @@ function getData_fromEGA($datasetIds, $fileIds, $filenames, $fileSizes)
             'data_source' => "EGA",
             'ega_path' => $filePath,
             'format' => "VCF",
-            'validated' => TRUE,
-            'visible' => TRUE
+            'validated' => true,
+            'visible' => true
         ];
 
         $fileBasename = basename($filePath);
-        $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData, FALSE);
+        $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData, false);
         if ($fileId == "0") {
             unlink($filePath);
             die("ERROR: Error occurred while registering the uploaded file.");

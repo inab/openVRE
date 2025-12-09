@@ -18,7 +18,7 @@ function isProject($query,$asRoot=0,$owner=0){
 
     // read 'is_a' attribute
     $is_a = getAttr_fromGSFileId($query,"is_a",$asRoot);
-    if ($is_a && $is_a == "project"){ return TRUE; }else{ return FALSE; }
+    if ($is_a && $is_a == "project"){ return true; }else{ return false; }
 
 }
 
@@ -95,11 +95,11 @@ function updateProject($project_id,$project_attr, $asRoot=0,$owner=0){
 // create random project identifier 
 
 function createLabel_proj(){
-    //$label= uniqid($_SESSION['User']['id']."_PROJ",TRUE);
-    $label= uniqid("__PROJ",TRUE);
+    //$label= uniqid($_SESSION['User']['id']."_PROJ",true);
+    $label= uniqid("__PROJ",true);
     if (! empty($GLOBALS['filesCol']->findOne(array('_id' => $label))) ){
-        //$label= uniqid($_SESSION['User']['id']."_PROJ",TRUE);
-        $label= uniqid("__PROJ",TRUE);
+        //$label= uniqid($_SESSION['User']['id']."_PROJ",true);
+        $label= uniqid("__PROJ",true);
     }
     return $label;
 }
@@ -147,7 +147,7 @@ function createProjectDir($dirfn,$dirrfn,$project_attr=Array(), $asRoot=0,$owner
   	return $dirId;
 }
 
-function printProjectContent($project_id,$onlyFolders=FALSE,$asRoot=0,$owner=0){
+function printProjectContent($project_id,$onlyFolders=false,$asRoot=0,$owner=0){
     
     $html="";
 

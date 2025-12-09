@@ -22,7 +22,7 @@ function get_keycloak_admintoken(){
 
     if ($info['http_code'] != 200 && $info['http_code'] != 204){
         if ($resp){
-            $err = json_decode($resp,TRUE);
+            $err = json_decode($resp,true);
             $_SESSION['errorData']['Warning'][]="Admin access to Auth Server unauthorized. [".$err['error']."]: ".$err['error_description'];
         }else{
             $_SESSION['errorData']['Warning'][]="Admin access to Auth Server unauthorized.";
@@ -31,7 +31,7 @@ function get_keycloak_admintoken(){
     }
 
     // parse token result
-    return json_decode($resp,TRUE);
+    return json_decode($resp,true);
 }
 
 function get_keycloak_user($username,$token){
@@ -44,14 +44,14 @@ function get_keycloak_user($username,$token){
 
     if ($info['http_code'] != 200 && $info['http_code'] != 204){
             if ($resp){
-                $err = json_decode($resp,TRUE);
+                $err = json_decode($resp,true);
                 $_SESSION['errorData']['Warning'][]="Admin access to Auth Server users unauthorized. [".$err['error']."]: ".$err['error_description'];
             }else{
                 $_SESSION['errorData']['Warning'][]="Admin access to Auth Server users unauthorized.";
             }
             return false;
     }
-    $resp = json_decode($resp,TRUE);
+    $resp = json_decode($resp,true);
     return $resp[0];
 }
 
@@ -65,7 +65,7 @@ function update_keycloak_user($userId,$userData,$token){
 
     if ($info['http_code'] != 200 && $info['http_code'] != 204){
         if ($resp){
-            $err = json_decode($resp,TRUE);
+            $err = json_decode($resp,true);
             $_SESSION['errorData']['Warning'][]="Admin access to MuG Auth Server for user update unauthorized. [".$err['error']."]: ".$err['error_description'];
         }else{
            $_SESSION['errorData']['Warning'][]="Admin access to MuG Auth Server for user update unauthorized.";
@@ -86,7 +86,7 @@ function update_keycloak_userPass($userId,$token){
 
     if ($info['http_code'] != 200 && $info['http_code'] != 204){
         if ($resp){
-            $err = json_decode($resp,TRUE);
+            $err = json_decode($resp,true);
             $_SESSION['errorData']['Warning'][]="Admin access to MuG Auth Server for user password update unauthorized. [".$err['error']."]: ".$err['error_description'];
         }else{
            $_SESSION['errorData']['Warning'][]="Admin access to MuG Auth Server for user password update unauthorized.";

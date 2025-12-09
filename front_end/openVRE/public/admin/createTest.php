@@ -192,7 +192,7 @@ if (!$toolDevMetaJSON["step1"]["tool_io_validated"]) {
 												$features = getFeaturesFromDataType($inputf['data_type'][0], $inputf['file_type'][0]);
 												$c = 0;
 												foreach ($features as $feature => $required) {
-													if ($required === FALSE) {
+													if ($required === false) {
 														continue;
 													}
 													if ($feature === "_id") {
@@ -256,7 +256,7 @@ if (!$toolDevMetaJSON["step1"]["tool_io_validated"]) {
 														$features = getFeaturesFromDataType($inputf['data_type'][0], $inputf['file_type'][0]);
 														$c = 0;
 														foreach ($features as $feature => $required) {
-															if ($required === FALSE) {
+															if ($required === false) {
 																continue;
 															}
 															if ($feature === "_id") {

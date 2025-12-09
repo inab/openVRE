@@ -72,11 +72,11 @@ if (!$mt) {
 							// Validated
 
 							if (!isset($mt["validated"]) || $mt["validated"]) {
-								$mt['validated'] = "TRUE";
+								$mt['validated'] = "true";
 							} else {
-								$mt['validated'] = "FALSE";
+								$mt['validated'] = "false";
 							}
-							if ($mt['validated'] == "FALSE") {
+							if ($mt['validated'] == "false") {
 ?>
 	<table class="table table-striped table-bordered">
 		<tbody>
@@ -88,7 +88,7 @@ if (!$mt) {
 			<tr>
 				<td><?php echo nl2br($mt["validated"]); ?>
 					&nbsp;&nbsp;
-					<?php if ($mt["validated"] == "FALSE") { ?>
+					<?php if ($mt["validated"] == "false") { ?>
 						<a style="margin-left:10px;" href="getdata/editFile.php?fn[]=<?php echo $mt["_id"]; ?>" class="btn btn-xs green">Validate Metadata</a>
 					<?php } ?>
 				</td>
@@ -155,9 +155,9 @@ if (!$mt) {
 				<tr>
 					<td><?php echo $mt["paired"] . " end"; ?></td>
 					<td><?php if ($mt["sorted"] == "sorted") {
-										echo "TRUE";
+										echo "true";
 									} else {
-										echo "FALSE";
+										echo "false";
 									} ?></td>
 				</tr>
 			</tbody>
@@ -342,7 +342,7 @@ if (isset($mt["arguments"])) {
 								foreach ($v as $val) echo $val . "<br>";
 								echo "</td></tr>";
 							} elseif (gettype($v) == "boolean") {
-								$v = ($v ? "TRUE" : "FALSE");
+								$v = ($v ? "true" : "false");
 								echo "<tr><td>$k</td><td>$v</td></tr>";
 							} else {
 								echo "<tr><td>$k</td><td>$v</td></tr>";

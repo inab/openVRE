@@ -105,9 +105,9 @@ class ProcessPMES{
                 $jobInfo = array('jobStatus' => "IN LIMBO",
                                  'jobOutputMessage' => $r
                             );
-                log_addError($jobid,"PMES/getActivityReport: ".json_encode($jobInfo,TRUE),0);
+                log_addError($jobid,"PMES/getActivityReport: ".json_encode($jobInfo,true),0);
             }else{
-                $jobInfo = flattenArray(array_shift(json_decode($r,TRUE)));
+                $jobInfo = flattenArray(array_shift(json_decode($r,true)));
             }
         }
         return $jobInfo;

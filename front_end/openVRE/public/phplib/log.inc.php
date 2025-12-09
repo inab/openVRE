@@ -22,7 +22,7 @@ function logger($entry) {
 
 // Add log entry defining job sumbission
 
-function log_addSubmission($pid,$toolId,$cloudName,$launcher,$cpus,$memory,$wd,$test=FALSE){
+function log_addSubmission($pid,$toolId,$cloudName,$launcher,$cpus,$memory,$wd,$test=false){
 
     // set main log info for a submitted job
     $log_exec = array(
@@ -49,7 +49,7 @@ function log_addSubmission($pid,$toolId,$cloudName,$launcher,$cpus,$memory,$wd,$
 
 // Add log entry defining execution error
 
-function log_addError($pid,$msg,$errCode=0, $toolId=FALSE,$cloudName=FALSE,$launcher=FALSE,$cpus=FALSE,$memory=FALSE,$test=FALSE){
+function log_addError($pid,$msg,$errCode=0, $toolId=false,$cloudName=false,$launcher=false,$cpus=false,$memory=false,$test=false){
 
     // if no job_id, set dummy
     if (!$pid)
@@ -86,7 +86,7 @@ function log_addError($pid,$msg,$errCode=0, $toolId=FALSE,$cloudName=FALSE,$laun
 
 // Add log entry describing output file registration process
 
-function log_addOutregister($pid,$msg="",$success=NULL,$test=FALSE){
+function log_addOutregister($pid,$msg="",$success=NULL,$test=false){
 
     // if no job_id, set dummy
     if (!$pid)
@@ -114,7 +114,7 @@ function log_addOutregister($pid,$msg="",$success=NULL,$test=FALSE){
 
 // Add log entry describing when a job is not in the running anymore
 
-function log_addFinish($pid,$msg="",$test=FALSE){
+function log_addFinish($pid,$msg="",$test=false){
 
     // if no job_id, set dummy
     if (!$pid)
@@ -140,7 +140,7 @@ function log_addFinish($pid,$msg="",$test=FALSE){
 
 // Add log entry info line
 
-function log_addInfo($pid,$msg="",$test=FALSE){
+function log_addInfo($pid,$msg="",$test=false){
 
     // if no job_id, set dummy
     if (!$pid)
@@ -223,7 +223,7 @@ function aggregateJobLogs($filters=array()){
 
             // from 'outfile register'
             }elseif (isset($logEvent['success'])){
-                $jobs[$pid]["success"] = ($logEvent['success']? "TRUE" : "ERR" );
+                $jobs[$pid]["success"] = ($logEvent['success']? "true" : "ERR" );
     
             // from 'finished'
             }elseif ($logEvent['log_type'] == "Finished"){
@@ -282,7 +282,7 @@ function getStatsFromJobLogs($jobs,$byTools=array("all")){
         $stats[$toolId]["jobs_total"]++;
 
         // count err/success jobs 
-        if ($j["success"] == "TRUE"){ $stats[$toolId]['jobs_finished_success']++; }
+        if ($j["success"] == "true"){ $stats[$toolId]['jobs_finished_success']++; }
         if ($j["success"] == "ERR") { $stats[$toolId]['jobs_finished_err']++ ; }
         if ($j["success"] == "")    { $stats[$toolId]['jobs_finished_unk']++ ; }
 
