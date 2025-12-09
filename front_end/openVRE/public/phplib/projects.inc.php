@@ -2095,7 +2095,7 @@ function mimeTypes()
 /*
 function check_key_repeats($key, $hash) {
 	if (!isset($key) || !isset($hash)) {
-		return NULL;
+		return null;
 	}
 	if (array_key_exists($key, $hash)) {
 		$key++;

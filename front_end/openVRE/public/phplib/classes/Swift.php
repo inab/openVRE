@@ -266,7 +266,7 @@ class SwiftClient {
 		} else {
 			//$inputArray = json_decode($output, true);
 			$type = gettype($output);
-			echo "THE OUTPUT IS NOT AN ARRAY OR IS NULL, is $type";
+			echo "THE OUTPUT IS NOT AN ARRAY OR IS null, is $type";
 			$inputArray = json_decode($output, true);
 			foreach ($inputArray as $element) {
 				$name = $element["Name"];

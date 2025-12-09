@@ -114,7 +114,7 @@ function getRunningJobs(){
 }
 */
 
-function getRunningJobInfo($pid, $launcherType = NULL, $cloudName = "local")
+function getRunningJobInfo($pid, $launcherType = null, $cloudName = "local")
 {
 
     $job = array();
@@ -144,7 +144,7 @@ function getRunningJobInfo($pid, $launcherType = NULL, $cloudName = "local")
     return $job;
 }
 
-function updateLogFromJobInfo($logFile, $pid, $launcherType = NULL, $cloudName = "local")
+function updateLogFromJobInfo($logFile, $pid, $launcherType = null, $cloudName = "local")
 {
 
     // guess launcher
@@ -267,7 +267,7 @@ function delJobFromOutfiles($outfiles)
     return 1;
 }
 
-function delJob($pid, $launcherType = NULL, $cloudName = "local", $login = NULL)
+function delJob($pid, $launcherType = null, $cloudName = "local", $login = null)
 {
     if (!$pid) {
         return false;

@@ -8,7 +8,7 @@ redirectAdminOutside();
 if($_REQUEST["pid"]){
 
     //delete job
-    $r = delJob($_REQUEST["pid"],NULL,"local",$_REQUEST["user"]);
+    $r = delJob($_REQUEST["pid"],null,"local",$_REQUEST["user"]);
     if (!$r){
         $_SESSION['errorData']['Error'][]= "Cannot cancel task. Unsuccessfully exit of 'deljob' for job $pid.";
     }

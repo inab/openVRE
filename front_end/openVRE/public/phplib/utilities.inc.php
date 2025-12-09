@@ -34,11 +34,11 @@ function mkpath($path){
 
 
 // define JBrowse tracktype from file format
-function format2trackType($format,$fn=NULL){
+function format2trackType($format,$fn=null){
         if (!isset ($format) ){
                 return false;
         }
-        $program = NULL;
+        $program = null;
         if ($fn){
                 if (preg_match('/^([A-Z]+)_/',basename($fn),$m) ){
                         $program = $m[1];
@@ -320,7 +320,7 @@ function prepMetadataUpload($request,$validationState=0){
         $fnPath    = getAttr_fromGSFileId($fn,'path');
 
         $format      = (isset($request['format'])?$request['format']:"UNK");
-        $data_type   = (isset($request['data_type'])?$request['data_type']:NULL);
+        $data_type   = (isset($request['data_type'])?$request['data_type']:null);
         $input_files = (isset($request['input_files'])?$request['input_files']:Array(0));
         $validated   = $validationState;
         $visible     = (isset($insertMeta['visible'])?$insertMeta['visible']:true);

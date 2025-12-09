@@ -182,7 +182,7 @@ class ProcessSLURM{
                 if ($this->stderr)
                         return $this->stout.$this->stderr;
                 else
-                        return NULL;
+                        return null;
         }
         public function status(){
                 # No need to specify a queue, pids are unique in the same SGE system.
@@ -199,7 +199,7 @@ class ProcessSLURM{
                 else return true;
         }
 
-    public function stop($pid=NULL){
+    public function stop($pid=null){
         if (!$pid){
             return array(false,"No job id '$pid' given");
         }

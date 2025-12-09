@@ -700,7 +700,7 @@ class RegisterTool {
                 $mugfile['file_path'] = $file['path'];
 			}
         }else{
-            $mugfile['file_path'] = NULL;
+            $mugfile['file_path'] = null;
 		}
 
 		// format -> file_type
@@ -714,7 +714,7 @@ class RegisterTool {
         if (isset($file['data_type'])){
             $mugfile['data_type'] = $file['data_type'];
         }else{
-            $mugfile['data_type'] = NULL;
+            $mugfile['data_type'] = null;
         }
 
 		// compressed -> compressed

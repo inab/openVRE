@@ -167,7 +167,7 @@ class ProcessPMES{
         	if ($this->stderr)
 			return $this->stderr;
 		else
-			return NULL;
+			return null;
 	}
 
 

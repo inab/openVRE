@@ -1566,7 +1566,7 @@ class Tooljob
 
 		list($pid, $errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file);
 		if (!$pid) {
-			log_addError($pid, $errMesg, NULL, $this->toolId, $this->cloudName, "SGE", $cpus, $memory);
+			log_addError($pid, $errMesg, null, $this->toolId, $this->cloudName, "SGE", $cpus, $memory);
 			$_SESSION['errorData']['Error'][] = "Internal error. Cannot enqueue job.";
 			return 0;
 		}
@@ -1584,7 +1584,7 @@ class Tooljob
 		$data = json_decode($data_string, true);
 		[$pid, $errMesg] = execJobPMES($this->cloudName, $data);
 		if (!$pid) {
-			log_addError($pid, $errMesg, NULL, $this->toolId, $this->cloudName, "PMES", $data['cores'], $data['memory']);
+			log_addError($pid, $errMesg, null, $this->toolId, $this->cloudName, "PMES", $data['cores'], $data['memory']);
 			$_SESSION['errorData']['Error'][] = "Internal error. Cannot enqueue job.";
 			return 0;
 		}
@@ -1625,12 +1625,12 @@ class Tooljob
 				$mugfile['file_path'] = $file['path'];
 			}
 		} else {
-			$mugfile['file_path'] = NULL;
+			$mugfile['file_path'] = null;
 		}
 
 		$mugfile['file_type'] = $file['format'] ?? "UNK";
-		$mugfile['data_type'] = $file['data_type'] ?? NULL;
-		$mugfile['data_source'] = $file['data_source'] ?? NULL;
+		$mugfile['data_type'] = $file['data_type'] ?? null;
+		$mugfile['data_source'] = $file['data_source'] ?? null;
 
 		if (isset($file['path'])) {
 			$ext = pathinfo($file['path'], PATHINFO_EXTENSION);

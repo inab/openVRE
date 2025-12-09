@@ -86,7 +86,7 @@ function log_addError($pid,$msg,$errCode=0, $toolId=false,$cloudName=false,$laun
 
 // Add log entry describing output file registration process
 
-function log_addOutregister($pid,$msg="",$success=NULL,$test=false){
+function log_addOutregister($pid,$msg="",$success=null,$test=false){
 
     // if no job_id, set dummy
     if (!$pid)
