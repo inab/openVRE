@@ -370,8 +370,8 @@ function moveGSFileBNS($fn, $fnNew, $asRoot = 0, $owner = "")
 
 
 	if ($fnNew == $owner) {
-		getMongoLogger()->error("Cannot move file " . $fn . " to " . $fnNew . " . Target folder cannot be a home folder.");
-		throw new UnexpectedValueException("Cannot move file " . $fn . " to " . $fnNew . " . Target folder cannot be a home folder.");
+		getMongoLogger()->error("Cannot move file " . $fn . " to " . $fnNew . " . Target folderCannot be a home folder.");
+		throw new UnexpectedValueException("Cannot move file " . $fn . " to " . $fnNew . " . Target folderCannot be a home folder.");
 	}
 
 	$parentOld = $fileOld['parentDir'];
@@ -460,13 +460,13 @@ function moveGSDirBNS($fn, $fnNew, $asRoot = 0, $owner = "")
 	}
 
 	if (is_null($dir['parentDir'])) {
-		getMongoLogger()->error(" Cannot find parent directory attribute for $fn.>");
-		throw new NotFoundException(" Cannot find parent directory attribute for $fn.");
+		getMongoLogger()->error("Cannot find parent directory attribute for $fn.>");
+		throw new NotFoundException("Cannot find parent directory attribute for $fn.");
 	}
 
 	if ($fnNew == $owner) {
-		getMongoLogger()->error("Cannot move file " . $fn . " to " . $fnNew . " . Target folder cannot be a home folder.");
-		throw new UnexpectedValueException("Cannot move file " . $fn . " to " . $fnNew . " . Target folder cannot be a home folder.");
+		getMongoLogger()->error("Cannot move file " . $fn . " to " . $fnNew . " . Target folderCannot be a home folder.");
+		throw new UnexpectedValueException("Cannot move file " . $fn . " to " . $fnNew . " . Target folderCannot be a home folder.");
 	}
 
 	$parentId = $dir['parentDir'];
@@ -799,7 +799,7 @@ function uploadGSFileBNS_fromURL($url, $parentPath, $attributes = array(), $meta
 	}
 	$r = getGSFileId_fromPath($url);
 	if ($r != "0") {
-		$_SESSION['errorData']['mongoDB'][] = "Warning: Cannot upload '$url'. The resource was already there";
+		$_SESSION['errorData']['mongoDB'][] = "Warning:Cannot upload '$url'. The resource was already there";
 		return $r;
 	}
 
@@ -1000,19 +1000,19 @@ function deleteGSDirBNS($fn, $asRoot = 0)
 		: $GLOBALS['filesCol']->findOne(array('_id' => $fn, 'owner' => $_SESSION['User']['id']));
 
 	if (is_null($dir)) {
-		getMongoLogger()->error(" Cannot remove directory with id = $fn. Directory is not there anymore.");
-		throw new NotFoundException(" Cannot remove directory with id = $fn. Directory is not there anymore.");
+		getMongoLogger()->error("Cannot remove directory with id = $fn. Directory is not there anymore.");
+		throw new NotFoundException("Cannot remove directory with id = $fn. Directory is not there anymore.");
 	}
 
 	if (is_null($dir['parentDir'])) {
 		getMongoLogger()->error("Cannot find parent directory attribute for $fn.");
-		throw new NotFoundException(" Cannot find parent directory attribute for $fn.");
+		throw new NotFoundException("Cannot find parent directory attribute for $fn.");
 	}
 
 	$parentId = $dir['parentDir'];
 	if ($parentId == "0" && !$asRoot) {
-		getMongoLogger()->error(" Cannot remove home directory.");
-		throw new UnexpectedValueException(" Cannot remove home directory.");
+		getMongoLogger()->error("Cannot remove home directory.");
+		throw new UnexpectedValueException("Cannot remove home directory.");
 	}
 
 	foreach ($dir['files'] as $f) {
@@ -1029,7 +1029,6 @@ function deleteGSDirBNS($fn, $asRoot = 0)
 		array('_id' => $parentId),
 		array('$pull' => array("files" => $fn))
 	);
-
 }
 
 

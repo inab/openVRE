@@ -1,8 +1,19 @@
 <?php
 
 
-// check if project exists
+function getMongoProjectLogger()
+{
+	static $logger = null;
 
+	if ($logger === null) {
+		$logger = LoggerFactory::getLogger('MongoDB project interface');
+	}
+
+	return $logger;
+}
+
+
+// check if project exists
 function isProject($query, $asRoot = 0, $owner = 0)
 {
 
@@ -187,21 +198,15 @@ function printProjectContent($project_id, $onlyFolders = false, $asRoot = 0, $ow
 
 function deleteProject($project_id)
 {
-
     $dir = getGSFile_fromId($project_id);
     $rfn_dir = $GLOBALS['dataDir'] . "/" . $dir['path'];
+    deleteGSDirBNS($project_id);
 
-    // delete dir from mongo
-    $r = deleteGSDirBNS($project_id);
-    if ($r == 0) {
-        $_SESSION['errorData']['error'][] = "Cannot delete project directory entry";
-        return 0;
-    }
     // delete dir from disk
     exec("rm -r \"$rfn_dir\" 2>&1", $output);
     if (error_get_last()) {
         $_SESSION['errorData']['error'][] = implode(" ", $output);
-        return 0;
+        getMongoProjectLogger()->error(implode(" ", $output));
+        throw new UnexpectedValueException(implode(" ", $output));
     }
-    return 1;
 }

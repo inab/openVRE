@@ -180,10 +180,6 @@ if (isset($_REQUEST['op'])) {
 			if (array_key_exists($fileExtension, $content_types_list))
 				$contentType = $content_types_list[$fileExtension];
 
-			//if (!$fileData && !preg_match('/\.log/',$rfn) ){
-			//    		break;
-			//}
-
 			if (!is_file($rfn) || !filesize($rfn)) {
 				$_SESSION['errorData']['error'][] = "'" . basename($rfn) . "' does not exist anymore or is empty. <a href=\"javascript:deleteMesg('" . urlencode($_REQUEST['fn']) . "')\">[ Delete ]</a> <a href=\"workspace/workspace.php\">[ OK ]</a>";
 				break;
@@ -208,19 +204,19 @@ if (isset($_REQUEST['op'])) {
 				$_SESSION['errorData']['error'][] = "Cannot delete structural directory '$filePath'.";
 				break;
 			}
-			$r = deleteGSDirBNS($_REQUEST['fn']);
 
-			if ($r == 0) {
-				$_SESSION['errorData']['error'][] = "Cannot delete directory '$filePath' file from repository";
+			try {
+				deleteGSDirBNS($_REQUEST['fn']);
+			} catch (Exception $e) {
 				break;
 			}
+
 			exec("rm -r \"$rfn\" 2>&1", $output);
 			if (error_get_last()) {
-				$_SESSION['errorData']['error'][] = implode(" ", $output);
+				getWorkspaceLogger()->error(implode(" ", $output));
 			}
+
 			break;
-
-
 		case 'cancelJobPids':
 			$r = delJob($_REQUEST['pids']);
 			break;
@@ -234,7 +230,6 @@ if (isset($_REQUEST['op'])) {
 					foreach ($filesId as $fileId) {
 						if (isset($fileId) && preg_match('/^' . preg_quote($_REQUEST['fn'], '/') . '/', $fileId)) {
 							array_push($jobList, $fileId);
-							continue;
 						}
 					}
 				}
@@ -250,7 +245,6 @@ if (isset($_REQUEST['op'])) {
 		case 'cancelJob':
 			$_SESSION['errorData']['error'][] = "Are you sure you want to cancel job for file '" . basename($_REQUEST['fn']) . "'? ";
 			$pid = $_REQUEST['pid'];
-			//$pid = getPidFromOutfile($_REQUEST['fn']);
 			$jobInfo = getRunningJobInfo($pid);
 			$SGE_updated = getUserJobs($_SESSION['userId']);
 			$succList = "";
@@ -292,15 +286,18 @@ if (isset($_REQUEST['op'])) {
 						if (!$r) {
 							$_SESSION['errorData']['Error'][] = "Cannot cancel '" . $jobData["execution"] . "' task. Unsuccessfully exit of 'deljob' for job $pid.";
 							$delJobs_ok = 0;
-							continue;
 						}
 					}
 				}
 			}
+
 			if ($delJobs_ok && count($fileData['files']) == 0 && is_null($_SESSION['errorData']['SGE'])) {
-				$r = deleteGSDirBNS($_REQUEST['fn']);
-				if ($r == 0)
+				try {
+					deleteGSDirBNS($_REQUEST['fn']);
+				} catch (Exception $e) {
 					break;
+				}
+
 				exec("rm -r \"$rfn\" 2>&1", $output);
 				$_SESSION['errorData']['Error'][] = implode(" ", $output);
 			}
@@ -358,11 +355,6 @@ if (isset($_REQUEST['op'])) {
 						}
 					}
 					$cmd = "unzip -o \"" . $rfn . "\" -d $proj_dir 2>&1";
-
-					/*  // unzip certain file from zip
-                $file_compressed_names =  array_keys($files_compressed);
-                $cmd = "unzip -j \"$rfn\"  \"".$file_compressed_names[0]."\"  -d \"$proj_dir\"  2>&1";
-                 */
 					break;
 				case 'bz2':
 					$cmd = "bzip2 -d \"" . $rfn . "\" 2>&1";
@@ -371,33 +363,6 @@ if (isset($_REQUEST['op'])) {
 					$cmd = "gunzip -S .$ext -f \"" . $rfn . "\" 2>&1";
 					break;
 				case 'tgz':
-					/*
-				//warning compressed subfolders will be merged
-				if (is_null($_REQUEST['sure'])){
-					exec("tar -tf \"$rfn\"", $output);
-					var_dump($output);
-					$subfolders = preg_grep('/\/$/',$output);
-					if (count($subfolders)> 1 || count($output)> 10 ){
-						$msg ="File '".basename($filePath)."' contains '".count($output)."' elements:</br>";
-						
-						for ($i=0; $i<count($output); $i++){
-							$out = $output[$i];
-							$lev = preg_match_all('/\//i', $out, $m);
-							for ($n=0; $n<=$lev;$n++){ $msg .= "&ensp;&ensp; ";}
-							$msg .= " $out</br>";
-							if ($i>19){
-								$msg .= "&ensp;(...)</br>";
-								break;
-							}
-						}
-						$msg .= "All files will be directly extracted into '".basename($proj_dir)."' folder, without considering the tree file structure of the TAR file. Are you sure you want to uncompress '".basename($filePath)."'? <br/> ";	
-						$msg .= "<a href=\"".$_SERVER[REQUEST_URI]."&sure=1\">[ Sure ]</a> &ensp;";
-						$msg .= "<a href=\"workspace/\">[ Cancel ]</a> &ensp;";
-						$_SESSION['errorData']['Warning'][] = $msg;
-						break;
-					}
-				}
-				*/
 					$cmd = "tar --touch -xzf \"$rfn\" -C \"$proj_dir\" 2>&1";
 					break;
 				default:
@@ -406,8 +371,6 @@ if (isset($_REQUEST['op'])) {
 
 			if ($cmd) {
 				exec($cmd, $output);
-
-				//$_SESSION['errorData']['Error'][] = "CMD = $cmd";
 
 				if (is_file($rfn_Tmp)) {
 					$insertData = array(
@@ -478,7 +441,6 @@ if (isset($_REQUEST['op'])) {
 				$r = uploadGSFileBNS($fn_TmpZip, $rfn_TmpZip, $insertData, $insertMeta);
 				if ($r == 0)
 					break;
-
 			} else {
 				$_SESSION['errorData']['error'][] = "Compressed ZIP file not created.";
 				if ($output)
@@ -541,12 +503,5 @@ if (isset($_REQUEST['op'])) {
 }
 
 header("location:../workspace/");
-//redirect($GLOBALS['BASEURL']."/workspace/");
-
-
-
-//scan disk to upload Mongo 
-// TODO move function upper, for syncronizing before showing the table but after processingPendingJobs
-//syncWorkDir2Mongo($GLOBALS['dataDir']."/".$_SESSION['curDir']);
 
 ?>

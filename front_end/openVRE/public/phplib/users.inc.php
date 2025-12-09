@@ -8,6 +8,18 @@
 //require_once "classes/User.php";
 
 
+function getUsersLogger()
+{
+	static $logger = null;
+
+	if ($logger === null) {
+		$logger = LoggerFactory::getLogger('Users interface');
+	}
+
+	return $logger;
+}
+
+
 function checkLoggedIn()
 {
 
@@ -217,30 +229,18 @@ function delUser($id)
     $homePath =  $id;
     $homeId = getGSFileId_fromPath($homePath, 1);
     if (is_null($homeId)) {
-        deleteGSDirBNS($homeId, 1);
+        getUsersLogger()->error("Cannot delete directory from database.");
+        throw new NotFoundException("Cannot delete directory from database. Path $homePath not found.");
     }
 
-    if ($homeId) {
-        $r = deleteGSDirBNS($homeId, 1);
-        if ($r == 0) {
-            //$_SESSION['errorData']['Error'][] = "Cannot delete $homeId directory from database.";
-        }
-    } else {
-        /*
-                    $_SESSION['errorData']['Error'][] = "Cannot delete user. It has no data registered, at least homeDir '$id/' is not found in DB";
-        return 0;
-        */
-    }
+    deleteGSDirBNS($homeId, 1);
 
     $rfn =  $GLOBALS['dataDir'] . "/" . $homePath;
     if (is_dir($rfn)) {
         exec("rm -r \"$rfn\" 2>&1", $output);
     }
 
-    //delete user from mongo
     $GLOBALS['usersCol']->deleteOne(array('id' => $id));
-
-    return 1;
 }
 
 
