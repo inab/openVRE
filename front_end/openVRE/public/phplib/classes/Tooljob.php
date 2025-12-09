@@ -872,7 +872,7 @@ class Tooljob
 				return 0;
 			}
 
-			$_SESSION['errorData']['Error'][] = "Launcher '$launcher' not implemented.";
+			#$_SESSION['errorData']['Error'][] = "Launcher '$launcher' not implemented.";
 			switch ($launcher) {
 				case "SGE":
 					$cmd  = $this->setBashCmd_SGE($tool);
@@ -1202,16 +1202,21 @@ EOF;
 		$first = $dataLocations[0];
 		$pathDir = dirname($first['absolute_path']); 
 		$baseDir = dirname($pathDir);
+		
+		$sBase = rtrim(preg_replace('#/shared_data.*$#', '/', $first['remote_path']), '/');
 		//error_log("setBashCmd_Singularity - runFolder: $runFolder, dataLocations: " . json_encode($dataLocations) . ", baseDir: $baseDir");
 		
+	
 		// Singularity image and executable
 		$singularityExec = $tool['infrastructure']['executable']; 		
-		$singularityImage =  dirname(dirname($baseDir)) . "/" ."public/" . $tool['infrastructure']['singularity_image']; //doing it automatically
+		$singularityImage =  $sBase . "/shared_data/public/" . $tool['infrastructure']['singularity_image']; //doing it automatically
 		error_log("setBashCmd_Singularity - singularityExec: $singularityExec, singularityImage: $singularityImage");
+		//Singularity overlay
+		$overlayPath  = $sBase . "/shared_data/public/" . $tool['infrastructure']['singularity_overlay'];
 
 		// Example paths using runFolder
 		$configFile     = "$baseDir/$runFolder/.config.json";
-		$inputMetadata  = "$baseDir/$runFolder/.in_metadata.json";
+		$inputMetadata  = "$baseDir/$runFolder/.input_metadata.json";
 		$outputMetadata = "$baseDir/$runFolder/.results.json";
 		$logFile        = "$baseDir/$runFolder/.tool.log";
 		
@@ -1219,8 +1224,8 @@ EOF;
 		$cmd  = "singularity exec ";
 		$cmd .= "--overlay $overlayPath ";
 		$cmd .= "--env HOST_GID=100 --env HOST_UID=1000 ";
-		$cmd .= "--bind ./public:/shared_data/public_tmp ";
-		$cmd .= "--bind ./userdata:/shared_data/userdata ";
+		$cmd .= "--bind $sBase/shared_data/public:/shared_data/public_tmp ";
+		$cmd .= "--bind $sBase/shared_data/userdata:/shared_data/userdata ";
 		$cmd .= "$singularityImage ";
 		$cmd .= "$singularityExec ";
 		$cmd .= "--config $configFile ";
@@ -1603,7 +1608,7 @@ EOF;
 		}
 		#logger("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
 		//error_log("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
-		log_addSubmission($pid, $this->toolId, $this->cloudName, "SGE", $cpus, $memory, $this->working_dir);
+		log_addSubmission($pid, $this->toolId, $this->cloudName, $jobManager, $cpus, $memory, $this->working_dir);
 
 		$this->pid = $pid;
 		return $pid;

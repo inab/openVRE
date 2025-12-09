@@ -7,7 +7,7 @@ use OpenStack\OpenStack;
 
 redirectOutside();
 
-$debug = 1;
+$debug = 0;
 
 $SGE_updated = getUserJobs($_SESSION['User']['id']);
 
