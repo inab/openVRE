@@ -105,28 +105,6 @@ if (!$mt) {
 								// show data_type, file_type
 								$dt = $GLOBALS['dataTypesCol']->findOne(array('_id' => $mt["data_type"]));
 
-								// show taxon_id and assembly
-								if (is_null($mt["oeb_dataset_id"])) {
-									$datasetId = "N/A";
-								} else {
-									$datasetId = $mt['oeb_dataset_id'];
-								}
-								if (is_null($mt["oeb_community_ids"])) {
-									$community  = "N/A";
-								} else {
-									$communities = getCommunities();
-									if (!is_array($mt['oeb_community_ids'])) {
-										$mt['oeb_community_ids'] = array($mt['oeb_community_ids']);
-									}
-									foreach ($mt['oeb_community_ids'] as $comm) {
-										if (isset($communities[$comm])) {
-											$community = '<a href="https://openebench.bsc.es/html/scientific/' . $comm . '" target="_blank">' . $communities[$comm]["acronym"] . '</a> ';
-										} else {
-											$community = "$comm";
-										}
-									}
-								}
-
 ?>
 	<table class="table table-striped table-bordered">
 		<tbody>

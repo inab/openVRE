@@ -674,9 +674,6 @@
       "oneOf": [
         {
           "$ref": "#/definitions/SGE"
-        },
-        {
-          "$ref": "#/definitions/PMES"
         }
       ]
     },
@@ -690,39 +687,6 @@
         "default_cloud": {
           "type": "boolean",
           "default": false
-        }
-      },
-      "required": [
-        "launcher"
-      ],
-      "additionalProperties": false
-    },
-    "PMES": {
-      "type": "object",
-      "properties": {
-        "launcher": {
-          "type": "string",
-          "pattern": "^PMES$"
-        },
-        "workflowType": {
-          "type": "string",
-          "enum": [
-            "Single",
-            "COMPSs"
-          ],
-          "default": "Single"
-        },
-        "default_cloud": {
-          "type": "boolean",
-          "default": false
-        },
-        "minimumVMs": {
-          "type": "integer",
-          "default": 1
-        },
-        "initialVMs": {
-          "type": "integer",
-          "default": 1
         }
       },
       "required": [

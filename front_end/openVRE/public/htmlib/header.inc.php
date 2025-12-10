@@ -105,22 +105,6 @@
 		case 'references': ?>
 			<link href="assets/global/plugins/markdown/bootstrap-markdown-editor.css" rel="stylesheet" type="text/css" />
 			<?php break;
-		case 'output': ?>
-			<?php if (preg_match('tools/pydockdna',dirname($_SERVER['PHP_SELF'])) )  { ?>
-				<link href="assets/global/plugins/datatables/datatables.min.css" rel="stylesheet" type="text/css" />
-				<link href="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet" type="text/css" />
-			<?php } elseif (preg_match('tools/naflex',dirname($_SERVER['PHP_SELF'])) )  { ?>
-				<link href="tools/naflex/css/styles.css" rel="stylesheet" type="text/css" />
-			<?php } elseif (preg_match('tools/nucldynwf',dirname($_SERVER['PHP_SELF'])) ) { ?>
-				<link href="assets/pages/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
-				<link href="assets/global/plugins/datatables/plugins/fixedColumns/fixedColumns.dataTables.min.css" rel="stylesheet" type="text/css" />
-				<link href="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet" type="text/css" />
-			<?php } elseif (preg_match('tools/nucldynwf_pmes',dirname($_SERVER['PHP_SELF'])) ) { ?>
-				<link href="assets/pages/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
-				<link href="assets/global/plugins/datatables/plugins/fixedColumns/fixedColumns.dataTables.min.css" rel="stylesheet" type="text/css" />
-				<link href="assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet" type="text/css" />
-			<?php } ?>
-			<?php break;
 		case 'input': ?>
 			<link href="assets/global/plugins/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
 			<link href="assets/global/plugins/select2/css/select2-bootstrap.min.css" rel="stylesheet" type="text/css" />

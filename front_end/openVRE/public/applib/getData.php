@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__."/../../config/bootstrap.php";
+require __DIR__ . "/../../config/bootstrap.php";
 
 redirectOutside();
 
@@ -12,7 +12,7 @@ if (! $_REQUEST['uploadType']) {
 
 switch ($_REQUEST['uploadType']) {
 	case 'file':
-		header ("Connection: close");
+		header("Connection: close");
 		getData_fromLocal();
 		break;
 
@@ -29,12 +29,7 @@ switch ($_REQUEST['uploadType']) {
 		$filetype = $_REQUEST['filetype'] ?? "";
 		$descrip = $_REQUEST['description'] ?? "";
 		getData_fromRepository($url, $datatype, $filetype, $descrip);
-        break;
-
-	case 'repositoryTest':
-		getData_fromRepository_ToPublic($_REQUEST); // TODO: should be removed?
-        break;
-			
+		break;
 	case 'sampleData':
 		getData_fromSampleData($_REQUEST);
 		break;

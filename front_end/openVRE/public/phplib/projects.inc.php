@@ -979,8 +979,9 @@ function formatData($data)
 	return $data;
 }
 
+
 //update Mongo lastjobs
-function updatePendingFiles($sessionId, $singleJob = array())
+function updatePendingFiles($sessionId)
 {
 	$SGE_updated = array(); // jobs to be monitored in next round. Stored in SESSION. Updated by checkPendingJobs.php (called by ajax)
 
@@ -988,21 +989,16 @@ function updatePendingFiles($sessionId, $singleJob = array())
 	$lastjobs = getUserJobs($sessionId);
 
 	if (count($lastjobs)) {
-
-		//classify jobs
 		foreach ($lastjobs as $job) {
-
 			if (is_null($job['_id'])) {
 				continue;
 			}
-			$pid	 = $job['pid'];
+
+			$pid = $job['pid'];
 
 			//get qstat info
-			logger("Start processPendingFiles -> getRunningJobInfo $pid. Log= " . $job['log_file']);
-			$jobProcess = getRunningJobInfo($pid, $job['launcher'], $job['cloudName']);
-
-			// TODO: PMES will redirect log info to log_file. Now, info extracted from $jobProcess
-			updateLogFromJobInfo($job['log_file'], $pid, $job['launcher']);
+			getProjectLogger()->info("Start processPendingFiles -> getRunningJobInfo $pid. Log= " . $job['log_file']);
+			$jobProcess = getRunningJobInfo($pid, $job['launcher']);
 
 			//job keeps running: maintain original job data 
 			if (count($jobProcess)) {
@@ -1067,13 +1063,7 @@ function processPendingFiles($sessionId, $files = array())
 		logger("Start processPendingFiles -> getRunningJobInfo $pid. Log= " . $job['log_file']);
 		$jobProcess = getRunningJobInfo($pid, $job['launcher'], $job['cloudName']);
 
-
-		// TODO: PMES will redirect log info to log_file. Now, info extracted from $jobProcess
-		updateLogFromJobInfo($job['log_file'], $pid, $job['launcher']);
-
-		//
 		//set as running job
-		//
 		$title   = (isset($job['title']) ? $job['title'] : "Job " . $job['execution']);
 		$descrip = getJobDescription($job['description'], $jobProcess, $lastjobs);
 
@@ -1918,40 +1908,28 @@ function return_bytes($val)
 }
 
 
-
 // resolve virtual path (relative or absolutes) to local absolute path
 function resolvePath_toLocalAbsolutePath($path, $job)
 {
-
 	$rfn = "";
 	// file_path is an absolute path
 	if (preg_match('/^\//', $path)) {
 		if (preg_match('/^' . preg_quote($job['root_dir_virtual'], '/') . '/', $path)) {
-			//PMES mounts dataDir/user_id as root_dir_virtual
-			if ($job['launcher'] == "PMES") {
-				$rfn = str_replace($job['root_dir_virtual'], $GLOBALS['dataDir'] . $_SESSION['User']['id'], $path);
-
-				//SGE finds mounted dataDir as root_dir_virtual
-			} elseif ($job['launcher'] == "SGE" || $job['launcher'] == "ega_demo" || $job['launcher'] == "docker_SGE") {
+			if ($job['launcher'] == "SGE" || $job['launcher'] == "ega_demo" || $job['launcher'] == "docker_SGE") {
 				$rfn = str_replace($job['root_dir_mug'], $GLOBALS['dataDir'], $path);
 			}
 			// direct from file_path
 		} else {
 			$rfn = $path;
 		}
-
 		// file_path is relative
 	} else {
 		// file_path is only a file name (file)
 		if (!preg_match('/\//', $path)) {
-			//$rfn = $GLOBALS['dataDir'].$_SESSION['User']['id']."/".$_SESSION['User']['activeProject']."/".$job['execution']."/".$path;
 			$rfn = $job["output_dir"] . "/" . $path;
-
 			// file_path is relative to user data directory (run/file)
 		} elseif (preg_match('/^' . $job['execution'] . '/', $path)) {
-			//$rfn = $GLOBALS['dataDir'].$_SESSION['User']['id']."/".$_SESSION['User']['activeProject']."/".$path;
 			$rfn = dirname($job["output_dir"]) . "/" . $path;
-
 			// file_path is relative to root directory (userid/prj/run/file)
 		} elseif (preg_match('/^' . $_SESSION['User']['id'] . '/', $path)) {
 			$rfn = $GLOBALS['dataDir'] . "/" . $path;
@@ -1970,6 +1948,7 @@ function resolvePath_toLocalAbsolutePath($path, $job)
 	//return absolute path
 	return $rfn;
 }
+
 
 function deleteFiles($fileIds, $force = false)
 {

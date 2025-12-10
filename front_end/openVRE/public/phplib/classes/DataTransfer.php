@@ -9,8 +9,8 @@ class DataTransfer
     public $execution;         // User defined. Correspond to the execution folder name
     public $project;           // User defined. Correspond to the project
     public $toolId;
-    public $root_dir_virtual;  // User dataDir. Mounted to VMs in PMES. Already there im SGE. Path as seen by VMs
-    public $pub_dir_virtual;   // Public dir mounted to VMs. Path as seen by VMs  
+    public $root_dir_virtual;  // User dataDir. Path as seen by VMs
+    public $pub_dir_virtual;   // Public dir mounted to VMs. Path as seen by VMs
     public $pub_dir_fs;        // Public dir on MN.
     public $root_dir_fs;       // User DataDir on MN.
     public $cloudName;         // Cloud name where tool should be executed. Available clouds set in GLOBALS['clouds']

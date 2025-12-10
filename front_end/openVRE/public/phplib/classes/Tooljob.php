@@ -13,9 +13,9 @@ class Tooljob
 	public $project;           // User defined. Correspond to the project
 	public $toolId;
 	public $pub_dir;           // Public dir mounted to VMs. Path as seen by VRE
-	public $root_dir;          // User dataDir. Mounted to VMs in PMES. Already there in SGE. Path as seen by VRE 
-	public $root_dir_virtual;  // User dataDir. Mounted to VMs in PMES. Already there im SGE. Path as seen by VMs
-	public $pub_dir_virtual;   // Public dir mounted to VMs. Path as seen by VMs  
+	public $root_dir;          // User dataDir. Path as seen by VRE
+	public $root_dir_virtual;  // User dataDir. Path as seen by VMs
+	public $pub_dir_virtual;   // Public dir mounted to VMs. Path as seen by VMs
 	public $cloudName;         // Cloud name where tool should be executed. Available clouds set in GLOBALS['clouds']
 	public $root_dir_host;
 	public $pub_dir_host;
@@ -112,10 +112,6 @@ class Tooljob
 				$this->root_dir_host    = $GLOBALS['clouds'][$this->cloudName]['dataDir_host'];
 				$this->pub_dir_host     = $GLOBALS['clouds'][$this->cloudName]['pubDir_host'];
 				$this->scripts_dir_host = $GLOBALS['clouds'][$this->cloudName]['scriptsDir_host'];
-				break;
-			case "PMES":
-				$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
-				$this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
 				break;
 			case "DTRCLONE":
 				$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
@@ -842,14 +838,7 @@ class Tooljob
 		if ($tool['external'] === false) {
 			if ($this->launcher == "SGE") {
 				$cmd = $this->setBashCmd_withoutApp($tool, $metadata);
-				if (!$cmd) {
-					return 0;
-				}
-
-				$submissionFilename = $this->createSubmitFile_SGE($cmd);
-				if (!is_file($submissionFilename)) {
-					return 0;
-				}
+				$this->createSubmitFile_SGE($cmd);
 
 				return 1;
 			} else {
@@ -879,10 +868,7 @@ class Tooljob
 						return 0;
 					}
 
-					$submissionFilename = $this->createSubmitFile_SGE($cmd);
-					if (!is_file($submissionFilename)) {
-						return 0;
-					}
+					$this->createSubmitFile_SGE($cmd);
 
 					break;
 
@@ -892,23 +878,7 @@ class Tooljob
 						return 0;
 					}
 
-					$submissionFilename = $this->createSubmitFile_SGE($cmd);
-					if (!is_file($submissionFilename)) {
-						return 0;
-					}
-
-					break;
-
-				case "PMES":
-					$json_data = $this->setPMESrequest($tool);
-					if (!$json_data) {
-						return 0;
-					}
-
-					$submissionFilename = $this->createSubmitFile_PMES($json_data);
-					if (!is_file($submissionFilename)) {
-						return 0;
-					}
+					$this->createSubmitFile_SGE($cmd);
 
 					break;
 
@@ -1220,148 +1190,11 @@ class Tooljob
 	}
 
 
-	protected function setPMESrequest($tool)
-	{
-		$data = [];
-		if (is_null($tool['infrastructure']['executable'])) {
-			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' property";
-			return 0;
-		}
-
-		//Setting defaults from tool definition 
-		if (is_null($tool['infrastructure']['wallTime'])) {
-			$tool['infrastructure']['wallTime'] = "1440"; // 24h
-		}
-
-		if (is_null($tool['infrastructure']['interpreter'])) {
-			$tool['infrastructure']['interpreter'] = "";  // only required if "Single". Examples:  "bash", "python3" 
-		}
-
-		$cloud = $tool['infrastructure']['clouds'][$this->cloudName];
-		$cloud['minimumVMs'] ??= "1"; // if workflow_type = "Single" -> 1
-		$cloud['maximumVMs'] ??= "1"; // if workflow_type = "Single" -> 1
-		$cloud['limitVMs'] ??= "1"; // TODO OBSOLETE (=== maximumVMs)?
-		$cloud['initialVMs'] ??= "1"; // if workflow_type = "Single" -> 1
-		$cloud['disk'] ??= "1.0"; // TODO OBSOLETE?
-		if (is_null($cloud['imageType'])) {
-			//Assign imageType (size) from CPUS and RAM
-			$flavor = $this->setImageType($tool['infrastructure']['cpus'], $tool['infrastructure']['memory']);
-			$cloud['imageType'] = $flavor['id'];
-			$tool['infrastructure']['memory'] = $flavor['memory'];
-			$tool['infrastructure']['cpus'] = $flavor['cpus'];
-			$this->imageType = $flavor;
-		}
-
-		//Setting PMES execution user (name,uid,gid, token)
-		exec("stat  -c '%u:%g' " . $this->working_dir, $stat_out);
-		[$user_uid, $user_gid] = explode(":", $stat_out[0]);
-		$user_name = "vre" . substr(md5(rand()), 0, 5);
-		$token_id = "";
-		if ($GLOBALS['clouds'][$this->cloudName]['auth']['required']) {
-			switch ($this->cloudName) {
-				// get openstack token. TODO: remove openstack and add ega (?)
-				case 'mug-ebi':
-					$token = 0;
-					// get token from session
-					if (isset($_SESSION['User']['Token_mug_ebi']['id'])) {
-						$token = $_SESSION['User']['Token_mug_ebi'];
-						if (openstack_isTokenExpired($token)) {
-							$token = 0;
-						}
-					}
-					// get and save new token
-					if (!$token) {
-						$token  = openstack_getAccessToken();
-						if (is_null($token['id'])) {
-							$_SESSION['errorData']['Error'] = "Cannot submit job. Failed to get access token for $this->cloudName username.";
-							return $data;
-						}
-						$_SESSION['User']['Token_mug_ebi'] = $token;
-						modifyUser($_SESSION['User']['_id'], 'Token_mug_ebi', $token);
-					}
-					$token_id = $token['id'];
-					break;
-
-				// other clouds are opennebula. Auth via certs instead of tokens
-				default:
-					$_SESSION['errorData']['Error'] = "Cannot submit job. Requested cloud ($this->cloudName) requires authorization but no credentials found for VRE.";
-					return $data;
-			}
-		}
-
-		//Setting executable as PMES requires
-		$app_target = dirname($tool['infrastructure']['executable']);
-		$app_source = basename($tool['infrastructure']['executable']);
-
-		//Building PMES json data
-		$data = [
-			[
-				"jobName"          => $this->execution,
-				"compssWorkingDir" => $this->root_dir_virtual . "/" . $this->project . "/" . $this->execution,
-				"wallTime"         => $tool['infrastructure']['wallTime'],
-				"memory"           => $tool['infrastructure']['memory'],
-				"cores"            => $tool['infrastructure']['cpus'],
-				"minimumVMs"       => $cloud['minimumVMs'],
-				"maximumVMs"       => $cloud['maximumVMs'],
-				"limitVMs"         => $cloud['limitVMs'],
-				"initialVMs"       => $cloud['initialVMs'],
-				"disk"             => $cloud['disk'],
-				"inputPaths"       => [],
-				"outputPaths"      => [],
-				"infrastructure"   =>  $this->cloudName,
-				"mountPoints"      => [
-					[
-						"target"      => $this->root_dir_virtual,
-						"device"       => $GLOBALS['clouds'][$this->cloudName]['dataDir_fs'] . "/" . $_SESSION['User']['id'],
-						"permissions"  => "rw"
-					],
-					[
-						"target"     => $this->pub_dir_virtual,
-						"device"      => $GLOBALS['clouds'][$this->cloudName]['pubDir_fs'],
-						"permissions" => "r"
-					]
-				],
-				"numNodes"   => "1",                                           //TODO OBSOLETE?
-				"user"       => [
-					"username"    => $user_name,                     // PMES creates /home/username/
-					"credentials" => [
-						"pem"         => "/home/pmes/pmes.pem", // in PMES server path
-						"key"         => "/home/pmes/pmes.key", // in PMES server path
-						"uid"         => $user_uid,                   // PMES writes outputs using this uid
-						"gid"         => $user_gid,                   // PMES writes outputs using this gid
-						"token"       => $token_id
-					]
-				],
-				"img"        => [
-					"imageName" => $cloud['imageName'],
-					"imageType" => $cloud['imageType']
-				],
-				"app"        => [
-					"name"        => $tool['_id'],
-					"target"      => $app_target,
-					"source"      => $app_source,
-					"interpreter" => $tool['infrastructure']['interpreter'],
-					"args"  => [
-						"config"      => $this->config_file_virtual,
-						"in_metadata" => $this->metadata_file_virtual,
-						"out_metadata" => $this->stageout_file_virtual
-					],
-					"type" => $cloud['workflowType']    // COMPSs || Single
-				],
-				"compss_flags" => ["flag" => " -g --summary -d "],
-				"compssLogDir" => $this->root_dir_virtual . "/" . $this->project . "/" . $this->execution
-			]
-		];
-
-		return $data;
-	}
-
-
 	protected function setBashCmd_withoutApp($tool, $metadata)
 	{
 		if (is_null($tool['infrastructure']['executable'])) {
-			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' property";
-			return 0;
+			$this->logger->error("Tool '$this->toolId' not properly registered. Missing 'executable' property");
+			throw new NotFoundException("Tool '$this->toolId' not properly registered. Missing 'executable' property");
 		}
 
 		$cmd = $tool['infrastructure']['executable'];
@@ -1452,14 +1285,15 @@ class Tooljob
 		$bashFilename = $this->submission_file;
 		$logFilename = $this->log_file;
 
-		try {
-			$fout = fopen($bashFilename, "w");
-			if (!$fout) {
-				throw new Exception('Failed to create tool configuration file: ' . $bashFilename);
-			}
-		} catch (Exception $e) {
-			$_SESSION['errorData']['Error'][] = "Failed to create queue submission file. " . $e->getMessage();
-			return 0;
+		if (!is_file($bashFilename)) {
+			$this->logger->error("Failed to create queue submission file. " . "File '$bashFilename' does not exist");
+			throw new UnexpectedValueException("Failed to create queue submission file. " . "File '$bashFilename' does not exist");
+		}
+
+		$fout = fopen($bashFilename, "w");
+		if ($fout === false) {
+			$this->logger->error('Failed to create tool configuration file: ' . $bashFilename);
+			throw new UnexpectedValueException('Failed to create queue submission file: ' . $bashFilename);
 		}
 
 		fwrite($fout, "#!/bin/bash\n");
@@ -1476,25 +1310,6 @@ class Tooljob
 		return $bashFilename;
 	}
 
-
-	protected function createSubmitFile_PMES($data)
-	{
-		$jsonFile   = $this->submission_file;
-		try {
-			$fout = fopen($jsonFile, "w");
-			if (!$fout) {
-				throw new Exception('Failed to create tool configuration file: ' . $jsonFile);
-			}
-		} catch (Exception $e) {
-			$_SESSION['errorData']['Error'][] = "Failed to create queue submission file. " . $e->getMessage();
-			return 0;
-		}
-
-		fwrite($fout, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-		fclose($fout);
-
-		return $jsonFile;
-	}
 
 	protected function createSubmitFile_EGA($cmd)
 	{
@@ -1541,8 +1356,6 @@ class Tooljob
 			case "ega_demo":
 			case "docker_SGE":
 				return $this->enqueue($tool);
-			case "PMES":
-				return $this->callPMES();
 			default:
 				$this->logger->error("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"" . $tool['infrastructure']['clouds'][$this->cloudName]['launcher'] . "\". Case not implemented.");
 				return 0;
@@ -1574,26 +1387,6 @@ class Tooljob
 		log_addSubmission($pid, $this->toolId, $this->cloudName, "SGE", $cpus, $memory, $this->working_dir);
 
 		$this->pid = $pid;
-		return $pid;
-	}
-
-
-	protected function callPMES()
-	{
-		$data_string = file_get_contents($this->submission_file);
-		$data = json_decode($data_string, true);
-		[$pid, $errMesg] = execJobPMES($this->cloudName, $data);
-		if (!$pid) {
-			log_addError($pid, $errMesg, null, $this->toolId, $this->cloudName, "PMES", $data['cores'], $data['memory']);
-			$_SESSION['errorData']['Error'][] = "Internal error. Cannot enqueue job.";
-			return 0;
-		}
-
-		logger("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:PMES, TOOL:" . $this->toolId . ", PID:$pid");
-		log_addSubmission($pid, $this->toolId, $this->cloudName, "PMES", $data[0]['cores'], $data[0]['memory'], $this->working_dir);
-		$this->pid = $pid;
-		$this->start_time = strtotime("now");
-
 		return $pid;
 	}
 

@@ -140,11 +140,11 @@ switch (pathinfo($_SERVER['PHP_SELF'])['filename']) {
 		$currentSubSubSection = $a[sizeof($a) - 2];
 		break;
 	case 'toolhelp':
-                parse_str($_SERVER['QUERY_STRING'], $queries);
-                $currentSection = 'he';
-                $currentSubSection = 'h6';
-                $currentSubSubSection = $queries['tool'];
-                $currentSubSubSubSection = substr($queries['sec'], 0, 3);
+		parse_str($_SERVER['QUERY_STRING'], $queries);
+		$currentSection = 'he';
+		$currentSubSection = 'h6';
+		$currentSubSubSection = $queries['tool'];
+		$currentSubSubSubSection = substr($queries['sec'], 0, 3);
 		break;
 	case 'method':
 		$currentSection = 'he';
@@ -249,14 +249,6 @@ sort($visualizers);
 								<span class="title">From Catalogue</span>
 								<span class="arrow"></span>
 							</a>
-
-							<ul class="sub-menu">
-								<li class="nav-item <?php if ($currentSubSubSection == 'bs') { ?>active open<?php } ?>">
-									<a href="getdata/datasets.php" class="nav-link">
-										<span class="title">My Datasets </span>
-									</a>
-								</li>
-							</ul> 
 						</li>
 
 						<li class="nav-item <?php if ($currentSubSection == 'sd') { ?>active open<?php } ?>">
@@ -286,7 +278,9 @@ sort($visualizers);
 								<span class="title">General information</span>
 							</a>
 						</li>
-						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h2') { ?>active open<?php //} ?>">
+						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h2') { 
+													?>active open<?php //} 
+																											?>">
 							<a href="help/starting.php" class="nav-link ">
 								<span class="title">Getting Started</span>
 							</a>
@@ -296,7 +290,9 @@ sort($visualizers);
 								<span class="title">Get Data</span>
 							</a>
 						</li>
-						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h4') { ?>active open<?php //} ?>">
+						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h4') { 
+													?>active open<?php //} 
+																											?>">
 							<a href="help/ws.php" class="nav-link ">
 								<span class="title">Workspace</span>
 							</a>
@@ -314,39 +310,45 @@ sort($visualizers);
 
 							<ul class="sub-menu">
 								<?php foreach ($tools as $t) {
-									$s = $GLOBALS['helpsCol']->find(array('tool' => $t["_id"]),array('_id' => 1));
+									$s = $GLOBALS['helpsCol']->find(array('tool' => $t["_id"]), array('_id' => 1));
 									$sections = iterator_to_array($s);
-									$sections2= array_column($sections, 'help');
+									$sections2 = array_column($sections, 'help');
 									$arrSect = array();
 									foreach ($sections as $sec) {
 										$arrSect[] = $sec['help'];
 									} ?>
 									<li class="nav-item <?php if ($currentSubSubSection == $t["_id"]) { ?>active open<?php } ?>">
-                                                                                <a href="help/toolhelp.php?tool=<?php echo $t["_id"]; ?>&sec=help" class="nav-link">
+										<a href="help/toolhelp.php?tool=<?php echo $t["_id"]; ?>&sec=help" class="nav-link">
 											<span class="title"> <?php echo $t["name"]; ?> </span>
 											<span class="arrow <?php if ($currentSubSubSection == $t["_id"]) { ?>open<?php } ?>"></span>
 										</a>
 
 										<ul class="sub-menu">
-										    <?php foreach ($sections as $sec){
-										    	if ($sec['help'] == "help"){continue;}
+											<?php foreach ($sections as $sec) {
+												if ($sec['help'] == "help") {
+													continue;
+												}
 											?>
-											<li class="nav-item <?php if ($currentSubSubSubSection == substr($sec['help'],0,3)){ ?>active open<?php } ?>">
-                                                                                            <a href="help/toolhelp.php?tool=<?php echo $t["_id"]; ?>&sec=<?php echo $sec['help'];?>" class="nav-link">
-                                                                                            <span class="title"><?php echo $sec['help'];?></span>
-                                                                                            </a>
-                                                                                	</li>
-										    <?php } ?>
+												<li class="nav-item <?php if ($currentSubSubSubSection == substr($sec['help'], 0, 3)) { ?>active open<?php } ?>">
+													<a href="help/toolhelp.php?tool=<?php echo $t["_id"]; ?>&sec=<?php echo $sec['help']; ?>" class="nav-link">
+														<span class="title"><?php echo $sec['help']; ?></span>
+													</a>
+												</li>
+											<?php } ?>
 										</ul>
 									</li>
 								<?php } ?>
 							</ul>
 
 						</li>
-						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h11') { ?>active open<?php //} ?>">
+						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h11') { 
+													?>active open<?php //} 
+																											?>">
 							<a href="help/visualizers.php" class="nav-link">
 								<span class="title">Visualizers</span>
-								<span class="arrow <?php //if ($currentSubSection == 'h11') { ?>open<?php //} ?>"></span>
+								<span class="arrow <?php //if ($currentSubSection == 'h11') { 
+													?>open<?php //} 
+																									?>"></span>
 							</a>
 							<ul class="sub-menu">
 								<?php /*foreach ($visualizers as $t) {
@@ -355,33 +357,48 @@ sort($visualizers);
 									$arrSect = array();
 									foreach ($sections as $sec) {
 										$arrSect[] = $sec['help'];
-									} */?>
-									<li class="nav-item <?php //if ($currentSubSubSection == $t["_id"]) { ?>active open<?php //} ?>">
-										<a href="visualizers/<?php //echo $t["_id"]; ?>/help/help.php" class="nav-link">
-											<span class="title"> <?php //echo $t["name"]; ?> </span>
+									} */ ?>
+									<li class="nav-item <?php //if ($currentSubSubSection == $t["_id"]) { 
+														?>active open<?php //} 
+																														?>">
+										<a href="visualizers/<?php //echo $t["_id"]; 
+																?>/help/help.php" class="nav-link">
+											<span class="title"> <?php //echo $t["name"]; 
+																	?> </span>
 										</a>
 									</li>
-								<?php //} ?>
+								<?php //} 
+								?>
 							</ul>
 						</li> -->
-						<!-- <?php //if (allowedRoles($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
-							<li class="nav-item  <?php //if ($currentSubSection == 'h7') { ?>active open<?php //} ?>">
+						<!-- <?php //if (allowedRoles($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { 
+								?>
+							<li class="nav-item  <?php //if ($currentSubSection == 'h7') { 
+													?>active open<?php //} 
+																										?>">
 								<a href="help/hdesk.php" class="nav-link ">
 									<span class="title">Helpdesk</span>
 								</a>
 							</li>
-						<?php //} ?> -->
-						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h8') { ?>active open<?php //} ?>">
+						<?php //} 
+						?> -->
+						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h8') { 
+													?>active open<?php //} 
+																											?>">
 							<a href="help/related.php" class="nav-link ">
 								<span class="title">Related Links</span>
 							</a>
 						</li>
-						<li class="nav-item  <?php //if ($currentSubSection == 'h9') { ?>active open<?php //} ?>">
+						<li class="nav-item  <?php //if ($currentSubSection == 'h9') { 
+												?>active open<?php //} 
+																									?>">
 							<a href="help/refs.php" class="nav-link ">
 								<span class="title">References</span>
 							</a>
 						</li>
-						<li class="nav-item  <?php //if ($currentSubSection == 'h10') { ?>active open<?php //} ?>">
+						<li class="nav-item  <?php //if ($currentSubSection == 'h10') { 
+												?>active open<?php //} 
+																										?>">
 							<a href="help/ackn.php" class="nav-link ">
 								<span class="title">Acknowledgments</span>
 							</a>

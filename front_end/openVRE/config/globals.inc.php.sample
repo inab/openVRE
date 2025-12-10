@@ -157,44 +157,7 @@ $GLOBALS['clouds'] = Array(
                         "pubDir_virtual"    => $GLOBALS['pubDir'],
                         "dataDir_host"    => $GLOBALS["host_path"].$GLOBALS['dataDir'],
                         "pubDir_host"    => $GLOBALS["host_path"].$GLOBALS['pubDir'],
-                        "PMESserver_domain" => "pmes.mydomain.com",
-                        "PMESserver_port"   => "80",
-                        "PMESserver_address"=> "/",
                         "imageTypes"        => array(),                      // list of cloud OCCI templates indexed by RAM (GB)
                         "auth"              => array("required" => False)
-                ),
-		'my_remote_2' => array(
-			"http_host"	    => "www.mydomain2.com",	      // used in getCurrentCloud
-			"dataDir_fs"   	    => "/NFS/export/path2/userdata/", // export path for NFS server
-			"pubDir_fs"	    => "/NFS/export/path2/public/",   // export path for NFS server
-			"dataDir_virtual"   => "/shared/path/for/userdata",
-			"pubDir_virtual"    => "/shared/path/for/public",
-			"PMESserver_domain" => "pmes.mydomain2.com",
-			"PMESserver_port"   => "8080",
-			"PMESserver_address"=> "/",
-			"imageTypes"	=>  array(                           // list of cloud OCCI templates indexed by RAM (GB)
-				"2"  => array(
-					"1"  => array("id" => "small", "disk" => null, "name" => "small"),
-					"8"  => array("id" => "large-small", "disk" => null, "name" => "large-small"),
-					"16" => array("id" => "extra_large-small", "disk" => null, "name" => "large-small")
-				    ),
-				"4"  => array(
-					"2"  => array("id" => "medium", "disk" => null, "name" => "medium"),
-					"4"  => array("id" => "medium-medium", "disk" => null, "name" => "medium-medium"),
-					"8"  => array("id" => "large-medium", "disk" => null, "name" => "large-medium"),
-					"16" => array("id" => "extra_large-medium", "disk" => null, "name" => "extra_large-medium")
-				    )
-			),
-			"auth"  => array(
-				"required"       => True,
-				"OS_NO_CACHE"    => "True",
-				"OS_CLOUDNAME"   => "overcloud",
-				"OS_AUTH_URL"    => "https://extcloud05.ebi.ac.uk:13000/v2.0",
-				"NOVA_VERSION"   => "1.2",
-				"COMPUTE_API_VERSION" => "1.2",
-				"OS_USERNAME"    => "username@mail.es",
-				"OS_PASSWORD"    => "s3cr3t",
-				"OS_TENANT_NAME" => "tenancy_name"
-			)
-	    )
+                )
 );

@@ -1,7 +1,7 @@
 <?php
 
 #
-# Job management functions : SGE & PMES
+# Job management functions : SGE
 #
 
 
@@ -68,107 +68,27 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
 }
 
 
-
-function execJobPMES($cloudName, $data)
+function getRunningJobInfo($pid, $launcherType = null)
 {
-    logger("Start job submission via PMES");
-
-    // Start PMES process
-    $process = new ProcessPMES($cloudName);
-
-    if ($cloudName == "mug-ebi") {
-        die();
-    }
-
-    if (!$process->listening) {
-        $errMesg = "Job submission failed.<br/>PMES call to '" . $process->getServer() . "' returned: " . $process->getErr();
-        $_SESSION['errorData']['Error'][] = $errMesg;
-        $errMesg .= "<br/>Server not listening. TEST_RESPONSE = '" . json_encode($process->lastCall) . "'";
-        logger($errMesg);
-        return array(0, $errMesg);
-    }
-
-    $process->runPMES($data);
-    $jobid =  $process->getJobId();
-
-    if ($jobid == "0") {
-        $errMesg = "Job submission failed.<br/>" . json_encode($process->lastCall) . "<br/>" . $process->getErr();
-        $_SESSION['errorData']['Error'][] = $errMesg;
-        return array(0, $errMesg);
-    }
-
-    logger("The process is currently running JOB_ID = $jobid");
-    return array($jobid, "");
-}
-
-
-function getRunningJobInfo($pid, $launcherType = null, $cloudName = "local")
-{
-
     $job = array();
-    if (! $pid)
+    if (!$pid) {
         return $job;
+    }
 
-    // guess launcher
-    if (!$launcherType) {
-        if (is_numeric($pid))
-            $launcherType = "SGE";
-        else
-            $launcherType = "PMES";
+    if (!$launcherType && is_numeric($pid)) {
+        $launcherType = "SGE";
     }
 
     // create new jobProcess
     if ($launcherType == "SGE" || $launcherType == "docker_SGE") {
         $process = new ProcessSGE();
         $job = $process->getRunningJobInfo($pid);
-    } elseif ($launcherType == "PMES") {
-        $process = new ProcessPMES($cloudName);
-        $job = $process->getRunningJobInfo($pid);
     } else {
-        $_SESSION['errorData']['Error'][] = "Cannot monitor job '$pid' of type '$launcher'. Launcher not implemented.";
+        $_SESSION['errorData']['Error'][] = "Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.";
         return $job;
     }
-    // return job info
+
     return $job;
-}
-
-function updateLogFromJobInfo($logFile, $pid, $launcherType = null, $cloudName = "local")
-{
-
-    // guess launcher
-    if (!$launcherType) {
-        if (is_numeric($pid))
-            $launcherType = "SGE";
-        else
-            $launcherType = "PMES";
-    }
-    // if PMES, update log content
-    if ($launcherType == "PMES") {
-        $process = new ProcessPMES($cloudName);
-        $job = $process->getActivityInfo($pid);
-
-        if ($job['jobOutputMessage'] || $job['jobErrorMessage']) {
-            if (is_file($logFile) || is_dir(dirname($logFile))) {
-                $F = fopen($logFile, "w");
-            }
-            if (!$F) {
-                //$_SESSION['errorData']['Warning'][]="Cannot update LOG file '".basename(dirname($logFile))."' ($cloudName). Recently deleted from workspace or not accessible.";
-                return true;
-            }
-            if ($job['jobOutputMessage']) {
-                fwrite($F, "##### STDOUT ###############################\n");
-                fwrite($F, $job['jobOutputMessage']);
-            }
-            if ($job['jobErrorMessage']) {
-                fwrite($F, "##### STDERR ###############################\n");
-                fwrite($F, $job['jobErrorMessage']);
-            }
-            fclose($F);
-        } else {
-            //     $_SESSION['errorData']['Warning'][]="Cannot update LOG file '".basename(dirname($logFile))."' ($cloudName). Recently deleted from workspace or not accessible";
-        }
-    }
-    return true;
 }
 
 function getPidFromOutfile($outfile)
@@ -256,19 +176,15 @@ function delJobFromOutfiles($outfiles)
     return 1;
 }
 
-function delJob($pid, $launcherType = null, $cloudName = "local", $login = null)
+function delJob($pid, $launcherType = null, $login = null)
 {
     if (!$pid) {
         return false;
     }
 
     // guess launcher
-    if (!$launcherType) {
-        if (is_numeric($pid)) {
-            $launcherType = "docker_SGE";
-        } else {
-            $launcherType = "PMES";
-        }
+    if (!$launcherType && is_numeric($pid)) {
+        $launcherType = "docker_SGE";
     }
 
     // cancel job
@@ -277,53 +193,20 @@ function delJob($pid, $launcherType = null, $cloudName = "local", $login = null)
     if ($launcherType == "SGE" || $launcherType == "docker_SGE") {
         $processSGE = new ProcessSGE();
         list($r_sge, $msg_sge) = $processSGE->stop($pid);
-        if ($r_sge) {
-            // Assuming that you have functions to handle file redirection, update the following lines accordingly
-            $jobInfo = $processSGE->getRunningJobInfo($pid);
-            updateLogFromJobInfo($jobInfo['log'], $pid, $launcherType, $cloudName);
-            // Add any other file redirection logic here
-        }
-    } elseif ($launcherType == "PMES") {
-        $process = new ProcessPMES();
-        $r = $process->stop($pid);
-        if (!$r) {
-            $_SESSION['errorData']['Error'][] = "Cannot delete $launcherType job [id = $pid].<br/>";
-        }
     } else {
         $_SESSION['errorData']['Error'][] = "Cannot delete job of type '$launcherType' [id = $pid]. Launcher not implemented.";
         return false;
     }
 
-    $processSGE = new ProcessSGE();
-    $jobInfo = $processSGE->getRunningJobInfo($pid);
     $jobUser = $_SESSION['User']['lastjobs'][$pid];
 
     if ($jobUser && $jobUser['job_type'] == "interactive") {
-        $jobUser = $_SESSION['User']['lastjobs'][$pid];
-        // Stop the Docker container
-        $containerName = $jobUser['interactive_tool']['container_name'];
-        // Obtain rdata and history before stopping the Docker container
-        $dockerExecCommand = "docker exec $containerName Rscript -e 'save.image(\"./RData\"); savehistory(file = \".Rhistory\")'";
-        $dockerExecProcess = new ProcessSGE($dockerExecCommand, "/tmp/", "local.q", "$pid-save-history", 1, 0, "$pid-save-history.out", "$pid-save-history.err");
-
         return false;
-        //die(0);
-        //Stop the Docker container
-        $dockerStopCommand = "docker stop $containerName";
-        $dockerStopProcess = new ProcessSGE($dockerStopCommand);
-        list($r_docker, $msg_docker) = $dockerStopProcess->run();
-
-        // Assuming that you have functions to handle Docker container logs, update the following lines accordingly
-        $dockerLogsCommand = "docker logs $containerName >> {$GLOBALS['dataDir']}/{$jobInfo['log']}";
-        $dockerLogsProcess = new ProcessSGE($dockerLogsCommand);
-        $dockerLogsProcess->run();
-        // Add any other Docker container handling logic here
-
     }
+
     if (!$r_sge || !$r_docker) {
-        $_SESSION['errorData']['Error'][] = "Cannot delete $launcherType job [id = $pid].<br/> SGE Error: $msg_sge<br/>Docker Error: $msg_docker";
+        $_SESSION['errorData']['Error'][] = "Cannot delete $launcherType job [id = $pid].<br/> SGE Error: $msg_sge<br/>Docker Error";
     }
-
 
     $_SESSION['errorData']['Info'][] = "Job successfully cancelled";
     logger("JOB $pid FINISHED. HAS BEEN CANCELLED");
@@ -345,19 +228,3 @@ function delJob($pid, $launcherType = null, $cloudName = "local", $login = null)
     }
     return true;
 }
-/*
-function jobStateDicc($state){
-        $dicc = Array (
-                        'r'  => "RUNNING",
-                        't'  => "TRANSFERING",
-                        'qw' => "PENDING",
-                        'hqw'=> "HOLD",
-                        'dr' => "DELETING",
-                        'Eqw'=> "ERROR"
-        );
-        if ($dicc[$state])
-                return $dicc[$state];
-        else
-                return $state;
-}
-*/
