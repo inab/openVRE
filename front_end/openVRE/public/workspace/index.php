@@ -2,10 +2,6 @@
 
 require __DIR__ . "/../../config/bootstrap.php";
 
-//var_dump($_SESSION["bho"]);
-
-//var_dump($_SESSION['User']['vaultClient']);
-
 
 redirectOutside();
 
@@ -16,7 +12,7 @@ require "../htmlib/header.inc.php";
 // Merge pending files and retrieved data compute data disk space
 
 $usedDisk = getUsedDiskSpace();
-$diskLimit = $_SESSION['User']['diskQuota']; // getDiskLimit();
+$diskLimit = $_SESSION['User']['diskQuota'];
 $usedDiskPerc = sprintf('%f', ($usedDisk / $diskLimit) * 100);
 $usedDiskPerc = number_format($usedDiskPerc, 1, '.', '');
 
@@ -38,8 +34,6 @@ $allFiles = getFilesToDisplay(array('_id' => $_SESSION['User']['dataDir']), null
 
 $files = (isset($dtlist['list']) ? filterFiles_by_dataType($allFiles, $dtlist["list"]) : $allFiles);
 $files = addTreeTableNodesToFiles($files);
-
-$proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 
 ?>
 

@@ -1,7 +1,4 @@
 <?php
-/*
- * 
- */
 
 require __DIR__ . "/../../config/bootstrap.php";
 
@@ -40,9 +37,7 @@ $rfn      = $GLOBALS['dataDir'] . "/$filePath";
 // user project directory
 $userPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
 
-//
 // Process operation
-
 if (isset($_REQUEST['op'])) {
 	switch ($_REQUEST['op']) {
 
@@ -110,7 +105,6 @@ if (isset($_REQUEST['op'])) {
 			$tmpZip = $GLOBALS['dataDir'] . "/" . $userPath . "/" . $GLOBALS['tmpUser_dir'] . "/" . basename($newName);
 
 			$cmd = "/bin/tar -czf $tmpZip -C $rfn . 2>&1";
-			#$cmd = "/bin/tar -czf $tmpZip -C $rfn .  2>&1"; # TODO ORIGEN of INFINITE TARS?
 			logger("workspace/workspace.php:103 -- TAR CMD: " . $cmd);
 
 			exec($cmd, $output);
@@ -165,20 +159,21 @@ if (isset($_REQUEST['op'])) {
 
 		case 'openPlainFileFromPath':
 			if (!$_REQUEST['fnPath']) {
-				$_SESSION['errorData']['Error'][] = "Cannot open file. Variable 'fnPath' not received. Please, try it latter or mail <a href=\"mailto:helpdesk@multiscalegenomics.eu\">helpdesk@multiscalegenomics.eu</a>";
-				break;
+				getWorkspaceLogger()->error("Cannot open file. Variable 'fnPath' not received.");
+				throw new UnexpectedValueException("Cannot open file. Variable 'fnPath' not received.");
 			}
-			if (preg_match('/^\//', $_REQUEST['fnPath']))
-				$rfn = $_REQUEST['fnPath'];
-			else
-				$rfn = $GLOBALS['dataDir'] . "/" . $_REQUEST['fnPath'];
+
+			$rfn = (preg_match('/^\//', $_REQUEST['fnPath'])
+				? $_REQUEST['fnPath']
+				: $GLOBALS['dataDir'] . "/" . $_REQUEST['fnPath']);
 
 			$fileInfo = pathinfo($rfn);
 			$contentType = "text/plain";
 			$fileExtension = $fileInfo['extension'];
 			$content_types_list = mimeTypes();
-			if (array_key_exists($fileExtension, $content_types_list))
+			if (array_key_exists($fileExtension, $content_types_list)) {
 				$contentType = $content_types_list[$fileExtension];
+			}
 
 			if (!is_file($rfn) || !filesize($rfn)) {
 				$_SESSION['errorData']['error'][] = "'" . basename($rfn) . "' does not exist anymore or is empty. <a href=\"javascript:deleteMesg('" . urlencode($_REQUEST['fn']) . "')\">[ Delete ]</a> <a href=\"workspace/workspace.php\">[ OK ]</a>";
@@ -371,7 +366,6 @@ if (isset($_REQUEST['op'])) {
 
 			if ($cmd) {
 				exec($cmd, $output);
-
 				if (is_file($rfn_Tmp)) {
 					$insertData = array(
 						'_id'   => $_REQUEST['fn'],
@@ -383,28 +377,11 @@ if (isset($_REQUEST['op'])) {
 					$insertMeta = $fileMeta;
 					$insertMeta['compress'] = 0;
 
-					$r = uploadGSFileBNS($fn_Tmp, $rfn_Tmp, $insertData, $insertMeta);
-					if ($r == 0)
-						break;
-
+					uploadGSFileBNS($fn_Tmp, $rfn_Tmp, $insertData, $insertMeta);
 					if (is_file($rfn)) {
 						unlink($rfn);
 					}
 				} elseif (is_dir($rfn_Tmp)) {
-					/*
-				exec("find $rfn_Tmp -type f 2>&1",$rfn_Tmp_files);
-				foreach ($rfn_Tmp_files as $f){
-					$f_new = "$proj_dir/".basename($f);
-					exec("mv $f $proj_dir 2>&1",$output);
-					if (!is_file($f_new)){
-						$_SESSION['errorData']['error'][]=" Error inflating ".basename($filePath).". File '$f' contained inside '".basename($filePath)."' cannot be moved to $f_new. Cannot uncompress directory</br>";
-						unlink($rfn_Tmp);
-						break;
-					
-					}
-					//TODO register each of the files individually. Which metadata?
-				}
-				*/
 					$_SESSION['errorData']['Error'][] = " Error inflating " . basename($filePath) . ". Directories cannot be uncompressed </br>";
 					unlink($rfn_Tmp);
 				} else {
@@ -438,9 +415,7 @@ if (isset($_REQUEST['op'])) {
 				$insertMeta = $fileMeta;
 				$insertMeta['compressed'] = "zip";
 
-				$r = uploadGSFileBNS($fn_TmpZip, $rfn_TmpZip, $insertData, $insertMeta);
-				if ($r == 0)
-					break;
+				uploadGSFileBNS($fn_TmpZip, $rfn_TmpZip, $insertData, $insertMeta);
 			} else {
 				$_SESSION['errorData']['error'][] = "Compressed ZIP file not created.";
 				if ($output)

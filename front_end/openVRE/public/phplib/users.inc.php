@@ -117,11 +117,6 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
 
         $userArray['dataDir'] = $dataDirId;
         $_SESSION['User']['dataDir'] = $dataDirId;
-    } else {
-        // change ownership for re-used  workspace
-        $workspace_files = getGSFileIdsFromDir($userArray['dataDir'], 1);
-        foreach ($workspace_files as $fn) { // TODO: complete or remove
-        }
     }
 
     // register user in mongo. NOT in ldap, as user exists for a oauth2 provider
@@ -132,10 +127,6 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
         unset($_SESSION['User']);
 
         return false;
-    }
-    if ($anonID) { // TODO: complete or remove
-        // if replacing anon user, delete old anon from mongo
-        //    	$GLOBALS['usersCol']->deleteOne(array('_id'=> $anonID));    
     }
 
     // if not all user metadata mapped from oauth2 provider, ask the user

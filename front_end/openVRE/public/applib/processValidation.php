@@ -34,11 +34,7 @@ if (!$_REQUEST['fn']) {
 	die();
 }
 
-// user project path
-$userPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
-
 // file to be processed
-
 $fn     = $_REQUEST['fn'];
 $fnFile = getGSFile_fromId($fn);
 $fnPath = $fnFile['path'];

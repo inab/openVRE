@@ -417,7 +417,6 @@ function getData_fromRepository_ToPublic($params = array())
     }
 
     // Check size and available space
-
     $size   = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
     $usedDisk     = (int)getUsedDiskSpace();
     $diskLimit    = (int)$_SESSION['User']['diskQuota'];
@@ -432,19 +431,17 @@ function getData_fromRepository_ToPublic($params = array())
     curl_close($ch);
 
     // Check repository from workspace
-
     $dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
     $wd          = $dataDirPath . "/repository";
     $wdP         = $GLOBALS['dataDir'] . "/" . $wd;
     $wdId        = getGSFileId_fromPath($wd);
 
-    if ($wdId == "0" || !is_dir($wdP)) {
-        $_SESSION['errorData']['Error'][] = "Target server directory '$wd' is not a directory. Your user account is corrupted. Please, report to <a href=\"mailto:helpdesk@multiscalegenomics.eu\">helpdesk@multiscalegenomics.eu</a>";
-        redirect($_SERVER['HTTP_REFERER']);
+    if (is_null($wdId) || !is_dir($wdP)) {
+        getDataLogger()->error("Target server directory '$wd' is not a directory.");
+        throw new NotFoundException("Target server directory '$wd' is not a directory.");
     }
 
     // Set output file/folder
-
     list($fileExtension, $compressExtension, $fileBaseName) = getFileExtension($filename);
     $compression = ($compressExtension && isset($GLOBALS['compressions'][$compressExtension]) ? $GLOBALS['compressions'][$compressExtension] : 0);
     $output = ($compression && $extract_uncompress && preg_match('/TAR/', $compression) ? hash('md5', $url, false) : $filename);
@@ -453,7 +450,6 @@ function getData_fromRepository_ToPublic($params = array())
     print "output  (file or folder) = $output\n";
 
     // Check output file/folder already registered
-
     $fnP  = "$wdP/$output";
     $fn   = "$wd/$output";
     $fnId = getGSFileId_fromPath($fn);

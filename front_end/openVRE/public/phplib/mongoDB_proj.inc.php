@@ -3,39 +3,33 @@
 
 function getMongoProjectLogger()
 {
-	static $logger = null;
+    static $logger = null;
 
-	if ($logger === null) {
-		$logger = LoggerFactory::getLogger('MongoDB project interface');
-	}
+    if ($logger === null) {
+        $logger = LoggerFactory::getLogger('MongoDB project interface');
+    }
 
-	return $logger;
+    return $logger;
 }
 
 
 // check if project exists
 function isProject($query, $asRoot = 0, $owner = 0)
 {
-
-    $query_type = (preg_match('/__PROJ/', $query) ? "path" : "_id");
-
-    if (!$owner || !$asRoot)
+    if (!$owner || !$asRoot) {
         $owner = $_SESSION['User']['id'];
+    }
 
     // get proj id from proj path
+    $query_type = (preg_match('/__PROJ/', $query) ? "path" : "_id");
     if ($query_type == "path") {
         $proj_path = (preg_match('/^__PROJ/', $query) ? "$owner/$query" : $query);
         $query = getGSFileId_fromPath($proj_path, $asRoot);
     }
 
-    // read 'is_a' attribute
-    $is_a = getAttr_fromGSFileId($query, "is_a", $asRoot);
-    if ($is_a && $is_a == "project") {
-        return true;
-    } else {
-        return false;
-    }
+    return getAttr_fromGSFileId($query, "is_a", $asRoot) === "project";
 }
+
 
 // get projects that belongs to a certain onwer
 

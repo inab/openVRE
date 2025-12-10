@@ -778,7 +778,7 @@ class Tooljob
 
 			if ($fileMuG['meta_data']['parentDir']) {
 				$parent_path = getAttr_fromGSFileId($fileMuG['meta_data']['parentDir'], "path");
-				if ($parent_path) {
+				if (isset($parent_path)) {
 					$fileMuG['meta_data']['parentDir'] = $this->root_dir_virtual . "/" . $parent_path;
 				}
 			}
@@ -795,7 +795,7 @@ class Tooljob
 					foreach ($fileMuG['sources'] as $sourceid) {
 						if ($sourceid) {
 							$source_path = getAttr_fromGSFileId($sourceid, "path");
-							if ($source_path) {
+							if (isset($source_path)) {
 								array_push($source_list, $this->public_dir_virtual . "/" . $source_path);
 							}
 						}
@@ -807,7 +807,7 @@ class Tooljob
 				$fileMuG['file_path'] ??= $this->pub_dir_virtual . "/" . $fileMuG['file_path'];
 				if ($fileMuG['meta_data']['parentDir']) {
 					$parent_path = getAttr_fromGSFileId($fileMuG['meta_data']['parentDir'], "path");
-					if ($parent_path) {
+					if (isset($parent_path)) {
 						$fileMuG['meta_data']['parentDir'] = $this->root_dir_virtual . "/" . $parent_path;
 					}
 				}

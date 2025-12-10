@@ -14,7 +14,7 @@ if ($_REQUEST["type"] != 2) {
 	$job = getUserJobPid($login, $_REQUEST["id"]);
 	$mt = $job[$_REQUEST["id"]];
 	$job_path = getAttr_fromGSFileId($mt["_id"], "path", $asRoot);
-	if ($job_path) {
+	if (isset($job_path)) {
 		$mt["path"] = $job_path;
 	}
 }
@@ -256,7 +256,7 @@ if (isset($mt['input_files']) || $mt['source_url']) {
 										print "Data externally loaded or created";
 									} else {
 										$path = getAttr_fromGSFileId($inp, 'path', $asRoot);
-										if ($path) {
+										if (isset($path)) {
 											print printFilePath_fromPath($path, $asRoot);
 										} else {
 											print "Data provenance lost. Internally annotated as $inp";
@@ -410,7 +410,7 @@ if ($_SESSION['User']['Type'] ==  UserType::Admin->value || $_SESSION['User']['T
 	<table class="table table-striped table-bordered">
 		<tbody>
 			<tr>
-				<th style="background-color: #e7ecf1;"><b>Metadata resource - <a href="http://multiscale-genomics.readthedocs.io/projects/mg-dm-api/rest.html" title="Data Management RESTful API" target="_blank">DMP</a></b></th>
+				<th style="background-color: #e7ecf1;"><b>Metadata resource - <a href="" title="Data Management RESTful API" target="_blank">DMP</a></b></th>
 			</tr>
 			<tr>
 				<td>

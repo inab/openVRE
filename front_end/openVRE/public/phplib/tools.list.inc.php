@@ -4,13 +4,13 @@ use Auth0\SDK\Exception\ArgumentException;
 
 function getToolsLogger()
 {
-    static $logger = null;
+	static $logger = null;
 
-    if ($logger === null) {
-        $logger = LoggerFactory::getLogger('Tools interface');
-    }
+	if ($logger === null) {
+		$logger = LoggerFactory::getLogger('Tools interface');
+	}
 
-    return $logger;
+	return $logger;
 }
 
 
@@ -303,90 +303,7 @@ function launchToolInternal($toolId, $inputs = [], $args = [], $outs = [], $outp
 }
 
 
-function parse_configFile_OBSOLETE($configFile)
-{
-	$configParsed = array();
-
-	// load config as json
-	$config = json_decode(file_get_contents($configFile));
-
-	// parse json
-	$configParsed['input_files'] = array();
-	if ($config->input_files) {
-		foreach ($config->input_files as $input) {
-			if (is_null($configParsed['input_files'][$input->name]))
-				$configParsed['input_files'][$input->name] = array();
-			$input_fn = getAttr_fromGSFileId($input->value, 'path');
-			if ($input_fn)
-				array_push($configParsed['input_files'][$input->name], str_replace($_SESSION['User']['id'] . "/", "", $input_fn));
-			else
-				array_push($configParsed['input_files'][$input->name], $input->value);
-		}
-	}
-	$configParsed['arguments'] = array();
-	if ($config->arguments) {
-		foreach ($config->arguments as $arg) {
-			$configParsed['arguments'][$arg->name] = $arg->value;
-		}
-	}
-	return $configParsed;
-}
-
-
-function parse_submissionFile_SGE_OBSOLETE($rfn)
-{
-	$cmdsParsed = array();
-
-	$cmds = preg_grep("/^\//", file($rfn));
-	$cwd  = str_replace("cd ", "", join("", preg_grep("/^cd /", file($rfn))));
-
-	$n = 1;
-	foreach ($cmds as $cmd) {
-
-		$cmdsParsed[$n]['cmdRaw']    = $cmd;
-		$cmdsParsed[$n]['cwd']       = $cwd;
-
-		$cmdsParsed[$n]['prgName']   = "";      # tool executable name for table title
-		$cmdsParsed[$n]['params']    = array(); # paramName=>paramValue
-
-		if (preg_match('/^#/', $cmd))
-			continue;
-		if (preg_match('/^(.[^ ]*) (.[^>]*)(\d*>*.*)$/', $cmd, $m)) {
-			$executable =  ($m[1] ? basename($m[1]) : "No information");
-			$paramsStr  =  ($m[2] ? $m[2] : "");
-			$log        =  ($m[3] ? $m[3] : "");
-
-			// parse executable file
-			$cmdsParsed[$n]['prgName']  = $executable;
-
-			// parse cmd params
-			foreach (explode("--", $paramsStr) as $p) {
-				trim($p);
-				if (!$p)
-					continue;
-				list($k, $v) = explode(" ", $p);
-				if (strlen($k) == 0 && strlen($v) == 0)
-					continue;
-				if (!$v)
-					$v = "";
-				// if paramValue is a file, show only 'execution/filename'
-				$v  = str_replace($GLOBALS['dataDir'] . "/" . $_SESSION['User']['id'] . "/", "", $v);
-
-				// HACK; when rfn comes from sample data, filenames in cmd do not contain the right userId. Cutting filepath using explode
-				if (preg_match('/^\//', $v)) {
-					$execution = explode("/", $rfn);
-					$v = $execution[count($execution) - 2] . "/" . basename($v);
-				}
-				$cmdsParsed[$n]['params'][$k] = $v;
-			}
-		}
-		$n++;
-	}
-	return $cmdsParsed;
-}
-
 // list visualizers
-
 function getVisualizers_List($status = 1)
 {
 
@@ -503,8 +420,6 @@ function getVisualizerTableList($file_types, $visualizer = null)
 
 	$html .= '<tbody>';
 
-	$selectedFiles = [];
-
 	foreach ($list as $file) {
 
 		$tr_class = "";
@@ -542,7 +457,6 @@ function getExecutionSitesForTool($toolId)
 
 	$executionSitesData = $toolDocument['sites'];
 	$executionSites = [];
-	$launchers = [];
 
 	foreach ($executionSitesData as $siteData) {
 		if ($siteData['status'] === 1) {

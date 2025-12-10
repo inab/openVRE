@@ -4,7 +4,8 @@ require __DIR__ . "/../../config/bootstrap.php";
 
 redirectOutside();
 
-function internalErrorRedirect() {
+function internalErrorRedirect()
+{
 	$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
 	redirect($GLOBALS['BASEURL'] . "workspace/");
 }

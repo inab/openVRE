@@ -25,26 +25,6 @@ function isGSDirBNS($collection, $fileId)
 	return !empty($file);
 }
 
-//  recursively retrive entire Files for a given directory selection
-
-function getGSFileIdsFromDir($dirId, $asRoot = 0, $filesAnt = [])
-{
-	/*
-    $files = getAttr_fromGSFileId($dirId,"files",$asRoot);
-
-    if ($files) {
-        foreach($files as $f){
-            $files_child = getGSFileIdsFromDir($f,$asRoot);
-            array_merge($files,$files_child);
-        }
-    }else{
-        array_push($files,$dirId);
-        $files = 
-    }
-    return $files;
- */
-	return [];
-}
 
 function getGSFilesFromDir($dataSelection = array(), $onlyVisible = 0)
 {
@@ -300,7 +280,7 @@ function getAttr_fromGSFileId($fileId, $attr, $asRoot = 0)
 {
 	$file = getGSFile_fromId($fileId, asRoot: $asRoot);
 	if (is_null($file) || is_null($file[$attr])) {
-		return false;
+		return null;
 	}
 
 	return $file[$attr];
@@ -1011,8 +991,8 @@ function deleteGSDirBNS($fn, $asRoot = 0)
 
 	$parentId = $dir['parentDir'];
 	if ($parentId == "0" && !$asRoot) {
-		getMongoLogger()->error("Cannot remove home directory.");
-		throw new UnexpectedValueException("Cannot remove home directory.");
+		getMongoLogger()->error("Cannot remove home directory of file $fn.");
+		throw new UnexpectedValueException("Cannot remove home directory of file $fn.");
 	}
 
 	foreach ($dir['files'] as $f) {

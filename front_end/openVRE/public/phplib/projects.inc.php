@@ -673,10 +673,11 @@ function formatData($data)
 	} else {
 		$data['size'] = "";
 	}
+
 	//execution dir
 	if (isset($data['parentDir'])) {
 		$data['parentDir'] = getAttr_fromGSFileId($data['parentDir'], 'path');
-		if (!$data['parentDir']) {
+		if (is_null($data['parentDir'])) {
 			$_SESSION['errorData']['Warning'][] = "Accessing data not belonging to your account! Some permission issues may arise";
 		}
 		if ($data['type'] == "file") {
@@ -698,10 +699,6 @@ function formatData($data)
 	}
 	//project name
 
-	//if (isset($data['project'])){
-	//    $p = getProject($data['project']);
-	//    $data['project'] = $p['name'];
-	//}else{
 	$p_code = "";
 	if (preg_match('/\/(__PROJ[^\/]*)/', $data['path'], $match)) {
 		$p_code = $match[1];
@@ -719,14 +716,6 @@ function formatData($data)
 		if (is_null($data['files'])) {
 			$data['filename'] = $data['title'];
 			$data['longfilename'] = $data['title'];
-			#$viewLog_state="enabled";
-			#if ($data['pending']=="HOLD" || $data['pending']=="PENDING"){
-			#	$viewLog_state = 'disabled';
-			#}elseif(!is_file($GLOBALS['dataDir']."/".$data['log_file']) && !is_link($GLOBALS['dataDir']."/".$data['log_file'])){
-			#	$viewLog_state = 'disabled';
-			#}
-			#$data['viewLog'] = "<tr><td>Log file:</td><td><a target=\"_blank\" href=\"workspace/workspace.php?op=openPlainFileFromPath&fnPath=".urlencode($data['log_file'])."\" class=\"$viewLog_state\">View</a></td></tr>";
-			#$data['log_file'] = basename($data['log_file']);
 		} else {
 			$data['filename'] = maxlength(basename($data['path']), 15);
 			$data['longfilename'] = basename($data['path']);
@@ -740,7 +729,6 @@ function formatData($data)
 		$data['show_file_url'] = "<span style=\"margin: -8px;\" title=\"" . $data['file_url'] . "\" ><i class=\"fa fa-link font-green\"></i></span>";
 	}
 
-	// TODO for debug. Temporal. To delete
 	if ($data['filename']) {
 		if (!is_url($data['path'])) {
 			$rfn      = $GLOBALS['dataDir'] . "/" . $data['path'];

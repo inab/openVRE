@@ -135,7 +135,6 @@ class DataTransfer
             $_SESSION['errorData']['Tooljob'][] = "Tool '$toolId' is not registered. Cannot submit execution. Please, contact <a href=\"mailto:" . $GLOBALS['helpdeskMail'] . "\">us</a>";
             return 0;
         }
-        //$this->tool= (object) $tool;
         $this->tool = $this->array_to_object($tool);
     }
 
@@ -145,7 +144,6 @@ class DataTransfer
 
         $dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
         $wdFN   = $dataDirPath . "/$execution";
-        $wd     = $GLOBALS['dataDir'] . "/$wdFN";
 
         if (!$overwrite) {
             $prevs = $GLOBALS['filesCol']->findOne(array('path' => $wdFN, 'owner' => $_SESSION['User']['id']));
@@ -217,7 +215,7 @@ class DataTransfer
         $this->log_file_virtual       = $this->root_dir_virtual . "/" . $this->project . "/" . $GLOBALS['tmpUser_dir'] . $this->execution . "/" . $this->logName;
     }
 
-    
+
     public function getUrifrom($obj)
     {
         if (is_null($obj['file_url'])) {
