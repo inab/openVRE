@@ -188,7 +188,7 @@ class DataTransfer {
     // Step 4: Rsync full working directory to remote
     $remoteSSH = new RemoteSSH($sshCredentials);
     $singularityImagePath = ($this->singularityImage !== null) ? $remoteUploadPath . "/../public/" . $this->singularityImage : null;
-    $rsyncSuccess = $remoteSSH->executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteRunPath, $server, $singularityImagePath);
+    $rsyncSuccess = $remoteSSH->executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteRunPath, $server, $singularityImagePath, $mode = "upload");
     if ($rsyncSuccess === true) {
         $_SESSION['errorData']['Info'][] = "Successfully synced $runId to remote path: $remoteRunPath";
         error_log("DEBUG: syncWorkingDir - successfully synced $runId to remote path: $remoteRunPath");

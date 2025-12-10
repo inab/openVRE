@@ -246,7 +246,7 @@ class RemoteSSH {
         }
     }
 
-    public function executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteDir, $server, $singularityImage = null)
+    public function executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteDir, $server, $singularityImage = null,  $mode = "upload" )
     {
         $sshPrivateKey = trim($sshCredentials['private_key']);
         $username = $sshCredentials['username'];
@@ -278,20 +278,29 @@ class RemoteSSH {
                 $_SESSION['errorData']['Info'][] = "Created remote dir: $remoteDir";
             }
             // Check for Singularity Image
-            error_log("Looking for Singularity image in path: $singularityImage");
-            $checkSifCommand = "[ -f \"$singularityImage\" ] && echo 'SIFExists' || echo 'SIFMissing'";
-            $sifStatus = trim($ssh->exec($checkSifCommand));
-            $sifStatus = preg_match('/(SIFExists|SIFMissing)/', $sifStatus, $matches) ? $matches[1] : "Unknown";
-            if ($sifStatus !== "SIFExists") {
-                $_SESSION['errorData']['Error'][] = "Required Singularity image is missing: $singularityImage";
-                return false;
+            if ($mode === "upload")  {
+                error_log("Looking for Singularity image in path: $singularityImage");
+                $checkSifCommand = "[ -f \"$singularityImage\" ] && echo 'SIFExists' || echo 'SIFMissing'";
+                $sifStatus = trim($ssh->exec($checkSifCommand));
+                $sifStatus = preg_match('/(SIFExists|SIFMissing)/', $sifStatus, $matches) ? $matches[1] : "Unknown";
+                if ($sifStatus !== "SIFExists") {
+                    $_SESSION['errorData']['Error'][] = "Required Singularity image is missing: $singularityImage";
+                    return false;
+                }
+                $_SESSION['errorData']['Info'][] = "Singularity image found: $singularityImage";
             }
-            $_SESSION['errorData']['Info'][] = "Singularity image found: $singularityImage";
             // Perform rsync
             $tempKeyFile = tempnam(sys_get_temp_dir(), 'ssh_key_');
             file_put_contents($tempKeyFile, $formattedKey);
             chmod($tempKeyFile, 0600);
-            $rsyncCommand = "rsync -avz -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $tempKeyFile' $localDir/ $username@$server:$remoteDir/";
+            if ($mode === "upload") {
+                $rsyncCommand = "rsync -avz -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $tempKeyFile' $localDir/ $username@$server:$remoteDir/";
+            } else {
+                $rsyncCommand =
+                "rsync -avz -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $tempKeyFile' " .
+                "$username@$server:$remoteDir/ $localDir/";
+            }
+           
             exec($rsyncCommand, $output, $returnVar);
             if ($returnVar === 0) {
                 error_log("Rsync success: " . implode("\n", $output));
