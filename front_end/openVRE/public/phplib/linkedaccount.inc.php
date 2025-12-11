@@ -95,10 +95,6 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 			$_SESSION['User']['credentials'] = [
 				'timestamp' => time()  // Only store the timestamp
 			];
-
-
-
-			$_SESSION['errorData']['Info'][] = "Credentials in the system, saving to Vault...";
 		} else {
 			// Handle the case where app_id or app_secret is empty
 			$_SESSION['errorData']['Error'][] = "Please provide both keys.";
@@ -119,8 +115,6 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 			$_SESSION['User']['credentials'] = [
 				'timestamp' => time()  // Only store the timestamp
 			];
-
-			$_SESSION['errorData']['Info'][] = "Credentials in the system, saving to Vault...";
 		} else {
 			// Handle the case where app_id or app_secret is empty
 			$_SESSION['errorData']['Error'][] = "Please provide both keys.";

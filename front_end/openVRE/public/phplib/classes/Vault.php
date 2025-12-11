@@ -292,12 +292,16 @@ class VaultClient
 
 		$response = curl_exec($curl);
 		if (curl_errno($curl)) {
-			echo 'Error: ' . curl_error($curl);
+			error_log('Error: ' . curl_error($curl));
 			return null;
 		}
 
 		curl_close($curl);
-		return json_decode($response, true);
+
+		$tokenLookup = json_decode($response, true);
+		error_log('Token Lookup Response: ' . json_encode($tokenLookup, JSON_PRETTY_PRINT));
+
+		return $tokenLookup;
 	}
 
 
@@ -309,20 +313,9 @@ class VaultClient
 		$tokenLookup = $this->retrieveTokenLookup($vaultUrl, $vaultToken);
 	
 		if ($tokenLookup && isset($tokenLookup['data']['expire_time'])) {
-  
-			$ttl = $tokenLookup['data']['ttl'];
-			$currentTimestamp = time();
-			$expireTimestamp = $currentTimestamp + $ttl;
-
-			//echo 'Expire Time: ' . date('Y-m-d H:i:s', $expireTimestamp) . PHP_EOL;
-
-			$remainingTimeInMinutes = ceil(($expireTimestamp - $currentTimestamp) / 60);
-
-			//echo 'Remaining Time until Expiration: ' . $remainingTimeInMinutes . ' minutes' . PHP_EOL;		
-
-			return $remainingTimeInMinutes <= 0;
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 
@@ -386,7 +379,7 @@ class VaultClient
 					if ($this->isTokenExpired($this->vaultUrl, $vaultToken)) {
 						$_SESSION['errorData']['Error'][] = "The Vault token has expired.";
 					} else {
-						$_SESSION['errorData']['Error'][] = "The Vault token is still valid.";
+						$_SESSION['errorData']['Info'][] = "The Vault token is valid.";
 					}
 
 
