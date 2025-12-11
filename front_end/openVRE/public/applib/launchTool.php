@@ -186,8 +186,6 @@ $doSync = !empty($_REQUEST['sync_files']);
 $siteList = $_REQUEST['sites']['site_list'] ?? [];
 
 if ($doSync && in_array('marenostrum', $siteList)) {
-	echo "<script>document.getElementById('syncStatus').innerHTML='Starting file transfer...';</script>";
-    ob_flush(); flush();
 	if ($debug) {
 		echo "<br/><br/><strong>DEBUG: Parameters passed to DataTransfer:</strong><br/>";
 		echo "<pre>";
@@ -218,12 +216,10 @@ if ($doSync && in_array('marenostrum', $siteList)) {
 		var_dump($dataLocations); // This will show where the files will be transferred
 		var_dump($_REQUEST['arguments_exec']);
 	}
-	echo "<script>document.getElementById('syncStatus').innerHTML='Files synchronized successfully!';</script>";
-    ob_flush(); flush();
 	} else if ($doSync) {
-		echo "<script>document.getElementById('syncStatus').innerHTML='Skipping DataTransfer — Marenostrum not selected.';</script>";
-   		ob_flush(); flush();
-		echo "<br/><strong>DEBUG:</strong> Skipping DataTransfer — 'marenostrum' not in site_list.<br/>";
+		if ($debug)	{
+			echo "<br/><strong>DEBUG:</strong> Skipping DataTransfer — 'marenostrum' not in site_list.<br/>";
+		}
 	}
 
 // Setting Command line. Adding parameters
@@ -246,7 +242,7 @@ if ($doSync && in_array('marenostrum', $siteList)) {
 	}
 	if ($s === false) {
 		$_SESSION['errorData']['Error'][] = "Failed to rsync project directory to remote system. Can not continue with the job remotely.";
-		redirect($_SERVER['HTTP_REFERER']);
+		redirect($GLOBALS['BASEURL'] . "workspace/");
 	}	 
 // Skip DataTransfer logic
 } else {
@@ -293,5 +289,5 @@ if (!isset($_SESSION['errorData']['Error'])) {
 		$_SESSION['errorData']['Info'][] = "Notice that your current workspace belongs to project '" . $projWS['name'] . "'. Move to '" . $proj['name'] . "' to check out your job.";
 	}
 }
-
 redirect($GLOBALS['BASEURL'] . "workspace/");
+

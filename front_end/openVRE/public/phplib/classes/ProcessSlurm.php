@@ -256,6 +256,12 @@ class ProcessSlurm {
                                 $job['state'] = "FINISHING";
                                 // log message like SGE version:
                                 log_addInfo($pid, "Job not running anymore. State: " . $job['state']);
+                                // sync remote dir to local if job state is Completed
+                                if ($job['state'] == "COMPLETED") {
+                                    $remoteDir = DataTransfer::synchronizeDestinationDir_MN($this->sshRemotePath, $this->sshUsername);
+                                    logger("ProcessSlurm: getRunningJobInfo: syncing remote dir $remoteDir to local dir $this->workDir");
+                                    $sync = RemoteSSH::executeRsyncCommandForWorkingDir($this->sshCredentials, $this->workDir, $remoteDir, $this, null, "download");
+                                }
                         } else {
                                 list($id, $state, $time, $nodes) = explode("|", $line);
                                 // Map SLURM state → readable state

@@ -277,7 +277,7 @@ class DataTransfer {
             $location = $file['site'] ?? null;
             $date = new MongoDB\BSON\UTCDateTime();
             $size = file_exists($file['absolute_path']) ? filesize($file['absolute_path']) : null;
-            $remotePath = $file['remote_path'] . $file['filename'];
+            $remotePath = $file['remote_path'] . "/" . $file['filename'];
     
             $fileMongo = $GLOBALS['filesCol']->findOne(['_id' => $fileId]);
     
