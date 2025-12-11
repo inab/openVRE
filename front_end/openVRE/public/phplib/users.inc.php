@@ -10,13 +10,13 @@
 
 function getUsersLogger()
 {
-	static $logger = null;
+    static $logger = null;
 
-	if ($logger === null) {
-		$logger = LoggerFactory::getLogger('Users interface');
-	}
+    if ($logger === null) {
+        $logger = LoggerFactory::getLogger('Users interface');
+    }
 
-	return $logger;
+    return $logger;
 }
 
 
@@ -376,9 +376,8 @@ function delUserJob($login, $pid)
         array('_id' => $login),
         array('$unset' => array("lastjobs.$pid" => 1))
     );
-    //array('$pull' => array("lastjobs" => $pid ))
-    //multi
 }
+
 
 function addUserJob($login, $data, $pid)
 {
@@ -391,6 +390,7 @@ function addUserJob($login, $data, $pid)
         array('upsert' => true)
     );
 }
+
 
 function getUserJobs($login)
 {

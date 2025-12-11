@@ -298,7 +298,7 @@ class Tooljob
 	 */
 	public function createWorking_dir()
 	{
-		if (!$this->working_dir) {
+		if (is_null($this->working_dir)) {
 			$this->logger->error("Cannot create working_dir. Not set yet");
 			throw new UnexpectedValueException("Cannot create working_dir. Not set yet");
 		}
@@ -307,30 +307,25 @@ class Tooljob
 		if (!is_dir($this->working_dir)) {
 			$this->_id = 1;
 			if ($this->hasExecutionFolder) {
-				$dirId = createGSDirBNS($dirPath);
-				if ($dirId == "0") {
+				try {
+					$this->_id = createGSDirBNS($dirPath);
+				} catch (UnexpectedValueException $e) {
 					$this->logger->error("Cannot create execution folder: '$this->working_dir'");
-					$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-					redirect($GLOBALS['BASEURL'] . "workspace/");
+					throw new UnexpectedValueException("Cannot create execution folder: '$this->working_dir'" . $e->getMessage());
 				}
-
-				$this->_id = $dirId;
 			}
 
 			if (!mkdir($this->working_dir, 0777, true)) {
 				$this->logger->error("Failed to create directory: '$this->working_dir'");
-				$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-				redirect($GLOBALS['BASEURL'] . "workspace/");
+				throw new UnexpectedValueException("Failed to create directory: '$this->working_dir'");
 			}
 
 			chmod($this->working_dir, 0777);
 			// if exists, recover working dir id
 		} else {
 			if ($this->hasExecutionFolder) {
-				$_SESSION['errorData']['Error'][] = "Cannot set job. Requested execution folder (" . basename($dirPath) . ") already exists. Please, set another execution name.<br>";
-				$this->logger->error("Cannot set job. Requested execution folder (" . basename($dirPath) . ") already exists. Please, set another execution name.");
-				$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-				redirect($GLOBALS['BASEURL'] . "workspace/");
+				$this->logger->error("Cannot set job. Requested execution folder (" . basename($dirPath) . ") already exists.");
+				throw new UnexpectedValueException("Cannot set job. Requested execution folder (" . basename($dirPath) . ") already exists.");
 			}
 
 			$this->_id = 1;
@@ -339,10 +334,8 @@ class Tooljob
 		// set dir metadata
 		if ($this->_id != 1) {
 			if (!is_dir($this->working_dir)) {
-				$_SESSION['errorData']['Error'][] = "Cannot write and set new execution directory: '$this->working_dir' with id '$this->_id'";
 				$this->logger->error("Cannot write and set new execution directory: '$this->working_dir' with id '$this->_id'");
-				$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-				redirect($GLOBALS['BASEURL'] . "workspace/");
+				throw new UnexpectedValueException("Cannot write and set new execution directory: '$this->working_dir' with id '$this->_id'");
 			}
 
 			$input_ids = [];
@@ -359,15 +352,13 @@ class Tooljob
 				'arguments'       => array_merge($this->arguments, $this->input_paths_pub)
 			];
 
-			$addedMetadata = addMetadataToFile($this->_id, $projDirMeta);
-			if ($addedMetadata == "0") {
-				$this->logger->error("Project folder created. But cannot set metada for '$this->working_dir' with id '$this->_id'");
-				$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-				redirect($GLOBALS['BASEURL'] . "workspace/");
+			try {
+				addMetadataToFile($this->_id, $projDirMeta);
+			} catch (UnexpectedValueException $e) {
+				$this->logger->error("Project folder created. But cannot set metadata for '$this->working_dir' with id '$this->_id'");
+				throw new UnexpectedValueException("Project folder created. But cannot set metadata for '$this->working_dir' with id '$this->_id'. " . $e->getMessage());
 			}
 		}
-
-		return $this->_id;
 	}
 
 
@@ -377,10 +368,9 @@ class Tooljob
 	 */
 	public function setConfiguration_file($tool)
 	{
-		$configFilename = $this->config_file;
-		if (!$this->working_dir) {
-			$_SESSION['errorData']['Internal Error'][] = "Cannot create tool configuration file. No 'working_directory' set";
-			return 0;
+		if (is_null($this->working_dir)) {
+			$this->logger->error("Cannot create tool configuration file. No 'working_directory' set");
+			throw new UnexpectedValueException("Cannot create tool configuration file. No 'working_directory' set");
 		}
 
 		$data = [
@@ -435,20 +425,14 @@ class Tooljob
 			}
 		}
 
-		try {
-			$F = fopen($configFilename, "w");
-			if (!$F) {
-				throw new Exception("Failed to create tool configuration file $configFilename");
-			}
-		} catch (Exception $e) {
-			$_SESSION['errorData']['Internal Error'][] = $e->getMessage();
-			return 0;
+		$file = fopen($this->config_file, "w");
+		if ($file === false) {
+			$this->logger->error("Failed to create tool configuration file '$this->config_file''.");
+			throw new UnexpectedValueException("Failed to create tool configuration file '$this->config_file''.");
 		}
 
-		fwrite($F, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-		fclose($F);
-
-		return $configFilename;
+		fwrite($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+		fclose($file);
 	}
 
 
@@ -737,9 +721,9 @@ class Tooljob
 	 */
 	public function setMetadata_file($metadata, $metadata_pub = [])
 	{
-		if (!$this->working_dir) {
-			$_SESSION['errorData']['Internal Error'][] = "Cannot create metadata file. No 'working_dir' set";
-			return 0;
+		if (is_null($this->working_dir)) {
+			$this->logger->error("Cannot create metadata file. No 'working_dir' set");
+			throw new UnexpectedValueException("Cannot create metadata file. No 'working_dir' set");
 		}
 
 		$fileMuGs = [];
@@ -764,13 +748,12 @@ class Tooljob
 			}
 
 			if ($fileMuG['data_source'] == "EGA") {
-				$fileMuG['file_path'] = "/clean_files/" . $file['ega_path']; // TODO: hardcoded ega path
+				$fileMuG['file_path'] = "/clean_files/" . $file['ega_path']; // hardcoded ega path
 			}
 
 			if ($fileMuG['file_path']) {
 				$fileMuG['file_path'] = $this->root_dir_virtual . "/" . $fileMuG['file_path'];
 			}
-
 
 			if ($fileMuG['meta_data']['parentDir']) {
 				$parent_path = getAttr_fromGSFileId($fileMuG['meta_data']['parentDir'], "path");
@@ -792,7 +775,7 @@ class Tooljob
 						if ($sourceid) {
 							$source_path = getAttr_fromGSFileId($sourceid, "path");
 							if (isset($source_path)) {
-								array_push($source_list, $this->public_dir_virtual . "/" . $source_path);
+								array_push($source_list, $this->pub_dir_virtual . "/" . $source_path);
 							}
 						}
 					}
@@ -812,21 +795,14 @@ class Tooljob
 			}
 		}
 
-		$metadataFile = $this->metadata_file;
-		try {
-			$F = fopen($metadataFile, "w");
-			if (!$F) {
-				throw new Exception('Failed to create metadata file for tool execution' . $metadataFile);
-			}
-		} catch (Exception $e) {
-			$_SESSION['errorData']['Internal Error'][] = $e->getMessage();
-			return 0;
+		$file = fopen($this->metadata_file, "w");
+		if ($file === false) {
+			$this->logger->error('Failed to create metadata file for tool execution: ' . $this->metadata_file);
+			throw new UnexpectedValueException('Failed to create metadata file for tool execution: ' . $this->metadata_file);
 		}
 
-		fwrite($F, json_encode($fileMuGs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-		fclose($F);
-
-		return $metadataFile;
+		fwrite($file, json_encode($fileMuGs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+		fclose($file);
 	}
 
 
@@ -839,117 +815,61 @@ class Tooljob
 			if ($this->launcher == "SGE") {
 				$cmd = $this->setBashCmd_withoutApp($tool, $metadata);
 				$this->createSubmitFile_SGE($cmd);
-
-				return 1;
 			} else {
-				$this->logger->error("Internal Tool not properly registered. Launcher for '" . $this->toolId . "' is set to \"" . $this->launcher . "\". Case not implemented.");
-				return 0;
+				$this->logger->error("Internal tool not properly registered. Launcher for '" . $this->toolId . "' is set to \"" . $this->launcher . "\". Case not implemented.");
+				throw new UnexpectedValueException("Internal tool not properly registered. Launcher for '" . $this->toolId . "' is set to \"" . $this->launcher . "\". Case not implemented.");
 			}
 		} else {
-			$configFilename = $this->setConfiguration_file($tool);
-			if ($configFilename == "0") {
-				return 0;
-			}
-
-			$metadataFile = $this->setMetadata_file($metadata, $metadata_pub);
-			if ($metadataFile == "0") {
-				return 0;
-			}
-
+			$this->setConfiguration_file($tool);
+			$this->setMetadata_file($metadata, $metadata_pub);
 			if (!is_file($this->config_file) && !is_file($this->metadata_file)) {
 				$this->logger->error("Cannot set tool command line. It required configuration file ($this->config_file) and metadata file ($this->metadata_file)");
-				return 0;
+				throw new UnexpectedValueException("Cannot set tool command line. It required configuration file ($this->config_file) and metadata file ($this->metadata_file)");
 			}
 
 			switch ($this->launcher) {
 				case "SGE":
 					$cmd  = $this->setBashCmd_SGE($tool);
-					if (!$cmd) {
-						return 0;
-					}
-
 					$this->createSubmitFile_SGE($cmd);
 
 					break;
-
 				case "docker_SGE":
 					$cmd  = $this->setBashCommandDockerSge($tool);
-					if (!$cmd) {
-						return 0;
-					}
-
 					$this->createSubmitFile_SGE($cmd);
 
 					break;
-
 				case "ega_demo":
 					$cmd  = $this->setBashCmd_docker_EGA($tool);
-					if (!$cmd) {
-						return 0;
-					}
-
-					$submissionFilename = $this->createSubmitFile_EGA($cmd);
-					if (!is_file($submissionFilename)) {
-						return 0;
-					}
+					$this->createSubmitFile_EGA($cmd);
 
 					break;
-
 				case "Slurm":
-					$username = $_POST['username'];
-					$cmd = $this->setHPCRequest($this->cloudName, $tool, $username);
+					$cmd = $this->setHPCRequest($this->cloudName, $tool, $_POST['username']);
 					if (!$cmd) {
 						return 0;
 					}
-					$_SESSION['errorData']['Debug'][] = "CMD:" . $cmd;
+
+
 					break;
 				default:
 					$this->logger->error("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$this->launcher\". Case not implemented.");
-					return 0;
+					throw new UnexpectedValueException("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$this->launcher\". Case not implemented.");
 			}
-
-			return 1;
 		}
 	}
 
 	protected function setBashCmd_SGE($tool)
 	{
 		if (is_null($tool['infrastructure']['executable'])) {
-			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' property";
-			return 0;
+			$this->logger->error("Tool '$this->toolId' not properly registered. Missing 'executable' property");
+			throw new UnexpectedValueException("Tool '$this->toolId' not properly registered.");
 		}
 
-		$cmd = $tool['infrastructure']['executable'] .
+		return $tool['infrastructure']['executable'] .
 			" --config "         . $this->config_file_virtual .
 			" --in_metadata "    . $this->metadata_file_virtual .
 			" --out_metadata "   . $this->stageout_file_virtual .
 			" --log_file "       . $this->log_file_virtual;
-
-		return $cmd;
-	}
-
-	protected function setBashCommandDockerSge_TOBEDELETED($tool)
-	{
-		if (is_null($tool['infrastructure']['executable']) && is_null($tool['infrastructure']['container_image'])) {
-			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
-			return 0;
-		}
-		#docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /home/user/dockerized_vre/volumes/shared_data/public:/shared_data/public -v /home/user/dockerized_vre/volumes/shared_data/userdata/user1:/shared_data/userdata/user1 re /response_estimation/VRE_RUNNER --config /shared_data/userdata/user1/proj1/runlaia/config.json --in_metadata /shared_data/userdata/user1/proj1/runlaia/in_metadata.json --out_metadata /shared_data/userdata/user1/proj1/runlaia/out_metadata.json --log_file /shared_data/userdata/user1/proj1/runlaia/VRE_RUNNER.log
-
-
-		$cmd_vre = $tool['infrastructure']['executable'] .
-			" --config "         . $this->config_file_virtual .
-			" --in_metadata "    . $this->metadata_file_virtual .
-			" --out_metadata "   . $this->stageout_file_virtual .
-			" --log_file "       . $this->log_file_virtual;
-
-		$cmd = "docker run --privileged" .
-			" -v /var/run/docker.sock:/var/run/docker.sock " .
-			" -v " . $GLOBALS['pubDir'] . ":" . $this->pub_dir_virtual  .
-			" -v " . $GLOBALS['dataDir'] . ":" . $this->root_dir_virtual .
-			" " . $tool['infrastructure']['container_image'] . " $cmd_vre";
-
-		return $cmd;
 	}
 
 
@@ -979,8 +899,8 @@ class Tooljob
 		$container_port = $tool['infrastructure']['container_port'];
 		$hostPort = $this->getFreePort();
 		if ($hostPort === null) {
-			$_SESSION['errorData']['Internal Error'][] = "No free ports available to run the interactive tool.";
-			return 0;
+			$this->logger->error("No free ports available to run the interactive tool.");
+			throw new UnexpectedValueException("No free ports available to run the interactive tool.");
 		}
 
 		$checkEnvironment = <<<EOF
@@ -1076,11 +996,12 @@ class Tooljob
 		$hostPort = $this->getFreePort();
 		if ($hostPort === null) {
 			$_SESSION['errorData']['Internal Error'][] = "No free ports available to run the interactive tool.";
-			return 0;
+			$this->logger->error("No free ports available to run the interactive tool.");
+			throw new UnexpectedValueException("No free ports available to run the interactive tool.");
 		}
-		$cmd = "HOST_PORT=$hostPort docker compose -f $dockerComposeFile up -d";
-		$this->containerName = $tool['infrastructure']['container_image'];
 
+
+		$this->containerName = $tool['infrastructure']['container_image'];
 		$monitorContainer = <<<EOF
 			CONTAINER_URL="http://$this->containerName:$container_port"
 			whoami;
@@ -1097,6 +1018,7 @@ class Tooljob
 
 			echo '# End time:' \$(date) >> $this->log_file_virtual;
 		EOF;
+		$cmd = "HOST_PORT=$hostPort docker compose -f $dockerComposeFile up -d";
 
 		return $cmd . "\n" . $monitorContainer;
 	}
@@ -1105,9 +1027,8 @@ class Tooljob
 	protected function setBashCommandDockerSge($tool)
 	{
 		if (is_null($tool['infrastructure']['executable']) && is_null($tool['infrastructure']['container_image'])) {
-			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
-
-			return 0;
+			$this->logger->error("Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties");
+			throw new UnexpectedValueException("Tool '$this->toolId' not properly registered.");
 		}
 
 		$timestamp = date('Y-m-d_H-i-s');
@@ -1151,16 +1072,16 @@ class Tooljob
 	protected function setBashCmd_docker_EGA($tool)
 	{
 		if (is_null($tool['infrastructure']['executable']) && is_null($tool['infrastructure']['container_image'])) {
-			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties";
-			return 0;
+			$this->logger->error("Tool '$this->toolId' not properly registered. Missing 'executable' or 'container_image' properties");
+			throw new UnexpectedValueException("Tool '$this->toolId' not properly registered.");
 		}
 
-		$cmd = "";
 		$cmd_vre = $tool['infrastructure']['executable'] .
 			" --config "       . $this->config_file_virtual .
 			" --in_metadata "  . $this->metadata_file_virtual .
-			" --out_metadata " . $this->stageout_file_virtual;
-		" --log_file "     . $this->log_file_virtual;
+			" --out_metadata " . $this->stageout_file_virtual .
+			" --log_file "     . $this->log_file_virtual;
+
 		$cmd_envs = "";
 		foreach ($tool['infrastructure']['container_env'][0] as $env_key => $env_value) {
 			$cmd_envs .= "-e $env_key=$env_value ";
@@ -1173,7 +1094,8 @@ class Tooljob
 		$configContent = "VAULT_TOKEN={$vaultKey}\nVAULT_ADDRESS={$vaultAddress}\n";
 
 		if (file_put_contents($configFilePath, $configContent) === false) {
-			die("Failed to write configuration file: $configFilePath\n");
+			$this->logger->error("Failed to write configuration file: $configFilePath");
+			throw new UnexpectedValueException("Failed to write configuration file: $configFilePath");
 		}
 
 		$cmd = "docker run --device /dev/fuse --security-opt apparmor:unconfined --cap-add SYS_ADMIN -v /var/run/docker.sock:/var/run/docker.sock " .
@@ -1306,8 +1228,6 @@ class Tooljob
 		fwrite($fout, "\n$cmd >> $logFilename 2>&1\n");
 		fwrite($fout, "\necho '# End time:' \$(date) >> $logFilename\n");
 		fclose($fout);
-
-		return $bashFilename;
 	}
 
 
@@ -1317,14 +1237,15 @@ class Tooljob
 		$bashFilename = $this->submission_file;
 		$logFilename = $this->log_file;
 
-		try {
-			$fout = fopen($bashFilename, "w");
-			if (!$fout) {
-				throw new Exception('Failed to create tool configuration file: ' . $bashFilename);
-			}
-		} catch (Exception $e) {
-			$_SESSION['errorData']['Error'][] = "Failed to create queue submission file. " . $e->getMessage();
-			return 0;
+		if (!is_file($bashFilename)) {
+			$this->logger->error("Failed to create queue submission file. " . "File '$bashFilename' does not exist");
+			throw new UnexpectedValueException("Failed to create queue submission file. " . "File '$bashFilename' does not exist");
+		}
+
+		$fout = fopen($bashFilename, "w");
+		if ($fout === false) {
+			$this->logger->error('Failed to create tool configuration file: ' . $bashFilename);
+			throw new UnexpectedValueException('Failed to create tool configuration file: ' . $bashFilename);
 		}
 
 		fwrite($fout, "#!/bin/bash\n");
@@ -1340,53 +1261,44 @@ class Tooljob
 		fwrite($fout, "\necho '# End time:' \$(date) >> $logFilename\n");
 
 		fclose($fout);
-
-		return $bashFilename;
 	}
 
 	/**
-	 * Submits 
+	 * Submits
 	 * @param string $inputs_request _REQUEST data from inputs.php form
 	 */
 	public function submit($tool)
 	{
-		$jobManager = $this->getLauncher_Info($this->cloudName)['launcher']['job_manager'];
-		switch ($jobManager ?? $tool['infrastructure']['clouds'][$this->cloudName]['launcher']) {
+		$jobLauncher = $this->getLauncher_Info($this->cloudName)['launcher']['job_manager'] ?? $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
+		switch ($jobLauncher) {
 			case "SGE":
 			case "ega_demo":
 			case "docker_SGE":
 				return $this->enqueue($tool);
 			default:
 				$this->logger->error("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"" . $tool['infrastructure']['clouds'][$this->cloudName]['launcher'] . "\". Case not implemented.");
-				return 0;
+				throw new UnexpectedValueException("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"" . $tool['infrastructure']['clouds'][$this->cloudName]['launcher'] . "\". Case not implemented.");
 		}
 	}
 
 
 	protected function enqueue($tool)
 	{
-
-		logger("");
 		$launcherInfo = $this->getLauncher_Info($this->cloudName);
-		if (!$launcherInfo || empty($launcherInfo)) {
-			$_SESSION['errorData']['Error'][] = "Launcher information is incomplete or missing.";
-			return 0;
+		if (is_null($launcherInfo)) {
+			$this->logger->error("Launcher information is incomplete or missing.");
+			throw new UnexpectedValueException("Launcher information is incomplete or missing.");
 		}
+
 		$memory = $launcherInfo['memory'] ?? $tool['infrastructure']['memory'];
 		$cpus = $launcherInfo['cpus'] ?? $tool['infrastructure']['cpus'];
 		$queue = $launcherInfo['queue'] ?? $tool['infrastructure']['clouds'][$this->cloudName]['queue'];
-		logger("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory");
+		$this->logger->info("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory");
 
-		list($pid, $errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file);
-		if (!$pid) {
-			log_addError($pid, $errMesg, null, $this->toolId, $this->cloudName, "SGE", $cpus, $memory);
-			$_SESSION['errorData']['Error'][] = "Internal error. Cannot enqueue job.";
-			return 0;
-		}
-		logger("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
-		log_addSubmission($pid, $this->toolId, $this->cloudName, "SGE", $cpus, $memory, $this->working_dir);
-
+		$pid = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file);
+		$this->logger->info("Tool job submitted to SGE queue '$queue' (PID=$pid)");
 		$this->pid = $pid;
+
 		return $pid;
 	}
 
@@ -1401,7 +1313,7 @@ class Tooljob
 	}
 
 	/**
-	 * Convert internal VRE file format into DM MuG file  
+	 * Convert internal VRE file format into DM MuG file
 	 * @file  VRE file object, resulting from merging MuGVRE Mongo collections Files + FilesMetadata
 	 */
 	protected function fromVREfile_toMUGfile($file)
@@ -1777,18 +1689,15 @@ class Tooljob
 
 	function getLauncher_Info($siteId)
 	{
-
-		// Retrieve tool document from the tools collection
 		$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-		if (!$siteDocument) {
+		if (is_null($siteDocument)) {
 			return null;
 		}
 
-		$launcherInfo = [
+		return [
 			'site_id' => $siteDocument['_id'],
 			'name' => $siteDocument['name'],
 			'launcher' => $siteDocument['launcher']
 		];
-		return $launcherInfo;
 	}
 }

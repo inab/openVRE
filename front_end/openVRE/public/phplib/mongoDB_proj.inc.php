@@ -56,7 +56,6 @@ function getProjects_byOwner($asRoot = 0, $owner = 0)
 
 function getProject($query, $asRoot = 0, $owner = 0)
 {
-
     $query_type = (preg_match('/__PROJ/', $query) ? "path" : "_id");
 
     if (!$owner || !$asRoot) {
@@ -75,30 +74,14 @@ function getProject($query, $asRoot = 0, $owner = 0)
 }
 
 
-// create new project registry
-
-function setProject_OBSOLETE($project_attr = array(), $asRoot = 0, $owner = 0)
-{
-
-    // set project path
-    $proj_code = createLabel_proj();
-    $proj_fn   = $_SESSION['User']['id'] . "/$proj_code";
-    $proj_rfn  = $GLOBALS['dataDir'] . "/$proj_fn";
-
-
-    // create project folder
-    $proj_id = createProjectDir($proj_fn, $proj_rfn, $project_attr, $asRoot, $owner);
-
-    return array($proj_id, $proj_code);
-}
-
 function updateProject($project_id, $project_attr, $asRoot = 0, $owner = 0)
 {
-
     if (!isProject($project_id, $asRoot, $owner)) {
         $_SESSION['errorData']['Error'][] = "Given project (code $project_id) not found. Cannot edit it.";
-        return 0;
+        getMongoProjectLogger()->error("Given project (code $project_id) not found. Cannot edit it.");
+        throw new NotFoundException("Given project (code $project_id) not found. Cannot edit it.");
     }
+
     return addMetadataToFile($project_id, $project_attr);
 }
 
@@ -107,27 +90,22 @@ function updateProject($project_id, $project_attr, $asRoot = 0, $owner = 0)
 
 function createLabel_proj()
 {
-    //$label= uniqid($_SESSION['User']['id']."_PROJ",true);
     $label = uniqid("__PROJ", true);
     if (! empty($GLOBALS['filesCol']->findOne(array('_id' => $label)))) {
-        //$label= uniqid($_SESSION['User']['id']."_PROJ",true);
         $label = uniqid("__PROJ", true);
     }
     return $label;
 }
 
-function createProjectDir($dirfn, $dirrfn, $project_attr = array(), $asRoot = 0, $owner = 0)
+
+function createProjectDir($dirfn, $dirrfn, $project_attr = array(), $asRoot = 0)
 {
-
-
-    // already exists?
     if (is_dir($dirrfn)) {
-        $_SESSION['errorData']['Error'][] = "Cannot create project folder: '$dirfn'. It already exists";
-        return 0;
+        getMongoProjectLogger()->error("Cannot create project folder: '$dirfn'. It already exists");
+        throw new UnexpectedValueException("Cannot create project folder: '$dirfn'. It already exists");
     }
 
-    // register proj dir 
-
+    // register proj dir
     $dirId = createGSDirBNS($dirfn, $asRoot);
     if ($dirId == "0") {
         $_SESSION['errorData']['Error'][] = "Cannot create project folder: '$dirfn'";
@@ -144,8 +122,6 @@ function createProjectDir($dirfn, $dirrfn, $project_attr = array(), $asRoot = 0,
 
     if (! isset($project_attr['is_a']))
         $project_attr['is_a'] = "project";
-    //if (! isset($project_attr['owner']))
-    //    $project_attr['owner'] = $_SESSION['User']['id'];
     if (! isset($project_attr['project_type']))
         $project_attr['project_type'] = "private";
     if (! isset($project_attr['description']))

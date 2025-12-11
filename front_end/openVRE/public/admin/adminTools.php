@@ -4,6 +4,18 @@ require __DIR__ . "/../../config/bootstrap.php";
 
 redirectToolDevOutside();
 
+function getAdminToolsLogger()
+{
+    static $logger = null;
+
+    if ($logger === null) {
+        $logger = LoggerFactory::getLogger('Admin tools interface');
+    }
+
+    return $logger;
+}
+
+
 # find available tools - by user
 
 $tools  = array();
@@ -23,6 +35,7 @@ if ($_SESSION['User']['Type'] == UserType::Admin->value) {
     } else {
         // return error
         $_SESSION['errorData']['Error'][] = "Sorry, your account has no tool ownership. Sorry, cannot adminstrate them.";
+        getAdminToolsLogger()->error("User " . $_SESSION['User']['_id'] . " has no tool ownership.");
         // do dump query
         $result = $GLOBALS['toolsCol']->find(array("_id" => "force_empty"));
         // prepare dump stats filter

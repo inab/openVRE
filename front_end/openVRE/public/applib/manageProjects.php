@@ -5,13 +5,13 @@ require __DIR__ . "/../../config/bootstrap.php";
 
 function getManageProjectLogger()
 {
-	static $logger = null;
+    static $logger = null;
 
-	if ($logger === null) {
-		$logger = LoggerFactory::getLogger('Manage project interface');
-	}
+    if ($logger === null) {
+        $logger = LoggerFactory::getLogger('Manage project interface');
+    }
 
-	return $logger;
+    return $logger;
 }
 
 
@@ -60,23 +60,16 @@ if ($_REQUEST['op'] == "new") {
     $_REQUEST['pr_id']   = $proj_id;
     $_REQUEST['pr_code'] = $proj_code;
     $_SESSION['errorData']['Info'][] = "Done! New project '" . $projData['name'] . "' created.";
-
-
-    //
-    // edit project
-
 } elseif ($_REQUEST['op'] == "edit") {
-
-    $r = updateProject($_REQUEST['pr_id'], $projData);
-    if (!$r) {
-        // return error
-        $_SESSION['errorData']['Error'][] = "Project not edited";
+    try {
+        updateProject($_REQUEST['pr_id'], $projData);
+    } catch (Exception $e) {
+        getManageProjectLogger()->error("Project not edited.");
         redirect($GLOBALS['BASEURL'] . "workspace/");
     }
-    $_SESSION['errorData']['Info'][] = "Done! Project '" . $projData['name'] . "' successfully edited.";
 
+    getManageProjectLogger()->info("Project '" . $projData['name'] . "' successfully edited");
 
-    //
     // delete project
 } elseif ($_REQUEST['op'] == "deleteMsg") {
 
@@ -89,7 +82,7 @@ if ($_REQUEST['op'] == "new") {
         $_SESSION['errorData']['Error'][] = "Cannot delete project. User needs at least one project to work with. Please, create a new one before deleting this.";
         redirect($GLOBALS['BASEURL'] . "workspace/");
     }
-    
+
     try {
         deleteProject($_REQUEST['pr_id']);
     } catch (Exception $e) {

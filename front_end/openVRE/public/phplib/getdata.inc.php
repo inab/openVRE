@@ -14,7 +14,6 @@ function getDataLogger()
 
 function getData_fromLocal()
 {
-    // set destination working_directory/uploads
     $dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
     $localWorkingDir = "$dataDirPath/uploads";
     $workingDir = $GLOBALS['dataDir'] . "/" . $localWorkingDir;

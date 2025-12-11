@@ -19,77 +19,65 @@ function getJobProcessLogger()
 
 function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log")
 {
-    logger("Start job submission via SGE");
+    getJobProcessLogger()->info("Start job submission via SGE");
 
     if (is_null($_SESSION['User']['id'])) {
-        $_SESSION['errorData']['Error'][] = "User ID not found in session.";
-        return [0, "User ID not found in session."];
+        getJobProcessLogger()->error("User ID not found in session.");
+        throw new NotFoundException("User ID not found in session.");
     }
 
-    // Validate shell script file
     if (!file_exists($shFile)) {
-        $_SESSION['errorData']['Error'][] = "Shell script file does not exist: $shFile";
-        return [0, "Shell script file does not exist: $shFile"];
+        getJobProcessLogger()->error("Shell script file does not exist: $shFile");
+        throw new NotFoundException("Shell script file does not exist: $shFile");
     }
 
-    // Validate working directory
     if (!is_dir($workDir)) {
-        $_SESSION['errorData']['Error'][] = "Working directory does not exist: $workDir";
-        return [0, "Working directory does not exist: $workDir"];
+        getJobProcessLogger()->error("Working directory does not exist: $workDir");
+        throw new NotFoundException("Working directory does not exist: $workDir");
     }
 
-    // Validate queue
-    $queue = $queue ?: ($GLOBALS['queueTask'] ?? null);
-    if (!$queue) {
-        $_SESSION['errorData']['Error'][] = "Queue not provided.";
-        return [0, "Queue not provided."];
+    $queue = $queue ?: $GLOBALS['queueTask'];
+    if (empty($queue)) {
+        getJobProcessLogger()->error("Queue not provided.");
+        throw new NotFoundException("Queue not provided.");
     }
 
-
-    $queue   = (isset($queue) ? $queue : $GLOBALS['queueTask']);
     $jobname = $_SESSION['User']['id'] . "#" . basename($shFile);
-
-    //
-    // Start SGE process
     $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
 
-    $pid = $process->getPid();
-
     if (!$process->status()) {
-        $_SESSION['errorData']['Error'][] = "Job submission failed.<br/>" . $process->getFullCommand . "<br/>" . $process->getErr();
-        $errMesg = "ERROR: Job submission failed. FullCommand: '" . $process->getFullCommand . "'. ErrorSGE: '" . $process->getErr() . "'";
-        logger($errMesg);
-        return array(0, $errMesg);
+        $errMesg = "Job submission failed. ErrorSGE: '" . $process->getErr() . "'";
+        getJobProcessLogger()->error($errMesg);
+        throw new UnexpectedValueException($errMesg);
     }
 
-    error_log("Process started successfully: PID = $pid");
-    logger("The process $cmd is currently running PID = $pid");
-    return array($pid, "");
+    $pid = $process->getPid();
+    getJobProcessLogger()->info("Process started successfully: PID = $pid");
+    
+    return $pid;
 }
 
 
 function getRunningJobInfo($pid, $launcherType = null)
 {
-    $job = array();
-    if (!$pid) {
-        return $job;
+    if (is_null($pid)) {
+        getJobProcessLogger()->error("Job ID not found in session.");
+        throw new NotFoundException("Job ID not found in session.");
     }
 
-    if (!$launcherType && is_numeric($pid)) {
+    if (is_null($launcherType) && is_numeric($pid)) {
         $launcherType = "SGE";
     }
 
-    // create new jobProcess
-    if ($launcherType == "SGE" || $launcherType == "docker_SGE") {
-        $process = new ProcessSGE();
-        $job = $process->getRunningJobInfo($pid);
-    } else {
-        $_SESSION['errorData']['Error'][] = "Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.";
-        return $job;
+    if (!in_array($launcherType, array("SGE", "docker_SGE"))) {
+        getJobProcessLogger()->error("Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.");
+        throw new UnexpectedValueException("Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.");
     }
 
-    return $job;
+    $process = new ProcessSGE();
+    return $process->getRunningJobInfo($pid);
 }
+
 
 function getPidFromOutfile($outfile)
 {

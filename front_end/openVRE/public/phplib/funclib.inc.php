@@ -138,12 +138,10 @@ function secondsToTime($seconds)
 
 function momentToTime($moment)
 {
-
-	if ($moment) {
-		$dtime = DateTime::createFromFormat("Y/m/d*H:i:s", $moment);
-		$timestamp = $dtime->getTimestamp();
-		return $timestamp;
-	} else {
+	if (empty($moment)) {
 		return 0;
 	}
+
+	$dtime = DateTime::createFromFormat("Y/m/d*H:i:s", $moment);
+	return $dtime->getTimestamp();
 }

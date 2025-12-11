@@ -118,33 +118,30 @@ if ($_REQUEST['input_files_public_dir']) {
 	$logger->debug("Processed input files public: ", ['input_files_public' => $jobMeta->input_files_pub]);
 }
 
-$workDirId = $jobMeta->createWorking_dir();
-$logger->debug("Working directory created at: ", ['working_dir' => $jobMeta->working_dir]);
-
-$r = $jobMeta->prepareExecution($tool, $files, $files_pub);
-
-if ($r == 0) {
-	redirect($_SERVER['HTTP_REFERER']);
+try {
+	$jobMeta->createWorking_dir();
+} catch (Exception $e) {
+	$logger->error("Cannot create working directory.");
+	redirect($GLOBALS['BASEURL'] . "workspace/");
 }
 
-// Launching Tooljob
-$pid = $jobMeta->submit($tool);
+$logger->debug("Working directory created at: ", ['working_dir' => $jobMeta->working_dir]);
 
-if (!$pid) {
+try {
+	$jobMeta->prepareExecution($tool, $files, $files_pub);
+} catch (Exception $e) {
+	$logger->error("Cannot prepare execution. " . $e->getMessage());
+	redirect($GLOBALS['BASEURL'] . "workspace/");
+}
+
+try {
+	$pid = $jobMeta->submit($tool);
+} catch (Exception $e) {
+	$logger->error("Cannot submit job. " . $e->getMessage());
 	redirect($GLOBALS['BASEURL'] . "workspace/");
 }
 
 $logger->debug("Job submitted. PID = $pid");
-
 addUserJob($_SESSION['User']['_id'], (array)$jobMeta, $jobMeta->pid);
-
-if (is_null($_SESSION['errorData']['Error'])) {
-	$proj = getProject($jobMeta->project);
-	$_SESSION['errorData']['Info'][] = "Job successfully sent! Monitor it at <b>" . $proj['name'] . " &rsaquo; " . $jobMeta->execution . " &rsaquo; " . $jobMeta->title . "</b>.";
-	if ($_SESSION['User']['activeProject'] != $jobMeta->project) {
-		$projWS = getProject($_SESSION['User']['activeProject']);
-		$_SESSION['errorData']['Info'][] = "Notice that your current workspace belongs to project '" . $projWS['name'] . "'. Move to '" . $proj['name'] . "' to check out your job.";
-	}
-}
 
 redirect($GLOBALS['BASEURL'] . "workspace/");

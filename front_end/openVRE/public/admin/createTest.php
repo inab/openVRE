@@ -5,13 +5,11 @@ require __DIR__ . "/../../config/bootstrap.php";
 redirectToolDevOutside();
 
 if (is_null($_REQUEST['id'])) {
-
 	$_SESSION['errorData']['Error'][] = "Please provide a tool id.";
 	redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php');
 }
 
 $toolDevJSON = $GLOBALS['toolsDevMetaCol']->findOne(array('_id' => $_REQUEST['id']));
-
 if (is_null($toolDevJSON)) {
 	$_SESSION['errorData']['Error'][] = "The tool id <strong>" . $_REQUEST['toolid'] . "</strong> doesn't exist in our database.";
 	redirect($GLOBALS['BASEURL'] . 'admin/myNewTools.php');

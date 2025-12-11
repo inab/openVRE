@@ -100,38 +100,6 @@ function getTool_fromId($toolId, $indexByName = false)
 	return $tool;
 }
 
-// list visualizers
-
-function getVisualizer_fromId($toolId, $indexByName = false)
-{
-	$filterfields = array();
-	$tool = $GLOBALS['visualizersCol']->findOne(array('_id' => $toolId)/*, $filterfields*/);
-
-	if (empty($tool))
-		return 0;
-
-	if ($indexByName) {
-		$toolIndexed = array();
-		foreach ($tool as $attribute => $value) {
-			if (is_array($value)) {
-				$t = 0;
-				foreach ($value as $v) {
-					if (isset($v['name'])) {
-						$t = 1;
-						$toolIndexed[$attribute][$v['name']] = $v;
-					}
-				}
-				if (!$t) {
-					$toolIndexed[$attribute] = $value;
-				}
-			} else {
-				$toolIndexed[$attribute] = $value;
-			}
-		}
-		$tool = $toolIndexed;
-	}
-	return $tool;
-}
 
 // get Tool under development
 
@@ -218,20 +186,6 @@ function deleteToolDev($toolId)
 	return 1;
 }
 
-// has tool custom visualizer
-
-function hasTool_custom_visualizer($toolId)
-{
-	$has_custom_visualizer = $GLOBALS['toolsCol']->findOne(
-		array(
-			'_id' => $toolId,
-			'output_files' => array('$elemMatch' => array("custom_visualizer" => true))
-		),
-		array('_id' => 1)
-	);
-	return $has_custom_visualizer;
-}
-
 
 // launch tool - used for internal tools
 function launchToolInternal($toolId, $inputs = [], $args = [], $outs = [], $output_dir = "", $logName = "")
@@ -277,11 +231,7 @@ function launchToolInternal($toolId, $inputs = [], $args = [], $outs = [], $outp
 	$args['working_dir'] = $jobMeta->working_dir;
 	$jobMeta->setArguments($args, $tool);
 
-	$jobId = $jobMeta->createWorking_dir();
-	if (!$jobId) {
-		$_SESSION['errorData']['Error'][] = "Cannot create tool temporal working dir";
-		return 0;
-	}
+	$jobMeta->createWorking_dir();
 
 	// Set outfiles metadata -- for register latter
 	$jobMeta->setStageout_data($outs);
