@@ -105,29 +105,9 @@ switch (pathinfo($_SERVER['PHP_SELF'])['filename']) {
 		$currentSection = 'ad';
 		$currentSubSection = 'au';
 		break;
-	case 'adminTools':
-		$currentSection = 'ad';
-		$currentSubSection = 'at';
-		$currentSubSubSection = 'mt';
-		break;
-	case 'logs':
-		$currentSection = 'ad';
-		$currentSubSection = 'at';
-		$currentSubSubSection = 'lg';
-		break;
 	case 'adminJobs':
 		$currentSection = 'ad';
 		$currentSubSection = 'aj';
-		break;
-	case 'jsonTestValidator':
-	case 'jsonSpecValidator':
-	case 'myNewTools':
-	case 'vmURL':
-	case 'newTool':
-	case 'createTest':
-		$currentSection = 'ad';
-		$currentSubSection = 'at';
-		$currentSubSubSection = 'td';
 		break;
 	case 'help':
 		$currentSection = 'he';
@@ -280,7 +260,7 @@ sort($visualizers);
 						</li>
 						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h2') { 
 													?>active open<?php //} 
-																											?>">
+																	?>">
 							<a href="help/starting.php" class="nav-link ">
 								<span class="title">Getting Started</span>
 							</a>
@@ -292,7 +272,7 @@ sort($visualizers);
 						</li>
 						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h4') { 
 													?>active open<?php //} 
-																											?>">
+																	?>">
 							<a href="help/ws.php" class="nav-link ">
 								<span class="title">Workspace</span>
 							</a>
@@ -343,12 +323,12 @@ sort($visualizers);
 						</li>
 						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h11') { 
 													?>active open<?php //} 
-																											?>">
+																	?>">
 							<a href="help/visualizers.php" class="nav-link">
 								<span class="title">Visualizers</span>
 								<span class="arrow <?php //if ($currentSubSection == 'h11') { 
 													?>open<?php //} 
-																									?>"></span>
+															?>"></span>
 							</a>
 							<ul class="sub-menu">
 								<?php /*foreach ($visualizers as $t) {
@@ -360,7 +340,7 @@ sort($visualizers);
 									} */ ?>
 									<li class="nav-item <?php //if ($currentSubSubSection == $t["_id"]) { 
 														?>active open<?php //} 
-																														?>">
+																		?>">
 										<a href="visualizers/<?php //echo $t["_id"]; 
 																?>/help/help.php" class="nav-link">
 											<span class="title"> <?php //echo $t["name"]; 
@@ -375,7 +355,7 @@ sort($visualizers);
 								?>
 							<li class="nav-item  <?php //if ($currentSubSection == 'h7') { 
 													?>active open<?php //} 
-																										?>">
+																	?>">
 								<a href="help/hdesk.php" class="nav-link ">
 									<span class="title">Helpdesk</span>
 								</a>
@@ -384,21 +364,21 @@ sort($visualizers);
 						?> -->
 						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h8') { 
 													?>active open<?php //} 
-																											?>">
+																	?>">
 							<a href="help/related.php" class="nav-link ">
 								<span class="title">Related Links</span>
 							</a>
 						</li>
 						<li class="nav-item  <?php //if ($currentSubSection == 'h9') { 
 												?>active open<?php //} 
-																									?>">
+																?>">
 							<a href="help/refs.php" class="nav-link ">
 								<span class="title">References</span>
 							</a>
 						</li>
 						<li class="nav-item  <?php //if ($currentSubSection == 'h10') { 
 												?>active open<?php //} 
-																										?>">
+																?>">
 							<a href="help/ackn.php" class="nav-link ">
 								<span class="title">Acknowledgments</span>
 							</a>
@@ -443,9 +423,6 @@ sort($visualizers);
 								</li>
 							<?php } ?>
 							<!--<li class="nav-item  <?php if ($currentSubSection == 'at') { ?>active open<?php } ?>">
-                                        	<a href="admin/adminTools.php" class="nav-link ">
-                                            	<span class="title">Tool Administration</span>
-                                        	</a>
 					</li>
 					<li class="nav-item  <?php if ($currentSubSection == 'jv') { ?>active open<?php } ?>">
                                         	<a href="admin/jsonValidator.php" class="nav-link ">
@@ -457,25 +434,7 @@ sort($visualizers);
 									<span class="title">My tools</span>
 									<span class="arrow <?php if ($currentSubSection == 'at') { ?>open<?php } ?>"></span>
 								</a>
-								<ul class="sub-menu">
-									<li class="nav-item  <?php if ($currentSubSubSection == 'mt') { ?>active open<?php } ?>">
-										<a href="admin/adminTools.php" class="nav-link ">
-											<span class="title">Installed</span>
-										</a>
-									</li>
-									<li class="nav-item  <?php if ($currentSubSubSection == 'td') { ?>active open<?php } ?>">
-										<a href="admin/myNewTools.php" class="nav-link ">
-											<span class="title">Development</span>
-										</a>
-									</li>
-									<li class="nav-item  <?php if ($currentSubSubSection == 'lg') { ?>active open<?php } ?>">
-										<a href="admin/logs.php" class="nav-link ">
-											<span class="title">Logs</span>
-										</a>
-									</li>
-								</ul>
 							</li>
-
 						</ul>
 					</li>
 				<?php } ?>
