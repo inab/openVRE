@@ -118,7 +118,7 @@
             "type": "string",
             "default": null
           },
-          "file_type": {
+          "format": {
             "type": "array",
             "items": {
               "type": "string",
@@ -226,7 +226,7 @@
         "required": [
           "name",
           "description",
-          "file_type",
+          "format",
           "data_type",
           "required",
           "allow_multiple"
@@ -283,7 +283,7 @@
             ],
             "additionalProperties": false
           },
-          "file_type": {
+          "format": {
             "type": "array",
             "items": {
               "type": "string",
@@ -504,7 +504,7 @@
           "file": {
             "type": "object",
             "properties": {
-              "file_type": {
+              "format": {
                 "type": "string",
                 "enum": [
                   "null",
@@ -638,7 +638,7 @@
               }
             },
             "required": [
-              "file_type",
+              "format",
               "data_type",
               "meta_data"
             ]

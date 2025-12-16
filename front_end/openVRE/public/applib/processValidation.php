@@ -84,8 +84,6 @@ if (is_null($_REQUEST['format'])) {
 
 $_SESSION['validation'][$fn]['format'] = $_REQUEST['format'];
 
-$required_metadata = getFeaturesFromDataType($_REQUEST['data_type'], $_REQUEST['format']);
-
 // check validation actions to perfome on file
 switch ($_REQUEST['format']) {
 	case 'BAM':
@@ -114,7 +112,7 @@ switch ($_REQUEST['format']) {
 	case 'BEDGRAPH';
 	case 'WIG':
 	case 'BED':
-		if ($required_metadata['assembly'] === true && is_null($_REQUEST['refGenome'])) {
+		if (is_null($_REQUEST['refGenome'])) {
 			$resp['msg'] = "Missing compulsory fields. Please, specify reference genome.</br>";
 			$resp['state'] = 0;
 		}
@@ -122,7 +120,7 @@ switch ($_REQUEST['format']) {
 		break;
 	case 'GFF':
 	case 'GFF3':
-		if ($required_metadata['assembly'] === true && is_null($_REQUEST['refGenome'])) {
+		if (is_null($_REQUEST['refGenome'])) {
 			$resp['msg'] = "Missing compulsory fields. Please, specify reference genome.</br>";
 			$resp['state'] = 0;
 			break;

@@ -38,7 +38,7 @@
       "data_type": [
         "id_list"
       ],
-      "file_type": [
+      "format": [
         "TXT"
       ],
       "description": "Select file(s)",
@@ -58,7 +58,7 @@
       "required": true,
       "allow_multiple": true,
       "file": {
-        "file_type": "TXT",
+        "format": "TXT",
         "data_type": "sample_information_file",
         "meta_data": {
           "visible": true,

@@ -198,7 +198,7 @@ function InputTool_printSelectFile($input, $rerun, $ff, $multiple, $required)
 					<span class="input-group-btn input-tool">
 						<a href="javascript:cleanInput(\'visible_' . $input['name'] . '\', \'input_files[' . $input['name'] . ']\', 1);" class="clean-input"><i class="fa fa-times-circle"></i></a>
 						<button class="btn green" type="button" 
-						onclick="toolModal(\'visible_' . $input['name'] . '\', \'input_files[' . $input['name'] . ']\', ' . getArrayJS($input['data_type']) . ', ' . getArrayJS($input['file_type']) . ', false);"><i class="fa fa-check-square-o"></i> Select</button>
+						onclick="toolModal(\'visible_' . $input['name'] . '\', \'input_files[' . $input['name'] . ']\', ' . getArrayJS($input['data_type']) . ', ' . getArrayJS($input['format']) . ', false);"><i class="fa fa-check-square-o"></i> Select</button>
 					</span>
 			</div>
 		</div>';
@@ -233,7 +233,7 @@ function InputTool_printSelectFile($input, $rerun, $ff, $multiple, $required)
 					<span class="input-group-btn input-tool">
 						<a href="javascript:cleanInput(\'visible_' . $input['name'] . '\', \'input_files[' . $input['name'] . '][]\', 0);" class="clean-input"><i class="fa fa-times-circle"></i></a>
 						<button class="btn green" type="button" 
-						onclick="toolModal(\'visible_' . $input['name'] . '\', \'input_files[' . $input['name'] . '][]\',' . getArrayJS($input['data_type']) . ', ' . getArrayJS($input['file_type']) . ', true);"><i class="fa fa-check-square-o"></i> Select</button>
+						onclick="toolModal(\'visible_' . $input['name'] . '\', \'input_files[' . $input['name'] . '][]\',' . getArrayJS($input['data_type']) . ', ' . getArrayJS($input['format']) . ', true);"><i class="fa fa-check-square-o"></i> Select</button>
 					</span>
 			</div>
 			</div>';

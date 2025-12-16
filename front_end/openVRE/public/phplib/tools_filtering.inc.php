@@ -250,7 +250,7 @@ function getSingleTool_Help($toolID, $op)
 					if ($inputf["required"] === true) $a["description"] .= " <span title='Mandatory file' style='color:#6d91b5;font-size:0.9em;'>(mandatory)</span>";
 					else $a["description"] .= " <span title='Optional file' style='color:#6d91b5;font-size:0.9em;'>(optional)</span>";
 
-					$a["format"] = $inputf["file_type"];
+					$a["format"] = $inputf["format"];
 
 					$b = [];
 					foreach ($inputf["data_type"] as $dt) {
@@ -307,7 +307,7 @@ function getTools_Help()
 					if ($inputf["required"] === true) $a["description"] .= " <span title='Mandatory file' style='color:#6d91b5;font-size:0.9em;'>(mandatory)</span>";
 					else $a["description"] .= " <span title='Optional file' style='color:#6d91b5;font-size:0.9em;'>(optional)</span>";
 
-					$a["format"] = $inputf["file_type"];
+					$a["format"] = $inputf["format"];
 
 					$b = [];
 					foreach ($inputf["data_type"] as $dt) {

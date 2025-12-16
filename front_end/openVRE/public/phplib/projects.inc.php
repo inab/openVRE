@@ -942,26 +942,6 @@ function formatData($data)
 			$data['rerunLink'] = "<li><a href=\"$formPath?rerunDir=" . $data['_id_URL'] . "\"><i class=\"fa fa-share\"></i> Rerun Project</a></li>";
 		}
 	}
-	//viewResultsLink
-	if (isset($data['tool'])) {
-		$tool = $GLOBALS['toolsCol']->findOne(array('_id' => $data['tool']));
-		$data['toolname'] = $data['tool'];
-		if (!empty($tool)) {
-			if (isset($tool['has_custom_viewer']) && $tool['has_custom_viewer'] === false) {
-			} else {
-				$data['viewResultsLink'] = "
-<div class=\"btn-group\" style=\"float:left; position:absolute; margin-top:-10px!important;margin-left:38px;\">
-    	<button class=\"btn btn-xs purple-intense dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\" aria-expanded=\"false\"> 
-						<i class=\"fa fa-eye\"></i>
-						<i class=\"fa fa-angle-down\"></i>
-		</button>
-	  <ul class=\"dropdown-menu pull-right\" role=\"menu\">
-						<li><a href=\"javascript:viewResults('" . $data['_id_URL'] . "','" . $data['tool'] . "');\"><i class=\"fa fa-file-text\"></i> View Results</a></li>
-		</ul>
-		</div>";
-			}
-		}
-	}
 
 	//analyses tool
 	if (isset($data['tool'])) {

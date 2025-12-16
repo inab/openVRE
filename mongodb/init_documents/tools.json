@@ -42,7 +42,7 @@
         "name": "fasta1",
         "description": "FASTA input file 1",
         "help": "This is the input file 1 help tooltip",
-        "file_type": [
+        "format": [
           "FASTA"
         ],
         "data_type": [
@@ -55,7 +55,7 @@
         "name": "fasta2",
         "description": "FASTA input file 2",
         "help": "This is the input file 2 help tooltip",
-        "file_type": [
+        "format": [
           "FASTA"
         ],
         "data_type": [
@@ -147,7 +147,7 @@
         "required": true,
         "allow_multiple": false,
         "file": {
-          "file_type": "FASTA",
+          "format": "FASTA",
           "data_type": "dna_sequence",
           "meta_data": {
             "visible": true,
@@ -231,7 +231,7 @@
         "name": "file",
         "required": true,
         "allow_multiple": false,
-        "file_type": "",
+        "format": "",
         "data_type": "",
         "file": {
           "meta_data": {

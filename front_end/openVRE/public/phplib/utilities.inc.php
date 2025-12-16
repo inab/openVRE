@@ -380,16 +380,6 @@ function getVREfile_fromFile($mugfile)
 
     $mugfile['owner'] ??= $_SESSION['User']['id'];
 
-    if (isset($mugfile['file_type'])) {
-        $metadata['format'] = $mugfile['file_type'];
-        unset($mugfile['file_type']);
-    }
-
-    if (isset($mugfile['assembly'])) {
-        $metadata['refGenome'] = $mugfile['assembly'];
-        unset($mugfile['assembly']);
-    }
-
     foreach ($mugfile as $key => $value) {
         $metadata[$key] = $value;
     }

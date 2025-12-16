@@ -28,7 +28,7 @@
             "name": "my_input_id1",
             "description": "My Input 1",
             "help": "Some explanation about 'My Input 1' displayed to user in help tooltips ",
-            "file_type": [
+            "format": [
                 "NIFTI"
             ],
             "data_type": [
@@ -41,7 +41,7 @@
             "name": "my_input_id2",
             "description": "My Input 2",
             "help": "Some explanation about 'My Input 2' displayed to user in help tooltips ",
-            "file_type": [
+            "format": [
                 "NIFTI"
             ],
             "data_type": [
@@ -82,7 +82,7 @@
             "required": true,
             "allow_multiple": false,
             "file": {
-                "file_type": "NIFTI",
+                "format": "NIFTI",
                 "data_type": "image_mask",
                 "meta_data": {
                     "visible": true,
@@ -95,7 +95,7 @@
             "required": true,
             "allow_multiple": false,
             "file": {
-                "file_type": "TAR",
+                "format": "TAR",
                 "data_type": "tool_statistics",
                 "path": "myExecutionStatistics.tar.gz",
                 "compressed": "gzip",

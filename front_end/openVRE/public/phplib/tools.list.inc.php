@@ -209,9 +209,9 @@ function getFileTypes_List()
 
 			$types = array();
 
-			foreach ($t['input_files'] as $if) array_push($types, implode($if['file_type']));
+			foreach ($t['input_files'] as $if) array_push($types, implode($if['format']));
 
-			$filetypes[$i]['file_types'] = $types;
+			$filetypes[$i]['formats'] = $types;
 
 			$i++;
 		}

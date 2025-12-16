@@ -684,39 +684,6 @@ class Tooljob
 
 
 	/**
-	 * Check input files requirements based on format and datatype
-	 * @param array $inputReq  Input_file as defined in tool collection (derived from tool JSON definition)
-	 * @param array $inputMetadata File metadata
-	 */
-	protected function validateInput_file($inputReq, $inputMetadata)
-	{
-		if (is_null($inputReq['file_type']) && is_null($inputReq['data_type'])) {
-			$_SESSION['errorData']['Warning'][] = "Ommitting format and type control for input file '" . $inputReq['name'] . ". Tool has no 'file_type' nor 'data_type' set.";
-			return 1;
-		}
-		if (is_null($inputMetadata['format']) && is_null($inputReq['data_type'])) {
-			$_SESSION['errorData']['Warning'][] = "Ommitting format and type control for input file '" . $inputReq['name'] . ". Given file has no 'file_type' nor 'data_type' set.";
-			return 1;
-		}
-		// checking format
-		if (isset($inputReq['file_type']) &&  isset($inputMetadata['format'])) {
-			if (!in_array($inputMetadata['format'], $inputReq['file_type'])) {
-				$_SESSION['errorData']['Error'][] = "Input file '" . basename($inputMetadata['path']) . "' in '" . $inputReq['name'] . " has format '" . $inputMetadata['format'] . "  and '" . implode(", ", $inputReq['file_type']) . "' was excepted.";
-				return 0;
-			}
-		}
-		// checking datatype
-		if (isset($inputReq['data_type']) &&  isset($inputMetadata['data_type'])) {
-			if (!in_array($inputMetadata['data_type'], $inputReq['data_type'])) {
-				$_SESSION['errorData']['Error'][] = "Input file '" . basename($inputMetadata['path']) . "' in '" . $inputReq['name'] . " is a '" . $inputMetadata['data_type'] . "  and '" . implode(", ", $inputReq['data_type']) . "' was excepted.";
-				return 0;
-			}
-		}
-		return 1;
-	}
-
-
-	/**
 	 * Creates metadata JSON
 	 */
 	public function setMetadata_file($metadata, $metadata_pub = [])
@@ -1323,7 +1290,6 @@ class Tooljob
 		$compressions = $GLOBALS['compressions'];
 		$mugfile['_id'] = $file['_id'];
 
-		$mugfile['file_type'] = $file['format'] ?? "UNK";
 		$mugfile['data_type'] = $file['data_type'] ?? null;
 		$mugfile['data_source'] = $file['data_source'] ?? null;
 
@@ -1357,10 +1323,6 @@ class Tooljob
 		unset($file['owner']);
 
 		$mugfile['meta_data'] = $file;
-		if (isset($mugfile['meta_data']['refGenome'])) {
-			$mugfile['meta_data']['assembly'] = $mugfile['meta_data']['refGenome'];
-			unset($mugfile['meta_data']['refGenome']);
-		}
 
 		return $mugfile;
 	}
@@ -1512,8 +1474,8 @@ class Tooljob
 					if (isset($tool['input_files_public_dir'][$input_name]['data_type']) && is_array($tool['input_files_public_dir'][$input_name]['data_type'])) {
 						$file['data_type'] = $tool['input_files_public_dir'][$input_name]['data_type'][0];
 					}
-					if (isset($tool['input_files_public_dir'][$input_name]['file_type']) && is_array($tool['input_files_public_dir'][$input_name]['file_type'])) {
-						$file['file_type'] = $tool['input_files_public_dir'][$input_name]['file_type'][0];
+					if (isset($tool['input_files_public_dir'][$input_name]['format']) && is_array($tool['input_files_public_dir'][$input_name]['format'])) {
+						$file['format'] = $tool['input_files_public_dir'][$input_name]['format'][0];
 					}
 					$file['owner'] = "public";
 					if (is_file($rfn_public)) {

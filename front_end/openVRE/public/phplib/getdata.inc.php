@@ -246,7 +246,7 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
         "name" => "file",
         "path" => $filePath,
         "data_type" => "",
-        "file_type" => $filetype,
+        "format" => $filetype,
         "sources" => [0],
         "taxon_id" => $taxon,
         "meta_data" => [
@@ -506,7 +506,7 @@ function getData_fromRepository($url, $datatype, $filetype, $description)
         "type"       => "file",
         "path"  => $filePath,
         "data_type"  => $datatype,
-        "file_type"  => $filetype,
+        "format"  => $filetype,
         "sources"    => [0],
         "source_url" => $url,
         "meta_data"  => [

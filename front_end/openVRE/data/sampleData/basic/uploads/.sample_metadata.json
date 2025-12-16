@@ -2,7 +2,7 @@
     {
         "path": "uploads/README.md",
         "data_type": "configuration_file",
-        "file_type": "TXT",
+        "format": "TXT",
         "type": "file",
         "sources": [
             0

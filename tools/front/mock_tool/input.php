@@ -155,7 +155,7 @@ $tool = getTool_fromId($toolId, 1);
 
 				<?php if( $_REQUEST["op"] == 0 ) {  ?>
 					<div class="col-md-12">
-						<?php $ff = matchFormat_File($tool['input_files']['text_file']['file_type'], $inPaths); ?>
+						<?php $ff = matchFormat_File($tool['input_files']['text_file']['format'], $inPaths); ?>
 						<?php InputTool_printSelectFile($tool['input_files']['text_file'], $rerun, $ff[0], true, true); ?>
 					</div>
 				<?php } ?>

@@ -137,7 +137,7 @@ $files = addTreeTableNodesToFiles($files);
 
 						if ($_SESSION['User']['Type'] == UserType::Guest->value) {
 
-							?>
+						?>
 
 							<div class="profile-content">
 								<div class="row">
@@ -184,7 +184,7 @@ $files = addTreeTableNodesToFiles($files);
 								</div>
 							</div>
 
-							<?php
+						<?php
 
 						}
 
@@ -226,7 +226,7 @@ $files = addTreeTableNodesToFiles($files);
 												<option value="">Filter files by tool</option>
 												<?php foreach ($toolsList as $tl) { ?>
 													<option value="<?php echo $tl["_id"]; ?>" <?php if (isset($_REQUEST["tool"]) && $_REQUEST["tool"] == $tl["_id"])
-														   echo 'selected'; ?>><?php echo $tl["name"]; ?></option>
+																									echo 'selected'; ?>><?php echo $tl["name"]; ?></option>
 												<?php } ?>
 											</select>
 										</div>
@@ -252,7 +252,7 @@ $files = addTreeTableNodesToFiles($files);
 											}
 
 											// print FILES in TABLE
-											
+
 											print printTable($files);
 											?>
 
@@ -362,17 +362,17 @@ $files = addTreeTableNodesToFiles($files);
 									if (isset($_REQUEST["tool"]) && $_REQUEST["tool"] != "") {
 										$expcol = "collapse";
 										$portlet = "";
-										?>
+									?>
 
 										<small>Below users can find all the possible data type combinations for the
 											selected
 											tool</small>
 
-										<?php
+									<?php
 									} else {
 										$expcol = "expand";
 										$portlet = "portlet-collapsed";
-										?>
+									?>
 
 										<small style="font-size:75%;">Below users can find all the possible data type
 											combinations for each tool (click expand button)</small>
@@ -404,7 +404,7 @@ $files = addTreeTableNodesToFiles($files);
 										foreach ($toolsList as $tl) {
 
 											if ($tl["_id"] == $_REQUEST["tool"]) {
-												?>
+										?>
 												<div class="panel panel-default">
 													<div class="panel-heading">
 														<h4 class="panel-title">
@@ -451,11 +451,11 @@ $files = addTreeTableNodesToFiles($files);
 																					<td><?php echo implode("<br>", $content["data_type"]); ?>
 																					</td>
 																				</tr>
-																				<?php
+																			<?php
 																				$cc++;
 																			} ?>
 
-																			<?php
+																	<?php
 																		}
 																	}
 
@@ -465,7 +465,7 @@ $files = addTreeTableNodesToFiles($files);
 														</div>
 													</div>
 												</div>
-												<?php
+										<?php
 											}
 											$c++;
 										}
@@ -478,7 +478,7 @@ $files = addTreeTableNodesToFiles($files);
 										<?php
 										$c = 0;
 										foreach ($toolsList as $tl) {
-											?>
+										?>
 											<div class="panel panel-default">
 												<div class="panel-heading">
 													<h4 class="panel-title">
@@ -526,11 +526,11 @@ $files = addTreeTableNodesToFiles($files);
 																				<td><?php echo implode("<br>", $content["data_type"]); ?>
 																				</td>
 																			</tr>
-																			<?php
+																		<?php
 																			$cc++;
 																		} ?>
 
-																		<?php
+																<?php
 																	}
 																}
 
@@ -540,7 +540,7 @@ $files = addTreeTableNodesToFiles($files);
 													</div>
 												</div>
 											</div>
-											<?php
+										<?php
 											$c++;
 										}
 										?>
@@ -694,8 +694,6 @@ If you want to <strong>re-use your session</strong>, make sure you save the <str
 					</div>
 					<div class="modal-body">
 						<div id="container-tad" style="width: 100%;height: 500px;">
-							<!-- <tadkit-viewer id="viewer" color="93AEBF" previews='[{"file_type": "tad","file_url": "visualizers/tadkit/tadkit-viewer/samples/tk-example-dataset-2K.json"}]'></tadkit-viewer>
--->
 						</div>
 					</div>
 					<div class="modal-footer">
