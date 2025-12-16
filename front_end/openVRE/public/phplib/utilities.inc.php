@@ -371,105 +371,30 @@ function prepMetadataUpload($request, $validationState = 0)
     return  $insertMeta;
 }
 
-function setVREfile_fromScratch($file_data = array())
+
+function getVREfile_fromFile($mugfile)
 {
-    $file     = array();
-    $metadata = array();
+    // CHANGING OLD MUG FILE
+    $file     = [];
+    $metadata = [];
 
-    //set file
-    if (is_null($file_data['_id'])) {
-        $file['_id'] = uniqid("unique_file_id_", true);
-    } else {
-        $file['_id'] = $file_data['_id'];
-    }
-    if (is_null($file_data['type'])) {
-        $file['type'] = "file";
-    } else {
-        $file['type'] = $file_data['type'];
-        unset($file_data['type']);
-    }
-    if (is_null($file_data['owner'])) {
-        $file['owner'] = "user_id";
-    } else {
-        $file['owner'] = $file_data['owner'];
-        unset($file_data['owner']);
-    }
-    if (is_null($file_data['size'])) {
-        $file['size'] = 0;
-    } else {
-        $file['size'] = $file_data['size'];
-        unset($file_data['size']);
-    }
-    if (is_null($file_data['project'])) {
-        $file['project'] = "my_project_id";
-    } else {
-        $file['project'] = $file_data['project'];
-        unset($file_data['project']);
-    }
-    if (is_null($file_data['path'])) {
-        $file['path'] = $file['owner'] . "/" . $file['project'] . "/uploads/myinfile.txt";
-    } else {
-        $file['path'] = $file_data['path'];
-        unset($file_data['path']);
-    }
-    if (is_null($file_data['mtime'])) {
-        $file['mtime'] = new MongoDB\BSON\UTCDateTime(strtotime("now") * 1000);
-    } else {
-        $file['mtime'] = $file_data['mtime'];
-        unset($file_data['mtime']);
-    }
-    if (is_null($file_data['atime'])) {
-        $file['atime'] = new MongoDB\BSON\UTCDateTime(strtotime("now") * 1000);
-    } else {
-        $file['atime'] = $file_data['atime'];
-        unset($file_data['atime']);
-    }
-    if (is_null($file_data['parentDir'])) {
-        $file['parentDir'] = uniqid("unique_file_id_", true);
-    } else {
-        $file['parentDir'] = $file_data['parentDir'];
-        unset($file_data['parentDir']);
-    }
-    if (is_null($file_data['lastAccess'])) {
-        $file['lastAccess'] = new MongoDB\BSON\UTCDateTime(strtotime("now") * 1000);
-    } else {
-        $file['lastAccess'] = $file_data['lastAccess'];
-        unset($file_data['lastAccess']);
+    $mugfile['owner'] ??= $_SESSION['User']['id'];
+
+    if (isset($mugfile['file_type'])) {
+        $metadata['format'] = $mugfile['file_type'];
+        unset($mugfile['file_type']);
     }
 
-    //set metadata
-    if (is_null($file_data['_id'])) {
-        $metadata['_id'] = $file['_id'];
-    } else {
-        $metadata['_id'] = $file_data['_id'];
-        unset($file_data['_id']);
-    }
-    if (isset($file_data['meta_data'])) {
-        foreach ($file_data['meta_data'] as $k => $v) {
-            $metadata[$k] = $v;
-        }
-        unset($file_data['meta_data']);
-    }
-    if (is_null($file_data['file_type']) && is_null($file_data['format'])) {
-        $metadata['format'] = "TXT";
-    } elseif (isset($file_data['file_type'])) {
-        $metadata['format'] = $file_data['file_type'];
-        unset($file_data['file_type']);
-    } elseif (isset($file_data['format'])) {
-        $metadata['format'] = $file_data['format'];
-        unset($file_data['format']);
-    }
-    if (is_null($file_data['data_type'])) {
-        $metadata['data_type'] = "other";
-    } else {
-        $metadata['data_type'] = $file_data['data_type'];
-        unset($file_data['data_type']);
-    }
-    foreach ($file_data as $k => $v) {
-        $metadata[$k] = $v;
+    if (isset($mugfile['assembly'])) {
+        $metadata['refGenome'] = $mugfile['assembly'];
+        unset($mugfile['assembly']);
     }
 
-    return array($file, $metadata);
+    foreach ($mugfile as $key => $value) {
+        $metadata[$key] = $value;
+    }
+
+    return [$file, $metadata];
 }
 
 

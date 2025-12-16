@@ -1,6 +1,6 @@
 [
     {
-        "file_path": "uploads",
+        "path": "uploads",
         "type":"dir",
         "sources": [0],
         "meta_data": {

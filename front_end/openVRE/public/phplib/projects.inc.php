@@ -93,90 +93,34 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $ver
 	if (! isGSDirBNS($GLOBALS['filesCol'], $dataDirId) || ! is_dir($dataDirP)) {
 		//creating project directory
 		$dataDirId = createProjectDir($dataDir, $dataDirP, $projectData, $asRoot);
-		if ($verbose)
-			$_SESSION['errorData']['Info'][] = "Creating main project directory: $dataDirP ($dataDirId)";
+		getProjectLogger()->info("Creating project directory: $dataDirP ($dataDirId)");
 
-		if ($dataDirId == "0") {
-			$_SESSION['errorData']['Error'][] = "Error creating default project '" . $GLOBALS['project_default'] . "'";
-			return 0;
-		}
-
-		//creating uploads directory
-		if ($sampleData != "0") {
+		if (!empty($sampleData)) {
+			//creating uploads directory
 			$upDirId  = createGSDirBNS($dataDir . "/uploads", 1);
-			if ($verbose)
-				$_SESSION['errorData']['Info'][] = "Creating  uploads directory: $dataDir/uploads ($upDirId)";
-
-			if ($upDirId == "0") {
-				$_SESSION['errorData']['Error'][] = "Cannot create uploads directory in $dataDir ($dataDirId) ";
-				return 0;
-			}
-			$r = addMetadataToFile($upDirId, array(
+			getProjectLogger()->info("Creating uploads directory: $dataDir/uploads ($upDirId)");
+			addMetadataToFile($upDirId, array(
 				"expiration" => -1,
 				"description" => "Uploaded personal data"
 			));
-			if ($r == "0") {
-				$_SESSION['errorData']['Error'][] = "Cannot set uploads directory $dataDir/uploads";
-				return 0;
-			}
-			if (!is_dir("$dataDirP/uploads"))
+
+			if (!is_dir("$dataDirP/uploads")) {
 				mkdir("$dataDirP/uploads", 0775);
-		}
-
-		//creating repository directory
-		if ($sampleData != "0") {
-			$repDirId  = createGSDirBNS($dataDir . "/repository", 1);
-			if ($verbose)
-				$_SESSION['errorData']['Info'][] = "Creating  repository directory: $dataDir/repository ($repDirId)";
-
-			if ($repDirId == "0") {
-				$_SESSION['errorData']['Error'][] = "Cannot create repository directory in $dataDir ($dataDirId) ";
-				return 0;
 			}
-			$r = addMetadataToFile($repDirId, array(
+
+			//creating repository directory
+			$repDirId  = createGSDirBNS($dataDir . "/repository", 1);
+			getProjectLogger()->info("Creating repository directory: $dataDir/repository ($repDirId)");
+			addMetadataToFile($repDirId, array(
 				"expiration" => -1,
 				"description" => "Remote personal data"
 			));
-			if ($r == "0") {
-				$_SESSION['errorData']['Error'][] = "Cannot set uploads directory $dataDir/repository";
-				return 0;
-			}
-			if (!is_dir("$dataDirP/repository"))
+
+			if (!is_dir("$dataDirP/repository")) {
 				mkdir("$dataDirP/repository", 0775);
-		}
-
-		//creating rstudio directory
-		if ($sampleData != "0") {
-			$repDirId  = createGSDirBNS($dataDir . "/rstudio", 1);
-			if ($verbose)
-				$_SESSION['errorData']['Info'][] = "Creating  rstudio directory: $dataDir/rstudio ($repDirId)";
-			if ($repDirId == "0") {
-				$_SESSION['errorData']['Error'][] = "Cannot create repository directory in $dataDir ($dataDirId) ";
-				return 0;
 			}
-			$r = addMetadataToFile($repDirId, array(
-				"expiration" => -1,
-				"description" => "RStudio personal data"
-			));
-			if ($r == "0") {
-				$_SESSION['errorData']['Error'][] = "Cannot set rstudio directory $dataDir/rstudio";
-				return 0;
-			}
-			if (!is_dir("$dataDirP/rstudio"))
-				mkdir("$dataDirP/rstudio", 0775);
-		}
 
-		// creating other directories not registered in mongo
-
-		if (!is_dir("$dataDirP/.jbrowse") || !is_dir("$dataDirP/.tadkit") || !is_dir("$dataDirP/.dev") || !is_dir($dataDirP . "/" . $GLOBALS['tmpUser_dir'])) {
-			mkdir("$dataDirP/.jbrowse", 0775);
-			mkdir("$dataDirP/.tadkit", 0775);
-			mkdir("$dataDirP/.dev", 0775);
-			mkdir("$dataDirP/" . $GLOBALS['tmpUser_dir'], 0775);
-		}
-
-		// injecting sample data
-		if ($sampleData != "0") {
+			// injecting sample data
 			$r = setUserWorkSpace_sampleData($sampleData, $dataDir, $verbose);
 			if ($r == "0") {
 				$_SESSION['errorData']['Warning'][] = "Cannot fully inject sample data '$sampleData' into user workspace.";
@@ -202,46 +146,40 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $ver
 
 function setUserWorkSpace_sampleData($sampleName, $dataDir, $verbose = true)
 {
-	// path for sample data set
 	$sampleData = getSampleData($sampleName);
-	if (!$sampleData) {
-		$_SESSION['errorData']['Error'][] = "No dataset named '$sampleName' found. Please, make sure the dataset is correctly registered";
-		return 0;
+	if (is_null($sampleData)) {
+		getDataLogger()->error("No dataset named '$sampleName' found.");
+		throw new NotFoundException("No dataset named '$sampleName' found.");
 	}
 
 	// validate sample Data integrity
 	$datafolders = scanDir($GLOBALS['sampleDataPath'] . "/" . $sampleData['sample_path']);
 	if (!in_array("uploads", $datafolders)) {
-		$_SESSION['errorData']['Warning'][] = "Sample data '" . $sampleData['name'] . "' has no 'uploads' folder";
-		return 0;
+		getDataLogger()->error("Sample data '" . $sampleData['name'] . "' has no 'uploads' folder");
+		throw new UnexpectedValueException("Sample data '" . $sampleData['name'] . "' has no 'uploads' folder");
 	}
 
 	$metadataPath = $GLOBALS['sampleDataPath'] . "/" . $sampleData['sample_path'] . "/.sample_metadata.json";
 	if (!is_file($metadataPath)) {
-		$_SESSION['errorData']['Warning'][] = "Sample data '" . $sampleData['name'] . "' has no metadata (.sample_metadata.json) to load -> $metadataPath ";
-		return 0;
+		getDataLogger()->error("Sample data '" . $sampleData['name'] . "' has no metadata (.sample_metadata.json) to load -> $metadataPath ");
+		throw new UnexpectedValueException("Sample data '" . $sampleData['name'] . "' has no metadata (.sample_metadata.json) to load -> $metadataPath ");
 	}
 
 	// read sample Data metadata
 	$metadataArray = json_decode(file_get_contents($metadataPath), true);
-	if (count($metadataArray) == 0) {
-		$_SESSION['errorData']['Warning'][] = "Sample data '" . $sampleData['name'] . "' has malformated json in '$metadataPath'";
-		return 0;
-	}
-
 	foreach ($metadataArray as $metadata) {
-		if (is_null($metadata['file_path'])) {
-			$_SESSION['errorData']['Warning'][] = "Wrong sample data '" . $sampleData['name'] . "' metadata contains elements without 'file_path' attribute. Ignoring them.";
+		if (is_null($metadata['path'])) {
+			getDataLogger()->warning("Wrong sample data '" . $sampleData['name'] . "' metadata contains elements without 'path' attribute. Ignoring them.");
 			continue;
 		}
 
 		if (save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, "folder", $verbose) == "0") {
-			$_SESSION['errorData']['Warning'][] = "Failed to inject sample data '" . $metadata['file_path'] . "'";
+			$_SESSION['errorData']['Warning'][] = "Failed to inject sample data '" . $metadata['path'] . "'";
 		}
 
 		// TODO: check if it is necessary
 		// looking for files in the folder 
-		$sampleDataPath = $GLOBALS['sampleDataPath'] . "/" . $sampleData['sample_path'] . "/" . $metadata['file_path'];
+		$sampleDataPath = $GLOBALS['sampleDataPath'] . "/" . $sampleData['sample_path'] . "/" . $metadata['path'];
 		$metaFilePath  = "$sampleDataPath/.sample_metadata.json";
 
 		if (!is_file($metaFilePath)) {
@@ -256,13 +194,13 @@ function setUserWorkSpace_sampleData($sampleName, $dataDir, $verbose = true)
 		}
 
 		foreach ($metadataArray as $meta_file) {
-			if (is_null($meta_file['file_path'])) {
-				$_SESSION['errorData']['Warning'][] = "Sample data '" . $sampleData['name'] . "' contains elements without 'file_path' attribute. Ignoring them.";
+			if (is_null($meta_file['path'])) {
+				$_SESSION['errorData']['Warning'][] = "Sample data '" . $sampleData['name'] . "' contains elements without 'path' attribute. Ignoring them.";
 				continue;
 			}
 
 			if (save_fromSampleDataMetadata($meta_file, $dataDir, $sampleName, "file", $verbose) == "0") {
-				$_SESSION['errorData']['Warning'][] = "Failed to inject sample data '" . $meta_file['file_path'] . "'";
+				$_SESSION['errorData']['Warning'][] = "Failed to inject sample data '" . $meta_file['path'] . "'";
 			}
 		}
 	}
@@ -271,27 +209,27 @@ function setUserWorkSpace_sampleData($sampleName, $dataDir, $verbose = true)
 }
 
 
-function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type, $verbose = true)
+function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type)
 {
 	if (isset($metadata['mongo']) && $metadata['mongo'] === false) {
 		return;
 	}
 
 	$sampleData = getSampleData($sampleName);
-	$sampleDataPath = $GLOBALS['sampleDataPath'] . "/" . $sampleData['sample_path'] . "/" . $metadata['file_path'];
+	$sampleDataPath = $GLOBALS['sampleDataPath'] . "/" . $sampleData['sample_path'] . "/" . $metadata['path'];
 	$dataDirPath = $GLOBALS['dataDir'] . "/$dataDir";
-	$userDataPath = $dataDirPath . "/" . $metadata['file_path'];
+	$userDataPath = $dataDirPath . "/" . $metadata['path'];
 
 	// Saving to disk
 	if ($type == "file") {
 		if (!is_file($sampleDataPath)) {
 			if (is_dir($sampleDataPath)) {
-				getProjectLogger()->error("Sample data file '" . $metadata['file_path'] . "' is a subfolder. Not supported. Ignoring it.");
-				throw new UnexpectedValueException("Sample data file '" . $metadata['file_path'] . "' is a subfolder. Not supported. Ignoring it.");
+				getProjectLogger()->error("Sample data file '" . $metadata['path'] . "' is a subfolder. Not supported. Ignoring it.");
+				throw new UnexpectedValueException("Sample data file '" . $metadata['path'] . "' is a subfolder. Not supported. Ignoring it.");
 			}
 
-			getProjectLogger()->error("Sample data file '" . $metadata['file_path'] . "' not in Sample Data directory ($sampleDataPath). Ignoring it.");
-			throw new UnexpectedValueException("Sample data file '" . $metadata['file_path'] . "' not in Sample Data directory ($sampleDataPath). Ignoring it.");
+			getProjectLogger()->error("Sample data file '" . $metadata['path'] . "' not in Sample Data directory ($sampleDataPath). Ignoring it.");
+			throw new UnexpectedValueException("Sample data file '" . $metadata['path'] . "' not in Sample Data directory ($sampleDataPath). Ignoring it.");
 		}
 
 		if (!is_file($userDataPath)) {
@@ -300,12 +238,12 @@ function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type, $v
 	} elseif ($type == "folder") {
 		if (!is_dir($sampleDataPath)) {
 			if (is_file($sampleDataPath)) {
-				getProjectLogger()->error("Sample data folder '" . $metadata['file_path'] . "' not grouped below any folder. Ignoring it.");
-				throw new UnexpectedValueException("Sample data folder '" . $metadata['file_path'] . "' not grouped below any folder. Ignoring it.");
+				getProjectLogger()->error("Sample data folder '" . $metadata['path'] . "' not grouped below any folder. Ignoring it.");
+				throw new UnexpectedValueException("Sample data folder '" . $metadata['path'] . "' not grouped below any folder. Ignoring it.");
 			}
 
-			getProjectLogger()->error("Sample data folder '" . $metadata['file_path'] . "' not in Sample Data directory. Ignoring it.");
-			throw new UnexpectedValueException("Sample data folder '" . $metadata['file_path'] . "' not in Sample Data directory. Ignoring it.");
+			getProjectLogger()->error("Sample data folder '" . $metadata['path'] . "' not in Sample Data directory. Ignoring it.");
+			throw new UnexpectedValueException("Sample data folder '" . $metadata['path'] . "' not in Sample Data directory. Ignoring it.");
 		}
 
 		if (!is_dir($userDataPath)) {
@@ -325,9 +263,99 @@ function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type, $v
 			}
 		}
 	} else {
-		getProjectLogger()->error("Sample data '" . $metadata['file_path'] . "' cannot be injected.");
-		throw new UnexpectedValueException("Sample data '" . $metadata['file_path'] . "' cannot be injected.");
+		getProjectLogger()->error("Sample data '" . $metadata['path'] . "' cannot be injected.");
+		throw new UnexpectedValueException("Sample data '" . $metadata['path'] . "' cannot be injected.");
 	}
+
+
+	// adapt sample data metadata
+	$metadata['path'] = "$dataDir/" . $metadata['path'];
+	$metadata['owner'] =  dirname($dataDir);
+	$metadata['meta_data']['validated'] = true;
+	if (isset($metadata['meta_data']['submission_file'])) {
+		$metadata['meta_data']['submission_file'] = "$dataDirPath/" . $metadata['meta_data']['submission_file'];
+	}
+
+	if (isset($metadata['meta_data']['log_file'])) {
+		$metadata['meta_data']['log_file'] = "$dataDirPath/" . $metadata['meta_data']['log_file'];
+	}
+
+	if (isset($metadata['meta_data']['associated_files'])) {
+		$associatedFileIds = [];
+		foreach ($metadata['meta_data']['associated_files'] as $associatedFile) {
+			$assocPath = "$dataDir/$associatedFile";
+			$assocId = getGSFileId_fromPath($assocPath, 1);
+			array_push($associatedFileIds, $assocId);
+		}
+
+		$metadata['meta_data']['associated_files'] = $associatedFileIds;
+	}
+
+	if (isset($metadata['sources'])) {
+		$associatedFileIds = [];
+		foreach ($metadata['sources'] as $source) {
+			$sourcePath = "$dataDir/$source";
+			$sourceId = getGSFileId_fromPath($sourcePath, 1);
+			array_push($associatedFileIds, $sourceId);
+		}
+
+		$metadata['sources'] = $associatedFileIds;
+	}
+
+	// validate sample data metadata
+	if (preg_match('/uploads/', $metadata['path']) || preg_match('/repository/', $metadata['path'])) {
+		[$responseCode, $validatedMetadata] = validateMugFile($metadata, false);
+	} else {
+		[$responseCode, $validatedMetadata] = validateMugFile($metadata, true);
+	}
+
+	if ($responseCode == 0) {
+		$_SESSION['errorData']['Warning'][] = "Sample data '" . $metadata['path'] . "' not injected. Its metadata is not valid. Ignoring it";
+		return 0;
+	}
+
+	// register sample data
+	$fileId = getGSFileId_fromPath($validatedMetadata['path'], 1);
+	if ($fileId) {
+		if ($verbose) {
+			$_SESSION['errorData']['Info'][] = "Sample data already in your workspace. Data '<strong>" . basename($metadata['path']) . "</strong>'";
+		}
+	} else {
+		//convert metadata from MuGfile to VREfile
+		[$file, $metadata] = getVREfile_fromFile($validatedMetadata);
+
+		//saving metadata
+		if ($type == "folder") {
+			$newId = createGSDirBNS($validatedMetadata['path'], 1);
+			if ($newId == "0") {
+				$_SESSION['errorData']['Error'][] = "Cannot register data sample '" . $validatedMetadata['path'] . "'";
+				return 0;
+			}
+
+			if (addMetadataBNS($newId, $metadata) == "0") {
+				$_SESSION['errorData']['login'][] = "Cannot register data sample '" . $validatedMetadata['path'] . "'";
+				return 0;
+			}
+
+			if ($verbose) {
+				$_SESSION['errorData']['Info'][] = "Sample data imported in your workspace. New Project: '<strong>" . basename($metadata['path']) . "</strong>'";
+			}
+		} elseif ($type == "file") {
+			$newId = uploadGSFileBNS($validatedMetadata['path'], $userDataPath, $file, $metadata, FALSE, 1);
+			if ($newId == "0") {
+				$_SESSION['errorData']['Error'][] = "Cannot register data sample '" . $validatedMetadata['path'] . "'";
+				return 0;
+			}
+
+			if (isset($metadata['path']) && preg_match('/uploads/', $metadata['path'])) {
+				if ($verbose) {
+					$_SESSION['errorData']['Info'][] = "Sample data imported in your <strong>uploads</strong> folder. New File: '<strong>" . basename($metadata['path']) . "</strong>'";
+				}
+			}
+		}
+	}
+
+	return 1;
 }
 
 
@@ -1084,8 +1112,8 @@ function processPendingFiles($sessionId, $files = array())
 				$parentDir = 0;
 				if ($job['stageout_data']) {
 					$output_file_1 = $job['stageout_data']['output_files'][0];
-					if ($output_file_1 && $output_file_1['file_path']) {
-						$parentDir = fromAbsPath_toPath(dirname($output_file_1['file_path']));
+					if ($output_file_1 && $output_file_1['path']) {
+						$parentDir = fromAbsPath_toPath(dirname($output_file_1['path']));
 					}
 				}
 				if (!$parentDir)
@@ -1186,33 +1214,33 @@ function processPendingFiles($sessionId, $files = array())
 						print "<br/> START OUTPUT ITEM REGISTRATION FOR THE FOLLOWING OUT_DATA:<br/>\n";
 						var_dump($out_data);
 						print "<\br>_____________\n";
-						var_dump($out_data['file_path']);
+						var_dump($out_data['path']);
 						print "<\br>_____________\n";
 						var_dump($out_data['meta_data']);
 						print "<\br>_____________\n";
 					}
 
 					//check requirement : required
-					if (is_null($out_data['file_path'])) {
+					if (is_null($out_data['path'])) {
 						if ($is_required) {
 							$_SESSION['errorData']['Error'][] = "Job output file ($out_name) not created";
-							log_addOutregister($pid, "Job output file ($out_name) not created. No 'file_path' found. Job finished without creating 'out_metadata'?");
+							log_addOutregister($pid, "Job output file ($out_name) not created. No 'path' found. Job finished without creating 'out_metadata'?");
 							$job_in_err = 1;
 						}
 						if ($debug) {
-							print "<br/>file_path NO SET, but not required. Continuing. The merged metadata is:<br/>\n";
+							print "<br/>path NO SET, but not required. Continuing. The merged metadata is:<br/>\n";
 							var_dump($out_data);
 						}
 						continue;
 					}
 
 					// resolve virtual path to local absolute path
-					$rfn = resolvePath_toLocalAbsolutePath($out_data['file_path'], $job);
+					$rfn = resolvePath_toLocalAbsolutePath($out_data['path'], $job);
 
 					$outPath  = fromAbsPath_toPath($rfn);
 					$fileId   = getGSFileId_fromPath($outPath);
 					if ($debug)
-						print "PID = [$pid] file_path=" . $out_data['file_path'] . " --> fn=$outPath rfn=$rfn . Has Id? $fileId <br/>\n";
+						print "PID = [$pid] path=" . $out_data['path'] . " --> fn=$outPath rfn=$rfn . Has Id? $fileId <br/>\n";
 
 
 					//associated_files and associated_id/_master: convert to fileIds 
@@ -1912,32 +1940,32 @@ function return_bytes($val)
 function resolvePath_toLocalAbsolutePath($path, $job)
 {
 	$rfn = "";
-	// file_path is an absolute path
+	// path is an absolute path
 	if (preg_match('/^\//', $path)) {
 		if (preg_match('/^' . preg_quote($job['root_dir_virtual'], '/') . '/', $path)) {
 			if ($job['launcher'] == "SGE" || $job['launcher'] == "ega_demo" || $job['launcher'] == "docker_SGE") {
 				$rfn = str_replace($job['root_dir_mug'], $GLOBALS['dataDir'], $path);
 			}
-			// direct from file_path
+			// direct from path
 		} else {
 			$rfn = $path;
 		}
-		// file_path is relative
+		// path is relative
 	} else {
-		// file_path is only a file name (file)
+		// path is only a file name (file)
 		if (!preg_match('/\//', $path)) {
 			$rfn = $job["output_dir"] . "/" . $path;
-			// file_path is relative to user data directory (run/file)
+			// path is relative to user data directory (run/file)
 		} elseif (preg_match('/^' . $job['execution'] . '/', $path)) {
 			$rfn = dirname($job["output_dir"]) . "/" . $path;
-			// file_path is relative to root directory (userid/prj/run/file)
+			// path is relative to root directory (userid/prj/run/file)
 		} elseif (preg_match('/^' . $_SESSION['User']['id'] . '/', $path)) {
 			$rfn = $GLOBALS['dataDir'] . "/" . $path;
-			// file_path contains $(working_dir) tag
+			// path contains $(working_dir) tag
 		} elseif (preg_match('/(working_dir)/', $path)) {
 			$rfn = str_replace("$(working_dir)", $job['working_dir'] . "/", $path);
 
-			// file_path is relative to app working directory (userid/prj/run/file)
+			// path is relative to app working directory (userid/prj/run/file)
 		} else {
 			$rfn = $job['working_dir'] . "/" . $path;
 		}

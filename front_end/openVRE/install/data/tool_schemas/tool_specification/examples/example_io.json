@@ -73,7 +73,7 @@
             "file": {
                 "file_type": "TAR",
                 "data_type": "tool_statistics",
-                "file_path": "myExecutionStatistics.tar.gz",
+                "path": "myExecutionStatistics.tar.gz",
                 "compressed": "gzip",
                 "meta_data": {
                     "visible": false,

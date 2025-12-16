@@ -605,8 +605,8 @@ function createGSDirBNS($dirPath, $asRoot = 0)
 	try {
 		$absoluteDirPath = absolutePathGSDir($dirPath, $asRoot);
 	} catch (UnexpectedValueException $e) {
-		getMongoLogger()->error("Cannot create $dirPath . Target not under root directory " . $_SESSION['User']['id'] . " ?");
-		throw new UnexpectedValueException("Cannot create $dirPath . Target not under root directory " . $_SESSION['User']['id'] . " ?" . "\n" . $e->getMessage());
+		getMongoLogger()->error("Cannot create $dirPath . Target not under root directory " . $_SESSION['User']['id'] . ".");
+		throw new UnexpectedValueException("Cannot create $dirPath . Target not under root directory " . $_SESSION['User']['id'] . "." . "\n" . $e->getMessage());
 	}
 
 	$fileId = getGSFileId_fromPath($absoluteDirPath, 1);

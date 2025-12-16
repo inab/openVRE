@@ -244,7 +244,7 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
     $filetype = array_keys($filetypes)[0] ?? "";
     $fileOut = [
         "name" => "file",
-        "file_path" => $filePath,
+        "path" => $filePath,
         "data_type" => "",
         "file_type" => $filetype,
         "sources" => [0],
@@ -266,7 +266,7 @@ function  getData_wget_asyncron($toolArgs, $toolOuts, $output_dir, $referer)
 {
     $toolId = "wget";
     $toolInputs = [];
-    $filePath = $toolOuts['output_files'][0]["file_path"];
+    $filePath = $toolOuts['output_files'][0]["path"];
     $logName = basename($filePath) . ".log";
 
     //TODO: FIXME START - This is a temporal fix. In future, files should not be downloaded, only registered
@@ -504,7 +504,7 @@ function getData_fromRepository($url, $datatype, $filetype, $description)
     $fileOut = [
         "name"       => "file",
         "type"       => "file",
-        "file_path"  => $filePath,
+        "path"  => $filePath,
         "data_type"  => $datatype,
         "file_type"  => $filetype,
         "sources"    => [0],

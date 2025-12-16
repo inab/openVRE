@@ -594,7 +594,7 @@
                 "study_meta_data"
                 ]
               },
-              "file_path": {
+              "path": {
                 "type": "string"
               },
               "compressed": {

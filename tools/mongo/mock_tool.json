@@ -65,7 +65,7 @@
           "tool": "mock_tool",
           "description": "Demo TXT output file."
         },
-        "file_path": "results_file.txt"
+        "path": "results_file.txt"
       }
     }
   ],

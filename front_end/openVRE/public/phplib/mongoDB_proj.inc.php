@@ -107,34 +107,21 @@ function createProjectDir($dirfn, $dirrfn, $project_attr = array(), $asRoot = 0)
 
     // register proj dir
     $dirId = createGSDirBNS($dirfn, $asRoot);
-    if ($dirId == "0") {
-        $_SESSION['errorData']['Error'][] = "Cannot create project folder: '$dirfn'";
-        return 0;
-    }
 
     //  make project directory
-
     mkdir($dirrfn, 0777);
     chmod($dirrfn, 0777);
 
-
     // set project metadata
+    $project_attr['is_a'] ??= "project";
+    $project_attr['project_type'] ??= "private";
+    $project_attr['description'] ??= "This is a VRE project";
 
-    if (! isset($project_attr['is_a']))
-        $project_attr['is_a'] = "project";
-    if (! isset($project_attr['project_type']))
-        $project_attr['project_type'] = "private";
-    if (! isset($project_attr['description']))
-        $project_attr['description'] = "This is a VRE project";
+    addMetadataToFile($dirId, $project_attr);
 
-
-    $r = addMetadataToFile($dirId, $project_attr);
-    if ($r == "0") {
-        $_SESSION['errorData']['Error'][] = "Project folder created. But cannot set metada for '$dirfn' with id '$dirId'";
-        return 0;
-    }
     return $dirId;
 }
+
 
 function printProjectContent($project_id, $onlyFolders = false, $asRoot = 0, $owner = 0)
 {

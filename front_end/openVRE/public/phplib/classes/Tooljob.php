@@ -417,8 +417,8 @@ class Tooljob
 
 		if ($tool['output_files']) {
 			foreach ($tool['output_files'] as $key => $value) {
-				if (isset($value['file']['file_path'])) {
-					$value['file']['file_path'] = $this->root_dir_virtual . "/" . $this->project . "/" . $this->execution . "/" . $value['file']['file_path'];
+				if (isset($value['file']['path'])) {
+					$value['file']['path'] = $this->root_dir_virtual . "/" . $this->project . "/" . $this->execution . "/" . $value['file']['path'];
 				}
 
 				$data['output_files'][] = $value;
@@ -640,7 +640,7 @@ class Tooljob
 						redirect($GLOBALS['BASEURL'] . "workspace/");
 					}
 
-					$fn = array_search($metadata_pub, array('file_path' => $input_value));
+					$fn = array_search($metadata_pub, array('path' => $input_value));
 					if ($fn === false) {
 						$this->logger->error("Input file public '$input_name' with value '$input_value' not found in public directory");
 						$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
@@ -748,17 +748,17 @@ class Tooljob
 			}
 
 			if ($fileMuG['data_source'] == "EGA") {
-				$fileMuG['file_path'] = "/clean_files/" . $file['ega_path']; // hardcoded ega path
+				$fileMuG['path'] = "/clean_files/" . $file['ega_path']; // hardcoded ega path
 			}
 
-			if ($fileMuG['file_path']) {
-				$fileMuG['file_path'] = $this->root_dir_virtual . "/" . $fileMuG['file_path'];
+			if ($fileMuG['path']) {
+				$fileMuG['path'] = $this->root_dir_virtual . "/" . $fileMuG['path'];
 			}
 
-			if ($fileMuG['meta_data']['parentDir']) {
-				$parent_path = getAttr_fromGSFileId($fileMuG['meta_data']['parentDir'], "path");
+			if ($fileMuG['parentDir']) {
+				$parent_path = getAttr_fromGSFileId($fileMuG['parentDir'], "path");
 				if (isset($parent_path)) {
-					$fileMuG['meta_data']['parentDir'] = $this->root_dir_virtual . "/" . $parent_path;
+					$fileMuG['parentDir'] = $this->root_dir_virtual . "/" . $parent_path;
 				}
 			}
 
@@ -783,11 +783,11 @@ class Tooljob
 					$fileMuG['sources'] = $source_list;
 				}
 
-				$fileMuG['file_path'] ??= $this->pub_dir_virtual . "/" . $fileMuG['file_path'];
-				if ($fileMuG['meta_data']['parentDir']) {
-					$parent_path = getAttr_fromGSFileId($fileMuG['meta_data']['parentDir'], "path");
+				$fileMuG['path'] ??= $this->pub_dir_virtual . "/" . $fileMuG['path'];
+				if ($fileMuG['parentDir']) {
+					$parent_path = getAttr_fromGSFileId($fileMuG['parentDir'], "path");
 					if (isset($parent_path)) {
-						$fileMuG['meta_data']['parentDir'] = $this->root_dir_virtual . "/" . $parent_path;
+						$fileMuG['parentDir'] = $this->root_dir_virtual . "/" . $parent_path;
 					}
 				}
 
@@ -1318,20 +1318,10 @@ class Tooljob
 	 */
 	protected function fromVREfile_toMUGfile($file)
 	{
+		// CHANGING OLD MUG FILE
 		$mugfile = [];
 		$compressions = $GLOBALS['compressions'];
 		$mugfile['_id'] = $file['_id'];
-
-		if (isset($file['path'])) {
-			if (preg_match('/^\//', $file['path']) || preg_match('/^' . $_SESSION['User']['id'] . '/', $file['path'])) {
-				$path = explode("/", $file['path']);
-				$mugfile['file_path'] = implode("/", array_slice($path, -3, 3));
-			} else {
-				$mugfile['file_path'] = $file['path'];
-			}
-		} else {
-			$mugfile['file_path'] = null;
-		}
 
 		$mugfile['file_type'] = $file['format'] ?? "UNK";
 		$mugfile['data_type'] = $file['data_type'] ?? null;
@@ -1349,8 +1339,7 @@ class Tooljob
 			$mugfile['sources'] = [$file['input_files']];
 		}
 
-		$mugfile['user_id'] = $file['owner'] ?? $_SESSION['User']['id'];
-		$mugfile['creation_time'] = $file['mtime'] ?? new MongoDB\BSON\UTCDateTime(strtotime("now") * 1000);
+		$mugfile['owner'] = $file['owner'] ?? $_SESSION['User']['id'];
 
 		$mugfile['taxon_id'] = $file['taxon_id'] ?? (isset($file['refGenome'])
 			? ($this->refGenome_to_taxon[$file['refGenome']] ?? 0)
@@ -1515,7 +1504,7 @@ class Tooljob
 					$fn  = createLabel() . "_dummy";
 					$file = array(
 						'_id'       => $fn,
-						'file_path' => $input_value,
+						'path' => $input_value,
 						'meta_data' => array(),
 						'sources'   => array(0)
 					);
@@ -1526,7 +1515,7 @@ class Tooljob
 					if (isset($tool['input_files_public_dir'][$input_name]['file_type']) && is_array($tool['input_files_public_dir'][$input_name]['file_type'])) {
 						$file['file_type'] = $tool['input_files_public_dir'][$input_name]['file_type'][0];
 					}
-					$file['user_id'] = "public";
+					$file['owner'] = "public";
 					if (is_file($rfn_public)) {
 						$file['type'] = "file";
 					}
