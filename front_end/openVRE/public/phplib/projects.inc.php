@@ -291,17 +291,6 @@ function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type)
 		$metadata['meta_data']['associated_files'] = $associatedFileIds;
 	}
 
-	if (isset($metadata['sources'])) {
-		$associatedFileIds = [];
-		foreach ($metadata['sources'] as $source) {
-			$sourcePath = "$dataDir/$source";
-			$sourceId = getGSFileId_fromPath($sourcePath, 1);
-			array_push($associatedFileIds, $sourceId);
-		}
-
-		$metadata['sources'] = $associatedFileIds;
-	}
-
 	// validate sample data metadata
 	if (preg_match('/uploads/', $metadata['path']) || preg_match('/repository/', $metadata['path'])) {
 		[$responseCode, $validatedMetadata] = validateMugFile($metadata, false);
@@ -1263,24 +1252,6 @@ function processPendingFiles($sessionId, $files = array())
 						}
 						$out_data['meta_data']['associated_files'] = $assocs;
 					}
-
-					//sources : convert to fileIds and rename to sources
-					if (isset($out_data['sources'])) {
-						$sources = array();
-						foreach ($out_data['sources'] as $source_path) {
-							$source_rfn = resolvePath_toLocalAbsolutePath($source_path, $job);
-							$source_fn = fromAbsPath_toPath($source_rfn);
-							$sourceid = getGSFileId_fromPath($source_fn);
-
-							array_push($sources, $sourceid);
-
-							if ($debug) {
-								print "SOURCES ORI = $source_path RFN = $source_rfn  FN = $source_fn ID = $sourceid <br/>";
-							}
-						}
-						$out_data['sources'] = $sources;
-					}
-
 
 					// job successfully finished and already in mongo. Update medatada
 

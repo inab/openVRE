@@ -699,21 +699,6 @@ class Tooljob
 			// convert metadata to DMP format
 			$fileMuG = $this->fromVREfile_toMUGfile($file);
 
-			// adapt metadata to App requirements
-			if (isset($fileMuG['sources'])) {
-				$source_list = [];
-				foreach ($fileMuG['sources'] as $sourceid) {
-					if ($sourceid) {
-						$source_path = getAttr_fromGSFileId($sourceid, "path");
-						if ($source_path) {
-							array_push($source_list, $this->root_dir_virtual . "/" . $source_path);
-						}
-					}
-				}
-
-				$fileMuG['sources'] = $source_list;
-			}
-
 			if ($fileMuG['data_source'] == "EGA") {
 				$fileMuG['path'] = "/clean_files/" . $file['ega_path']; // hardcoded ega path
 			}
@@ -735,21 +720,6 @@ class Tooljob
 		// add input_files public metadata
 		if (count($metadata_pub)) {
 			foreach ($metadata_pub as $fileId => $fileMuG) {
-				// adapt metadata to App requirements
-				if (isset($fileMuG['sources'])) {
-					$source_list = [];
-					foreach ($fileMuG['sources'] as $sourceid) {
-						if ($sourceid) {
-							$source_path = getAttr_fromGSFileId($sourceid, "path");
-							if (isset($source_path)) {
-								array_push($source_list, $this->pub_dir_virtual . "/" . $source_path);
-							}
-						}
-					}
-
-					$fileMuG['sources'] = $source_list;
-				}
-
 				$fileMuG['path'] ??= $this->pub_dir_virtual . "/" . $fileMuG['path'];
 				if ($fileMuG['parentDir']) {
 					$parent_path = getAttr_fromGSFileId($fileMuG['parentDir'], "path");
@@ -1300,10 +1270,6 @@ class Tooljob
 			$mugfile['compressed'] = in_array($ext, array_keys($compressions)) ? $compressions[$ext] : 0;
 		}
 
-		$mugfile['sources'] = $file['input_files'] ?? [];
-		if (!is_array($file['input_files'])) {
-			$mugfile['sources'] = [$file['input_files']];
-		}
 
 		$mugfile['owner'] = $file['owner'] ?? $_SESSION['User']['id'];
 
@@ -1468,7 +1434,6 @@ class Tooljob
 						'_id'       => $fn,
 						'path' => $input_value,
 						'meta_data' => array(),
-						'sources'   => array(0)
 					);
 
 					if (isset($tool['input_files_public_dir'][$input_name]['data_type']) && is_array($tool['input_files_public_dir'][$input_name]['data_type'])) {
