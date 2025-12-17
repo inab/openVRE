@@ -695,7 +695,7 @@ class Tooljob
 
 		$fileMuGs = [];
 		// add input_files metadata
-		foreach ($metadata as $fileId => $file) {
+		foreach ($metadata as $file) {
 			// convert metadata to DMP format
 			$fileMuG = $this->fromVREfile_toMUGfile($file);
 
@@ -719,7 +719,7 @@ class Tooljob
 
 		// add input_files public metadata
 		if (count($metadata_pub)) {
-			foreach ($metadata_pub as $fileId => $fileMuG) {
+			foreach ($metadata_pub as $fileMuG) {
 				$fileMuG['path'] ??= $this->pub_dir_virtual . "/" . $fileMuG['path'];
 				if ($fileMuG['parentDir']) {
 					$parent_path = getAttr_fromGSFileId($fileMuG['parentDir'], "path");
@@ -1255,13 +1255,24 @@ class Tooljob
 	 */
 	protected function fromVREfile_toMUGfile($file)
 	{
-		// CHANGING OLD MUG FILE
 		$mugfile = [];
 		$compressions = $GLOBALS['compressions'];
 		$mugfile['_id'] = $file['_id'];
 
-		$mugfile['data_type'] = $file['data_type'] ?? null;
-		$mugfile['data_source'] = $file['data_source'] ?? null;
+		if (isset($file['path'])) {
+			if (preg_match('/^\//', $file['path']) || preg_match('/^' . $_SESSION['User']['id'] . '/', $file['path'])) {
+				$path = explode("/", $file['path']);
+				$mugfile['file_path'] = implode("/", array_slice($path, -3, 3));
+			} else {
+				$mugfile['file_path'] = $file['path'];
+			}
+		} else {
+			$mugfile['file_path'] = NULL;
+		}
+
+		$mugfile['file_type'] = $file['format'] ?? "UNK";
+		$mugfile['data_type'] = $file['data_type'] ?? NULL;
+		$mugfile['data_source'] = $file['data_source'] ?? NULL;
 
 		if (isset($file['path'])) {
 			$ext = pathinfo($file['path'], PATHINFO_EXTENSION);
@@ -1270,8 +1281,13 @@ class Tooljob
 			$mugfile['compressed'] = in_array($ext, array_keys($compressions)) ? $compressions[$ext] : 0;
 		}
 
+		$mugfile['sources'] = $file['input_files'] ?? [];
+		if (!is_array($file['input_files'])) {
+			$mugfile['sources'] = [$file['input_files']];
+		}
 
-		$mugfile['owner'] = $file['owner'] ?? $_SESSION['User']['id'];
+		$mugfile['user_id'] = $file['owner'] ?? $_SESSION['User']['id'];
+		$mugfile['creation_time'] = $file['mtime'] ?? new MongoDB\BSON\UTCDateTime(strtotime("now") * 1000);
 
 		$mugfile['taxon_id'] = $file['taxon_id'] ?? (isset($file['refGenome'])
 			? ($this->refGenome_to_taxon[$file['refGenome']] ?? 0)
@@ -1289,6 +1305,10 @@ class Tooljob
 		unset($file['owner']);
 
 		$mugfile['meta_data'] = $file;
+		if (isset($mugfile['meta_data']['refGenome'])) {
+			$mugfile['meta_data']['assembly'] = $mugfile['meta_data']['refGenome'];
+			unset($mugfile['meta_data']['refGenome']);
+		}
 
 		return $mugfile;
 	}

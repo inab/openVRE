@@ -374,11 +374,69 @@ function prepMetadataUpload($request, $validationState = 0)
 
 function getVREfile_fromFile($mugfile)
 {
-    // CHANGING OLD MUG FILE
     $file     = [];
     $metadata = [];
 
-    $mugfile['owner'] ??= $_SESSION['User']['id'];
+    //set file
+    if (isset($mugfile['_id'])) {
+        $file['_id'] = $mugfile['_id'];
+    }
+
+    if (isset($mugfile['type'])) {
+        $file['type'] = $mugfile['type'];
+        unset($mugfile['type']);
+    }
+
+    if (isset($mugfile['path'])) {
+        $file['path'] = $mugfile['path'];
+        unset($mugfile['path']);
+    }
+
+    if (isset($mugfile['mtime'])) {
+        $file['mtime'] = $mugfile['mtime'];
+        unset($mugfile['mtime']);
+    }
+
+    if (isset($mugfile['user_id'])) {
+        $file['owner'] = $mugfile['user_id'];
+        unset($mugfile['user_id']);
+    } else {
+        $file['owner'] = $_SESSION['User']['id'];
+    }
+
+    if (isset($mugfile['meta_data']['expiration'])) {
+        $file['expiration'] = $mugfile['meta_data']['expiration'];
+        unset($mugfile['meta_data']['expiration']);
+    }
+
+    if (isset($mugfile['meta_data']['files'])) {
+        $file['files'] = $mugfile['meta_data']['files'];
+        unset($mugfile['meta_data']['files']);
+    }
+
+    if (isset($mugfile['meta_data']['parentDir'])) {
+        $file['parentDir'] = $mugfile['meta_data']['parentDir'];
+        unset($mugfile['meta_data']['parentDir']);
+    }
+
+    //set metadata
+    if (isset($mugfile['_id'])) {
+        $metadata['_id'] = $mugfile['_id'];
+        unset($mugfile['_id']);
+    }
+
+    if (isset($mugfile['meta_data'])) {
+        foreach ($mugfile['meta_data'] as $key => $value) {
+            $mugfile[$key] = $value;
+        }
+
+        unset($mugfile['meta_data']);
+    }
+
+    if (isset($mugfile['file_type'])) {
+        $metadata['format'] = $mugfile['format'];
+        unset($mugfile['format']);
+    }
 
     foreach ($mugfile as $key => $value) {
         $metadata[$key] = $value;
@@ -504,10 +562,6 @@ function prepMetadataLog($metaOutfile, $logPath = 0)
     $metaLog['visible']   = true;
     return $metaLog;
 }
-
-
-# Return 0 = no valid file; 1 = no valid but remediable; 2 = valid file
-function validateMugFile($file, $is_output = false) {}
 
 
 function output_is_required($out_def)

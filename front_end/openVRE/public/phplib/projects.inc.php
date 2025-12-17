@@ -253,6 +253,7 @@ function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type)
 		$sampleMetadataFiles = array_filter(scandir($sampleDataPath), function ($i) {
 			return preg_match('/^\.\w+/', $i);
 		});
+
 		if (count($sampleMetadataFiles)) {
 			foreach ($sampleMetadataFiles as $metadataFile) {
 				if ($metadataFile == ".sample_metadata.json") {
@@ -291,62 +292,51 @@ function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type)
 		$metadata['meta_data']['associated_files'] = $associatedFileIds;
 	}
 
-	// validate sample data metadata
-	if (preg_match('/uploads/', $metadata['path']) || preg_match('/repository/', $metadata['path'])) {
-		[$responseCode, $validatedMetadata] = validateMugFile($metadata, false);
-	} else {
-		[$responseCode, $validatedMetadata] = validateMugFile($metadata, true);
-	}
-
-	if ($responseCode == 0) {
-		$_SESSION['errorData']['Warning'][] = "Sample data '" . $metadata['path'] . "' not injected. Its metadata is not valid. Ignoring it";
-		return 0;
-	}
-
 	// register sample data
-	$fileId = getGSFileId_fromPath($validatedMetadata['path'], 1);
-	if ($fileId) {
-		if ($verbose) {
-			$_SESSION['errorData']['Info'][] = "Sample data already in your workspace. Data '<strong>" . basename($metadata['path']) . "</strong>'";
-		}
-	} else {
+	$fileId = getGSFileId_fromPath($metadata['path'], 1);
+	if (is_null($fileId)) {
 		//convert metadata from MuGfile to VREfile
-		[$file, $metadata] = getVREfile_fromFile($validatedMetadata);
+		[$file, $modifiedMetadata] = getVREfile_fromFile($metadata);
 
 		//saving metadata
 		if ($type == "folder") {
-			$newId = createGSDirBNS($validatedMetadata['path'], 1);
-			if ($newId == "0") {
-				$_SESSION['errorData']['Error'][] = "Cannot register data sample '" . $validatedMetadata['path'] . "'";
-				return 0;
-			}
-
-			if (addMetadataBNS($newId, $metadata) == "0") {
-				$_SESSION['errorData']['login'][] = "Cannot register data sample '" . $validatedMetadata['path'] . "'";
-				return 0;
-			}
-
-			if ($verbose) {
-				$_SESSION['errorData']['Info'][] = "Sample data imported in your workspace. New Project: '<strong>" . basename($metadata['path']) . "</strong>'";
-			}
+			$newId = createGSDirBNS($metadata['path'], 1);
+			addMetadataToFile($newId, $modifiedMetadata);
+			getProjectLogger()->info("Sample data imported in your workspace. New Project: '" . basename($modifiedMetadata['path']) . "'");
 		} elseif ($type == "file") {
-			$newId = uploadGSFileBNS($validatedMetadata['path'], $userDataPath, $file, $metadata, FALSE, 1);
-			if ($newId == "0") {
-				$_SESSION['errorData']['Error'][] = "Cannot register data sample '" . $validatedMetadata['path'] . "'";
-				return 0;
-			}
-
-			if (isset($metadata['path']) && preg_match('/uploads/', $metadata['path'])) {
-				if ($verbose) {
-					$_SESSION['errorData']['Info'][] = "Sample data imported in your <strong>uploads</strong> folder. New File: '<strong>" . basename($metadata['path']) . "</strong>'";
-				}
+			uploadGSFileBNS($metadata['path'], $userDataPath, $file, $modifiedMetadata, false);
+			if (isset($modifiedMetadata['path']) && preg_match('/uploads/', $modifiedMetadata['path'])) {
+				getProjectLogger()->info("Sample data imported in your <strong>uploads</strong> folder. New File: '<strong>" . basename($metadata['path']) . "</strong>'");
 			}
 		}
+	} else {
+		getProjectLogger()->info("Sample data already in your workspace. Data '" . basename($metadata['path']));
 	}
-
-	return 1;
 }
 
+/*
+
+	// register sample data
+	$fileId = getGSFileId_fromPath($metadata['path'], 1);
+	if (is_null($fileId)) {
+		//convert metadata from MuGfile to VREfile
+		[$file, $metadata] = getVREfile_fromFile($metadata);
+
+		//saving metadata
+		if ($type == "folder") {
+			$newId = createGSDirBNS($metadata['path'], 1);
+			addMetadataToFile($newId, $metadata);
+			getProjectLogger()->info("Sample data imported in your workspace. New Project: '" . basename($metadata['path']) . "'");
+		} elseif ($type == "file") {
+			uploadGSFileBNS($metadata['path'], $userDataPath, $file, $metadata, false);
+			if (isset($metadata['path']) && preg_match('/uploads/', $metadata['path'])) {
+				getProjectLogger()->info("Sample data imported in your <strong>uploads</strong> folder. New File: '<strong>" . basename($metadata['path']) . "</strong>'");
+			}
+		}
+	} else {
+		getProjectLogger()->info("Sample data already in your workspace. Data '" . basename($metadata['path']));
+	}
+*/
 
 function getFilesToDisplay($dirSelection, $filter_data_types = array())
 {
