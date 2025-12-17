@@ -167,21 +167,6 @@ class Tooljob
 
 
 	/**
-	 * Fetch tool entry in Mongo 
-	 * @param string $toolId Tool Id as appears in Mongo
-	 */
-	protected function getTool($toolId)
-	{
-		$tool   = $GLOBALS['toolsCol']->findOne(array('_id' => $toolId));
-		if (empty($tool)) {
-			$_SESSION['errorData']['Tooljob'][] = "Tool '$toolId' is not registered. Cannot submit execution. Please, contact <a href=\"mailto:" . $GLOBALS['helpdeskMail'] . "\">us</a>";
-			return 0;
-		}
-		$this->tool = $this->array_to_object($tool);
-	}
-
-
-	/**
 	 * Set description
 	 * @param string $descrip Short execution description to annotate execution directory
 	 */
@@ -605,8 +590,6 @@ class Tooljob
 				$this->input_files[$input_name] = $filenames;
 			}
 		}
-
-		return 1;
 	}
 
 	/**

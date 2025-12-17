@@ -287,29 +287,6 @@ function getAttr_fromGSFileId($fileId, $attr, $asRoot = 0)
 }
 
 
-function getSizeDirBNS($dir)
-{
-	$s = 0;
-	$dirObj = $GLOBALS['filesCol']->findOne(array('_id' => $dir, 'owner' => $_SESSION['User']['id']));
-	if (empty($dirObj) || is_null($dirObj['files'])) {
-		$_SESSION['errorData']['mongoDB'][] = $dir . " directory has no files<br/>";
-		return 0;
-	}
-	$files = $dirObj['files'];
-	foreach ($files as $child) {
-		$childObj = $GLOBALS['filesCol']->findOne(array('_id' => $child));
-		if (empty($childObj))
-			continue;
-		if (isset($childObj['files'])) {
-			$s += getSizeDirBNS($child);
-		} else {
-			$s += $childObj['size'];
-		}
-	}
-	return $s;
-}
-
-
 function moveGSFileBNS($fn, $fnNew, $asRoot = 0, $owner = "")
 {
 	if (!$asRoot) {
@@ -501,18 +478,12 @@ function moveGSDirBNS($fn, $fnNew, $asRoot = 0, $owner = "")
 		$f_file = getGSFile_fromId($f, asRoot: 1);
 		$f_fn    = $f_file['path'];
 		$f_fnNew = $fnNew . "/" . basename($f_file['path']);
-		try {
-			if (isGSDirBNS($GLOBALS['filesCol'], $f)) {
-				moveGSDirBNS($f_fn, $f_fnNew, $asRoot, $owner);
-			} else {
-				moveGSFileBNS($f_fn, $f_fnNew, $asRoot, $owner);
-			}
-		} catch (Exception $e) {
-			return 0;
+		if (isGSDirBNS($GLOBALS['filesCol'], $f)) {
+			moveGSDirBNS($f_fn, $f_fnNew, $asRoot, $owner);
+		} else {
+			moveGSFileBNS($f_fn, $f_fnNew, $asRoot, $owner);
 		}
 	}
-
-	return 1;
 }
 
 
@@ -766,96 +737,6 @@ function uploadGSFileBNS($localFilePath, $filePath, $attributes = [], $meta = []
 }
 
 
-// create new file registry from a URL
-function uploadGSFileBNS_fromURL($url, $parentPath, $attributes = array(), $meta = array(), $asRoot = 0)
-{
-
-	$col = $GLOBALS['filesCol'];
-
-	//check url
-	if (!is_url($url)) {
-		$_SESSION['errorData']['mongoDB'][] = "Cannot upload '$url'. Invalid URL format";
-		return 0;
-	}
-	$r = getGSFileId_fromPath($url);
-	if ($r != "0") {
-		$_SESSION['errorData']['mongoDB'][] = "Warning:Cannot upload '$url'. The resource was already there";
-		return $r;
-	}
-
-	//check parent
-	$parentId  = getGSFileId_fromPath($parentPath, $asRoot);
-	if ($parentId == "0") {
-		$r = createGSDirBNS($parentPath, $asRoot);
-		if ($r == "0")
-			return 0;
-	} else {
-		if (!isGSDirBNS($col, $parentId)) {
-			$_SESSION['errorData']['mongoDB'][] = "Cannot upload '$url'. Parent '$parentPath' is not a directoryy";
-			return 0;
-		}
-		$parentObj = $col->findOne(array(
-			'_id' => $parentId,
-			'owner' => $_SESSION['User']['id']
-		));
-		if (isset($parentObj['permissions']) && $parentObj['permissions'] == "000") {
-			$_SESSION['errorData']['mongoDB'][] = "Not permissions to modify parent directory $parentPath";
-			return 0;
-		}
-	}
-
-
-	// load File info to mongo
-
-	$fnId = (is_null($attributes['_id']) ? createLabel() : $attributes['_id']);
-
-	if ($attributes) {
-		//set default file attributes
-		if (! isset($attributes['_id']))
-			$attributes['_id'] = $fnId;
-		if (! isset($attributes['owner']))
-			$attributes['owner'] = $_SESSION['User']['id'];
-		if (! isset($attributes['mtime']))
-			$attributes['mtime'] = new MongoDB\BSON\UTCDateTime(strtotime("now") * 1000);
-		if (! isset($attributes['size'])) {
-			$ch = curl_init($params['url']);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_HEADER, true);
-			curl_setopt($ch, CURLOPT_NOBODY, true);
-			$attributes['size'] = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
-			curl_close($ch);
-		}
-		if (! isset($attributes['parentDir']))
-			$attributes['parentDir'] = $parentId;
-		if (! isset($attributes['path']))
-			$attributes['path'] = $url;
-		if (! isset($attributes['project']))
-			$attributes['project'] = $_SESSION['User']['activeProject'];
-		if (! isset($attributes['expiration'])) {
-			$expiration = $GLOBALS['caduca'] * 24 * 3600;
-			$attributes['expiration'] = new MongoDB\BSON\UTCDateTime((strtotime("now") + $expiration) * 1000);
-		}
-		$GLOBALS['filesCol']->updateOne(
-			array('_id' => $fnId),
-			$attributes,
-			array('upsert' => true)
-		);
-
-		// set parent
-		$GLOBALS['filesCol']->updateOne(
-			array("_id" => $parentId),
-			array('$addToSet' => array("files" => $fnId))
-		);
-		modifyGSFileBNS($parentId, "atime", new MongoDB\BSON\UTCDateTime(filemtime($file) * 1000));
-	}
-	// add metadata file
-	if (count($meta)) {
-		modifyMetadataBNS($fnId, $meta);
-	}
-	return $attributes['_id'];
-}
-
-
 //insert metadata for a file
 //overwrites all metadata
 function modifyMetadataBNS($fileId, $metadata)
@@ -1012,96 +893,6 @@ function deleteGSDirBNS($fn, $asRoot = 0)
 }
 
 
-function saveGSDirBNS($dir, $outDir)
-{
-	$dirObj = $GLOBALS['filesCol']->findOne(array('_id' => $dir,  'owner' => $_SESSION['User']['id']));
-	if (empty($dirObj) || is_null($dirObj['files'])) {
-		$_SESSION['errorData']['mongoDB'][] = "Cannot extract $dir from database. It is not a directory of your workspace";
-		return 0;
-	}
-	if (! is_dir($outDir)) {
-		exec("mkdir $outDir 2>&1", $output);
-		if ($output) {
-			$_SESSION['errorData']['mongoDB'][] = implode(" ", $output) . "</br> <a href=\"javascript:history.go(-1)\">[ OK ]</a>";
-			return 0;
-		}
-	}
-
-	foreach ($dirObj['files'] as $f) {
-		if (isGSDirBNS($GLOBALS['filesCol'], $f)) {
-			$outDirSub = $outDir . "/" . basename($f);
-			$r = saveGSDirBNS($f, $outDirSub);
-			if ($r == 0)
-				break;
-		} else {
-			$outTmp = "$outDir/" . basename($f);
-			saveGSFile($GLOBALS['grid'], $f, $outTmp);
-			if (! is_file($outTmp)) {
-				$_SESSION['errorData']['mongoDB'][] = "Cannot extract $dir from database. Inner $f not written in temporal dir $outTmp . ";
-				return 0;
-			}
-		}
-	}
-	return 1;
-}
-
-
-//
-//
-
-
-function printGSFile($col, $fn, $mime = '', $sendFn = False)
-{
-	$file = $col->findOne($fn);
-	if (!$file->file['_id'])
-		return 1;
-	if ($mime)
-		header('Content-type: ' . $mime);
-	if ($sendFn)
-		header('Content-Disposition: attachment; filename="' . $fn . '"');
-	print($file->getBytes());
-	return 0;
-}
-
-function getGSFileSmall($col, $fn)
-{
-	$file = $col->findOne(array('filename' => $fn));
-	if (empty($file)) {
-		print errorPage('File Not Found', 'File id ' . $fn . ' not found');
-		exit;
-	} else {
-		return $file->getBytes();
-	}
-}
-function getGSFile($col, $fn)
-{
-	$file = $col->findOne(array('filename' => $fn));
-	if (empty($file)) {
-		print errorPage('File Not Found', 'File id ' . $fn . ' not found');
-		exit;
-	} else {
-		$content = "";
-		$stream = $file->getResource();
-		while (!feof($stream)) {
-			$buff = fread($stream, 1024);
-			print $buff;
-			ob_flush();
-			flush();
-		}
-	}
-}
-
-function saveGSFile($col, $fn, $outFn)
-{
-	$file = $col->findOne(array('filename' => $fn));
-	if (empty($file)) {
-		print errorPage('File Not Found', 'Cannot save file ' . $fn . ' . File not found');
-		exit;
-	}
-	$file->write($outFn);
-	return 0;
-}
-
 function calcGSUsedSpace($userId)
 {
 	$files = $GLOBALS['filesCol']->find(['owner' => $userId])->toArray();
@@ -1121,43 +912,12 @@ function calcGSUsedSpace($userId)
 
 function calcGSUsedSpaceDir($fn)
 {
-	/*
-	$ops = array(
-				array('$match' => array('parentDir' => $fn)),
-				array('$group'=> array(
-					'_id'=>'$parentDir',
-					'size'=> array('$sum'=>'$size')
-				)
-			)
-		);
-	$d = $GLOBALS['filesCol']->aggregate($ops);
-	if (!count($d['result']))
-		return 0;
-	else
-        return $d['result'][0]['size']+0.;
-     */
-
 	$files = $GLOBALS['filesCol']->find(array('parentDir' => $fn))->toArray();
 	$size = 0;
 	foreach ($files as $f) {
 		$size += $f['size'];
 	}
 	return $size;
-}
-
-
-// store file content into GRID
-function uploadGSFile($collection, $localFilePath, $filePath)
-{
-	$path = pathinfo($filePath, PATHINFO_DIRNAME);
-	if (file_exists($filePath)) {
-		chdir($path);
-		$collection->deleteOne(['filename' => $localFilePath]);
-		return $collection->storeFile($filePath, ['filename' => $localFilePath]);
-	}
-
-	$_SESSION['errorData']['mongoDB'][] = "File '$localFilePath' not stored. Temporal '$filePath' not found";
-	return 0;
 }
 
 // create unique file id

@@ -64,14 +64,13 @@ function getTools_ListComplete($status = 1)
 	}
 }
 
-// list tools
 
+// list tools
 function getTool_fromId($toolId, $indexByName = false)
 {
-	$filterFields = [];
-	$tool = $GLOBALS['toolsCol']->findOne(['_id' => $toolId], $filterFields);
-	if (empty($tool)) {
-		return 0;
+	$tool = $GLOBALS['toolsCol']->findOne(['_id' => $toolId]);
+	if (is_null($tool)) {
+		return null;
 	}
 
 	if ($indexByName) {
@@ -105,7 +104,7 @@ function getTool_fromId($toolId, $indexByName = false)
 function launchToolInternal($toolId, $inputs = [], $args = [], $outs = [], $output_dir = "", $logName = "")
 {
 	$tool = getTool_fromId($toolId, true);
-	if (empty($tool)) {
+	if (is_null($tool)) {
 		getToolsLogger()->error("Tool '$toolId' not registered");
 		throw new NotFoundException("Internal tool not registered");
 	}
@@ -124,12 +123,12 @@ function launchToolInternal($toolId, $inputs = [], $args = [], $outs = [], $outp
 
 	// Checking files locally
 	$files = []; // distinct file Objs to stage in
-	foreach ($inputs as $inName => $inIds) {
+	foreach ($inputs as $inIds) {
 		foreach ($inIds as $inId) {
 			$file = getGSFile_fromId($inId);
 			if (is_null($file)) {
-				$_SESSION['errorData']['Error'][] = "Input file $inId does not belong to current user or has been not properly registered. Stopping internal tool execution";
-				return 0;
+				getToolsLogger()->error("Input file '$inId' not registered");
+				throw new NotFoundException("Input file not registered");
 			}
 
 			$files[$file['_id']] = $file;
@@ -137,30 +136,21 @@ function launchToolInternal($toolId, $inputs = [], $args = [], $outs = [], $outp
 	}
 
 	$jobMeta->setInput_files($inputs, [], []);
-	if ($jobMeta->input_files == 0) {
-		$_SESSION['errorData']['Error'][] = "Internal tool execution has no input files defined";
-		return 0;
+	if (empty($jobMeta->input_files)) {
+		getToolsLogger()->error("Internal tool execution has no input files defined");
+		throw new UnexpectedValueException("Internal tool execution has no input files defined");
 	}
 
 	$args['working_dir'] = $jobMeta->working_dir;
 	$jobMeta->setArguments($args, $tool);
-
 	$jobMeta->createWorking_dir();
 
 	// Set outfiles metadata -- for register latter
 	$jobMeta->setStageout_data($outs);
 
 	// Setting Command line. Adding parameters
-	$isExecutionPrepared = $jobMeta->prepareExecution($tool, $files);
-	if ($isExecutionPrepared == 0) {
-		return 0;
-	}
-
-	$pid = $jobMeta->submit($tool);
-	if ($pid == 0) {
-		return 0;
-	}
-
+	$jobMeta->prepareExecution($tool, $files);
+	$jobMeta->submit($tool);
 	addUserJob($_SESSION['User']['_id'], (array)$jobMeta, $jobMeta->pid);
 
 	return $jobMeta->pid;
@@ -176,8 +166,8 @@ function getVisualizers_List($status = 1)
 	return iterator_to_array($visualizers);
 }
 
-// list visualizers
 
+// list visualizers
 function getVisualizers_ListComplete($status = 1)
 {
 
@@ -186,42 +176,8 @@ function getVisualizers_ListComplete($status = 1)
 	return iterator_to_array($visualizers);
 }
 
-// list file_types in use
-
-function getFileTypes_List()
-{
-
-	$tls = $GLOBALS['toolsCol']->find(array('external' => true), array('name' => 1, 'input_files' => 1), array('name' => 1));
-
-	$tools = iterator_to_array($tls);
-
-	sort($tools);
-
-	$filetypes = array();
-
-	$i = 0;
-
-	foreach ($tools as $t) {
-
-		if (isset($t['input_files'])) {
-
-			$filetypes[$i]['name'] = $t['name'];
-
-			$types = array();
-
-			foreach ($t['input_files'] as $if) array_push($types, implode($if['format']));
-
-			$filetypes[$i]['formats'] = $types;
-
-			$i++;
-		}
-	}
-
-	return $filetypes;
-}
 
 // list a tool input file combination
-
 function getInputFilesCombinations($tool)
 {
 
@@ -234,198 +190,37 @@ function getInputFilesCombinations($tool)
 	return implode("~", $descriptions);
 }
 
-// list visualizers
-
-function getVisualizerTableList($file_types, $visualizer = null)
-{
-
-	$files_list = getGSFiles_filteredBy(array("format" => array('$in' => $file_types), "visible"   => true));
-	error_log(print_r($file_types, true));
-	$list = [];
-
-	foreach ($files_list as $file) {
-
-		$path = getAttr_fromGSFileId($file["_id"], 'path');
-		$p = explode("/", $path);
-
-		$a = [];
-		$a["id"] = $file["_id"];
-		$a["project"] = getProject($p[1])["name"];
-		$a["execution"] = $p[2];
-		$a["file"] = $p[3];
-
-		$list[] = $a;
-	}
-
-	$html = '<table id="workspace_st2" class="table display" cellspacing="0" width="100%">';
-
-	$html .= '<thead>';
-	$html .= '<tr id="headerSearch">';
-	$html .= '<th style="background-color: #eee;padding:3px;width:60px;"></th>';
-	$html .= '<th style="background-color: #eee;padding:3px;" class="inputSearch">Files</th>';
-	$html .= '<th style="background-color: #eee;padding:3px;" class="selector">Project</th>';
-	$html .= '<th style="background-color: #eee;padding:3px;" class="selector">Execution</th>';
-	if ($visualizer == "jbrowse") $html .= '<th style="background-color: #eee;padding:3px;" class="selector">Reference Genome</th>';
-	$html .= '</tr>';
-	$html .= '<tr id="heading">';
-	$html .= '<th>';
-	$html .= '<label class="mt-checkbox mt-checkbox-single mt-checkbox-outline" style="right:3px">';
-	$html .= '<input type="checkbox" class="checkboxes" value="" onchange="toggleAllFiles(this);" />';
-	$html .= '<span></span>';
-	$html .= '</label>';
-	$html .= '</th>';
-	$html .= '<th>File</th>';
-	$html .= '<th>Project</th>';
-	$html .= '<th>Execution</th>';
-	if ($visualizer == "jbrowse") $html .= '<th>Reference Genome</th>';
-	$html .= '</tr>';
-	$html .= '</thead>';
-
-
-	$html .= '<tbody>';
-
-	foreach ($list as $file) {
-
-		$tr_class = "";
-
-		$html .= '<tr class="row-clickable ' . $tr_class . '">';
-		$html .= '<td>';
-		$html .= '<label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">';
-		$html .= '<input type="checkbox" class="checkboxes" value="' . $file["id"] . '" onchange="changeCheckbox(this, \'' . $file["file"] . '\', \'' . $file["id"] . '\', \'Project01 (TODO) / ' . $file["execution"] . ' /\')" />';
-		$html .= '<span></span>';
-		$html .= '</label>';
-		$html .= '</td>';
-		$html .= '<td>' . $file["file"] . '</td>';
-		$html .= '<td>' . $file["project"] . '</td>';
-		$html .= '<td>' . $file["execution"] . '</td>';
-		if ($visualizer == "jbrowse") $html .= '<td>' . $file["refGenome"] . '</td>';
-		$html .= '</tr>';
-	}
-
-	$html .= '</tbody>';
-
-	$html .= '</table>';
-
-	return $html;
-}
-
-
-function getExecutionSitesForTool($toolId)
-{
-	// Retrieve tool document from the tools collection
-	$toolDocument = $GLOBALS['toolsCol']->findOne(['_id' => $toolId]);
-
-	if (!$toolDocument) {
-		return null;
-	}
-
-	$executionSitesData = $toolDocument['sites'];
-	$executionSites = [];
-
-	foreach ($executionSitesData as $siteData) {
-		if ($siteData['status'] === 1) {
-			$siteId = $siteData['site_id'];
-
-			//$_SESSION['errorData']['Error'][]="SiteId: {$siteId}";
-
-			// Query the execution_sites collection to get details about the execution site
-			// retrieve the document to check	
-			// $siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => 'sites']);
-			// per referenza:        $tool = $GLOBALS['toolsCol']->findOne(array('_id' => $toolId), $filterfields);	
-			//$_SESSION['errorData']['Error'][]="Site Doc: " . print_r($siteDocument['site'], true);
-			//$sites = $siteDocument['site'];
-			//$siteDetails = $siteDocument['site'] ->findOne(['site_id' => $siteId]);
-
-
-			if (isset($GLOBALS['sitesCol'])) {
-				$matchingSite = null;
-				foreach ($siteDocument['site'] as $site) {
-					if ($site['site_id'] == $siteId) {
-						$matchingSite = $site;
-						break;
-					}
-				}
-
-				if ($matchingSite) {
-					$siteDetails = [
-						'site_id' => $matchingSite['site_id'],
-						'name' => $matchingSite['name'],
-						'launcher' => $matchingSite['launcher'],
-						'status' => $siteData['status'],
-					];
-					$executionSites[] = $siteDetails;
-					//	$_SESSION['errorData']['Error'][] = "Site: " . print_r($siteDetails, true);
-				} else {
-					$_SESSION['errorData']['Error'][] = "Site not found blabla for site ID: {$siteId}";
-				}
-			} else {
-
-				$_SESSION['errorData']['Error'][] = "No 'site' field found in the document";
-			}
-		}
-	}
-
-	//$_SESSION['errorData']['Error'][] = "Site: " . print_r($siteDetails, true);	
-	//$_SESSION['errorData']['Error'][] = "Site: " . print_r($executionSites, true);
-	return $executionSites;
-}
 
 function getSites_Info($toolId)
 {
 
 	// Retrieve tool document from the tools collection
-	//	$filterfields=array();
 	$toolDocument = $GLOBALS['toolsCol']->findOne(['_id' => $toolId]);
-	//$_SESSION['errorData']['Error'][] = "Site: " . print_r($toolDocument, true);
-	if (!$toolDocument) {
+	if (is_null($toolDocument)) {
 		return null;
 	}
 
 	$executionSitesData = $toolDocument['sites'];
 	$executionSites = [];
-	$launchers = [];
 
 	foreach ($executionSitesData as $siteData) {
 		if ($siteData['status'] === 1) {
 			$siteId = $siteData['site_id'];
-			//$_SESSION['errorData']['Error'][] = "site ID: {$siteId}";
 			$filterfields = array();
 			$siteDocument = $GLOBALS['sitesCol']->findOne(array('_id' => $siteId), $filterfields);
-			//$_SESSION['errorData']['Warning'][] = "Site Document: {$siteDocument}";
-			//echo ("Site Document: {$siteDocument}");
-
-			if ($siteDocument) {
-				$siteDetails = [
-					'site_id' => $siteDocument['_id'],  // Assuming _id is site_id
-					'name' => $siteDocument['name'],
-					'launcher' => $siteDocument['launcher'],
-					'status' => $siteData['status'],
-				];
-				$executionSites[] = $siteDetails;
-			} else {
-				$_SESSION['errorData']['Error'][] = "Site not found jcjcj for site ID: {$siteId}";
+			if (is_null($siteDocument)) {
+				throw new NotFoundException("Site document not found for site ID: {$siteId}");
 			}
+
+			$siteDetails = [
+				'site_id' => $siteDocument['_id'],  // Assuming _id is site_id
+				'name' => $siteDocument['name'],
+				'launcher' => $siteDocument['launcher'],
+				'status' => $siteData['status'],
+			];
+			$executionSites[] = $siteDetails;
 		}
 	}
-	//$_SESSION['errorData']['Error'][] = "Site: " . print_r($executionSites, true);
+
 	return $executionSites;
-}
-
-function getLauncherDetails($toolId)
-{
-	// Get the execution sites details
-	$executionSites = $this->getSites_Info($toolId);
-
-	if (!$executionSites) {
-		return null;
-	}
-
-	$launcherDetails = [];
-	// Iterate through each site and extract only the launcher section
-	foreach ($executionSites as $siteDetails) {
-		if (isset($siteDetails['launcher'])) {
-			$launcherDetails[] = $siteDetails['launcher'];
-		}
-	}
-	return $launcherDetails;
 }

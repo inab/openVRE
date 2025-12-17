@@ -23,7 +23,7 @@ $logger->debug("Description: " . $_REQUEST['description']);
 
 $tool = getTool_fromId($_REQUEST['tool'], true);
 
-if (empty($tool)) {
+if (is_null($tool)) {
 	$logger->error("Tool not found: " . $_REQUEST['tool']);
 	internalErrorRedirect();
 }

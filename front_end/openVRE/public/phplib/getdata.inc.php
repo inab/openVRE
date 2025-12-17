@@ -269,18 +269,8 @@ function  getData_wget_asyncron($toolArgs, $toolOuts, $output_dir, $referer)
     $logName = basename($filePath) . ".log";
 
     //TODO: FIXME START - This is a temporal fix. In future, files should not be downloaded, only registered
-    $pid = launchToolInternal($toolId, $toolInputs, $toolArgs, $toolOuts, $output_dir, $logName);
+    launchToolInternal($toolId, $toolInputs, $toolArgs, $toolOuts, $output_dir, $logName);
     $outdir = basename($output_dir);
-
-    if ($pid == 0) {
-        $msg = "File imported from URL '" . basename($filePath) . "' cannot be imported. Error occurred while preparing the job 'Get remote file'";
-        if ($referer == "die") {
-            die($msg);
-        }
-
-        $_SESSION['errorData']['Error'][] = $msg;
-        redirect($referer);
-    }
 
     $_SESSION['errorData']['Info'][] = "File from URL '" . basename($filePath) . "' is being imported into the '$outdir' folder below. Please, edit its metadata once the import has finished";
     redirect($GLOBALS['BASEURL'] . "workspace/");
@@ -516,12 +506,7 @@ function getData_fromRepository($url, $datatype, $filetype, $description)
 
     $toolOuts = ["output_files" => [$fileOut]];
     $logName = basename($filePath) . ".log";
-    $pid = launchToolInternal($toolId, $toolInputs, $toolArgs, $toolOuts, $workingDir, $logName);
-
-    if ($pid == 0) {
-        getDataLogger()->error("Resource file '" . basename($filePath) . "' cannot be imported. Error occurred while preparing the job 'Get remote file'");
-        redirect($_SERVER['HTTP_REFERER']);
-    }
+    launchToolInternal($toolId, $toolInputs, $toolArgs, $toolOuts, $workingDir, $logName);
 
     $_SESSION['errorData']['Info'][] = "Remote file '" . basename($filePath) . "' imported into the 'repository' folder below. Please, edit its metadata once the job has finished";
     redirect($GLOBALS['BASEURL'] . "workspace/");

@@ -57,23 +57,15 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $ver
 	$homeDirId = getGSFileId_fromPath($homeDir, $asRoot);
 	if (! isGSDirBNS($GLOBALS['filesCol'], $homeDirId) || ! is_dir($homeDirP)) {
 		$homeDirId  = createGSDirBNS($homeDir, 1);
-		if ($verbose)
-			$_SESSION['errorData']['Info'][] = "Creating main user directory: $homeDirP ($homeDirId)";
-
-		if ($homeDirId == "0") {
-			$_SESSION['errorData']['Error'][] = "Cannot create main user directory $homeDir";
-			return 0;
-		}
-		$r = addMetadataToFile($homeDirId, array(
+		getProjectLogger()->info("Creating main user directory: $homeDirP ($homeDirId)");
+		addMetadataToFile($homeDirId, array(
 			"expiration" => -1,
 			"description" => "Root user data"
 		));
-		if ($r == "0") {
-			$_SESSION['errorData']['Error'][] = "Cannot set main user directory $homeDir";
-			return 0;
+
+		if (!is_dir($homeDirP)) {
+			mkdir($homeDirP, 0775);
 		}
-		if (!is_dir($homeDirP))
-			mkdir($homeDirP, 0775) or die("Cannot write main user directory $homeDirP");
 	}
 
 	$GLOBALS['filesCol']->updateOne(
@@ -1012,8 +1004,6 @@ function updatePendingFiles($sessionId)
 
 function processPendingFiles($sessionId, $files = array())
 {
-
-
 	$SGE_updated = array(); // jobs to be monitored. Stored in SESSION. Updated by checkPendingJobs.php (called by ajax)
 	$filesPending = array(); // files to be listed
 	$debug = 0;
@@ -1055,7 +1045,6 @@ function processPendingFiles($sessionId, $files = array())
 		$descrip = getJobDescription($job['description'], $jobProcess, $lastjobs);
 
 		if (count($jobProcess)) {
-
 			if ($debug)
 				print "RUNNING JOB";
 
@@ -1111,9 +1100,7 @@ function processPendingFiles($sessionId, $files = array())
 			$job['state'] = $jobProcess['state'];
 			$SGE_updated[$pid] = $job;
 
-			//    
 			// processing job non running anymore
-			//
 		} else {
 			log_addFinish($pid, "Workspace reload detects job $pid is not running anymore");
 
@@ -1122,19 +1109,15 @@ function processPendingFiles($sessionId, $files = array())
 
 			//get tool info
 			$tool = getTool_fromId($job['toolId'], 1);
-			if (! isset($tool['_id'])) {
-				$_SESSION['errorData']['Internal'][] = "toolId '" . $job['toolId'] . "' received from JobTool not registered";
-				$_SESSION['errorData']['Error'][] = "Cannot obtain results from '$title' in folder '" . basename($job['working_dir']) . "'. Job metadata is not valid.";
-				log_addOutregister($pid, "Failed to register $pid job outfiles. Job metadata has toolId '" . $job['toolId'] . "'");
+			if (is_null($tool)) {
+				getProjectLogger()->error("Tool '" . $job['toolId'] . "' received from JobTool not registered");
+				getProjectLogger()->error("Cannot obtain results from '$title' in folder '" . basename($job['working_dir']) . "'. Job metadata is not valid.");
+				getProjectLogger()->error("Failed to register $pid job outfiles. Job metadata has toolId '" . $job['toolId'] . "'");
 				$job_in_err = 1;
 				continue;
 			}
-			if ($debug) {
-				print "<br>\nBuilding outsput from toolINFO + stageout_file + stageout_data.\n<br/>STAGEOUT_DATA.<br>";
-				var_dump($job['stageout_data']);
-				print "<br>\nSTAGEOUT_FILE.<br>";
-				var_dump($job['stageout_file']);
-			}
+
+			getProjectLogger()->debug("Building outsput from toolINFO + stageout_file + stageout_data.");
 
 			// build output list merging: stageout_file + stageout_data + tool defintion data
 			$outs_files = build_outputs_list($tool, $job['stageout_data'], $job['stageout_file']);
@@ -1562,67 +1545,28 @@ function getUsedDiskSpace($userId = '', $source = "fs")
 	return calcGSUsedSpace($userId);
 }
 
-// return sum of FS directory (in bytes)
 
+// return sum of FS directory (in bytes)
 function getDirectorySize($fn)
 {
-	if (!$fn)
+	if (empty($fn)) {
 		return 0;
-	if (!preg_match('/^\//', $fn))
+	}
+
+	if (!preg_match('/^\//', $fn)) {
 		$fn = $GLOBALS['dataDir'] . "/" . $fn;
+	}
 
 	$data = explode("\t", exec("du -sb $fn"));
 	return $data[0];
 }
 
-// return user diskquota from mongo
-
-function getDiskLimit($login = '')
-{
-	if (!$login) {
-		$login  = $_SESSION['User']['_id'];
-	}
-	$sp = getUser_diskQuota($login);
-	if ($sp === false) {
-		return $GLOBALS['DISKLIMIT'];
-	} else {
-		return $sp;
-	}
-}
-
-
-
-/*
-function navigation() {
-	$cdir = $_SESSION['curDir'];
-
-	$fnData = $GLOBALS['filesCol']->findOne(array('_id' => $cdir));
-	if (empty($fnData)){
-		$_SESSION['errorData']['error'][]="Current directory is not found. Restart <a href=\"".$GLOBALS['managerDir']."/gesUser.php?op=loginForm\">login</a>, please";
-		return false;
-	}
-	$d = (isset($fnData['parentDir'])? $fnData['parentDir'] : 0);
-	
-	$dirs = array();
-	if (!topDir()) {
-		while ($d and ( $d != $_SESSION['userId'] ) ) {
-			$dirs[] = "<a href=\"".$GLOBALS['managerDir']."workspace.php?op=gotoDir&fn=$d\">" . basename($d). "</a>";
-			$fnData = $GLOBALS['filesCol']->findOne(array('_id' => $d));
-		if (empty($fnData))
-			$_SESSION['errorData'][error][]="Directory $d not found. Error in navigation menu";
-		$d = (isset($fnData['parentDir'])? $fnData['parentDir'] : 0);
-		}
-		$dirs[] = "<a href=\"".$GLOBALS['managerDir']."workspace.php?op=gotoDir&fn=$d\">".basename($d)."</a>";
-	}
-	return join(' > ', array_reverse($dirs)) . "> " . pathinfo($cdir, PATHINFO_FILENAME);
-}
-*/
 
 function formatSize($bytes)
 {
 	$types = array('B', 'KB', 'MB', 'GB', 'TB');
 	for ($i = 0; $bytes >= 1024 && $i < (count($types) - 1); $bytes /= 1024, $i++);
-	return (round($bytes, 2) . "" . $types[$i]);
+	return round($bytes, 2) . "" . $types[$i];
 }
 
 

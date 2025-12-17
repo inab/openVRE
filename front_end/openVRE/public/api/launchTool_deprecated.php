@@ -8,7 +8,7 @@ function launchTool($toolId, $userEmail, $projectName, $inputFilepaths)
 {
     $tool = getTool_fromId($toolId, 1);
 
-    if (empty($tool)) {
+    if (is_null($tool)) {
         $_SESSION['errorData']['Error'][] = "Tool not found";
         return 0;
     }

@@ -454,14 +454,8 @@ if (isset($_REQUEST['op'])) {
 			$rfn_target = $GLOBALS['dataDir'] . "/" . $_REQUEST['target'];
 
 			// Move file in mongo
-			$r = moveGSDirBNS($filePath, $_REQUEST['target']);
+			moveGSDirBNS($filePath, $_REQUEST['target']);
 
-			if ($r == "0") {
-				$_SESSION['errorData']['Error'][] = "Error while moving directory";
-				print('{"error":true, "msg": "Error while moving directory"}');
-				die();
-				break;
-			}
 			// Move dir in disk
 			rename($rfn, $rfn_target);
 			if (!is_dir($rfn_target)) {

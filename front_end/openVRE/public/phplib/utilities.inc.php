@@ -215,25 +215,6 @@ function printFilePath_fromPath($path, $asRoot = 0)
 }
 
 
-
-
-function fromPrefix2Program($prefix)
-{
-
-    $tools   = $GLOBALS['toolsCol']->find(array('prefix' => array('$exists' => true)));
-    if (empty($tools)) {
-        $_SESSION['errorData']['Error'][] = "Internal Error. Cannot extract any prefix from 'tools' collection";
-        return 0;
-    }
-    foreach ($tools as $toolId => $d) {
-        if ($d['prefix'] == $prefix)
-            return $d['title'];
-    }
-    $_SESSION['errorData']['Warning'][] = " Prefix '$prefix" . "_' not registered. File descriptions may not be complete.";
-    return 0;
-}
-
-
 // build text description for running jobs in datatables
 function getJobDescription($descrip0, $jobSGE, $lastjobs)
 {
@@ -263,52 +244,6 @@ function getJobDescription($descrip0, $jobSGE, $lastjobs)
         }
     }
     return $descrip;
-}
-
-// build text description from systematic execution file names
-function getDescriptionFromFN($fn, $prefix = 0)
-{
-    $descr  = "";
-    $ext = strtoupper(pathinfo($fn, PATHINFO_EXTENSION));
-    if (!$prefix) {
-        if (preg_match('/([A-Z]+)_.+\.(\w+)$/', $fn, $m)) {
-            $prefix = $m[1];
-            $ext = strtoupper($m[2]);
-        }
-    }
-    if ($ext) {
-        switch ($ext) {
-            case "SH":
-                $descr = "Execution file";
-                break;
-            case "LOG":
-                $descr = "Log file";
-                break;
-            case "GFF":
-            case "BW":
-                $descr = "Result file";
-                break;
-            case "PNG":
-                $descr = "Image file";
-                break;
-            case "BAM":
-                $descr = "BAM file";
-                if (!$prefix)
-                    $descr .= " is being sorted (if needed), indexed, and preprocessed for running Nucleosome Dynamics ";
-                break;
-            default:
-                $descr = "$ext file";
-        }
-        if (preg_match('/E\d+/', $ext)) {
-            $descr = "ERROR file";
-        }
-    }
-    if ($prefix) {
-        $program = fromPrefix2Program($pre);
-        if ($program)
-            $descr .= " from  $program";
-    }
-    return $descr;
 }
 
 
@@ -529,14 +464,6 @@ function prepMetadataResult($meta, $fnPath = 0, $lastjob = array())
         }
     }
 
-    if (is_null($meta['description'])) {
-        $prefix = 0;
-        if ($meta['tool']) {
-            $tool = $GLOBALS['toolsCol']->findOne(array('_id' => $meta['tool']));
-            $prefix = $tool['prefix'];
-        }
-        $meta['description'] = getDescriptionFromFN(basename($fnPath), $prefix);
-    }
     if (is_null($meta['validated'])) {
         $meta['validated'] = 1;
     }
@@ -549,7 +476,7 @@ function prepMetadataResult($meta, $fnPath = 0, $lastjob = array())
 
 
 //completes $meta for log files based on expected outfile
-function prepMetadataLog($metaOutfile, $logPath = 0)
+function prepMetadataLog($metaOutfile)
 {
     $metaLog = $metaOutfile;
     if (is_null($metaLog['format'])) {
@@ -579,14 +506,9 @@ function output_allow_multiple($out_def)
     else
         return false;
 }
-function rutime($ru, $rus, $index)
-{
-    return ($ru["ru_$index.tv_sec"] * 1000 + intval($ru["ru_$index.tv_usec"] / 1000))
-        -  ($rus["ru_$index.tv_sec"] * 1000 + intval($rus["ru_$index.tv_usec"] / 1000));
-}
+
 
 // Merge 2 multidimentional arrays joining common keys
-
 function array_merge_recursive_distinct(array &$array1, array &$array2)
 {
     $merged = $array1;
@@ -623,21 +545,6 @@ function flattenArray($arr, $dot_keynames = true, $narr = array(), $nkey = '')
     return $narr;
 }
 
-
-function getCurrentCloud()
-{
-    $cloud = array();
-    foreach ($GLOBALS['clouds'] as $cloudName => $c) {
-        if ($_SERVER['HTTP_HOST'] == $c['http_host']) //PHP_URL_HOST);
-            $cloud = $c;
-    }
-    if (!$cloud) {
-        $_SESSION['ErrorData']['Error'][] = "Cannot guess current cloud based on http_host='" . $_SERVER['HTTP_HOST'] . "'. Some job execution will fail";
-        return 0;
-    } else {
-        return $cloud;
-    }
-}
 
 // HTTP post
 function post($data, $url, $headers = [], $auth_basic = [])
