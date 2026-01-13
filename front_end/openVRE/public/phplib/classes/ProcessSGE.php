@@ -170,9 +170,10 @@ class ProcessSGE
 		exec($command, $r);
 		$res = join(" ", $r);
 		log_addInfo($jobid, "SGE/qdel: " . $res);
-		if (preg_match('/has deleted/i', $res) || preg_match('/registered the job \d+ for deletion/', $res))
+		if (preg_match('/has deleted/i', $res) || preg_match('/registered the job \d+ for deletion/', $res)) {
 			return array(true, $res);
-		else
+		} else {
 			return array(false, $res);
+		}
 	}
 }

@@ -50,7 +50,6 @@ redirectOutside();
 				$filesMeta = array();
 				if (is_null($_REQUEST['fn']) || !$_REQUEST['fn'] || !count($_REQUEST['fn'])) {
 					$_SESSION['errorData']['Error'][] = "No file selected. Please, select or upload a file to edit.";
-					// TODO: Go back to uploadForm.php?
 				} elseif (substr($_REQUEST['fn'][0], 0, 3) != substr($GLOBALS['AppPrefix'], 0, 3)) {
 					$_SESSION['errorData']['Error'][] = "An error occurred while registering your file. No valid file identifier received.";
 				} else {
@@ -63,7 +62,6 @@ redirectOutside();
 						$fileMeta = $GLOBALS['filesMetaCol']->findOne(array('_id' => $file));
 						if (empty($fileData)) {
 							$_SESSION['errorData']['Error'][] = "Problems while loading data. $file not found in the database.";
-							continue;
 						} else {
 							$filesData[$idx] = $fileData;
 							$filesMeta[$idx] = $fileMeta;

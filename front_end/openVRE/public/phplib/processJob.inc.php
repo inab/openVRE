@@ -53,7 +53,7 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
 
     $pid = $process->getPid();
     getJobProcessLogger()->info("Process started successfully: PID = $pid");
-    
+
     return $pid;
 }
 
@@ -119,12 +119,13 @@ function delJobFromOutfiles($outfiles)
             }
             //foreach job, cancel and delete associated files
             foreach ($pids as $pid) {
-                //delete job
-                $ok = delJob($pid);
-                if (!$ok) {
-                    $_SESSION['errorData']['Error'][] = "Cannot delete " . basename($outfile) . " task. Unsuccessfully exit of 'deljob' for job $pid.";
+                try {
+                    delJob($pid);
+                } catch (Exception $e) {
+                    $_SESSION['errorData']['Error'][] = "Cannot delete " . basename($outfile) . " task.";
                     continue;
                 }
+
                 //delete job associated files
                 $files = array();
                 $jobType = (isset($SGE_updated[$pid]['log']) ? basename($SGE_updated[$pid]['log']) : "");
@@ -166,8 +167,9 @@ function delJobFromOutfiles($outfiles)
 
 function delJob($pid, $launcherType = null, $login = null)
 {
-    if (!$pid) {
-        return false;
+    if (empty($pid)) {
+        getJobProcessLogger()->error("Job ID not provided.");
+        throw new NotFoundException("Job ID not provided.");
     }
 
     // guess launcher
@@ -177,13 +179,12 @@ function delJob($pid, $launcherType = null, $login = null)
 
     // cancel job
     $r_sge = false;
-    $r_docker = false;
     if ($launcherType == "SGE" || $launcherType == "docker_SGE") {
         $processSGE = new ProcessSGE();
         list($r_sge, $msg_sge) = $processSGE->stop($pid);
     } else {
-        $_SESSION['errorData']['Error'][] = "Cannot delete job of type '$launcherType' [id = $pid]. Launcher not implemented.";
-        return false;
+        getJobProcessLogger()->error("Cannot delete job of type '$launcherType' [id = $pid]. Launcher not implemented.");
+        throw new UnexpectedValueException("Cannot delete job of type '$launcherType' [id = $pid]. Launcher not implemented.");
     }
 
     $jobUser = $_SESSION['User']['lastjobs'][$pid];
@@ -192,27 +193,17 @@ function delJob($pid, $launcherType = null, $login = null)
         return false;
     }
 
-    if (!$r_sge || !$r_docker) {
-        $_SESSION['errorData']['Error'][] = "Cannot delete $launcherType job [id = $pid].<br/> SGE Error: $msg_sge<br/>Docker Error";
+    if ($r_sge === false) {
+        getProcessValidationLogger()->error("Cannot delete $launcherType job [id = $pid].<br/> SGE Error: $msg_sge<br/>Docker Error");
+        throw new UnexpectedValueException("Cannot delete $launcherType job [id = $pid].<br/> SGE Error: $msg_sge<br/>Docker Error");
     }
 
     $_SESSION['errorData']['Info'][] = "Job successfully cancelled";
-    logger("JOB $pid FINISHED. HAS BEEN CANCELLED");
-    log_addFinish($pid, "Job has been cancelled");
 
     // wait to make qdel/terminateActivity effective
     sleep(15);
 
-    // check job status and register output files, if required
-    if ($r_sge) {
-        if (!$login) {
-            $login = $_SESSION['User']['_id'];
-        }
-        //$filesPending= processPendingFiles($login);
-        //delUserJob($login,$pid); // directly deleting job entry leds to no output registration! 
-    } else {
-        $_SESSION['errorData']['Internal Error'][] = "Error while cancelling $launcherType job [id = $pid].<br>Job deleted from the system, but not from user metadata";
-        return false;
+    if (!$login) {
+        $login = $_SESSION['User']['_id'];
     }
-    return true;
 }

@@ -132,6 +132,7 @@ function printErrorDivision()
     }
 }
 
+
 //return html from
 //SESSION['errorData'] = Array( 'seccionA' => Array( 'error msg A1', 'error msg A2'))
 function printErrorData($targetSeccion = 0)

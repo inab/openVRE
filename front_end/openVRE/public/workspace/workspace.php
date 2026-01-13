@@ -213,7 +213,7 @@ if (isset($_REQUEST['op'])) {
 
 			break;
 		case 'cancelJobPids':
-			$r = delJob($_REQUEST['pids']);
+			delJob($_REQUEST['pids']);
 			break;
 
 		case 'cancelJobDir':
@@ -262,31 +262,22 @@ if (isset($_REQUEST['op'])) {
 
 		case 'cancelJobSure':
 
-			$r = delJob($_REQUEST['pid']);
-			if (!$r) {
-				$_SESSION['errorData']['Error'][] = "Cannot cancel task. Unsuccessfully exit of 'deljob' for job $pid.";
-			}
-			//$r = delJobFromOutfiles($_REQUEST['fn']);
+			delJob($_REQUEST['pid']);
 			break;
 
 		case 'cancelJobDirSure':
 			$jobList = array();
 			$jobData = getUserJobs($_SESSION['User']['_id']);
-			$delJobs_ok = 1;
 
 			if (count($jobData)) {
 				foreach ($jobData as $jobId => $data) {
 					if ($data['output_dir'] == $rfn) {
-						$r = delJob($jobId);
-						if (!$r) {
-							$_SESSION['errorData']['Error'][] = "Cannot cancel '" . $jobData["execution"] . "' task. Unsuccessfully exit of 'deljob' for job $pid.";
-							$delJobs_ok = 0;
-						}
+						delJob($jobId);
 					}
 				}
 			}
 
-			if ($delJobs_ok && count($fileData['files']) == 0 && is_null($_SESSION['errorData']['SGE'])) {
+			if (count($fileData['files']) == 0 && is_null($_SESSION['errorData']['SGE'])) {
 				try {
 					deleteGSDirBNS($_REQUEST['fn']);
 				} catch (Exception $e) {

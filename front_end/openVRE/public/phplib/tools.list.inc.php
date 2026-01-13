@@ -101,7 +101,7 @@ function getTool_fromId($toolId, $indexByName = false)
 
 
 // launch tool - used for internal tools
-function launchToolInternal($toolId, $inputs = [], $args = [], $outs = [], $output_dir = "", $logName = "")
+function launchToolInternal($toolId, $inputs = [], $args = [], $output_dir = "", $logName = "")
 {
 	$tool = getTool_fromId($toolId, true);
 	if (is_null($tool)) {
@@ -144,9 +144,6 @@ function launchToolInternal($toolId, $inputs = [], $args = [], $outs = [], $outp
 	$args['working_dir'] = $jobMeta->working_dir;
 	$jobMeta->setArguments($args, $tool);
 	$jobMeta->createWorking_dir();
-
-	// Set outfiles metadata -- for register latter
-	$jobMeta->setStageout_data($outs);
 
 	// Setting Command line. Adding parameters
 	$jobMeta->prepareExecution($tool, $files);

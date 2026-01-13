@@ -107,7 +107,7 @@ function getData_fromLocal()
 function getData_fromUrl($url, $meta = null)
 {
     [$toolArgs, $toolOuts, $output_dir] = prepare_getData_fromURL($url, "uploads", $GLOBALS['BASEURL'] . "/getdata/uploadForm.php#load_from_url", $meta);
-    getData_wget_asyncron($toolArgs, $toolOuts, $output_dir, $GLOBALS['BASEURL'] . "/getdata/uploadForm.php#load_from_url");
+    getData_wget_asyncron($toolArgs, $toolOuts, $output_dir);
 }
 
 // prepare target directory and file metadata
@@ -144,7 +144,7 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
             die($msg);
         }
 
-        $_SESSION['errorData']['Error'][] = $msg;
+        getDataLogger()->error($msg);
         redirect($referer);
     }
 
@@ -158,7 +158,7 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
             die($msg);
         }
 
-        $_SESSION['errorData']['Error'][] = $msg;
+        getDataLogger()->error($msg);
         redirect($referer);
     }
 
@@ -171,18 +171,18 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
             die($msg);
         }
 
-        $_SESSION['errorData']['Error'][] = $msg;
+        getDataLogger()->error($msg);
         redirect($referer);
     }
 
     if ($size > ($diskLimit - $usedDisk)) {
         $msg = "Cannot import file. There will be not enough space left in the workspace (size = " . getSize($size) . ")";
         if ($referer == "die") {
-            $_SESSION['errorData']['Error'][] = $msg;
+            getDataLogger()->error($msg);
             redirect($GLOBALS['BASEURL'] . "workspace/");
         }
 
-        $_SESSION['errorData']['Error'][] = $msg;
+        getDataLogger()->error($msg);
         redirect($referer);
     }
 
@@ -260,8 +260,7 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
 }
 
 
-//function getData_wget($url,$outdir,$referer,$meta=array()) {
-function  getData_wget_asyncron($toolArgs, $toolOuts, $output_dir, $referer)
+function  getData_wget_asyncron($toolArgs, $toolOuts, $output_dir)
 {
     $toolId = "wget";
     $toolInputs = [];
@@ -269,10 +268,10 @@ function  getData_wget_asyncron($toolArgs, $toolOuts, $output_dir, $referer)
     $logName = basename($filePath) . ".log";
 
     //TODO: FIXME START - This is a temporal fix. In future, files should not be downloaded, only registered
-    launchToolInternal($toolId, $toolInputs, $toolArgs, $toolOuts, $output_dir, $logName);
+    launchToolInternal($toolId, $toolInputs, $toolArgs, $output_dir, $logName);
     $outdir = basename($output_dir);
 
-    $_SESSION['errorData']['Info'][] = "File from URL '" . basename($filePath) . "' is being imported into the '$outdir' folder below. Please, edit its metadata once the import has finished";
+    getDataLogger()->info("File from URL '" . basename($filePath) . "' is being imported into the '$outdir' folder below. Please, edit its metadata once the import has finished");
     redirect($GLOBALS['BASEURL'] . "workspace/");
 }
 
@@ -364,8 +363,8 @@ function process_URL($url)
 
     $headers_data = get_headers($url, 1);
     if ($headers_data === false) {
-        $_SESSION['errorData']['Error'][] = "Resource URL ('$url') is not valid or unaccessible. Server not found";
-        return false;
+        getDataLogger()->error("Resource URL ('$url') is not valid or unaccessible. Server not found");
+        throw new UnexpectedValueException("Resource URL ('$url') is not valid or unaccessible. Server not found");
     }
 
     // corrects url when 301/302 redirect(s) lead(s) to 200
@@ -389,40 +388,35 @@ function process_URL($url)
 
     $status = substr($headers_data[0], 9, 3);
     if (!preg_match('/(200)/', $headers_data[0]) && !preg_match('/^3/', $status)) {
-        $_SESSION['errorData']['Error'][] = "Resource URL ('$url') is not valid or unaccessible. Status: $status";
-        redirect($_SERVER['HTTP_REFERER']);
+        getDataLogger()->error("Resource URL ('$url') is not valid or unaccessible. Status: $status");
+        throw new UnexpectedValueException("Resource URL ('$url') is not valid or unaccessible. Status: $status");
     }
 
     return $response;
 }
 
+
 // import from Repository (URL) to user workspace
-function getData_fromRepository($url, $datatype, $filetype, $description)
+function getData_fromRepository($url, $filetype, $description)
 {
     $url_data = process_URL($url);
-    $status = $url_data['status'];
-    if ($status != 200 && !preg_match('/^3/', $status)) {
-        $_SESSION['errorData']['Error'][] = "Resource URL ('$url') is not valid or unaccessible. Status: $status";
-        redirect($_SERVER['HTTP_REFERER']);
-    }
-
     $filename = $url_data['filename'];
-    if (!$filename) {
-        $_SESSION['errorData']['Error'][] = "Resource URL ('$url') is not pointing to a valid filename";
-        redirect($_SERVER['HTTP_REFERER']);
+    if (empty($filename)) {
+        getDataLogger()->error("Resource URL ('$url') is not pointing to a valid filename");
+        throw new UnexpectedValueException("Resource URL ('$url') is not pointing to a valid filename");
     }
 
     $size = (int) $url_data['size'];
     $usedDisk = (int) getUsedDiskSpace();
     $diskLimit = (int) $_SESSION['User']['diskQuota'];
     if ($size == 0) {
-        $_SESSION['errorData']['Error'][] = "Resource URL ('$url') is pointing to an empty resource (size = 0)";
-        redirect($_SERVER['HTTP_REFERER']);
+        getDataLogger()->error("Resource URL ('$url') is pointing to an empty resource (size = 0)");
+        throw new UnexpectedValueException("Resource URL ('$url') is pointing to an empty resource (size = 0)");
     }
 
     if ($size > ($diskLimit - $usedDisk)) {
-        $_SESSION['errorData']['Error'][] = "Cannot import file. There will be not enough space left in the workspace (size = $size)";
-        redirect($_SERVER['HTTP_REFERER']);
+        getDataLogger()->error("Cannot import file. There will be not enough space left in the workspace (size = $size)");
+        throw new UnexpectedValueException("Cannot import file. There will be not enough space left in the workspace (size = $size)");
     }
 
     // setting repository directory
@@ -484,29 +478,13 @@ function getData_fromRepository($url, $datatype, $filetype, $description)
     $description = $description ?: "Remote file extracted from <a target='_blank' href=\"$url\">$url</a>";
 
     if (empty($filetype)) {
-        [$fileExtension, $compressed] = getFileExtension($filePath);
+        [$fileExtension] = getFileExtension($filePath);
         $filetypes = getFileTypeFromExtension($fileExtension);
         $filetype = array_keys($filetypes)[0] ?? "";
     }
 
-    $validated = $filetype != "" && $datatype != "";
-    $fileOut = [
-        "name"       => "file",
-        "type"       => "file",
-        "path"  => $filePath,
-        "data_type"  => $datatype,
-        "format"  => $filetype,
-        "source_url" => $url,
-        "meta_data"  => [
-            "validated"   => $validated,
-            "compressed"  => $compressed,
-            "description" => $description,
-        ]
-    ];
-
-    $toolOuts = ["output_files" => [$fileOut]];
     $logName = basename($filePath) . ".log";
-    launchToolInternal($toolId, $toolInputs, $toolArgs, $toolOuts, $workingDir, $logName);
+    launchToolInternal($toolId, $toolInputs, $toolArgs, $workingDir, $logName);
 
     $_SESSION['errorData']['Info'][] = "Remote file '" . basename($filePath) . "' imported into the 'repository' folder below. Please, edit its metadata once the job has finished";
     redirect($GLOBALS['BASEURL'] . "workspace/");

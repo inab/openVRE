@@ -31,7 +31,6 @@ class DataTransfer
     public $log_file_virtual;
     public $logName;
 
-    public $stageout_data   = array();
     public $input_files     = array();
     public $input_files_pub = array();
     public $input_paths_pub = array();

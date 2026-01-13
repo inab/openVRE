@@ -49,7 +49,6 @@ redirectOutside();
 				$filesMeta = array();
 				if (is_null($_REQUEST['fn']) || !$_REQUEST['fn'] || !count($_REQUEST['fn'])) {
 					$_SESSION['errorData']['Error'][] = "No file selected. Please, select or upload a file to edit.";
-					// TODO: Go back to uploadForm.php?
 				} else {
 					if (!is_array($_REQUEST['fn'])) {
 						$_REQUEST['fn'] = array($_REQUEST['fn']);
@@ -60,7 +59,6 @@ redirectOutside();
 						$fileMeta = $GLOBALS['filesMetaCol']->findOne(array('_id' => $file));
 						if (empty($fileData)) {
 							$_SESSION['errorData']['Error'][] = "Problems while loading data. $file not found in the database.";
-							continue;
 						} else {
 							$filesData[$idx] = $fileData;
 							$filesMeta[$idx] = $fileMeta;

@@ -17,15 +17,19 @@ class User
     public $AuthProvider;
     public $id; // TODO: diff with _id?
     public $activeProject;
+    public $logger;
 
     public function __construct(string $email, string $secretsId, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject, ?string $jwt)
     {
+        $this->logger = LoggerFactory::getLogger('User');
         if ($type != UserType::Guest->value && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return 0;
+            $this->logger->error("Invalid email address: $email");
+            throw new UnexpectedValueException("Invalid email address: $email");
         }
 
         if (is_null($_SESSION['userToken']) && $type != UserType::Guest->value) {
-            return 0;
+            $this->logger->error("User not logged in");
+            throw new UnexpectedValueException("User not logged in");
         }
 
         $this->Type = $type ?? UserType::Registered->value; // TODO: check if this is ok
