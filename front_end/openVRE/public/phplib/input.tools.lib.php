@@ -344,7 +344,7 @@ function InputTool_printSelect($input)
 
 	if ($input["type"] == "boolean") {
 		$tool_options["name"] = [1, 0];
-		$tool_options["description"] = ["True", "False"];
+		$tool_options["description"] = ["True", "false"];
 	} else {
 		$tool_options = $input['enum_items'];
 	}

@@ -11,41 +11,18 @@ function moment()
 	return date("Y/m/d*H:i:s");
 }
 
-function getConf($path)
-{
-
-	$F = fopen($path, "r");
-
-	$buffer = '';
-	if ($F) {
-		while (!feof($handle)) {
-			$buffer .= fgetss($F, 5000);
-		}
-		fclose($F);
-	}
-	$results = array();
-	foreach (explode(";", $buffer) as $a) {
-		$r = explode(":", $a);
-		if (isset($r[1]))
-			array_push($results, $r[1]);
-	}
-	return $results;
-}
 
 function redirectOutside()
 {
 	if (!checkLoggedIn()) {
 		//Get access creating an a anonymous guest account
-		$r = createUserAnonymous(null);
-		if (!$r)
-			exit('Login error: cannot create anonymous VRE user');
+		createUserAnonymous(null);
 	} else {
 		loadUser($_SESSION['User']['_id'], false);
 	}
-	if (!checkTermsOfUse()) {
-		if (pathinfo($_SERVER['PHP_SELF'])['filename'] != 'usrProfile') {
-			redirect($GLOBALS['BASEURL'] . "user/usrProfile.php");
-		}
+
+	if (!checkTermsOfUse() && pathinfo($_SERVER['PHP_SELF'])['filename'] != 'usrProfile') {
+		redirect($GLOBALS['BASEURL'] . "user/usrProfile.php");
 	}
 }
 

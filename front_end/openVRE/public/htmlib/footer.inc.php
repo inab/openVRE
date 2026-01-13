@@ -45,7 +45,7 @@
     </div>
 </div>
 
-<input type="hidden" id="type-of-user" value="<?php echo $_SESSION['User']['Type']->value; ?>" />
+<input type="hidden" id="type-of-user" value="<?php echo $_SESSION['User']['Type']; ?>" />
 
 <div class="modal fade bs-modal" id="modalLogoutGuest" tabindex="-1" role="basic" aria-hidden="true">
     <div class="modal-dialog modal-lg">

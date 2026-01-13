@@ -1,19 +1,19 @@
 <?php
 
-function getTemplate($fn, $idioma = False) {
+function getTemplate($fn, $idioma = false) {
     if ($idioma)
         $fn = $GLOBALS['idioma'] . '/' . $fn;
     return file_get_contents($GLOBALS['htmlib'] . '/' . $fn);
 }
 
-function existTemplate($fn, $idioma = False) {
+function existTemplate($fn, $idioma = false) {
     if ($idioma)
         $fn = $GLOBALS['idioma'] . '/' . $fn;
     return file_exists($GLOBALS['htmlib'] . "/$fn");
 }
 
 
-function parseTemplate($f, $txt, $indirFields = '', $dateFields = '', $incRec = True, $recursive = False) {
+function parseTemplate($f, $txt, $indirFields = '', $dateFields = '', $incRec = True, $recursive = false) {
     if ($incRec)
         //$txt = replaceLabel($txt);
 

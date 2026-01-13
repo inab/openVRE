@@ -22,7 +22,6 @@ function getUsersLogger()
 
 function checkLoggedIn()
 {
-
     if (isset($_SESSION['User']) && isset($_SESSION['User']['_id'])) {
         $user = getUserById($_SESSION['User']['_id']);
     }
@@ -120,13 +119,12 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
     }
 
     // register user in mongo. NOT in ldap, as user exists for a oauth2 provider
-    $r = saveNewUser($userArray);
-    if (!$r) {
-        $_SESSION['errorData']['Error'][] = "User creation failed while registering it into the database. Please, manually clean orphan files for " . $userArray['id'] . "(" . $dataDirId . ")";
-        echo 'Error saving new user into Mongo database';
+    try {
+        saveNewUser($userArray);
+    } catch (Exception $e) {
+        getUsersLogger()->error("Error saving new user into Mongo database");
+        getUsersLogger()->error($e->getMessage());
         unset($_SESSION['User']);
-
-        return false;
     }
 
     // if not all user metadata mapped from oauth2 provider, ask the user
@@ -156,32 +154,24 @@ function createUserAnonymous($sampleData)
     }
 
     $userArray = (array) $objUser;
-    $_SESSION['userId'] = $userArray['id']; //TODO: OBSOLETE?
+    $_SESSION['userId'] = $userArray['id'];
     $_SESSION['User']   = $userArray;
     $_SESSION['anonID'] = $userArray['Email'];
 
     $dataDirId = prepUserWorkSpace($userArray['id'], $userArray['activeProject'], $sampleData);
-    if (!$dataDirId) {
-        $_SESSION['errorData']['Error'][] = "Error creating data dir";
-        return false;
-    }
-
     $userArray['dataDir'] = $dataDirId;
     $userArray['terms']  =  "1";
     $_SESSION['User']['dataDir'] = $dataDirId;
     $_SESSION['User']['terms'] = "1";
 
     // register user in mongo. NOT in ldap nor in the oauth2 provider
-    $r = saveNewUser($userArray);
-    if (!$r) {
-        $_SESSION['errorData']['Error'][] = "User creation failed while registering it into the database. Please, manually clean orphan files for " . $userArray['id'] . "(" . $dataDirId . ")";
-        echo 'Error saving new user into Mongo database';
-        unset($_SESSION['User']);
-
-        return false;
+    try {
+        saveNewUser($userArray);
+    } catch (Exception $e) {
+        getUsersLogger()->error("Error saving new user into Mongo database");
+        getUsersLogger()->error($e->getMessage());
+        exit('Login error: cannot create anonymous user');
     }
-
-    return true;
 }
 
 
@@ -210,7 +200,7 @@ function setUser($f, $lastLogin = false)
     $_SESSION['User']   = $aux;
     $_SESSION['curDir'] = $_SESSION['User']['id'];
 
-    if (is_null($_SESSION['lastUserLogin']) && $lastLogin) $_SESSION['lastUserLogin'] = $lastLogin;
+    if (!isset($_SESSION['lastUserLogin']) && $lastLogin) $_SESSION['lastUserLogin'] = $lastLogin;
 }
 
 
@@ -249,12 +239,7 @@ function logoutAnon()
 
 function saveNewUser($user)
 {
-    $r = $GLOBALS['usersCol']->insertOne($user);
-    if (!$r) {
-        return false;
-    }
-
-    return true;
+    return $GLOBALS['usersCol']->insertOne($user);
 }
 
 function updateUser($user)
@@ -279,27 +264,25 @@ function loadUser($login, $pass)
 {
     // check user exists
     $user = getUserById($login);
-    if (!$user['_id'] || $user['Status'] == UserStatus::Inactive->value) {
-        $_SESSION['errorData']['Error'][] = "Requested user (_id = $login) not found. Cannot load user.";
-        return False;
+    if (empty($user['_id']) || $user['Status'] == UserStatus::Inactive->value) {
+        getUsersLogger()->error("Requested user (_id = $login) not found. Cannot load user.");
+        throw new NotFoundException("Requested user (_id = $login) not found. Cannot load user.");
     }
+
     // check pass/token verifies - except when loading an ANON or when impersonating
     $pass_verified =  check_password($pass, null);
-    $impersonating =  (isset($_SESSION['User']) && $_SESSION['User']['Type'] == UserType::Admin->value && $pass == 99 ? true : false);
-    $loadingAnon   =  ($user['Type'] == UserType::Guest ? true : false);
+    $impersonating =  isset($_SESSION['User']) && $_SESSION['User']['Type'] == UserType::Admin->value && $pass == 99;
+    $loadingAnon   =  $user['Type'] == UserType::Guest;
 
     if (!$pass_verified) {
         if (!$loadingAnon  && !$impersonating) {
-            //$_SESSION['errorData']['Error'][]="Trying to load user without password from SESSION data. Rejected!";
             // keep open SESSION
             $user['lastReload'] = moment();
             updateUser($user);
             setUser($user);
-            return False;
-        } else {
-            if ($impersonating) {
-                $_SESSION['errorData']['Info'][] = "User $login successfully impersonated!";
-            }
+            return;
+        } elseif ($impersonating) {
+            getUsersLogger()->info("User $login successfully impersonated");
         }
     }
 
@@ -308,8 +291,7 @@ function loadUser($login, $pass)
     $user['lastLogin'] = moment();
     updateUser($user);
 
-
-    // load user into SESSION 
+    // load user into SESSION
     setUser($user, $auxlastlog);
 
     return $user;

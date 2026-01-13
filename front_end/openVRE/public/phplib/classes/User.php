@@ -27,7 +27,7 @@ class User
             throw new UnexpectedValueException("Invalid email address: $email");
         }
 
-        if (is_null($_SESSION['userToken']) && $type != UserType::Guest->value) {
+        if ($type != UserType::Guest->value && is_null($_SESSION['userToken'])) {
             $this->logger->error("User not logged in");
             throw new UnexpectedValueException("User not logged in");
         }

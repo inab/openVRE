@@ -1012,7 +1012,7 @@ class SMTP
      *   3. EHLO was sent
      *     $name = 'HELO'|'EHLO': returns server name
      *     $name = any string: if extension $name exists, returns boolean True
-     *       or its options. Otherwise returns boolean False
+     *       or its options. Otherwise returns boolean false
      * In other words, one can use this method to detect 3 conditions:
      *  - null returned: handshake was not or we don't know about ext (refer to $this->error)
      *  - false returned: the requested feature exactly not exists

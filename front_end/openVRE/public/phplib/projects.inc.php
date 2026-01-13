@@ -20,15 +20,16 @@ function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData
 	$_SESSION['curDir'] = $homeDir;
 
 	// set sampleData default
-	if ($sampleData == "") {
+	if (empty($sampleData)) {
 		$sampleData = $GLOBALS['sampleData_default'];
 	}
 
-	// set project default
-	if (!$projectDir) {
-		$_SESSION['errorData']['Internal'][] = "Cannot create user workspace $homeDir. No project directory name given. Please, contact <a href=\"mailto:" . $GLOBALS['helpdeskMail'] . "\">us reporting this error</a>";
+	if (empty($projectDir)) {
+		getProjectLogger()->error("Cannot create user workspace $homeDir. No project directory name given.");
+		throw new UnexpectedValueException("Cannot create user workspace $homeDir. No project directory name given.");
 	}
-	if (! count($projectData)) {
+
+	if (empty($projectData)) {
 		$projectData  = array(
 			"name"	 => $GLOBALS['project_default'],
 			"description"  => "This is my first VRE project, automatically created when entering into '" . $GLOBALS['NAME'] . "'. It is going to include my first data and executions.",
@@ -44,13 +45,12 @@ function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData
 
 function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $verbose = false, $asRoot = 0)
 {
-	if ($verbose)
-		$_SESSION['errorData']['Info'][] = "Preparing user workspace named '$homeDir' with sample data '$sampleData'";
+	getProjectLogger()->info("Preparing user workspace named '$homeDir' with sample data '$sampleData'");
 
 	//creating user home directory
 	if (!is_dir($GLOBALS['dataDir']) || !is_writable($GLOBALS['dataDir'])) {
-		header('Location: ' . $GLOBALS['BASEURL'] . '/htmlib/errordb.php?msg=Cannot access VRE data. Make sure data device is accessible and writable.');
-		die(1);
+		getProjectLogger()->error("Cannot access VRE data. Make sure data device is accessible and writable.");
+		throw new UnexpectedValueException("Cannot access VRE data. Make sure data device is accessible and writable.");
 	}
 
 	$homeDirP  = $GLOBALS['dataDir'] . "/$homeDir";
@@ -113,13 +113,7 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $ver
 			}
 
 			// injecting sample data
-			$r = setUserWorkSpace_sampleData($sampleData, $dataDir, $verbose);
-			if ($r == "0") {
-				$_SESSION['errorData']['Warning'][] = "Cannot fully inject sample data '$sampleData' into user workspace.";
-			} else {
-				if ($verbose)
-					$_SESSION['errorData']['Info'][] = "Sample data '$sampleData' successfully injected into user workspace.";
-			}
+			setUserWorkSpace_sampleData($sampleData, $dataDir, $verbose);
 		}
 	}
 
@@ -136,7 +130,7 @@ function setUserWorkSpace($homeDir, $projectDir, $projectData, $sampleData, $ver
 }
 
 
-function setUserWorkSpace_sampleData($sampleName, $dataDir, $verbose = true)
+function setUserWorkSpace_sampleData($sampleName, $dataDir)
 {
 	$sampleData = getSampleData($sampleName);
 	if (is_null($sampleData)) {
@@ -165,9 +159,7 @@ function setUserWorkSpace_sampleData($sampleName, $dataDir, $verbose = true)
 			continue;
 		}
 
-		if (save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, "folder", $verbose) == "0") {
-			$_SESSION['errorData']['Warning'][] = "Failed to inject sample data '" . $metadata['path'] . "'";
-		}
+		save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, "folder");
 
 		// TODO: check if it is necessary
 		// looking for files in the folder 
@@ -175,29 +167,27 @@ function setUserWorkSpace_sampleData($sampleName, $dataDir, $verbose = true)
 		$metaFilePath  = "$sampleDataPath/.sample_metadata.json";
 
 		if (!is_file($metaFilePath)) {
-			$_SESSION['errorData']['Warning'][] = "Sample data '" . $sampleData['name'] . "' has no metadata in $sampleDataPath to load. Empty directory.";
+			getDataLogger()->warning("Sample data '" . $sampleData['name'] . "' has no metadata in $sampleDataPath to load. Empty directory.");
 			continue;
 		}
 
 		$metadataArray = json_decode(file_get_contents($metaFilePath), true);
 		if (count($metadataArray) == 0) {
-			$_SESSION['errorData']['Warning'][] = "Sample data '" . $sampleData['name'] . "' has malformated json in folder '$sampleDataPath'";
+			getDataLogger()->warning("Sample data '" . $sampleData['name'] . "' has malformated json in folder '$sampleDataPath'");
 			continue;
 		}
 
 		foreach ($metadataArray as $meta_file) {
 			if (is_null($meta_file['path'])) {
-				$_SESSION['errorData']['Warning'][] = "Sample data '" . $sampleData['name'] . "' contains elements without 'path' attribute. Ignoring them.";
+				getDataLogger()->warning("Sample data '" . $sampleData['name'] . "' contains elements without 'path' attribute. Ignoring them.");
 				continue;
 			}
 
-			if (save_fromSampleDataMetadata($meta_file, $dataDir, $sampleName, "file", $verbose) == "0") {
-				$_SESSION['errorData']['Warning'][] = "Failed to inject sample data '" . $meta_file['path'] . "'";
-			}
+			save_fromSampleDataMetadata($meta_file, $dataDir, $sampleName, "file");
 		}
 	}
 
-	return 1;
+	getDataLogger()->info("Sample data '" . $sampleData['name'] . "' successfully injected into user workspace.");
 }
 
 
@@ -306,31 +296,8 @@ function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type)
 	}
 }
 
-/*
 
-	// register sample data
-	$fileId = getGSFileId_fromPath($metadata['path'], 1);
-	if (is_null($fileId)) {
-		//convert metadata from MuGfile to VREfile
-		[$file, $metadata] = getVREfile_fromFile($metadata);
-
-		//saving metadata
-		if ($type == "folder") {
-			$newId = createGSDirBNS($metadata['path'], 1);
-			addMetadataToFile($newId, $metadata);
-			getProjectLogger()->info("Sample data imported in your workspace. New Project: '" . basename($metadata['path']) . "'");
-		} elseif ($type == "file") {
-			uploadGSFileBNS($metadata['path'], $userDataPath, $file, $metadata, false);
-			if (isset($metadata['path']) && preg_match('/uploads/', $metadata['path'])) {
-				getProjectLogger()->info("Sample data imported in your <strong>uploads</strong> folder. New File: '<strong>" . basename($metadata['path']) . "</strong>'");
-			}
-		}
-	} else {
-		getProjectLogger()->info("Sample data already in your workspace. Data '" . basename($metadata['path']));
-	}
-*/
-
-function getFilesToDisplay($dirSelection, $filter_data_types = array())
+function getFilesToDisplay($dirSelection)
 {
 	$filesAll = array();
 	$filesPending = processPendingFiles($_SESSION['User']['_id']);
@@ -609,58 +576,63 @@ function getToolsByDT($data_type, $status = 1)
 function formatData($data)
 {
 	//_id id_URL
-	if (is_null($data['_id']))
+	if (is_null($data['_id'])) {
 		return $data;
+	}
+
 	$data['_id_URL'] = urlencode($data['_id']);
+
 	//mtime atime
 	if (isset($data['mtime'])) {
 		if (is_object($data['mtime'])) {
 			$data['mtime'] = $data['mtime']->toDateTime()->format('U');
 		}
-		$data['mtime'] = datefmt_format(getDateTimeFormat(), $data['mtime']);
 
+		$data['mtime'] = datefmt_format(getDateTimeFormat(), $data['mtime']);
 		$hoursleft = (time() - (int) $data['mtime']) / 3600;
 
-		//if($hoursleft < 1) $data['lastuploaded'] = '<i class="fa fa-star-o font-green" style="margin-left:3px;" title="File recently added"></i>';
-		if ($hoursleft < 1) $data['lastuploaded'] = '<span class="badge badge-info" title="File recently added"> new </span>';
-		else $data['lastuploaded'] = '';
-
-		//$data['mtime'] .= $data['hoursleft'];
-
-
+		if ($hoursleft < 1) {
+			$data['lastuploaded'] = '<span class="badge badge-success" title="File recently added"> ' . round($hoursleft, 2) . "h </span>";
+		} else {
+			$data['lastuploaded'] = '';
+		}
 	} else {
 		$data['mtime'] = "";
 	}
+
 	if (isset($data['atime'])) {
-		if (is_object($data['atime']))
+		if (is_object($data['atime'])) {
 			$data['atime'] = $data['atime']->toDateTime()->format('U');
+		}
+
 		$data['atime'] = datefmt_format(getDateTimeFormat(), $data['atime']);
 		$data['mtime'] = $data['atime'];
 	}
-	//format
-	if (is_null($data['format']))
-		$data['format'] = "";
-	//type
-	if (is_null($data['type']))
-		$data['type'] = "file";
+
+	$data['format'] ??= '';
+	$data['type'] ??= "file";
+
 	//expiration
 	if (isset($data['expiration'])) {
 		if (!is_object($data['expiration']) && $data['expiration'] == -1) {
 			$data['expiration'] = "File/folder does not expire";
 		} else {
-			if (is_object($data['expiration']))
+			if (is_object($data['expiration'])) {
 				$data['expiration'] = $data['expiration']->toDateTime()->format('U');
+			}
 
 			$days2expire = intval(($data['expiration']  - time()) / (24 * 3600));
 			$data['expiration'] = datefmt_format(getDateTimeFormat(), $data['expiration']);
-			if ($days2expire < 7)
+			if ($days2expire < 7) {
 				$data['expiration'] = $data['expiration'] . "( in <span style=\"color:#b30000;font-weight:bold;\">" . $days2expire . "</span> days)";
-			else
+			} else {
 				$data['expiration'] = $data['expiration'] . "( in $days2expire days)";
+			}
 		}
 	} else {
 		$data['expiration'] = "No expiration date";
 	}
+
 	//size
 	if (isset($data['files']) && is_null($data['size'])) {
 		$data['size'] = calcGSUsedSpaceDir($data['_id']);
@@ -696,21 +668,21 @@ function formatData($data)
 		}
 		$data['execution'] = $executionName;
 	}
-	//project name
 
+	//project name
 	$p_code = "";
 	if (preg_match('/\/(__PROJ[^\/]*)/', $data['path'], $match)) {
 		$p_code = $match[1];
 	}
 	$p = getProject($p_code);
 	$data['project'] = $p['name'];
-	//}
 
 	// description
-	if (isset($data['description'])) {
-		if (strlen($data['description']) > 50) $data['description'] = substr($data['description'], 0, 50) . '...';
+	if (isset($data['description']) && strlen($data['description']) > 50) {
+		$data['description'] = substr($data['description'], 0, 50) . '...';
 	}
-	//filename 
+
+	//filename
 	if (isset($data['pending'])) {
 		if (is_null($data['files'])) {
 			$data['filename'] = $data['title'];
@@ -728,29 +700,29 @@ function formatData($data)
 		$data['show_file_url'] = "<span style=\"margin: -8px;\" title=\"" . $data['file_url'] . "\" ><i class=\"fa fa-link font-green\"></i></span>";
 	}
 
-	if ($data['filename']) {
-		if (!is_url($data['path'])) {
-			$rfn      = $GLOBALS['dataDir'] . "/" . $data['path'];
-			if (!is_file($rfn) && !is_dir($rfn)) {
-				$data['filename'] = "ERROR-" . $data['filename'];
-			}
+	if ($data['filename'] && !is_url($data['path'])) {
+		$rfn      = $GLOBALS['dataDir'] . "/" . $data['path'];
+		if (!is_file($rfn) && !is_dir($rfn)) {
+			$data['filename'] = "ERROR-" . $data['filename'];
 		}
 	}
+
 	if (isset($data['submission_file'])) {
 		$data['execDetails'] = "<tr><td>Execution details:</td><td><a href=\"javascript:callShowSHfile('" . $data['tool'] . "','" . $data['submission_file'] . "');\">Analysis parameters</a></td></tr>";
 	} else {
 		$data['execDetails'] = "";
 	}
+
 	if (isset($data['log_file'])) {
 		if (preg_match('/^\//', $data['log_file'])) {
 			$data['log_file'] = str_replace($GLOBALS['dataDir'] . "/", "", $data['log_file']);
 		}
+
 		$viewLog_state = "enabled";
-		if (isset($data['pending']) && ($data['pending'] == "HOLD" || $data['pending'] == "PENDING")) {
-			$viewLog_state = 'disabled';
-		} elseif (!is_file($GLOBALS['dataDir'] . "/" . $data['log_file']) && !is_link($GLOBALS['dataDir'] . "/" . $data['log_file'])) {
+		if ((isset($data['pending']) && ($data['pending'] == "HOLD" || $data['pending'] == "PENDING")) || (!is_file($GLOBALS['dataDir'] . "/" . $data['log_file']) && !is_link($GLOBALS['dataDir'] . "/" . $data['log_file']))) {
 			$viewLog_state = 'disabled';
 		}
+
 		$data['viewLog'] = "<tr><td>Log file:</td><td><a target=\"_blank\" href=\"workspace/workspace.php?op=openPlainFileFromPath&fnPath=" . urlencode($data['log_file']) . "\" class=\"$viewLog_state\">View</a></td></tr>";
 	} else {
 		$data['viewLog'] = "";
@@ -760,14 +732,9 @@ function formatData($data)
 
 	// tools list
 	if (isset($data['data_type']) && ($data['data_type'] != "")) {
-
 		$tList = getToolsByDT($data['data_type'], 1);
-
 		$data['tools_list'] = '<ul class="dropdown-menu pull-right" role="menu">';
-
-
 		if (sizeof($tList) > 0) {
-
 			foreach ($tList as $t) {
 				$data['tools_list'] .= '<li><a href="tools/' . $t[0] . '/input.php?fn[]=' . $data['_id_URL'] . '" class="' . $t[0] . '">' . file_get_contents('../tools/' . $t[0] . '/assets/ws/icon.php') . ' ' . $t[1] . '</a></li>';
 			}
@@ -789,30 +756,38 @@ function formatData($data)
 	} else {
 		$data['data_type'] = "";
 	}
+
 	//notes
 	if (isset($data['notes']) && strlen($data['notes'])) {
 		$data['notes'] = "<tr><td>Notes:</td><td>" . $data['notes'] . "</td></tr>";
 	} else {
 		$data['notes'] = "";
 	}
+
 	//paired sorted refGenome
 	if (isset($data['paired']) ||  isset($data['sorted'])) {
 		$row = "<tr><td>BAM properties:</td><td>";
-		if (isset($data['paired']))
+		if (isset($data['paired'])) {
 			$row .= $data['paired'];
-		if (isset($data['sorted']))
+		}
+
+		if (isset($data['sorted'])) {
 			$row .= "&nbsp;" . $data['sorted'];
+		}
+
 		$row .= "</td></tr>";
 		$data['paired'] = $row;
 	} else {
 		$data['paired'] = "";
 	}
+
 	if (isset($data['refGenome'])) {
 		$data['refGenome'] = "<tr><td>Assembly:</td><td>" . $data['refGenome'] . "</td></tr>";
 	} else {
 		$data['refGenome'] = "";
 	}
-	//state and metadataLink  
+
+	//state and metadataLink
 	if (isset($data['validated']) && $data['validated']) {
 		$data['state'] = 'enabled';
 		$data['metadataLink'] = "<li><a href=\"getdata/editFile.php?fn[]=" . $data['_id_URL'] . "\"><i class=\"fa fa-pencil\"></i> Edit file metadata</a></li>";
@@ -830,7 +805,6 @@ function formatData($data)
 	if (isset($data['format'])) {
 
 		$data['vis_button'] = 'block';
-
 		$data['vis_button'] = 'none';
 
 		$visualizers = getVisualizers_ListComplete();

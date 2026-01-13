@@ -546,7 +546,7 @@ function getSampleData($sampleDataId)
 }
 
 
-// import sampleData into into current WS user 
+// import sampleData into into current WS user
 function getData_fromSampleData($params = [])
 {
     if (!is_array($params['sampleData'])) {
@@ -556,10 +556,7 @@ function getData_fromSampleData($params = [])
     foreach ($params['sampleData'] as $sampleName) {
         $_SESSION['errorData']['Info'][] = "Importing exemple dataset for '$sampleName'";
         $dataDir = $_SESSION['User']['id'] . "/" . $_SESSION['User']['activeProject'];
-        if (setUserWorkSpace_sampleData($sampleName, $dataDir) == "0") {
-            $_SESSION['errorData']['Warning'][] = "Cannot fully inject exemple dataset into user workspace.";
-            redirect($GLOBALS['URL'] . "/getdata/sampleDataList.php");
-        }
+        setUserWorkSpace_sampleData($sampleName, $dataDir);
 
         $_SESSION['errorData']['Info'][] = "Example data successfuly imported.";
         header("Location:" . $GLOBALS['URL'] . "/workspace/");

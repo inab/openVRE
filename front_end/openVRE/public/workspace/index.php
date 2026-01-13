@@ -30,7 +30,7 @@ $dtlist = ((isset($_REQUEST["tool"]) && $_REQUEST["tool"] != "") ? getAvailableD
 $projects = getProjects_byOwner();
 
 //update files workspace content (job and files)
-$allFiles = getFilesToDisplay(array('_id' => $_SESSION['User']['dataDir']), null);
+$allFiles = getFilesToDisplay(array('_id' => $_SESSION['User']['dataDir']));
 
 $files = (isset($dtlist['list']) ? filterFiles_by_dataType($allFiles, $dtlist["list"]) : $allFiles);
 $files = addTreeTableNodesToFiles($files);
@@ -345,7 +345,6 @@ $files = addTreeTableNodesToFiles($files);
 				<?php
 				$toolsHelp = getTools_Help();
 				$toolsList = getTools_List();
-				//var_dump($toolsHelp);
 				sort($toolsList);
 				?>
 
