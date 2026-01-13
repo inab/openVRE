@@ -28,36 +28,33 @@ function isGSDirBNS($collection, $fileId)
 
 function getGSFilesFromDir($dataSelection = array(), $onlyVisible = 0)
 {
-
 	$files = array();
 
 	// set directory query
-	if (count($dataSelection) == 0) {
-		if (is_null($_SESSION['curDir'])) {
-			$_SESSION['errorData']['internal'][] = "Cannot retrieve files from the database. Given query is not valid. Please, try it later or mail <a href=\"mailto:" . $GLOBALS['helpdeskMail'] . "\">" . $GLOBALS['helpdeskMail'] . "</a>";
-			return false;
+	if (empty($dataSelection)) {
+		if (!isset($_SESSION['curDir'])) {
+			getMongoLogger()->error("Cannot retrieve files from the database. Given query is not valid.");
+			throw new UnexpectedValueException("Cannot retrieve files from the database. Given query is not valid.");
 		}
+
 		$dataSelection = array(
 			'owner' => $_SESSION['User']['id'],
 			'path'  => $_SESSION['curDir']
 		);
 	}
+
 	// query directory document
-
-
 	$dirData = $GLOBALS['filesCol']->findOne($dataSelection);
 
-	if (is_null($dirData['_id'])) {
-		$_SESSION['errorData']['Error'][] = "Data is not accessible or do not exist anymore.";
-		if (isset($GLOBALS['helpdeskMail'])) {
-			$_SESSION['errorData']['Error'][] = "Please, try it later or mail <a href=\"mailto:" . $GLOBALS['helpdeskMail'] . "\">" . $GLOBALS['helpdeskMail'] . "</a>";
-		}
-		return false;
+	if (!isset($dirData['_id'])) {
+		getMongoLogger()->error("Data is not accessible or do not exist anymore.");
+		throw new NotFoundException("Data is not accessible or do not exist anymore.");
 	}
 
-	if (is_null($dirData['files']) || count($dirData['files']) == 0) {
+	if (!isset($dirData['files']) || count($dirData['files']) == 0) {
 		$_SESSION['errorData']['Warning'][] = "No data to display in the given directory.";
-		return false;
+		getMongoLogger()->warning("No data to display in the given directory.");
+		return [];
 	}
 
 	// retrieve File Data and Metada for each file in directory
@@ -707,7 +704,7 @@ function uploadGSFileBNS($localFilePath, $filePath, $attributes = [], $meta = []
 	$attributes['parentDir'] ??= $parentId;
 	$attributes['path'] ??= $localFilePath;
 	$attributes['project'] ??= $_SESSION['User']['activeProject'];
-	if (is_null($attributes['expiration'])) {
+	if (!isset($attributes['expiration'])) {
 		$expiration = $GLOBALS['caduca'] * 24 * 3600;
 		$t = filemtime($filePath);
 		$attributes['expiration'] = new MongoDB\BSON\UTCDateTime(($t + $expiration) * 1000);

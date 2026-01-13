@@ -9,7 +9,7 @@ use Oauth2Provider\Oauth2Provider;
 $provider = new Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . "applib/loginToken.php"]);
 
 // Get auth code. Redirect user to the authorization URL
-if (is_null($_GET['code'])) {
+if (!isset($_GET['code'])) {
 
     // Fetch the authorization URL from the provider; returns urlAuthorize and generates state
     $authorizationUrl = $provider->getAuthorizationUrl();
@@ -32,7 +32,6 @@ if (is_null($_GET['code'])) {
         $accessTokenO = $provider->getAccessToken('authorization_code', ['code' => $_GET['code']]);
         $jwt          = json_encode($accessTokenO);
         $accessToken  = json_decode($jwt, true);
-
     } catch (\Exception $e) {  # (IdentityProviderException $e)
         exit("Internal login service error: cannot obtain user access token from authorization code: " . $e->getMessage());
     }

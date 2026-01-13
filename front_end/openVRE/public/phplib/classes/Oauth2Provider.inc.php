@@ -10,17 +10,17 @@ class Oauth2Provider extends GenericProvider {
     public function __construct(array $options = [], array $collaborators = [])
     {
         // set openID endpoints from global app conf
-        if (is_null($options['urlAuthorize']) && $GLOBALS['urlAuthorize'])
+        if (!isset($options['urlAuthorize']) && $GLOBALS['urlAuthorize'])
              $options['urlAuthorize'] = $GLOBALS['urlAuthorize'];
-        if (is_null($options['urlAccessToken']) && $GLOBALS['urlAccessToken'])
+        if (!isset($options['urlAccessToken']) && $GLOBALS['urlAccessToken'])
              $options['urlAccessToken'] = $GLOBALS['urlAccessToken'];
-        if (is_null($options['urlResourceOwnerDetails']) && $GLOBALS['urlResourceOwnerDetails'])
+        if (!isset($options['urlResourceOwnerDetails']) && $GLOBALS['urlResourceOwnerDetails'])
              $options['urlResourceOwnerDetails'] = $GLOBALS['urlResourceOwnerDetails'];
-        if (is_null($options['urlLogout']) && $GLOBALS['urlLogout'])
+        if (!isset($options['urlLogout']) && $GLOBALS['urlLogout'])
              $options['urlLogout'] = $GLOBALS['urlLogout'];
         
         // set VRE as openID client
-        if (is_null($options['clientId']) && is_null($options['clientSecret'])) {
+        if (!isset($options['clientId']) && !isset($options['clientSecret'])) {
             $options['clientId']     = getenv('KEYCLOAK_CLIENT');
             $options['clientSecret'] = getenv('KEYCLOAK_SECRET');
         }

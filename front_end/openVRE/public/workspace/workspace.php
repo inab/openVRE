@@ -190,7 +190,7 @@ if (isset($_REQUEST['op'])) {
 
 		case 'deleteAll':
 		case 'deleteSure':
-			$r = deleteFiles($_REQUEST['fn']);
+			deleteFiles($_REQUEST['fn']);
 			break;
 
 		case 'deleteDirOk':

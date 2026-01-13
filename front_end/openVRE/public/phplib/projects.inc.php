@@ -299,54 +299,47 @@ function save_fromSampleDataMetadata($metadata, $dataDir, $sampleName, $type)
 
 function getFilesToDisplay($dirSelection)
 {
-	$filesAll = array();
 	$filesPending = processPendingFiles($_SESSION['User']['_id']);
 	$files = getGSFilesFromDir($dirSelection, 1);
 
-	if (!$files) {
-		$_SESSION['errorData']['Error'][] = "Cannot update dashboard.";
-		return $filesAll;
+	if (empty($files)) {
+		getProjectLogger()->error("Cannot update dashboard.");
+		throw new UnexpectedValueException("Cannot update dashboard.");
 	}
 
 	// Filter user pending files not belonging to active project
-	if ($filesPending) {
-		foreach ($filesPending as $r) {
-			if ($r['project'] != $_SESSION['User']['activeProject']) {
-				unset($filesPending[$r['_id']]);
-			}
+	foreach ($filesPending as $r) {
+		if ($r['project'] != $_SESSION['User']['activeProject']) {
+			unset($filesPending[$r['_id']]);
 		}
 	}
 
 	// Merge pending files and mongo data
-
-	if ($filesPending) {
-		foreach ($filesPending as $r) {
-
-			// Update $files[parentId][files]
-			if (is_null($filesPending[$r['_id']]['parentDir'])) {
-				$_SESSION['errorData']['Error'][] = "Pending file " . $filesPending[$r['_id']]['path'] . " has no parentDir";
-				continue;
-			}
-			$parentId = $filesPending[$r['_id']]['parentDir'];
-
-			if (is_null($files[$parentId])) {
-				if ($r['pending']) {
-					unset($filesPending[$r['_id']]);
-				} else {
-					$_SESSION['errorData']['Error'][] = "Cannot display '" . $filesPending[$r['_id']]['path'] . "'. FS inconsistency. Its parent folder ($parentId) does not exist anymore or is unaccessible.";
-					unset($filesPending[$r['_id']]);
-				}
-				continue;
-			}
-			array_push($files[$parentId]['files'], $r['_id']);
+	foreach ($filesPending as $r) {
+		// Update $files[parentId][files]
+		if (is_null($filesPending[$r['_id']]['parentDir'])) {
+			getProjectLogger()->warning("Pending file " . $filesPending[$r['_id']]['path'] . " has no parentDir");
+			continue;
 		}
-		$filesAll = array_merge($files, $filesPending);
-	} else {
-		$filesAll = $files;
+
+		$parentId = $filesPending[$r['_id']]['parentDir'];
+
+		if (!isset($files[$parentId])) {
+			if ($r['pending']) {
+				unset($filesPending[$r['_id']]);
+			} else {
+				getProjectLogger()->warning("Cannot display '" . $filesPending[$r['_id']]['path'] . "'. FS inconsistency. Its parent folder ($parentId) does not exist anymore or is unaccessible.");
+				unset($filesPending[$r['_id']]);
+			}
+
+			continue;
+		}
+		array_push($files[$parentId]['files'], $r['_id']);
 	}
 
-	return $filesAll;
+	return array_merge($files, $filesPending);
 }
+
 
 function filterFiles_by_dataType($filesAll, $filter_data_types = array())
 {
@@ -506,7 +499,7 @@ function printLastJobs($filesAll = array())
 					continue;
 				if (isset($r['pending'])) {
 				} elseif ((basename($r['path']) == "uploads") || (basename($r['path']) == "repository")) {
-				} elseif (!strpos($r['files'][0], "dummy")) {
+				} elseif (isset($r['files'][0]) && !strpos($r['files'][0], "dummy")) {
 					print parseTemplate(formatData($r), getTemplate('/LastJobsworkspace/LJ_folder.htm'));
 					$wehavejobs = true;
 				}
@@ -865,7 +858,7 @@ function formatData($data)
 			foreach ($ins as $in) {
 				$f = getGSFile_fromId($in);
 				if ($f == 0) {
-					error_log("File $in not found");
+					getProjectLogger()->error("File $in not found");
 					continue;
 				}
 
@@ -975,338 +968,266 @@ function updatePendingFiles($sessionId)
 }
 
 
-
-function processPendingFiles($sessionId, $files = array())
+function processRunningJobInfo($job, $jobProcess, $pid, $title, $descrip, $filesPending, $SGE_updated)
 {
-	$SGE_updated = array(); // jobs to be monitored. Stored in SESSION. Updated by checkPendingJobs.php (called by ajax)
-	$filesPending = array(); // files to be listed
-	$debug = 0;
+	//set dummy id
+	$dummyId  = $job['pid'] . "_dummy";
 
-	// get files already in mongo
-	$filesStored = array();
-	if ($files) {
-		foreach ($files as $k => $v) {
-			array_push($filesStored, $v['_id']);
+	//get dummy parentDir
+	if ($job['hasExecutionFolder']) {
+		// show job in execution dir
+		$parentDir = fromAbsPath_toPath($job['working_dir']);
+	} else {
+		// show job in output_dir (infered from stageout_data)
+		$parentDir = 0;
+		if ($job['stageout_data']) {
+			$output_file_1 = $job['stageout_data']['output_files'][0];
+			if ($output_file_1 && $output_file_1['path']) {
+				$parentDir = fromAbsPath_toPath(dirname($output_file_1['path']));
+			}
+		}
+
+		if (!$parentDir) {
+			$parentDir = $_SESSION['User']['id'] . "/" . $_SESSION['User']['activeProject'] . "/uploads";
 		}
 	}
-	// get jobs from mongo[users][lastjobs]
-	$lastjobs = getUserJobs($sessionId);
 
+	//set dummy file
+	$fileDummy = array(
+		'_id'     => $dummyId,
+		'pid'     => $pid,
+		'title'   => $title,
+		'mtime'   => new MongoDB\BSON\UTCDateTime(strtotime($jobProcess['submission_time']) * 1000),
+		'size'    => "",
+		'visible' => 1,
+		'tool'    => $job['toolId'],
+		'project' => $job['project'],
+		'parentDir' => getGSFileId_fromPath($parentDir),
+		'description' => $descrip,
+		'pending' => $jobProcess['state'],
+		'submission_file'  => fromAbsPath_toPath($job['submission_file']),
+		'log_file'    => fromAbsPath_toPath($job['log_file']),
+		'stdout_file' => fromAbsPath_toPath($job['stdout_file']),
+		'stderr_file' => fromAbsPath_toPath($job['stderr_file']),
+		'job_type'    => $job['job_type']
+	);
 
-	if (!count($lastjobs)) {
-		return $filesPending;
+	if ($jobProcess['state'] == "RUNNING" && $job['job_type'] == "interactive") {
+		$fileDummy['pending'] = "ACTIVE SESSION";
+		$fileDummy['toolContainerName'] = $_SESSION['User']['lastjobs'][$pid]['containerName'];
 	}
 
-	if ($debug)
-		print "<br><br/>JOBS DEL USER HAS [" . count($lastjobs) . "] JOBS <br/>\n";
+	//list job in workspace
+	$filesPending[$dummyId] = $fileDummy;
 
-	// classify jobs
-	foreach ($lastjobs as $job) {
+	//update job state in mongo
+	$job['state'] = $jobProcess['state'];
+	$SGE_updated[$pid] = $job;
+}
 
-		if (is_null($job['pid'])) {
-			continue;
+
+function processFinishedJobInfo($job, $pid, $title, $filesPending)
+{
+	getProjectLogger()->info("Workspace reload detects job $pid is not running anymore");
+
+	unset($_SESSION['errorData']);
+	$job_in_err = 0;
+
+	//get tool info
+	$tool = getTool_fromId($job['toolId'], 1);
+	if (is_null($tool)) {
+		getProjectLogger()->error("Tool '" . $job['toolId'] . "' received from JobTool not registered");
+		getProjectLogger()->error("Cannot obtain results from '$title' in folder '" . basename($job['working_dir']) . "'. Job metadata is not valid.");
+		getProjectLogger()->error("Failed to register $pid job outfiles. Job metadata has toolId '" . $job['toolId'] . "'");
+		$job_in_err = 1;
+		return;
+	}
+
+	getProjectLogger()->debug("Building outsput from toolINFO + stageout_file + stageout_data.");
+
+	// build output list merging: stageout_file + stageout_data + tool defintion data
+	$outs_files = build_outputs_list($tool, $job['stageout_data'], $job['stageout_file']);
+	if (count($outs_files) == 0) {
+		getProjectLogger()->warning("Failed to register $pid job outfiles. Output file list empty.");
+		$job_in_err = 1;
+	}
+
+	// checking each expected job output
+	foreach ($outs_files as $out_name => $outs_data) {
+		// evaluate output_file requirement
+		$out_def = $tool['output_files'][$out_name];
+		$is_required    = output_is_required($out_def);
+		$allow_multiple = output_allow_multiple($out_def);
+
+		//check requirement : allow multiple
+		if ($allow_multiple === false) {
+			if (count($outs_data) > 1) {
+				getProjectLogger()->warning("Tool definition does not allow multiple instances for '$out_name', but the execution returned " . count($outs_data) . ". Registering only one of them.");
+			}
+
+			$outs_data = array($outs_data[0]);
 		}
-		$pid = $job['pid'];
-		if ($debug)
-			print "<br/>\nPID = [$pid] TOOL=" . $job['toolId'] . " WORK_DIR=" . $job['working_dir'] . " <br/>\n";
 
-		//get qstat info
-		logger("Start processPendingFiles -> getRunningJobInfo $pid. Log= " . $job['log_file']);
-		$jobProcess = getRunningJobInfo($pid, $job['launcher'], $job['cloudName']);
-
-		//set as running job
-		$title   = (isset($job['title']) ? $job['title'] : "Job " . $job['execution']);
-		$descrip = getJobDescription($job['description'], $jobProcess, $lastjobs);
-
-		if (count($jobProcess)) {
-			if ($debug)
-				print "RUNNING JOB";
-
-			//set dummy id
-			$dummyId  = $job['pid'] . "_dummy";
-
-			//get dummy parentDir
-			if ($job['hasExecutionFolder']) {
-				// show job in execution dir
-				$parentDir = fromAbsPath_toPath($job['working_dir']);
-			} else {
-				// show job in output_dir (infered from stageout_data)
-				$parentDir = 0;
-				if ($job['stageout_data']) {
-					$output_file_1 = $job['stageout_data']['output_files'][0];
-					if ($output_file_1 && $output_file_1['path']) {
-						$parentDir = fromAbsPath_toPath(dirname($output_file_1['path']));
-					}
+		// start
+		foreach ($outs_data as $out_data) {
+			//check requirement : required
+			if (is_null($out_data['path'])) {
+				if ($is_required) {
+					$_SESSION['errorData']['Error'][] = "Job output file ($out_name) not created";
+					getProjectLogger()->error("Job output file ($out_name) not created. No 'path' found. Job finished without creating 'out_metadata'?");
+					$job_in_err = 1;
 				}
-				if (!$parentDir)
-					$parentDir = $_SESSION['User']['id'] . "/" . $_SESSION['User']['activeProject'] . "/uploads";
-			}
 
-			//set dummy file
-			$fileDummy = array(
-				'_id'     => $dummyId,
-				'pid'     => $pid,
-				'title'   => $title,
-				'mtime'   => new MongoDB\BSON\UTCDateTime(strtotime($jobProcess['submission_time']) * 1000),
-				'size'    => "",
-				'visible' => 1,
-				'tool'    => $job['toolId'],
-				'project' => $job['project'],
-				'parentDir' => getGSFileId_fromPath($parentDir),
-				'description' => $descrip,
-				'pending' => $jobProcess['state'],
-				'submission_file'  => fromAbsPath_toPath($job['submission_file']),
-				'log_file'    => fromAbsPath_toPath($job['log_file']),
-				'stdout_file' => fromAbsPath_toPath($job['stdout_file']),
-				'stderr_file' => fromAbsPath_toPath($job['stderr_file']),
-				'job_type'    => $job['job_type']
-			);
-
-			if ($jobProcess['state'] == "RUNNING" && $job['job_type'] == "interactive") {
-				$fileDummy['pending'] = "ACTIVE SESSION";
-				$fileDummy['toolContainerName'] = $_SESSION['User']['lastjobs'][$pid]['containerName'];
-			}
-
-			//list job in workspace
-			$filesPending[$dummyId] = $fileDummy;
-
-			//update job state in mongo
-			$job['state'] = $jobProcess['state'];
-			$SGE_updated[$pid] = $job;
-
-			// processing job non running anymore
-		} else {
-			log_addFinish($pid, "Workspace reload detects job $pid is not running anymore");
-
-			unset($_SESSION['errorData']);
-			$job_in_err = 0;
-
-			//get tool info
-			$tool = getTool_fromId($job['toolId'], 1);
-			if (is_null($tool)) {
-				getProjectLogger()->error("Tool '" . $job['toolId'] . "' received from JobTool not registered");
-				getProjectLogger()->error("Cannot obtain results from '$title' in folder '" . basename($job['working_dir']) . "'. Job metadata is not valid.");
-				getProjectLogger()->error("Failed to register $pid job outfiles. Job metadata has toolId '" . $job['toolId'] . "'");
-				$job_in_err = 1;
 				continue;
 			}
 
-			getProjectLogger()->debug("Building outsput from toolINFO + stageout_file + stageout_data.");
+			// resolve virtual path to local absolute path
+			$rfn = resolvePath_toLocalAbsolutePath($out_data['path'], $job);
+			$outPath  = fromAbsPath_toPath($rfn);
+			$fileId   = getGSFileId_fromPath($outPath);
 
-			// build output list merging: stageout_file + stageout_data + tool defintion data
-			$outs_files = build_outputs_list($tool, $job['stageout_data'], $job['stageout_file']);
-			if (count($outs_files) == 0) {
-				log_addOutregister($pid, "Failed to register $pid job outfiles. Output file list empty.");
+			//associated_files and associated_id/_master: convert to fileIds 
+			$metaReferences = array();
+			if (isset($out_data['meta_data']['associated_id']) || isset($out_data['meta_data']['associated_master'])) {
+				$assoc = (isset($out_data['meta_data']['associated_id']) ? $out_data['meta_data']['associated_id'] : $out_data['meta_data']['associated_master']);
+				$assoc_rfn = resolvePath_toLocalAbsolutePath($assoc, $job);
+				$assoc_fn  = fromAbsPath_toPath($assoc_rfn);
+				$assoc_id  = getGSFileId_fromPath($assoc_fn);
+
+				if ($assoc_id == "0") {
+					$out_data['meta_data']['associated_id'] = $assoc;
+				} else {
+					$metaReferences[$assoc_id] = "associated_id";
+					$out_data['meta_data']['associated_id'] = $assoc_id;
+				}
+
+				if (isset($out_data['meta_data']['associated_master'])) {
+					unset($out_data['meta_data']['associated_master']);
+				}
+			}
+
+			if (isset($out_data['meta_data']['associated_files'])) {
+				$assocs = array();
+				foreach ($out_data['meta_data']['associated_files'] as $assoc) {
+					$assoc_rfn = resolvePath_toLocalAbsolutePath($assoc, $job);
+					$assoc_fn  = fromAbsPath_toPath($assoc_rfn);
+					$assoc_id  = getGSFileId_fromPath($assoc_fn);
+					if ($assoc_id == "0") {
+						array_push($assocs, $assoc);
+					} else {
+						array_push($assocs, $assoc_id);
+						$metaReferences[$assoc_id] = "associated_files";
+					}
+				}
+
+				$out_data['meta_data']['associated_files'] = $assocs;
+			}
+
+			// job successfully finished and already in mongo. Update medatada
+			if ($fileId) {
+				getProjectLogger()->debug("JOB $pid finished successfully.");
+				getProjectLogger()->debug("Updating only outfile $out_name '$rfn' metadata from job $pid");
+			} else { // job successfully finished but not yet on mongo. Save output
+				getProjectLogger()->error("Job output outfile ($out_name) generated (" . basename($rfn) . ").");
+				getProjectLogger()->error("Failed to register outfile $out_name '$rfn'. File not found in disk");
 				$job_in_err = 1;
 			}
-			if ($debug) {
-				print "<br>\nList of output to register merged.\n<br/>STAGEOUT_DATA.<br>";
-				var_dump($outs_files);
-				print "<br>\n";
-			}
-			// checking each expected job output
-			foreach ($outs_files as $out_name => $outs_data) {
-				if ($debug) {
-					print "<br/>--------------------------------------------------------------<br/>";
-					print "<br/>REGISTERING output_file with KEY NAME = $out_name DATA = <br/>\n";
-					var_dump($outs_data);
-				}
-				// evaluate output_file requirement
-				$out_def = $tool['output_files'][$out_name];
-				$is_required    = output_is_required($out_def);
-				$allow_multiple = output_allow_multiple($out_def);
 
-				//check requirement : allow multiple
-				if ($allow_multiple === false) {
-					if (count($outs_data) > 1) {
-						$_SESSION['errorData']['Error'][] = "Tool definition does not allow multiple instances for '$out_name', but the execution returned " . count($outs_data) . ". Registering only one of them.";
-					}
-					$outs_data = array($outs_data[0]);
-				}
-
-				// start 	
-				foreach ($outs_data as $out_data) {
-					if ($debug) {
-						print "<br/> START OUTPUT ITEM REGISTRATION FOR THE FOLLOWING OUT_DATA:<br/>\n";
-						var_dump($out_data);
-						print "<\br>_____________\n";
-						var_dump($out_data['path']);
-						print "<\br>_____________\n";
-						var_dump($out_data['meta_data']);
-						print "<\br>_____________\n";
+			// Update metadata of other files referring current fileId  (associated files)
+			if ($job_in_err == 0 &&  count($metaReferences)) {
+				foreach ($metaReferences as $assoc_id => $assoc_type) {
+					$file_assoc = getGSFile_fromId($assoc_id, "onlyMetadata");
+					if ($assoc_type == "associated_files") {
+						$file_assoc['associated_id'] = $fileId;
 					}
 
-					//check requirement : required
-					if (is_null($out_data['path'])) {
-						if ($is_required) {
-							$_SESSION['errorData']['Error'][] = "Job output file ($out_name) not created";
-							log_addOutregister($pid, "Job output file ($out_name) not created. No 'path' found. Job finished without creating 'out_metadata'?");
-							$job_in_err = 1;
-						}
-						if ($debug) {
-							print "<br/>path NO SET, but not required. Continuing. The merged metadata is:<br/>\n";
-							var_dump($out_data);
-						}
-						continue;
-					}
-
-					// resolve virtual path to local absolute path
-					$rfn = resolvePath_toLocalAbsolutePath($out_data['path'], $job);
-
-					$outPath  = fromAbsPath_toPath($rfn);
-					$fileId   = getGSFileId_fromPath($outPath);
-					if ($debug)
-						print "PID = [$pid] path=" . $out_data['path'] . " --> fn=$outPath rfn=$rfn . Has Id? $fileId <br/>\n";
-
-
-					//associated_files and associated_id/_master: convert to fileIds 
-					$metaReferences = array();
-					if (isset($out_data['meta_data']['associated_id']) || isset($out_data['meta_data']['associated_master'])) {
-						$assoc = (isset($out_data['meta_data']['associated_id']) ? $out_data['meta_data']['associated_id'] : $out_data['meta_data']['associated_master']);
-						$assoc_rfn = resolvePath_toLocalAbsolutePath($assoc, $job);
-						$assoc_fn  = fromAbsPath_toPath($assoc_rfn);
-						$assoc_id  = getGSFileId_fromPath($assoc_fn);
-						if ($assoc_id == "0") {
-							$out_data['meta_data']['associated_id'] = $assoc;
-						} else {
-							$metaReferences[$assoc_id] = "associated_id";
-							$out_data['meta_data']['associated_id'] = $assoc_id;
-						}
-						if (isset($out_data['meta_data']['associated_master'])) {
-							unset($out_data['meta_data']['associated_master']);
-						}
-						if ($debug) {
-							print "THIS META HAS FILE REFERENCES. Saving associated_id='$assoc_id' instead of the original '$assoc'. If no ID. adding to refs:<br/>\n";
-							var_dump($metaReferences);
-						}
-					}
-					if (isset($out_data['meta_data']['associated_files'])) {
+					if ($assoc_type == "associated_id") {
 						$assocs = array();
-						foreach ($out_data['meta_data']['associated_files'] as $assoc) {
-							$assoc_rfn = resolvePath_toLocalAbsolutePath($assoc, $job);
-							$assoc_fn  = fromAbsPath_toPath($assoc_rfn);
-							$assoc_id  = getGSFileId_fromPath($assoc_fn);
-							if ($assoc_id == "0") {
-								array_push($assocs, $assoc);
+						foreach ($file_assoc['associated_files'] as $a) {
+							if (preg_match('/\//', $a)) {
+								array_push($assocs, $fileId);
 							} else {
-								array_push($assocs, $assoc_id);
-								$metaReferences[$assoc_id] = "associated_files";
-							}
-							if ($debug) {
-								print "THIS META HAS FILE REFERENCES. Saving associated_files='$assoc_id' instead of the original '$assoc'. If no ID. adding to refs:<br/>\n";
-								var_dump($metaReferences);
+								array_push($assocs, $a);
 							}
 						}
-						$out_data['meta_data']['associated_files'] = $assocs;
+
+						$file_assoc['associated_files'] = $assocs;
 					}
 
-					// job successfully finished and already in mongo. Update medatada
-
-					if ($fileId) {
-						if ($debug) {
-							print "Already in mongo. Adding metadata if there is any<br>";
-						}
-						logger("JOB $pid FINISHED SUCCESSFULLY");
-						log_addOutregister($pid, "Updating only outfile $out_name '$rfn' metadata from job $pid");
-
-						// job successfully finished but not yet on mongo. Save output
-
-					} else {
-						$_SESSION['errorData']['Error'][] = "Job output outfile ($out_name) generated (" . basename($rfn) . ").";
-						log_addOutregister($pid, "Failed to register outfile $out_name '$rfn'. File NOT found in disk");
-						if ($debug) {
-							print "<br/>JOB $pid FINISHED BUT NO EXPECTED OUTFILE '$rfn' FOUND  IN DISK. Set ERROR<br>";
-						}
-						$job_in_err = 1;
-					}
-
-					// Update metadata of other files referring current fileId  (associated files)
-					if ($job_in_err == 0 &&  count($metaReferences)) {
-						if ($debug)
-							print "<br/>Update metadata of other FILE REFERENCES afecting current fileId<br/>\n";
-
-						foreach ($metaReferences as $assoc_id => $assoc_type) {
-							$file_assoc = getGSFile_fromId($assoc_id, "onlyMetadata");
-							if ($assoc_type == "associated_files")
-								$file_assoc['associated_id'] = $fileId;
-							if ($assoc_type == "associated_id") {
-								$assocs = array();
-								foreach ($file_assoc['associated_files'] as $a) {
-									if (preg_match('/\//', $a)) {
-										array_push($assocs, $fileId);
-									} else {
-										array_push($assocs, $a);
-									}
-								}
-								$file_assoc['associated_files'] = $assocs;
-							}
-							$ok = addMetadataToFile($assoc_id, $file_assoc);
-							if ($ok == "0")
-								$_SESSION['errorData']['Warning'][] = "Sorry, could not add reference to '" . basename($rfn) . "' in the metadata of the associated file '$assoc_id'";
-							$ff = getGSFile_fromId($assoc_id);
-							if ($debug) {
-								print "<br>Updating  metadata for assoc file $assoc_id done. This is:<br>\n";
-								var_dump($ff);
-							}
-						}
-					}
+					addMetadataToFile($assoc_id, $file_assoc);
 				}
-			}
-
-			// jobs nor finished nor running: in error OR deleted OR SESSION[sge] not updated
-			if ($debug)
-				print "<br/>IS JOB IN ERR? ($job_in_err)<br/>\n";
-
-
-			if ($job_in_err) {
-				log_addOutregister($pid, "Failed to register all job outfiles", false);
-				logger("JOB $pid FINISHED but with errors");
-				$logFileP = $job['log_file'];
-				$logFile  = fromAbsPath_toPath($job['log_file']);
-
-				// force flash disk status
-				scandir($GLOBALS['dataDir'] . $_SESSION['User']['id'] . "/" . $job['project']);
-
-				// job has log
-				if (is_file($logFileP)) {
-					// move and redefine log and SH file if internalTool
-					if ($job['hasExecutionFolder'] === false) {
-						// right now, redifinition done inside saveResults
-					}
-					if ($debug)
-						print "<br>JOB IN ERROR $fileId storing LOG $logFile <br>";
-
-					$logId  = getGSFileId_fromPath($logFile);
-					if (is_null($logId)) {
-						$logMeta['description'] = "Job log file";
-						$logMeta['format']      = "ERR";
-						$metaDataLog = prepMetadataLog($logMeta, $logFile);
-						$logInfo = saveResults($logFile, $metaDataLog, $job);
-						$filesPending[$logInfo['_id']] = $logInfo;
-					}
-
-					// job has neither log nor all outfiles
-				} else {
-					if ($debug)
-						print "<br>JOB $pid NO log (" . $logFileP . ") NO output ($outPath) <br>";
-				}
-			} else {
-				log_addOutregister($pid, "Output files successfully registed", true);
 			}
 		}
 	}
 
-	if ($debug) {
-		print "<br/><br/>FINAL FILES PENDING yes? Num=<br/>\n";
-		var_dump(count($filesPending));
-		print "<br/><br/>\n";
+	// jobs nor finished nor running: in error OR deleted OR SESSION[sge] not updated
+
+	if ($job_in_err) {
+		getProjectLogger()->error("Failed to register all job outfiles");
+		getProjectLogger()->error("JOB $pid FINISHED but with errors");
+
+		$logFileP = $job['log_file'];
+		$logFile  = fromAbsPath_toPath($job['log_file']);
+
+		// force flash disk status
+		scandir($GLOBALS['dataDir'] . $_SESSION['User']['id'] . "/" . $job['project']);
+
+		// job has log
+		if (is_file($logFileP)) {
+			$logId  = getGSFileId_fromPath($logFile);
+			if (is_null($logId)) {
+				$logMeta['description'] = "Job log file";
+				$logMeta['format']      = "ERR";
+				$metaDataLog = prepMetadataLog($logMeta, $logFile);
+				$logInfo = saveResults($logFile, $metaDataLog, $job);
+				$filesPending[$logInfo['_id']] = $logInfo;
+			}
+		}
+	} else {
+		getProjectLogger()->debug("JOB $pid finished successfully.");
+	}
+}
+
+
+function processPendingFiles($sessionId)
+{
+	$SGE_updated = array(); // jobs to be monitored. Stored in SESSION. Updated by checkPendingJobs.php (called by ajax)
+	$filesPending = array(); // files to be listed
+
+	// get jobs from mongo[users][lastjobs]
+	$lastjobs = getUserJobs($sessionId);
+	if (empty($lastjobs)) {
+		return [];
+	}
+
+	// classify jobs
+	foreach ($lastjobs as $job) {
+		if (!isset($job['pid'])) {
+			continue;
+		}
+
+		$pid = $job['pid'];
+		$title   = $job['title'] ?? "Job " . $job['execution'];
+		$descrip = getJobDescription($job['description'], $jobProcess, $lastjobs);
+
+		//get qstat info
+		getProjectLogger()->info("Start processPendingFiles -> getRunningJobInfo $pid. Log= " . $job['log_file']);
+		$jobProcess = getRunningJobInfo($pid, $job['launcher'], $job['cloudName']);
+
+		//set as running job
+
+
+		if (empty($jobProcess)) {
+			processFinishedJobInfo($job, $pid, $title, $filesPending);
+		} else {
+			processRunningJobInfo($job, $jobProcess, $pid, $title, $descrip, $filesPending, $SGE_updated);
+		}
 	}
 
 	//update session and save to mongo
 	saveUserJobs($sessionId, $SGE_updated);
 	return $filesPending;
 }
-
 
 
 function saveResults($filePath, $metaData = array(), $job = array(), $rfn = 0, $asRoot = 0)
@@ -1846,8 +1767,8 @@ function deleteFiles($fileIds, $force = false)
 	$result = true;
 	foreach ($fileIds as $fileId) {
 		$file = getGSFile_fromId($fileId);
-		if (!$file) {
-			$_SESSION['errorData']['Error'][] = "Cannot delete file with id '$fileId'. Entry not found";
+		if (is_null($file)) {
+			getProjectLogger()->error("Cannot delete file with id '$fileId'. Entry not found");
 			$result = false;
 			continue;
 		}
@@ -1856,8 +1777,7 @@ function deleteFiles($fileIds, $force = false)
 		$fileLocalPath = $file['path'];
 		$filePath = $GLOBALS['dataDir'] . "/$fileLocalPath";
 		if (!file_exists($filePath) && !$force && $file['data_source'] != "EGA") {
-			$_SESSION['errorData']['Error'][] = "filePath '$filePath' not found";
-			$_SESSION['errorData']['Error'][] = "Cannot delete file with id '" . basename($fileLocalPath) . "'. File not found.";
+			getProjectLogger()->error("Cannot delete file with id '" . basename($fileLocalPath) . "'. File not found.");
 			$result = false;
 			continue;
 		}
@@ -1873,8 +1793,7 @@ function deleteFiles($fileIds, $force = false)
 
 		// delete file from disk
 		if (file_exists($filePath) && !unlink($filePath)) {
-			$_SESSION['errorData']['Error'][] = "Errors encountered while deleting file '" . basename($fileLocalPath) . "'.";
-			$_SESSION['errorData']['Error'][] = error_get_last()["message"];
+			getProjectLogger()->error("Errors encountered while deleting file '" . basename($fileLocalPath) . "'.");
 			$result = false;
 			continue;
 		}
@@ -1883,32 +1802,28 @@ function deleteFiles($fileIds, $force = false)
 		if (isset($file['associated_id'])) {
 			$master_id = $file['associated_id'];
 			$master    = getGSFile_fromId($master_id, "onlyMetadata");
-			if ($master) {
-				//print "FILE IS an associated FILE! update $master_id<br/>";
-				if (($k = array_search($fileId, $master['associated_files'])) !== false) {
-					unset($master['associated_files'][$k]);
-					$r = addMetadataToFile($master_id, $master);
-					if ($r == "0") {
-						$_SESSION['errorData']['Error'][] = "File '" . basename($fileLocalPath) . "' successfully deleted, but cannot update its master file $master_id metadata";
-						$result = false;
-						continue;
-					}
+			if ($master && ($k = array_search($fileId, $master['associated_files'])) !== false) {
+				unset($master['associated_files'][$k]);
+				try {
+					addMetadataToFile($master_id, $master);
+				} catch (Exception $e) {
+					getProjectLogger()->error("File '" . basename($fileLocalPath) . "' successfully deleted, but cannot update its master file $master_id metadata");
+					$result = false;
+					continue;
 				}
 			}
-
 			// if has associated files, delete them
 		} elseif (isset($file['associated_files'])) {
-
-			//print "FILE  HAS  associated files! deleteing them ! <br/>";
 			foreach ($file['associated_files'] as $assoc_id) {
-				$r = deleteFiles($assoc_id);
-				if (!$r) {
-					$_SESSION['errorData']['Warning'][] = "File '" . basename($fileLocalPath) . "' successfully deleted, but  not its associated file ($assoc_id).";
+				$deletedFiles = deleteFiles($assoc_id);
+				if ($deletedFiles === false) {
+					getProjectLogger()->warning("File '" . basename($fileLocalPath) . "' successfully deleted, but not its associated file ($assoc_id).");
 					$result = false;
 				}
 			}
 		}
 	}
+
 	return $result;
 }
 
