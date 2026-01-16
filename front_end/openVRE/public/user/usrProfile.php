@@ -404,13 +404,6 @@ redirectOutside();
                                                     <input id="exp-refrtoken" type="hidden"
                                                         value="<?php echo $_SESSION['userToken']['expires'] + $_SESSION['userToken']['refresh_expires_in']; ?>">
                                                     <?php
-                                                    /*$expiresDate = $_SESSION['userToken']['expires'] + $_SESSION['userToken']['refresh_expires_in'];
-                                                                                                 $ed = date('h:i:s A (jS \of F Y)',$expiresDate);
-                                                                                                    $expiresIn = $expiresDate - time();
-                                                                                                    if ($expiresIn > 0 )
-                                                                                                            $expDate = "Token will expire in ". intval($expiresIn/60) ." minutes, at $ed";
-                                                                                                    else
-                                                                                                            $expDate = "This Token is expired...  It needs a new login!";*/
                                                     ?>
                                                     <div class="form-group">
                                                         <label class="control-label">Expiration date <i
@@ -438,7 +431,6 @@ redirectOutside();
                                                         <input id="curr-time" type="hidden"
                                                             value="<?php echo time(); ?>">
                                                         <?php
-                                                        //$ed = date('h:i:s A (jS \of F Y)', $_SESSION['userVaultInfo']['expires_in']);
                                                         $expirationTimestamp = intval($_SESSION['userVaultInfo']['expires_in']);
                                                         $ed = gmdate('h:i:s A (jS \of F Y)', $expirationTimestamp);
                                                         $expiresIn = $expirationTimestamp - time();

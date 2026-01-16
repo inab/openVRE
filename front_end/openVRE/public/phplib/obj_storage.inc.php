@@ -117,24 +117,20 @@ function getContainers($swiftClient)
 
 function getContainerFiles($container, $swiftClient)
 {
-
-	if ($container !== null && $swiftClient !== null) {
-
-		error_log("getContainerFiles - container: $container");
-		$containerList = $swiftClient->runListContainer($container);
-
-		error_log("getContainerFiles - containerList: " . print_r($containerList, true));
-
-		$containerList = json_encode($containerList);
-		if (json_last_error() !== JSON_ERROR_NONE) {
-			$error_message = json_last_error_msg();
-			return array('error' => "JSON encoding failed: $error_message");
-		}
-
-		return $containerList;
-	} else {
+	if (is_null($container) || is_null($swiftClient)) {
 		return array('error' => 'Container or Swift client is null');
 	}
+
+	getObjectStorageLogger()->debug("getContainerFiles - container: $container");
+	$containerList = $swiftClient->runListContainer($container);
+	getObjectStorageLogger()->debug("getContainerFiles - containerList: " . print_r($containerList, true));
+	$containerList = json_encode($containerList);
+	if (json_last_error() !== JSON_ERROR_NONE) {
+		$error_message = json_last_error_msg();
+		return array('error' => "JSON encoding failed: $error_message");
+	}
+
+	return $containerList;
 }
 
 
@@ -154,7 +150,6 @@ function initiateFileDownload($swiftClient, $fileUrl, $container)
 
 	// Ensure the output directory exists
 	if (!is_dir($wdP) && !mkdir($wdP, 0775, true)) {
-		error_log("Failed to create working directory: $wdP");
 		getObjectStorageLogger()->error("Failed to create working directory: $wdP.");
 		throw new UnexpectedValueException("Failed to create working directory: $wdP");
 	}

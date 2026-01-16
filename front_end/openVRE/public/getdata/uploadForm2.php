@@ -120,27 +120,11 @@ redirectOutside();
 								<div class="mt-radio-list" style="padding-bottom:0;">
 									<?php
 									$IDX    = (isset($_REQUEST['idx']) ? $_REQUEST['idx'] : key($_REQUEST['fn']));
-									//print "<br/>filesData[$IDX] is<br/>";
-									//var_dump($filesData);
 									$FN     = $filesData[$IDX]['_id'];
-									//print "<br/>FN<br/>";
-									//var_dump($FN);
 									$state  = array();
 									foreach ($filesData as $idx => $v) {
 										$fn     = $filesData[$idx]['_id'];
 										$fnPath = $filesData[$idx]['path'];
-
-										//get file compression
-										//if (is_null($_REQUEST['compressed'][$idx])){
-										//	$fileExtensionFN = strtoupper(pathinfo($fn,PATHINFO_EXTENSION));
-										//    $fileExtensionFN = preg_replace('/_\d$/',"",$fileExtensionFN);
-										//  if (in_array(".".$fileExtensionFN,Array(".BZ2",".GZ",".RAR",".ZIP",".TGZ",".TAR"))){
-										//		$_REQUEST['compressed'][$idx]=1;
-										//	}else{
-										//		$_REQUEST['compressed'][$idx]=0;
-										//	}
-										//}
-
 										$state[$idx] = ((isset($_SESSION['validation'][$fn]['checkParams']) && $_SESSION['validation'][$fn]['checkParams'] == 1) ? "disabled" : "");
 										$checked     = (($IDX == $idx) ? "checked" : "");
 										$blockRadio  = ((!$checked && isset($filesData[$idx]['validated']) && $filesData[$idx]['validated']) ? "disabled" : "");
@@ -178,9 +162,7 @@ redirectOutside();
 
 
 							<?php
-							//TODO add $defs as global like reference genomes?¿
 							//metadata default values
-
 							//extract or guess file formats
 							foreach ($filesData as $idx => $v) {
 								$fn            = $filesData[$idx]['_id'];
@@ -276,6 +258,12 @@ redirectOutside();
 						 <option value="UNK"  <?php if ($fileExtension == "UNK") {
 													echo "selected";
 												} ?> >OTHER</option>-->
+											</select>
+										</div>
+
+										<div class="form-group display-hide" id="dataType<?php echo $idx; ?>">
+											<label>Data Type <i class="icon-question tooltips" data-container="body" data-placement="right" data-original-title="Data type description"></i></span></label>
+											<select name="data_type" id="data_type_sel<?php echo $idx; ?>" class="form-control data-type-selector" onchange="customfromDataType(this.value, <?php echo $idx; ?>)" disabled>
 											</select>
 										</div>
 

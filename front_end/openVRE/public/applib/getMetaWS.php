@@ -97,10 +97,7 @@ if (!$mt) {
 	</table>
 <?php
 							}
-
-
 							// Data_type, file_type, and OTHER METADATA (for files)
-
 							if ($_REQUEST["type"] == 1) {
 								// show data_type, file_type
 								$dt = $GLOBALS['dataTypesCol']->findOne(array('_id' => $mt["data_type"]));

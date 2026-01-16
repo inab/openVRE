@@ -190,16 +190,16 @@ $sites = getSites_Info($toolId);
 											<?php if ($_REQUEST["op"] == 0) {  ?>
 												<div class="col-md-12">
 													<?php $ff = matchFormat_File($tool['input_files']['fasta1']['format'], $inPaths); ?>
-													<?php InputTool_printSelectFile($tool['input_files']['fasta1'], $rerunParams['fasta1'], $ff[0], false, true); ?>
+													<?php InputTool_printSelectFile($tool['input_files']['fasta1'], $ff ?? $ff[0], false, true); ?>
 												</div>
 											<?php } else { ?>
 												<div class="col-md-6">
 													<?php $ff = matchFormat_File($tool['input_files']['fasta1']['format'], $inPaths); ?>
-													<?php InputTool_printSelectFile($tool['input_files']['fasta1'], $rerunParams['fasta1'], $ff[0], false, true); ?>
+													<?php InputTool_printSelectFile($tool['input_files']['fasta1'], $ff ?? $ff[0], false, true); ?>
 												</div>
 												<div class="col-md-6">
 													<?php $ff = matchFormat_File($tool['input_files']['fasta2']['format'], $inPaths); ?>
-													<?php InputTool_printSelectFile($tool['input_files']['fasta2'], $rerunParams['fasta2'], $ff[0], false, true); ?>
+													<?php InputTool_printSelectFile($tool['input_files']['fasta2'], $ff ?? $ff[0], false, true); ?>
 												</div>
 											<?php } ?>
 										</div>

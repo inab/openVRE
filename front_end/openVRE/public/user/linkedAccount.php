@@ -465,10 +465,12 @@ require "../htmlib/header.inc.php"; ?>
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="alert alert-success">
-                    <?php foreach ($_SESSION['errorData']['Info'] as $info) { ?>
-                        <h4 class="modal-title">Success! </h4>
-                        <div><?php echo $info; ?></div>
-                    <?php } ?>
+                    <?php if (isset($errorData['Info'])) {
+                        foreach ($errorData['Info'] as $successMessage) { ?>
+                            <h4 class="modal-title">Success!</h4>
+                            <p><?php echo $successMessage; ?></p>
+                    <?php }
+                    } ?>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn dark btn-outline" data-dismiss="modal">Accept</button>

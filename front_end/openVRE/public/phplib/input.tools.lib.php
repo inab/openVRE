@@ -6,36 +6,26 @@
 // get files from $fileList matching with given file type
 function matchFormat_File($type, $fileList)
 {
+	// from tool, return empty and select from modal
+	if (empty($fileList)) {
+		return [];
+	}
 
 	$output = [];
-	// from tool, return empty and select from modal
-
-	if (empty($fileList)) return "";
-
 	// from ws / rerun, match format file with format tool field (type)
 	foreach ($fileList as $file) {
-
-		if (isset($file["fn"])) {
-
-			if (preg_grep("/" . $file['format'] . "/i", $type)) {
-
-				$p = explode("/", $file['path']);
-
-				$proj = getProject($p[1]);
-
-				$a[0] = $proj['name'] . " / $p[2] / $p[3]";
-				$a[1] = $file['fn'];
-
-				$output[] = $a;
-
-				//return $output;
-
-			}
+		if (isset($file["fn"]) && preg_grep("/" . $file['format'] . "/i", $type)) {
+			$p = explode("/", $file['path']);
+			$proj = getProject($p[1]);
+			$a[0] = $proj['name'] . " / $p[2] / $p[3]";
+			$a[1] = $file['fn'];
+			$output[] = $a;
 		}
 	}
 
 	return $output;
 }
+
 
 // format PHP array to JS array
 function getArrayJS($array)
@@ -51,7 +41,7 @@ function getArrayJS($array)
 // check if data request is correct
 function InputTool_checkRequest($request)
 {
-	if (is_null($request['fn']) && is_null($request['rerunDir']) && is_null($request['op'])) {
+	if (!isset($request['fn']) && !isset($request['rerunDir']) && !isset($request['op'])) {
 		$_SESSION['errorData']['Error'][] = "Please, before running this tool, select the correct files from the workspace or launch tool from the side menu.";
 		redirect($GLOBALS["BASEURL"] . 'workspace/');
 	}
@@ -105,11 +95,13 @@ function InputTool_getPathsAndRerun($request)
 		}
 		$output[0] = $dirMeta['arguments'];
 	} else {
-		if (is_null($request['fn']))
+		if (!isset($request['fn'])) {
 			$request['fn'] = array();
+		}
 
-		if (!is_array($request['fn']))
+		if (!is_array($request['fn'])) {
 			$request['fn'][] = $request['fn'];
+		}
 
 		foreach ($request['fn'] as $fn) {
 			$file['path'] = getAttr_fromGSFileId($fn, 'path');
@@ -174,7 +166,7 @@ function InputTool_getSelectProjects()
 //
 
 // print select file(s)
-function InputTool_printSelectFile($input, $rerun, $ff, $multiple, $required)
+function InputTool_printSelectFile($input, $ff, $multiple, $required)
 {
 
 	$req = "field_not_required";

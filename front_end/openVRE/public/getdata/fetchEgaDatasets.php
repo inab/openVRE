@@ -26,8 +26,6 @@ function fetchVaultData($vaultAddress, $vaultToken)
         throw new UnexpectedValueException('cURL error: ' . curl_error($ch));
     }
 
-    curl_close($ch);
-
     $responseData = json_decode($response, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
         throw new UnexpectedValueException('Error decoding JSON data: ' . json_last_error_msg());
@@ -63,8 +61,6 @@ $jsonData = curl_exec($ch);
 if (curl_errno($ch)) {
     throw new UnexpectedValueException('cURL error: ' . curl_error($ch));
 }
-
-curl_close($ch);
 
 $tokenDataArray = json_decode($jsonData, true);
 

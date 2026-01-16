@@ -21,7 +21,7 @@ switch ($_REQUEST['uploadType']) {
 		break;
 
 	case 'txt':
-		getData_fromTXT();
+		echo getData_fromTXT();
 		break;
 	case 'repository':
 		$url = $_REQUEST['url'];

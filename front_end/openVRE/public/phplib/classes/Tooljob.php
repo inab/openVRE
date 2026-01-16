@@ -1223,12 +1223,12 @@ class Tooljob
 				$mugfile['file_path'] = $file['path'];
 			}
 		} else {
-			$mugfile['file_path'] = NULL;
+			$mugfile['file_path'] = null;
 		}
 
 		$mugfile['file_type'] = $file['format'] ?? "UNK";
-		$mugfile['data_type'] = $file['data_type'] ?? NULL;
-		$mugfile['data_source'] = $file['data_source'] ?? NULL;
+		$mugfile['data_type'] = $file['data_type'] ?? null;
+		$mugfile['data_source'] = $file['data_source'] ?? null;
 
 		if (isset($file['path'])) {
 			$ext = pathinfo($file['path'], PATHINFO_EXTENSION);

@@ -86,7 +86,7 @@ if ($_REQUEST) {
     // Get container files
     if (isset($_REQUEST['action']) && $_REQUEST['action'] == "getContainerFiles" && isset($_POST['container'])) {
         $container = $_POST['container'];
-        error_log("Main script - received container: $container");
+        getObjectStorageOpenstackLogger()->info("Main script - received container: $container");
         $vaultUrl = $GLOBALS['vaultUrl'];
         $accessToken = $_SESSION['userToken']['access_token'];
         $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
@@ -100,7 +100,7 @@ if ($_REQUEST) {
             exit;
         }
         $files = getContainerFiles($container, $swiftClient);
-        error_log("Main script - files: " . print_r($files, true));
+        getObjectStorageOpenstackLogger()->info("Main script - files: " . print_r($files, true));
 
         echo json_encode($files);
         exit;

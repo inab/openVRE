@@ -264,7 +264,7 @@ function prepMetadataUpload($request, $validationState = 0)
 {
     $format      = (isset($request['format']) ? $request['format'] : "UNK");
     $data_type   = (isset($request['data_type']) ? $request['data_type'] : null);
-    $input_files = (isset($request['input_files']) ? $request['input_files'] : array(0));
+    $input_files = (isset($request['input_files']) ? $request['input_files'] : []);
 
     // compulsory metadata
     $insertMeta = array(
@@ -278,7 +278,7 @@ function prepMetadataUpload($request, $validationState = 0)
     // GFF, BAM, BW,.. metadata
     if (isset($request['taxon_id'])) {
         if ($request['taxon_id'] == "") {
-            $request['taxon_id'] = 0;
+            $request['taxon_id'] = null;
         }
 
         $insertMeta['taxon_id']   = $request['taxon_id'];
@@ -576,8 +576,6 @@ function post($data, $url, $headers = [], $auth_basic = [])
         return [0, $info];
     }
 
-    curl_close($c);
-
     return [$requestResult, $info];
 }
 
@@ -609,7 +607,6 @@ function get($url, $headers = array(), $auth_basic = array())
         $_SESSION['errorData']['Error'][] = $err;
         return array(0, $info);
     }
-    curl_close($c);
 
     return array($r, $info);
 }
@@ -639,7 +636,6 @@ function put($data, $url, $headers = array(), $auth_basic = array())
         $_SESSION['errorData']['Error'][] = $err;
         return array(0, $info);
     }
-    curl_close($c);
 
     return array($r, $info);
 }

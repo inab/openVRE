@@ -8,7 +8,6 @@ InputTool_checkRequest($_REQUEST);
 $from = InputTool_getOrigin($_REQUEST);
 
 list($rerunParams,$inPaths) = InputTool_getPathsAndRerun($_REQUEST);
-$rerun = $rerunParams['text_file'] ?? null;
 
 $dirName = InputTool_getDefExName();
 
@@ -156,7 +155,7 @@ $tool = getTool_fromId($toolId, 1);
 				<?php if( $_REQUEST["op"] == 0 ) {  ?>
 					<div class="col-md-12">
 						<?php $ff = matchFormat_File($tool['input_files']['text_file']['format'], $inPaths); ?>
-						<?php InputTool_printSelectFile($tool['input_files']['text_file'], $rerun, $ff[0], true, true); ?>
+						<?php InputTool_printSelectFile($tool['input_files']['text_file'], $ff ?? $ff[0], true, true); ?>
 					</div>
 				<?php } ?>
 			     </div>

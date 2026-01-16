@@ -112,18 +112,6 @@ redirectOutside();
 										$fn         = $filesData[$idx]['_id'];
 										$fnPath     = $filesData[$idx]['path'];
 										$validated  = $filesMeta[$idx]['validated'];
-
-										//get file compression
-										//if (is_null($_REQUEST['compressed'][$idx])){
-										//	$fileExtensionFN = strtoupper(pathinfo($fn,PATHINFO_EXTENSION));
-										//    $fileExtensionFN = preg_replace('/_\d$/',"",$fileExtensionFN);
-										//  if (in_array(".".$fileExtensionFN,Array(".BZ2",".GZ",".RAR",".ZIP",".TGZ",".TAR"))){
-										//		$_REQUEST['compressed'][$idx]=1;
-										//	}else{
-										//		$_REQUEST['compressed'][$idx]=0;
-										//	}
-										//}
-
 										$file        = formatData($filesData[$idx]);
 										switch ($validated) {
 											case '0':
@@ -164,23 +152,6 @@ redirectOutside();
 
 
 							<?php
-							//TODO add $defs as global like reference genomes?¿
-							//metadata default values
-							/*$defs = Array(
-					//general
-					'format'     => 'UNK',
-					'description'=> "",
-					'compressed' => 0,
-					'validated'  => 0,
-					//specific for aligned coords (BW, GFF, FASTQ aligned, etc..)
-					'refGenome'  => "",
-					//specific for BAM
-					'paired'     => 'paired',
-					'sorted'     => true,
-				);*/
-
-
-
 							//extract or guess file formats
 							foreach ($filesData as $idx => $v) {
 								$fn            = $filesData[$idx]['_id'];
@@ -195,33 +166,9 @@ redirectOutside();
 									if ($compressionType) {
 										$_REQUEST['compressed'][$idx] = 1;
 									}
-									/*
-					$fileInfo = pathinfo($fnPath);
-					if (isset($fileInfo['extension'])){
-					      $fileExtension = strtoupper($fileInfo['extension']);
-					      $fileExtension = preg_replace('/_\d$/',"",$fileExtension);
-					      if (in_array(".".$fileExtension,Array(".BZ2",".GZ",".RAR",".ZIP",".TGZ",".TAR") )){
-						  $fileExtension = strtoupper(pathinfo(str_replace(".".$fileInfo['extension'],"",$fnPath), PATHINFO_EXTENSION));
-						  $fileExtension = preg_replace('/_\d+$/',"",$fileExtension);
-						  $_REQUEST['compressed'][$idx]=1;
-					      }else{
-						  $_REQUEST['compressed'][$idx]=0;
-					      }
-                    }
- */
 								}
 
 								$filetypes = getFileTypesList();
-
-								//fill in form defaults from: REQUEST > FILEMETA DB > DEFAULTS $def
-								/*foreach ($defs as $attr => $v ){
-				       	if (isset($_REQUEST[$attr][$idx])){
-						$filesMeta[$idx][$attr]=$_REQUEST[$attr][$idx];
-					}elseif (is_null($filesMeta[$idx][$attr])){
-						$filesMeta[$idx][$attr]=$v;
-					}
-				}*/
-
 							?>
 
 
@@ -261,7 +208,6 @@ redirectOutside();
 
 										<div class="form-group display-hide" id="dataType<?php echo $idx; ?>">
 											<label>Data Type * <i class="icon-question tooltips" data-container="body" data-placement="right" data-original-title="Data type description"></i></span></label>
-											<!--<span class="help-block font-red warn1" style="display:none;">This field is required.</span>-->
 										</div>
 
 										<div class="form-group display-hide" id="taxonG<?php echo $idx; ?>">

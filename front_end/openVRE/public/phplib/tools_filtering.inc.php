@@ -30,28 +30,6 @@ function getFiles_DataTypes($fn)
 	return $a;
 }
 
-// return datatype for a given toolId
-
-function getDT_byFT_DEPRECATED($id)
-{
-
-	$dt = $GLOBALS['toolsCol']->find(array("_id" => $id), array("input_files" => true));
-
-	$arr_dt = [];
-
-	foreach ($dt as $tool) {
-		foreach ($tool["input_files"] as $t) {
-			$arr_dt = array_merge($arr_dt, $t["data_type"]);
-		}
-	}
-	$arr_dt = array_unique($arr_dt);
-
-	$array = [];
-	$array["id"] = $id;
-	$array["list1"] = array();
-	$array["list2"] = array();
-}
-
 
 // FILTER TOOLS
 

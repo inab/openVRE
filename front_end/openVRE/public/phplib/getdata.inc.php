@@ -186,8 +186,6 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
         redirect($referer);
     }
 
-    curl_close($ch);
-
     $dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
     $localWorkingDir = "{$dataDirPath}/{$outdir}";
     $workingDir = $GLOBALS['dataDir'] . "/" . $localWorkingDir;
@@ -347,8 +345,10 @@ function getData_fromTXT()
         'validated' => false
     ];
 
-    uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData);
+    $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData);
     getDataLogger()->info("File '" . $fileBasename . "' uploaded");
+
+    return $fileId;
 }
 
 
