@@ -1,5 +1,7 @@
 <?php
 
+use OpenVRE\VaultClient;
+
 
 function getOpenstackUser($vaultUrl, $accessToken, $vaultRolename, $username)
 {

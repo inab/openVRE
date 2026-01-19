@@ -1,6 +1,8 @@
 <?php
 
-namespace Oauth2Provider;
+namespace OpenVRE;
+
+use Exception;
 use League\OAuth2\Client\Provider\GenericProvider;
 
 class Oauth2Provider extends GenericProvider {

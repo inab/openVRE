@@ -1,8 +1,8 @@
 <?php
 
-#
-# Job management functions : SGE
-#
+use OpenVRE\LoggerFactory;
+use OpenVRE\NotFoundException;
+use OpenVRE\ProcessSGE;
 
 
 function getJobProcessLogger()

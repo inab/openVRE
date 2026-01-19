@@ -2,10 +2,6 @@
 require __DIR__ . "/../config/bootstrap.php";
 
 
-set_exception_handler(function (Throwable $e) {
-    $_SESSION['errorData']['Error'][] = $e->getMessage();
-});
-
 
 // Check if PHP session exists
 if (checkLoggedIn()) {

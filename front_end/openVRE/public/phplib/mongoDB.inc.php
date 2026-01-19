@@ -1,5 +1,9 @@
 <?php
 
+use OpenVRE\LoggerFactory;
+use OpenVRE\NotFoundException;
+
+
 function getMongoLogger()
 {
 	static $logger = null;

@@ -1,6 +1,11 @@
 <?php
 
 require __DIR__ . "/../../config/bootstrap.php";
+
+use OpenVRE\UserStatus;
+use OpenVRE\UserType;
+
+
 redirectOutside();
 
 

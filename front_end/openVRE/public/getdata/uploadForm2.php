@@ -267,10 +267,6 @@ redirectOutside();
 											</select>
 										</div>
 
-										<div class="form-group display-hide" id="dataType<?php echo $idx; ?>">
-											<label>Data Type <i class="icon-question tooltips" data-container="body" data-placement="right" data-original-title="Data type description"></i></span></label>
-										</div>
-
 										<!--<div class="form-group display-hide" id="taxonG<?php echo $idx; ?>">
 				        <label>Taxon  <i class="icon-question tooltips" data-container="body" data-placement="right" data-original-title="Taxon description"></i></span></label> 
 				        <input type="text" id="taxon<?php echo $idx; ?>" class="form-control taxon" placeholder="Please enter the taxon name" />
@@ -382,7 +378,7 @@ redirectOutside();
 
 										<div class="form-group descriptionTR" id="descriptionTR<?php echo $idx; ?>">
 											<label>Description</label>
-											<textarea name="description" id="description<?php echo $idx; ?>" class="form-control" rows="6" placeholder="Write a short description here..."><?php echo $filesMeta[$idx]['description']; ?></textarea>
+											<textarea name="description" id="description<?php echo $idx; ?>" class="form-control" rows="6" placeholder="Write a short description here..."><?php echo $filesMeta[$idx]['description'] ?? ''; ?></textarea>
 										</div>
 
 										<!--<input type="hidden" name="validated[]" value="<?php print $filesMeta[$idx]['validated']; ?>"/>-->

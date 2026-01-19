@@ -1,6 +1,9 @@
 <?php
 
-use Auth0\SDK\Exception\ArgumentException;
+use OpenVRE\LoggerFactory;
+use OpenVRE\NotFoundException;
+use OpenVRE\UserType;
+
 
 function getToolsLogger()
 {

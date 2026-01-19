@@ -2,7 +2,7 @@
 
 require __DIR__ . "/../../config/bootstrap.php";
 
-use Oauth2Provider\Oauth2Provider;
+use OpenVRE\Oauth2Provider;
 
 
 // Setting auth server

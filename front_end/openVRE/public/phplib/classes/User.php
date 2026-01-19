@@ -1,5 +1,11 @@
 <?php
 
+namespace OpenVRE;
+
+use Monolog\Logger;
+use UnexpectedValueException;
+
+
 class User
 {
     public $_id;
@@ -17,7 +23,7 @@ class User
     public $AuthProvider;
     public $id; // TODO: diff with _id?
     public $activeProject;
-    public $logger;
+    public Logger $logger;
 
     public function __construct(string $email, string $secretsId, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject, ?string $jwt)
     {
@@ -47,7 +53,7 @@ class User
             ? uniqid($GLOBALS['AppPrefix'] . "ANON")
             : uniqid($GLOBALS['AppPrefix'] . "USER");
         $this->activeProject = $this->activeProject ?: createLabel_proj();
-        $this->Status = userStatus::Active->value;
+        $this->Status = UserStatus::Active->value;
         $this->lastLogin = moment();
         $this->registrationDate = $this->registrationDate ?: moment();
         $this->diskQuota  = $this->diskQuota || $this->Type == UserType::Guest->value // TODO: check if this is ok

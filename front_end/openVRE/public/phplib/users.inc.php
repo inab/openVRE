@@ -1,11 +1,10 @@
 <?php
 
-/*
- * users.inc.php
- * 
- */
-
-//require_once "classes/User.php";
+use OpenVRE\LoggerFactory;
+use OpenVRE\NotFoundException;
+use OpenVRE\User;
+use OpenVRE\UserStatus;
+use OpenVRE\UserType;
 
 
 function getUsersLogger()

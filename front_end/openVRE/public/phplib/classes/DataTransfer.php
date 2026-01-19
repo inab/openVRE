@@ -1,5 +1,10 @@
 <?php
 
+namespace OpenVRE;
+
+use OpenVRE\RemoteSSH;
+use OpenVRE\VaultClient;
+
 
 class DataTransfer
 {
@@ -41,11 +46,6 @@ class DataTransfer
     public $hasExecutionFolder = true;
 
 
-    //private $vaultHost;
-    //private $vaultPort;
-    //private $vaultToken;
-
-
     public function __construct($tool, $input_files, $execution = "", $project = "", $descrip = "", $output_dir = "")
     {
 
@@ -56,10 +56,6 @@ class DataTransfer
         $this->execution = $execution;
         $this->project   = $project;
         $this->input_files = $input_files;
-
-        //$this->vaultHost = 'vault';
-        //$this->vaultPort = 8200;
-        //$this->vaultToken = 'root';
 
         // Set paths in VRE
         $this->root_dir  = $GLOBALS['dataDir'] . "/" . $_SESSION['User']['id'];

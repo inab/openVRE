@@ -1,5 +1,9 @@
 <?php
 
+use OpenVRE\LoggerFactory;
+use OpenVRE\RemoteSSH;
+use OpenVRE\VaultClient;
+
 
 function getObjectStorageLogger()
 {

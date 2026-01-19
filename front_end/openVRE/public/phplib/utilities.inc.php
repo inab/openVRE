@@ -1,5 +1,7 @@
 <?php
 
+use OpenVRE\LoggerFactory;
+
 
 function getUtilitiesLogger()
 {

@@ -1,5 +1,9 @@
 <?php
 
+use OpenVRE\LoggerFactory;
+use OpenVRE\VaultClient;
+
+
 function getLinkedAccountLogger()
 {
 	static $logger = null;

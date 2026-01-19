@@ -3,6 +3,8 @@ header('Content-Type: application/json');
 
 require __DIR__ . "/../../config/bootstrap.php";
 
+use OpenVRE\LoggerFactory;
+
 
 function getObjectStorageOpenstackLogger()
 {

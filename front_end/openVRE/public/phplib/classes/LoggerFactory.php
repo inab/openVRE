@@ -1,5 +1,7 @@
 <?php
 
+namespace OpenVRE;
+
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\LineFormatter;

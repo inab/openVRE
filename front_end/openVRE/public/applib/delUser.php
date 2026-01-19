@@ -2,6 +2,8 @@
 
 require __DIR__ . "/../../config/bootstrap.php";
 
+use OpenVRE\UserType;
+
 
 if ($_REQUEST) {
 	$u = getUserById(sanitizeString($_REQUEST["id"]));

@@ -1,5 +1,10 @@
 <?php
 
+use OpenVRE\LoggerFactory;
+use OpenVRE\NotFoundException;
+use OpenVRE\UserType;
+
+
 function getDataLogger()
 {
     static $logger = null;

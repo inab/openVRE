@@ -1,7 +1,12 @@
 <?php
 
-
 use League\OAuth2\Client\Token\AccessToken;
+use OpenVRE\LoggerFactory;
+use OpenVRE\NotFoundException;
+use OpenVRE\Oauth2Provider;
+use OpenVRE\UserType;
+use OpenVRE\VaultClient;
+
 
 function getProjectLogger()
 {
@@ -1530,7 +1535,6 @@ function refresh_token($force = false)
 	}
 	$existingTokenO = new AccessToken($_SESSION['userToken']);
 
-	//$provider = new Oauth2Provider\Oauth2Provider(['redirectUri'=> 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['PHP_SELF']]);
 	$provider = new Oauth2Provider\Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . $_SERVER['PHP_SELF']]);
 
 	if ($force || $existingTokenO->hasExpired()) {
@@ -1900,6 +1904,3 @@ function moveFiles($fns, $target_fn)
 		*/
 	}
 }
-
-
-?>

@@ -3,6 +3,10 @@
 require_once __DIR__ . '/LoggerFactory.php';
 
 use Monolog\Logger;
+use OpenVRE\LoggerFactory;
+use OpenVRE\NotFoundException;
+use OpenVRE\VaultClient;
+
 
 class Tooljob
 {
@@ -1493,14 +1497,6 @@ class Tooljob
 		return $flavor;
 	}
 
-
-	/**
-	 * Parse submission File
-	 */
-	public function parseSubmissionFile()
-	{
-		return 1;
-	}
 
 	public function getSSHCred($vaultUrl, $accessToken, $vaultRolename, $username, $remote_dir, $siteId)
 	{

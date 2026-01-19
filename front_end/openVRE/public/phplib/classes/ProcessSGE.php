@@ -1,6 +1,10 @@
 <?php
 
+namespace OpenVRE;
+
 use Monolog\Logger;
+use OpenVRE\LoggerFactory;
+
 
 const QSUB = "qsub -S /bin/bash";
 const QDEL = "qdel ";

@@ -1,5 +1,8 @@
 <?php
 
+use OpenVRE\LoggerFactory;
+use OpenVRE\NotFoundException;
+
 
 function getMongoProjectLogger()
 {

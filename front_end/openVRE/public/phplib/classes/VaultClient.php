@@ -1,5 +1,9 @@
 <?php
 
+namespace OpenVRE;
+
+use Monolog\Logger;
+use OpenVRE\LoggerFactory;
 
 
 class VaultClient
@@ -8,7 +12,7 @@ class VaultClient
 	private $vaultUrl;
 	private $roleName;
 	private $jwtToken;
-	private $logger;
+	private Logger $logger;
 
 
 	public function __construct($vaultUrl, $jwtToken, $roleName)
@@ -230,10 +234,6 @@ class VaultClient
 			$token = $this->checkToken();
 			$responseArray = $token["response"];
 			$respondeData = json_decode($responseArray, true);
-			if ($token["statusCode"] != 200) {
-				error_log("Error: " . print_r($respondeData, true));
-			}
-
 			$vaultToken = $respondeData["auth"]["client_token"];
 			$secretPath = $GLOBALS['secretPath'];
 

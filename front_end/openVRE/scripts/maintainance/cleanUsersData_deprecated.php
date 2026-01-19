@@ -1,5 +1,8 @@
 #!/usr/bin/env php
 <?php
+
+use OpenVRE\UserType;
+
 /*
  *  The present cleaning deletes the files and directories belonging to VRE users from both,
  *  the file system and the VRE database. The criteria to do so is the following:

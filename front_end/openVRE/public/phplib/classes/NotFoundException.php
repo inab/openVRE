@@ -1,5 +1,11 @@
 <?php
 
+namespace OpenVRE;
+
+use Exception;
+use Throwable;
+
+
 class NotFoundException extends Exception
 {
     public function __construct(

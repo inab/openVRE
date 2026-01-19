@@ -2,6 +2,9 @@
 
 require __DIR__ . "/../../config/bootstrap.php";
 
+use OpenVRE\UserType;
+
+
 redirectAdminOutside();
 
 $userAttributesProjection = ['projection' => ['Email' => 1, 'Surname' => 1, 'Name' => 1, 'Inst' => 1, 'diskQuota' => 1, 'lastLogin' => 1, 'Type' => 1, 'Status' => 1, 'id' => 1, 'lastReload' => 1]];
