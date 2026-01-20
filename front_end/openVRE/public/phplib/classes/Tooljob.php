@@ -1104,11 +1104,6 @@ class Tooljob
 		$bashFilename = $this->submission_file;
 		$logFilename = $this->log_file;
 
-		if (!is_file($bashFilename)) {
-			$this->logger->error("Failed to create queue submission file. " . "File '$bashFilename' does not exist");
-			throw new UnexpectedValueException("Failed to create queue submission file. " . "File '$bashFilename' does not exist");
-		}
-
 		$fout = fopen($bashFilename, "w");
 		if ($fout === false) {
 			$this->logger->error('Failed to create tool configuration file: ' . $bashFilename);
