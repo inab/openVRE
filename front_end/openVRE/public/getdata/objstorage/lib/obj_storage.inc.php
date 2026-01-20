@@ -1,5 +1,6 @@
 <?php
 
+use OpenVRE\SwiftClient;
 use OpenVRE\VaultClient;
 
 

@@ -98,8 +98,10 @@ function getData_fromLocal()
     ];
 
     $fileBasename = basename($filePath);
-    uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData);
+    $fileId = uploadGSFileBNS("$localWorkingDir/$fileBasename", $filePath, $insertData, $metaData);
     getDataLogger()->info("File $fileBasename uploaded");
+
+    print $fileId;
 }
 
 
@@ -266,12 +268,11 @@ function prepare_getData_fromURL($url, $outdir, $referer, $meta = [])
 function  getData_wget_asyncron($toolArgs, $toolOuts, $output_dir)
 {
     $toolId = "wget";
-    $toolInputs = [];
     $filePath = $toolOuts['output_files'][0]["path"];
     $logName = basename($filePath) . ".log";
 
     //TODO: FIXME START - This is a temporal fix. In future, files should not be downloaded, only registered
-    launchToolInternal($toolId, $toolInputs, $toolArgs, $output_dir, $logName);
+    launchToolInternal($toolId, $toolArgs, $output_dir, $logName);
     $outdir = basename($output_dir);
 
     getDataLogger()->info("File from URL '" . basename($filePath) . "' is being imported into the '$outdir' folder below. Please, edit its metadata once the import has finished");
@@ -473,7 +474,6 @@ function getData_fromRepository($url, $filetype, $description)
     //FIXME START - This is a temporal fix. In future, files should not be downloaded, only registered
 
     $toolId = "wget";
-    $toolInputs = [];
     $toolArgs  = [
         "url"    => $url,
         "output" => $filePath
@@ -489,7 +489,7 @@ function getData_fromRepository($url, $filetype, $description)
     }
 
     $logName = basename($filePath) . ".log";
-    launchToolInternal($toolId, $toolInputs, $toolArgs, $workingDir, $logName);
+    launchToolInternal($toolId, $toolArgs, $workingDir, $logName);
 
     $_SESSION['errorData']['Info'][] = "Remote file '" . basename($filePath) . "' imported into the 'repository' folder below. Please, edit its metadata once the job has finished";
     redirect($GLOBALS['BASEURL'] . "workspace/");

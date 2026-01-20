@@ -3,7 +3,7 @@
 namespace OpenVRE;
 
 use Monolog\Logger;
-use OpenVRE\LoggerFactory;
+use UnexpectedValueException;
 
 
 class VaultClient

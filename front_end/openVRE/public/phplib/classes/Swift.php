@@ -4,6 +4,9 @@
 
 //use OpenStack\OpenStack;
 //
+
+namespace OpenVRE;
+
 use OpenStack\Identity\v3\Models\Token;
 
 // Access to Swift Object Storage to copy the data.

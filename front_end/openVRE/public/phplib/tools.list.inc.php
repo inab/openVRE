@@ -2,6 +2,7 @@
 
 use OpenVRE\LoggerFactory;
 use OpenVRE\NotFoundException;
+use OpenVRE\Tooljob;
 use OpenVRE\UserType;
 
 
@@ -104,7 +105,7 @@ function getTool_fromId($toolId, $indexByName = false)
 
 
 // launch tool - used for internal tools
-function launchToolInternal($toolId, $inputs = [], $args = [], $output_dir = "", $logName = "")
+function launchToolInternal($toolId, $args = [], $output_dir = "", $logName = "")
 {
 	$tool = getTool_fromId($toolId, true);
 	if (is_null($tool)) {
@@ -124,32 +125,12 @@ function launchToolInternal($toolId, $inputs = [], $args = [], $output_dir = "",
 		$jobMeta->setLog($logName);
 	}
 
-	// Checking files locally
-	$files = []; // distinct file Objs to stage in
-	foreach ($inputs as $inIds) {
-		foreach ($inIds as $inId) {
-			$file = getGSFile_fromId($inId);
-			if (is_null($file)) {
-				getToolsLogger()->error("Input file '$inId' not registered");
-				throw new NotFoundException("Input file not registered");
-			}
-
-			$files[$file['_id']] = $file;
-		}
-	}
-
-	$jobMeta->setInput_files($inputs, [], []);
-	if (empty($jobMeta->input_files)) {
-		getToolsLogger()->error("Internal tool execution has no input files defined");
-		throw new UnexpectedValueException("Internal tool execution has no input files defined");
-	}
-
 	$args['working_dir'] = $jobMeta->working_dir;
 	$jobMeta->setArguments($args, $tool);
 	$jobMeta->createWorking_dir();
 
 	// Setting Command line. Adding parameters
-	$jobMeta->prepareExecution($tool, $files);
+	$jobMeta->prepareExecution($tool, []);
 	$jobMeta->submit($tool);
 	addUserJob($_SESSION['User']['_id'], (array)$jobMeta, $jobMeta->pid);
 

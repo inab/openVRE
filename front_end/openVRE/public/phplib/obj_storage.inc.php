@@ -2,6 +2,7 @@
 
 use OpenVRE\LoggerFactory;
 use OpenVRE\RemoteSSH;
+use OpenVRE\SwiftClient;
 use OpenVRE\VaultClient;
 
 

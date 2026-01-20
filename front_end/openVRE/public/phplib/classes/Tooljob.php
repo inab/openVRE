@@ -1,11 +1,9 @@
 <?php
 
-require_once __DIR__ . '/LoggerFactory.php';
+namespace OpenVRE;
 
 use Monolog\Logger;
-use OpenVRE\LoggerFactory;
-use OpenVRE\NotFoundException;
-use OpenVRE\VaultClient;
+use UnexpectedValueException;
 
 
 class Tooljob
@@ -109,6 +107,7 @@ class Tooljob
 				$this->pub_dir_volumes  = $GLOBALS['clouds'][$this->cloudName]['pubDir_host'];
 				$this->root_dir_volumes  = $GLOBALS['clouds'][$this->cloudName]['dataDir_host'] . "/" . $_SESSION['User']['id'];
 				$this->pub_dir_intern   = rtrim($this->pub_dir_virtual, "/") . "_tmp";
+				break;
 			case "ega_demo":
 				$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'] . "/" . $_SESSION['User']['id'];
 				$this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
@@ -212,6 +211,7 @@ class Tooljob
 
 	public function __setWorking_dir($execution, $overwrite = 0)
 	{
+		$this->logger->info("Setting working directory for execution '$execution'");
 		$dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
 		$localWorkingDir = "$dataDirPath/$execution";
 

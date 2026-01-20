@@ -3,8 +3,7 @@
 namespace OpenVRE;
 
 use Monolog\Logger;
-use OpenVRE\LoggerFactory;
-
+use UnexpectedValueException;
 
 const QSUB = "qsub -S /bin/bash";
 const QDEL = "qdel ";
