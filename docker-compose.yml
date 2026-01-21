@@ -138,6 +138,9 @@ services:
       - net_vre
     ports:
       - "6444:6444"
+    extra_hosts:
+      - "front_end:172.21.0.14"
+      - "front_end.${NETWORK_NAME}:172.21.0.14"
     restart: on-failure:2
 
 volumes:
