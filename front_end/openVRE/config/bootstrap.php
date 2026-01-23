@@ -1,7 +1,20 @@
 <?php
 
+// import vendor libs
+require dirname(__FILE__) . "/../vendor/autoload.php";
+
+use OpenVRE\LoggerFactory;
+
 set_exception_handler(function (Throwable $e) {
-    $_SESSION['errorData']['Error'][] = $e->getMessage();
+    #$_SESSION['errorData']['Error'][] = $e->getMessage();
+    $logger = LoggerFactory::getLogger("Bootstrap interface");
+    $logger->error($e->getTraceAsString());
+    $logger->error(sprintf(
+        "%s in %s:%d",
+        $e->getMessage(),
+        $e->getFile(),
+        $e->getLine()
+    ));
 
     http_response_code(500);
     echo "<!DOCTYPE html><html><body>";

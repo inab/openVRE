@@ -290,6 +290,7 @@ function getAttr_fromGSFileId($fileId, $attr, $asRoot = 0)
 
 function moveGSFileBNS($fn, $fnNew, $asRoot = 0, $owner = "")
 {
+	getMongoLogger()->debug("moveGSFileBNS($fn, $fnNew, $asRoot, $owner)");
 	if (!$asRoot) {
 		$owner = $_SESSION['User']['id'];
 	}
@@ -394,6 +395,7 @@ function moveGSFileBNS($fn, $fnNew, $asRoot = 0, $owner = "")
 
 function moveGSDirBNS($fn, $fnNew, $asRoot = 0, $owner = "")
 {
+	getMongoLogger()->debug("moveGSDirBNS($fn, $fnNew, $asRoot, $owner)");
 	if ($asRoot == 0) {
 		$owner = $_SESSION['User']['id'];
 	}
@@ -490,6 +492,7 @@ function moveGSDirBNS($fn, $fnNew, $asRoot = 0, $owner = "")
 
 function fromAbsPath_toPath($absPath)
 {
+	getMongoLogger()->debug("fromAbsPath_toPath($absPath)");
 	$path = str_replace($GLOBALS['dataDir'], "", $absPath);
 	return preg_replace('/^\//', "", $path);
 }

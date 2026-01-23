@@ -272,7 +272,7 @@ function  getData_wget_asyncron($toolArgs, $toolOuts, $output_dir)
     $logName = basename($filePath) . ".log";
 
     //TODO: FIXME START - This is a temporal fix. In future, files should not be downloaded, only registered
-    launchToolInternal($toolId, $toolArgs, $output_dir, $logName);
+    launchToolInternal($toolId, $toolArgs, $toolOuts, $output_dir, $logName);
     $outdir = basename($output_dir);
 
     getDataLogger()->info("File from URL '" . basename($filePath) . "' is being imported into the '$outdir' folder below. Please, edit its metadata once the import has finished");
@@ -403,7 +403,7 @@ function process_URL($url)
 
 
 // import from Repository (URL) to user workspace
-function getData_fromRepository($url, $filetype, $description)
+function getData_fromRepository($url, $datatype, $filetype, $description)
 {
     $url_data = process_URL($url);
     $filename = $url_data['filename'];
@@ -488,8 +488,25 @@ function getData_fromRepository($url, $filetype, $description)
         $filetype = array_keys($filetypes)[0] ?? "";
     }
 
+    $validated = $filetype != "" && $datatype != "";
+    $fileOut = [
+        "name"       => "file",
+        "type"       => "file",
+        "file_path"  => $filePath,
+        "data_type"  => $datatype,
+        "file_type"  => $filetype,
+        "sources"    => [0],
+        "source_url" => $url,
+        "meta_data"  => [
+            "validated"   => $validated,
+            "compressed"  => $compressed,
+            "description" => $description,
+        ]
+    ];
+
+    $toolOuts = ["output_files" => [$fileOut]];
     $logName = basename($filePath) . ".log";
-    launchToolInternal($toolId, $toolArgs, $workingDir, $logName);
+    launchToolInternal($toolId, $toolArgs, $toolOuts, $workingDir, $logName);
 
     $_SESSION['errorData']['Info'][] = "Remote file '" . basename($filePath) . "' imported into the 'repository' folder below. Please, edit its metadata once the job has finished";
     redirect($GLOBALS['BASEURL'] . "workspace/");

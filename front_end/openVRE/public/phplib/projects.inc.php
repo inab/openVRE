@@ -975,6 +975,8 @@ function updatePendingFiles($sessionId)
 
 function processRunningJobInfo($job, $jobProcess, $pid, $title, $descrip, $filesPending, $SGE_updated)
 {
+	getProjectLogger()->debug("Start processRunningJobInfo $pid.  Job data: " . json_encode($job));
+
 	//set dummy id
 	$dummyId  = $job['pid'] . "_dummy";
 
@@ -1028,10 +1030,12 @@ function processRunningJobInfo($job, $jobProcess, $pid, $title, $descrip, $files
 	//update job state in mongo
 	$job['state'] = $jobProcess['state'];
 	$SGE_updated[$pid] = $job;
+
+	return $SGE_updated;
 }
 
 
-function processFinishedJobInfo($job, $pid, $title, $filesPending)
+function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 {
 	getProjectLogger()->info("Workspace reload detects job $pid is not running anymore");
 
@@ -1048,11 +1052,12 @@ function processFinishedJobInfo($job, $pid, $title, $filesPending)
 		return;
 	}
 
-	getProjectLogger()->debug("Building outsput from toolINFO + stageout_file + stageout_data.");
+	getProjectLogger()->debug("Building output from toolINFO + stageout_file + stageout_data.");
 
 	// build output list merging: stageout_file + stageout_data + tool defintion data
 	$outs_files = build_outputs_list($tool, $job['stageout_data'], $job['stageout_file']);
-	if (count($outs_files) == 0) {
+	getProjectLogger()->debug("Finished building output from toolINFO + stageout_file + stageout_data: " . json_encode($outs_files));
+	if (empty($outs_files)) {
 		getProjectLogger()->warning("Failed to register $pid job outfiles. Output file list empty.");
 		$job_in_err = 1;
 	}
@@ -1061,11 +1066,9 @@ function processFinishedJobInfo($job, $pid, $title, $filesPending)
 	foreach ($outs_files as $out_name => $outs_data) {
 		// evaluate output_file requirement
 		$out_def = $tool['output_files'][$out_name];
-		$is_required    = output_is_required($out_def);
-		$allow_multiple = output_allow_multiple($out_def);
 
 		//check requirement : allow multiple
-		if ($allow_multiple === false) {
+		if (!isset($out_def['allow_multiple']) || !$out_def['allow_multiple']) {
 			if (count($outs_data) > 1) {
 				getProjectLogger()->warning("Tool definition does not allow multiple instances for '$out_name', but the execution returned " . count($outs_data) . ". Registering only one of them.");
 			}
@@ -1076,9 +1079,8 @@ function processFinishedJobInfo($job, $pid, $title, $filesPending)
 		// start
 		foreach ($outs_data as $out_data) {
 			//check requirement : required
-			if (is_null($out_data['path'])) {
-				if ($is_required) {
-					$_SESSION['errorData']['Error'][] = "Job output file ($out_name) not created";
+			if (!isset($out_data['path'])) {
+				if (isset($out_def['required']) && $out_def['required']) {
 					getProjectLogger()->error("Job output file ($out_name) not created. No 'path' found. Job finished without creating 'out_metadata'?");
 					$job_in_err = 1;
 				}
@@ -1132,8 +1134,20 @@ function processFinishedJobInfo($job, $pid, $title, $filesPending)
 			if ($fileId) {
 				getProjectLogger()->debug("JOB $pid finished successfully.");
 				getProjectLogger()->debug("Updating only outfile $out_name '$rfn' metadata from job $pid");
-			} else { // job successfully finished but not yet on mongo. Save output
-				getProjectLogger()->error("Job output outfile ($out_name) generated (" . basename($rfn) . ").");
+				list($out_vre, $metadata) = getVREfile_fromFile($out_data);
+				addMetadataToFile($fileId, $metadata);
+			} elseif (is_file($rfn) || is_dir($rfn)) { // job successfully finished but not yet on mongo. Save output
+				list($out_vre, $metadata) = getVREfile_fromFile($out_data);
+				$fileInfo = saveResults($outPath, $metadata, $job);
+				if (is_array($fileInfo)) {
+					$fileId = $fileInfo['_id'];
+					if ($metadata['visible']) {
+						$filesPending[$fileId] = $fileInfo;
+					}
+				}
+
+				getProjectLogger()->debug("Job output outfile ($out_name) generated (" . basename($rfn) . ").");
+			} else {
 				getProjectLogger()->error("Failed to register outfile $out_name '$rfn'. File not found in disk");
 				$job_in_err = 1;
 			}
@@ -1202,6 +1216,7 @@ function processPendingFiles($sessionId)
 	// get jobs from mongo[users][lastjobs]
 	$lastjobs = getUserJobs($sessionId);
 	if (empty($lastjobs)) {
+		getProjectLogger()->debug("No pending jobs");
 		return [];
 	}
 
@@ -1212,23 +1227,22 @@ function processPendingFiles($sessionId)
 		}
 
 		$pid = $job['pid'];
-		$title   = $job['title'] ?? "Job " . $job['execution'];
-		$descrip = getJobDescription($job['description'], $jobProcess, $lastjobs);
 
 		//get qstat info
 		getProjectLogger()->info("Start processPendingFiles -> getRunningJobInfo $pid. Log= " . $job['log_file']);
 		$jobProcess = getRunningJobInfo($pid, $job['launcher'], $job['cloudName']);
+		$title   = $job['title'] ?? "Job " . $job['execution'];
+		$descrip = getJobDescription($job['description'], $jobProcess, $lastjobs);
 
 		//set as running job
-
-
 		if (empty($jobProcess)) {
 			processFinishedJobInfo($job, $pid, $title, $filesPending);
 		} else {
-			processRunningJobInfo($job, $jobProcess, $pid, $title, $descrip, $filesPending, $SGE_updated);
+			$SGE_updated = processRunningJobInfo($job, $jobProcess, $pid, $title, $descrip, $filesPending, $SGE_updated);
 		}
 	}
 
+	getProjectLogger()->debug("SGE_updated before saveUserJobs: " . json_encode($SGE_updated));
 	//update session and save to mongo
 	saveUserJobs($sessionId, $SGE_updated);
 	return $filesPending;
@@ -1237,6 +1251,7 @@ function processPendingFiles($sessionId)
 
 function saveResults($filePath, $metaData = array(), $job = array(), $rfn = 0, $asRoot = 0)
 {
+	getProjectLogger()->debug("saveResults(" . $filePath . ", " . json_encode($metaData) . ", " . json_encode($job) . ", " . $rfn . ", " . $asRoot . ")");
 	// check given filePath
 	if ($rfn == 0) {
 		$rfn  = $GLOBALS['dataDir'] . "/" . $filePath;
@@ -1245,6 +1260,7 @@ function saveResults($filePath, $metaData = array(), $job = array(), $rfn = 0, $
 	if (preg_match('/^\//', $filePath)) {
 		$rfn      = $filePath;
 		$filePath = str_replace($GLOBALS['dataDir'] . "/", "", $rfn);
+		getProjectLogger()->debug("File path replaced to " . $filePath);
 	}
 
 	if (!is_file($rfn) && !is_dir($rfn)) {
@@ -1309,95 +1325,92 @@ function saveResults($filePath, $metaData = array(), $job = array(), $rfn = 0, $
 
 function  build_outputs_list($tool, $stageout_job, $stageout_file)
 {
-
-	$outs_meta = array();
+	getProjectLogger()->debug("build_outputs_list(" . json_encode($tool) . ", " . json_encode($stageout_job) . ", " . json_encode($stageout_file) . ")");
 
 	// check tool output_files
-
 	if (!$tool['infrastructure']['interactive'] && !(isset($tool['output_files']) || count($tool['output_files']) == 0)) {
-		$_SESSION['errorData']['Internal'][] = "Tool " . $tool['name'] . " has not list of 'output_files'. Invalid tool registration";
-		$_SESSION['errorData']['Error'][] = "Cannot obtain results from execution '" . dirname($stageout_file) . "'";
-		return $outs_meta;
+		getProjectLogger()->error("Tool " . $tool['name'] . " has not list of 'output_files'. Invalid tool registration");
+		getProjectLogger()->error("Cannot obtain results from execution '" . dirname($stageout_file) . "'");
+		return [];
 	}
 
 	// parse stageout file
 	$stageout_meta = array();
 	if (isset($stageout_file) && is_file($stageout_file)) {
 		$content = file_get_contents($stageout_file);
-		$data    = json_decode($content, true);
-		if (count($data) == 0 || count($data['output_files']) == 0) {
-			$_SESSION['errorData']['Warning'][] = "Tool stageout file '" . basename($stageout_file) . "' is empty or bad formatted";
+		$data = json_decode($content, true);
+		if (empty($data) || empty($data['output_files'])) {
+			getProjectLogger()->warning("Tool stageout file '" . basename($stageout_file) . "' is empty or bad formatted");
 		}
+
 		//index by name
 		foreach ($data['output_files'] as $out) {
-			if (isset($out['name'])) {
-				if (is_null($stageout_meta[$out['name']]))
-					$stageout_meta[$out['name']] = array();
-				array_push($stageout_meta[$out['name']], $out);
-			} else {
-				$_SESSION['errorData']['Warning'][] = "Tool stageout file '" . basename($stageout_file) . "' is bad formatted. Missing 'name' in 'output_files' list";
+			if (!isset($out['name'])) {
+				getProjectLogger()->warning("Tool stageout file '" . basename($stageout_file) . "' is bad formatted. Missing 'name' in 'output_files' list");
 				continue;
 			}
+
+			if (!isset($stageout_meta[$out['name']])) {
+				$stageout_meta[$out['name']] = array();
+			}
+
+			array_push($stageout_meta[$out['name']], $out);
 		}
 	} elseif ($tool['external'] !== false) {
 		$_SESSION['errorData']['Warning'][] = date("h:i:s") . ": Tool stageout file '" . $stageout_file . "' is not found";
+		getProjectLogger()->warning("Tool stageout file '" . $stageout_file . "' is not found");
 	}
-	print "\n__________FROM FILE________________\n";
-	$json_string = json_encode($stageout_meta, JSON_PRETTY_PRINT);
+
 	// check stageout data
 	$stageout_data = array();
-	if ($stageout_job) {
-		if (is_null($stageout_job['output_files'])) {
-			$stageout_data = array();
-		} else {
-			foreach ($stageout_job['output_files'] as $out) {
-				if (isset($out['name'])) {
-					if (is_null($stageout_data[$out['name']]))
-						$stageout_data[$out['name']] = array();
-					array_push($stageout_data[$out['name']], $out);
-				} else {
-					$_SESSION['errorData']['Warning'][] = "Tool job has stageout data is bad formatted. Missing 'name' in 'output_files' list";
-					continue;
-				}
+	if ($stageout_job && isset($stageout_job['output_files'])) {
+		foreach ($stageout_job['output_files'] as $out) {
+			if (!isset($out['name'])) {
+				getProjectLogger()->warning("Tool job has stageout data is bad formatted. Missing 'name' in 'output_files' list");
+				continue;
 			}
+
+			if (!isset($stageout_data[$out['name']])) {
+				$stageout_data[$out['name']] = array();
+			}
+
+			array_push($stageout_data[$out['name']], $out);
 		}
 	}
-	print "\n__________FROM JOB________________\n";
-	$json_string = json_encode($stageout_data, JSON_PRETTY_PRINT);
 
 	// merging stageout file and stageout data
 	$stageout_meta = array_merge($stageout_data, $stageout_meta);
 
-	print "\n__________FROM FILE + JOB________________\n";
-	$json_string = json_encode($stageout_meta, JSON_PRETTY_PRINT);
-
 	// merging file data from tool and stageout_file
-
+	$outs_meta = array();
 	foreach ($tool['output_files'] as $out_name => $out_data) {
 		$outs_meta[$out_name] = array();
-		if (is_null($out_data['file'])) {
+		if (!isset($out_data['file'])) {
 			$out_data['file'] = array();
-			print "Tool has no file attribute for output_file '$out_name'";
+			getProjectLogger()->error("Tool has no file attribute for output_file '$out_name'");
 		}
 
-		if (is_null($stageout_meta[$out_name])) {
-			print "Tool stageout file/data has no metadata for output_file '$out_name'.";
+		if (!isset($stageout_meta[$out_name])) {
+			getProjectLogger()->error("Tool stageout file/data has no metadata for output_file '$out_name'.");
 			array_push($outs_meta[$out_name], $out_data);
 			continue;
 		}
 
 		foreach ($stageout_meta[$out_name] as $stg_data) {
-
 			//create  merged file data
-			if (isset($out_data['file']['input_files']))
+			if (isset($out_data['file']['input_files'])) {
 				unset($out_data['file']['input_files']);
-			if (isset($stg_data['name']))
-				unset($stg_data['name']);
-			$file_merged  = array_merge_recursive_distinct($out_data['file'], $stg_data);
+			}
 
+			if (isset($stg_data['name'])) {
+				unset($stg_data['name']);
+			}
+
+			$file_merged  = array_merge_recursive_distinct($out_data['file'], $stg_data);
 			array_push($outs_meta[$out_name], $file_merged);
 		}
 	}
+
 	return $outs_meta;
 }
 

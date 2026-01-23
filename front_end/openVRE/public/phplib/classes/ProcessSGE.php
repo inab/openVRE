@@ -108,13 +108,16 @@ class ProcessSGE
 	public function getRunningJobInfo($pid)
 	{
 		$job = array();
-		if (! $this->pid)
+		if (! $this->pid) {
 			$this->pid = $pid;
+		}
+
 		$cmd = QSTAT . " -j $pid | awk '$0~/:/ {print $0}'";
 		exec($cmd, $jobInfo);
 
-		if (count($jobInfo) == 0)
+		if (count($jobInfo) == 0) {
 			return $job;
+		}
 
 		foreach ($jobInfo as $line) {
 			$fields = explode(":", $line);
@@ -122,6 +125,7 @@ class ProcessSGE
 			$v = trim(implode(":", $fields));
 			$job[$k] = $v;
 		}
+
 		$cmd = QSTAT . " -u $this->username | grep $pid | awk '$1 ~ /[0-9]+/ {print $1\"\t\"$5\"\t\"$6 $7}'";
 		exec($cmd, $jobState);
 
@@ -131,6 +135,7 @@ class ProcessSGE
 			list($pid, $state) = explode("\t", $jobState[0]);
 			$job['state'] = $this->jobState[$state];
 		}
+		
 		$job['pid'] = $pid;
 
 		return $job;

@@ -105,8 +105,10 @@ function getTool_fromId($toolId, $indexByName = false)
 
 
 // launch tool - used for internal tools
-function launchToolInternal($toolId, $args = [], $output_dir = "", $logName = "")
+function launchToolInternal($toolId, $args = [], $outs = [], $output_dir = "", $logName = "")
 {
+	getToolsLogger()->debug("launchToolInternal(" . $toolId . ", " . json_encode($args) . ", " . json_encode($outs) . ", " . $output_dir . ", " . $logName . ")");
+	
 	$tool = getTool_fromId($toolId, true);
 	if (is_null($tool)) {
 		getToolsLogger()->error("Tool '$toolId' not registered");
@@ -119,7 +121,7 @@ function launchToolInternal($toolId, $args = [], $output_dir = "", $logName = ""
 	}
 
 	$descrip = "Internal job execution of " . $tool['name'];
-	$jobMeta = new Tooljob($tool, descrip: $descrip, arguments_exec: $output_dir);
+	$jobMeta = new Tooljob($tool, descrip: $descrip, arguments_exec: $args, output_dir:  $output_dir);
 
 	if (strlen($logName)) {
 		$jobMeta->setLog($logName);
@@ -129,10 +131,13 @@ function launchToolInternal($toolId, $args = [], $output_dir = "", $logName = ""
 	$jobMeta->setArguments($args, $tool);
 	$jobMeta->createWorking_dir();
 
+	// Set outfiles metadata -- for register latter
+	$jobMeta->setStageout_data($outs);
+
 	// Setting Command line. Adding parameters
 	$jobMeta->prepareExecution($tool, []);
 	$jobMeta->submit($tool);
-	addUserJob($_SESSION['User']['_id'], (array)$jobMeta, $jobMeta->pid);
+	addUserJob($_SESSION['User']['_id'], $jobMeta->toDocument(), $jobMeta->pid);
 
 	return $jobMeta->pid;
 }

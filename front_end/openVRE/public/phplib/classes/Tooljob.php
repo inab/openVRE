@@ -53,6 +53,7 @@ class Tooljob
 	public $stdout_file;
 	public $stderr_file;
 
+	public $stageout_data 	= [];
 	public $input_files     = [];
 	public $input_files_pub = [];
 	public $input_paths_pub = [];
@@ -640,6 +641,30 @@ class Tooljob
 			$this->input_files_pub[$input_name] = $fns;
 			$this->input_paths_pub[$input_name] = $input_values[0];
 		}
+	}
+
+	/**
+	 * Store its metadata in Tooljob for recovering it latter, while stageout register
+	 * Needed when tool has not APP (internal), and no out_metadata is generated. 
+	 * @param array $outs Array of outputfiles
+	 * @param array $tool Tool array containing input_files type and requirements TODO
+	 * @param array $metadata Files metadata extracted from DB TODO
+	 */
+	public function setStageout_data($out_files, $tool = [], $metadata = [])
+	{
+		$this->logger->debug("Stageout data: ", $out_files);
+		if (!isset($out_files['output_files'])) {
+			$_SESSION['errorData']['Error'][] = "Internal tool may have problems registering outfiles: Stageout_data mal formatted";
+			return 0;
+		}
+
+		$this->stageout_file = "";
+		foreach ($out_files['output_files'] as $out_name => $info) {
+			//Add output file metadata
+			$this->stageout_data['output_files'][$out_name] = $info;
+		}
+
+		return 1;
 	}
 
 
@@ -1582,5 +1607,12 @@ class Tooljob
 			'name' => $siteDocument['name'],
 			'launcher' => $siteDocument['launcher']
 		];
+	}
+
+	public function toDocument(): array
+	{
+		$data = get_object_vars($this);
+		unset($data['logger']);
+		return $data;
 	}
 }

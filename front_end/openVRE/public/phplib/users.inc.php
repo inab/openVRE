@@ -344,6 +344,7 @@ function getUser_diskQuota($login)
 
 function saveUserJobs($login, $jobInfo)
 {
+    getUsersLogger()->debug("Updating user $login with job data: " . json_encode($jobInfo));
     $GLOBALS['usersCol']->updateOne(
         array('_id' => $login),
         array('$set'   => array('lastjobs' => $jobInfo)),
@@ -353,6 +354,7 @@ function saveUserJobs($login, $jobInfo)
 
 function delUserJob($login, $pid)
 {
+    getUsersLogger()->debug("Deleting job $pid from user $login");
     $GLOBALS['usersCol']->updateOne(
         array('_id' => $login),
         array('$unset' => array("lastjobs.$pid" => 1))
@@ -365,6 +367,8 @@ function addUserJob($login, $data, $pid)
     $pid = strval($pid);
     $lastjobs = getUserJobs($login);
     $lastjobs[$pid] = $data;
+    getUsersLogger()->debug("Adding job $pid to user $login");
+    getUsersLogger()->debug("Job data: " . json_encode($data));
     $GLOBALS['usersCol']->updateOne(
         array('_id' => $login),
         array('$set'   => array('lastjobs' => $lastjobs)),

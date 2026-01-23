@@ -494,23 +494,6 @@ function prepMetadataLog($metaOutfile)
 }
 
 
-function output_is_required($out_def)
-{
-    if (isset($out_def['required']))
-        return $out_def['required'];
-    else
-        return false;
-}
-
-function output_allow_multiple($out_def)
-{
-    if (isset($out_def['allow_multiple']))
-        return $out_def['allow_multiple'];
-    else
-        return false;
-}
-
-
 // Merge 2 multidimentional arrays joining common keys
 function array_merge_recursive_distinct(array &$array1, array &$array2)
 {

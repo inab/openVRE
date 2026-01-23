@@ -25,9 +25,10 @@ switch ($_REQUEST['uploadType']) {
 		break;
 	case 'repository':
 		$url = $_REQUEST['url'];
+		$datatype = $_REQUEST['data_type'] ?? "";
 		$filetype = $_REQUEST['filetype'] ?? "";
 		$descrip = $_REQUEST['description'] ?? "";
-		getData_fromRepository($url, $filetype, $descrip);
+		getData_fromRepository($url, $datatype, $filetype, $descrip);
 		break;
 	case 'sampleData':
 		getData_fromSampleData($_REQUEST);
