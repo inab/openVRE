@@ -1137,6 +1137,10 @@ function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 				list($out_vre, $metadata) = getVREfile_fromFile($out_data);
 				addMetadataToFile($fileId, $metadata);
 			} elseif (is_file($rfn) || is_dir($rfn)) { // job successfully finished but not yet on mongo. Save output
+				if (!$tool['external']) {
+					//$out_data['meta_data']['validated'] = true;
+				}
+
 				list($out_vre, $metadata) = getVREfile_fromFile($out_data);
 				$fileInfo = saveResults($outPath, $metadata, $job);
 				if (is_array($fileInfo)) {
