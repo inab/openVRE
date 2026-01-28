@@ -407,7 +407,8 @@ class Tooljob
 		if ($tool['output_files']) {
 			foreach ($tool['output_files'] as $key => $value) {
 				if (isset($value['file']['path'])) {
-					$value['file']['path'] = $this->root_dir_virtual . "/" . $this->project . "/" . $this->execution . "/" . $value['file']['path'];
+					$value['file']['file_path'] = $this->root_dir_virtual . "/" . $this->project . "/" . $this->execution . "/" . $value['file']['path'];
+					$value['file']['file_type'] = $value['file']['format'];
 				}
 
 				$data['output_files'][] = $value;
@@ -685,11 +686,11 @@ class Tooljob
 			$fileMuG = $this->fromVREfile_toMUGfile($file);
 
 			if ($fileMuG['data_source'] == "EGA") {
-				$fileMuG['path'] = "/clean_files/" . $file['ega_path']; // hardcoded ega path
+				$fileMuG['file_path'] = "/clean_files/" . $file['ega_path']; // hardcoded ega path
 			}
 
-			if ($fileMuG['path']) {
-				$fileMuG['path'] = $this->root_dir_virtual . "/" . $fileMuG['path'];
+			if ($fileMuG['file_path']) {
+				$fileMuG['file_path'] = $this->root_dir_virtual . "/" . $fileMuG['file_path'];
 			}
 
 			if ($fileMuG['parentDir']) {
@@ -705,7 +706,7 @@ class Tooljob
 		// add input_files public metadata
 		if (count($metadata_pub)) {
 			foreach ($metadata_pub as $fileMuG) {
-				$fileMuG['path'] ??= $this->pub_dir_virtual . "/" . $fileMuG['path'];
+				$fileMuG['file_path'] ??= $this->pub_dir_virtual . "/" . $fileMuG['file_path'];
 				if ($fileMuG['parentDir']) {
 					$parent_path = getAttr_fromGSFileId($fileMuG['parentDir'], "path");
 					if (isset($parent_path)) {

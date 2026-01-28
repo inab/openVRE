@@ -492,9 +492,9 @@ function getData_fromRepository($url, $datatype, $filetype, $description)
     $fileOut = [
         "name"       => "file",
         "type"       => "file",
-        "file_path"  => $filePath,
+        "path"  => $filePath,
         "data_type"  => $datatype,
-        "file_type"  => $filetype,
+        "format"  => $filetype,
         "sources"    => [0],
         "source_url" => $url,
         "meta_data"  => [

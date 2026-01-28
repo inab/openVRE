@@ -1142,15 +1142,19 @@ function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 				}
 
 				list($out_vre, $metadata) = getVREfile_fromFile($out_data);
-				$fileInfo = saveResults($outPath, $metadata, $job);
+				try {
+					$fileInfo = saveResults($outPath, $metadata, $job);
+					getProjectLogger()->debug("Job output outfile ($out_name) generated (" . basename($rfn) . ").");
+				} catch (Exception $e) {
+					$_SESSION['errorData']['Error'][] = "Job output file (" . basename($rfn) . ") generated, but with wrong metadata.";
+				}
+
 				if (is_array($fileInfo)) {
 					$fileId = $fileInfo['_id'];
 					if ($metadata['visible']) {
 						$filesPending[$fileId] = $fileInfo;
 					}
 				}
-
-				getProjectLogger()->debug("Job output outfile ($out_name) generated (" . basename($rfn) . ").");
 			} else {
 				getProjectLogger()->error("Failed to register outfile $out_name '$rfn'. File not found in disk");
 				$job_in_err = 1;
@@ -1202,8 +1206,12 @@ function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 				$logMeta['description'] = "Job log file";
 				$logMeta['format']      = "ERR";
 				$metaDataLog = prepMetadataLog($logMeta, $logFile);
-				$logInfo = saveResults($logFile, $metaDataLog, $job);
-				$filesPending[$logInfo['_id']] = $logInfo;
+				try {
+					$logInfo = saveResults($logFile, $metaDataLog, $job);
+					$filesPending[$logInfo['_id']] = $logInfo;
+				} catch (Exception $e) {
+					$_SESSION['errorData']['Error'][] = $e->getMessage();
+				}
 			}
 		}
 	} else {

@@ -146,6 +146,6 @@ try {
 }
 
 $logger->debug("Job submitted. PID = $pid");
-addUserJob($_SESSION['User']['_id'], (array)$jobMeta, $jobMeta->pid);
+addUserJob($_SESSION['User']['_id'], $jobMeta->toDocument(), $jobMeta->pid);
 
 redirect($GLOBALS['BASEURL'] . "workspace/");

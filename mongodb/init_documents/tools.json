@@ -21,8 +21,8 @@
     ],
     "infrastructure": {
       "memory": 4,
-      "cpus": 2,
-      "container_image": "vre_mock_tool:latest",
+      "cpus": 1,
+      "container_image": "mock_tool:latest",
       "executable": "/home/vre_template_tool/VRE_RUNNER",
       "clouds": {
         "local": {
@@ -66,7 +66,7 @@
             "tool": "mock_tool",
             "description": "Demo TXT output file."
           },
-          "file_path": "results_file.txt"
+          "path": "results_file.txt"
         }
       }
     ],

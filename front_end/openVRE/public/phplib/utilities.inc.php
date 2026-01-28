@@ -371,7 +371,7 @@ function getVREfile_fromFile($mugfile)
         unset($mugfile['meta_data']);
     }
 
-    if (isset($mugfile['file_type'])) {
+    if (isset($mugfile['format'])) {
         $metadata['format'] = $mugfile['format'];
         unset($mugfile['format']);
     }

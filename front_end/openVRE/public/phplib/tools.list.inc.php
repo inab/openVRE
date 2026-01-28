@@ -46,6 +46,8 @@ function getTools_List($status = 1)
 
 function getTools_ListComplete($status = 1)
 {
+	getToolsLogger()->debug("Get list of tools");
+
 	if ($_SESSION['User']['Type'] == UserType::Guest->value) {
 		$tools = $GLOBALS['toolsCol']->find(array('external' => true, 'status' => $status, 'owner.license' => array('$ne' => "free_for_academics")), array(), array('title' => 1));
 	} elseif ($_SESSION['User']['Type'] == UserType::Admin->value || $_SESSION['User']['Type'] == UserType::ToolDev->value) {
