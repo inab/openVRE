@@ -145,7 +145,8 @@ try {
 	redirect($GLOBALS['BASEURL'] . "workspace/");
 }
 
-$logger->debug("Job submitted. PID = $pid");
 addUserJob($_SESSION['User']['_id'], $jobMeta->toDocument(), $jobMeta->pid);
+$logger->info("Job submitted. PID = $pid");
+$_SESSION['errorData']['Info'][] = "Job successfully sent! Monitor it at <b>" . $proj['name'] . " &rsaquo; " . $jobMeta->execution . " &rsaquo; " . $jobMeta->title . "</b>.";
 
 redirect($GLOBALS['BASEURL'] . "workspace/");

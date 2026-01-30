@@ -342,6 +342,9 @@ function getFilesToDisplay($dirSelection)
 		array_push($files[$parentId]['files'], $r['_id']);
 	}
 
+	getProjectLogger()->debug("Files to display: " . json_encode($files));
+	getProjectLogger()->debug("Pending files: " . json_encode($filesPending));
+
 	return array_merge($files, $filesPending);
 }
 
@@ -485,7 +488,6 @@ function printTable($filesAll = array())
 
 function printLastJobs($filesAll = array())
 {
-
 	$timestamps = array();
 	foreach ($filesAll as $key => $node) {
 		$timestamps[$key] = $node["mtime"];
@@ -495,13 +497,14 @@ function printLastJobs($filesAll = array())
 ?>
 
 	<ul class="feeds">
-
 		<?php
 		$wehavejobs = false;
 		foreach ($filesAll as $r) {
 			if (isset($r['files'])) {
-				if (preg_match('/\/\./', $r['_id']))
+				if (preg_match('/\/\./', $r['_id'])) {
 					continue;
+				}
+
 				if (isset($r['pending'])) {
 				} elseif ((basename($r['path']) == "uploads") || (basename($r['path']) == "repository")) {
 				} elseif (isset($r['files'][0]) && !strpos($r['files'][0], "dummy")) {
@@ -522,7 +525,6 @@ function printLastJobs($filesAll = array())
 		if (!$wehavejobs) echo "You have not launched any job yet.";
 
 		?>
-
 	</ul>
 
 <?php
@@ -951,7 +953,7 @@ function updatePendingFiles($sessionId)
 			getProjectLogger()->info("Start processPendingFiles -> getRunningJobInfo $pid. Log= " . $job['log_file']);
 			$jobProcess = getRunningJobInfo($pid, $job['launcher']);
 
-			//job keeps running: maintain original job data 
+			//job keeps running: maintain original job data
 			if (count($jobProcess)) {
 				//keep monitoring
 				$job['state']  = $jobProcess['state'];
@@ -960,20 +962,19 @@ function updatePendingFiles($sessionId)
 				//job not running : edit SGE_updated to register the change
 				// and consequently reload workspace (checkPendingJobs.php)
 			} else {
-				log_addFinish($pid, "Automatic job update detects job $pid is not running anymore");
+				getProjectLogger()->info("Automatic job update detects job $pid is not running anymore");
 				$SGE_updated[$pid] = $job;
 				$SGE_updated[$pid]['state'] = "NOT_RUNNING";
 			}
 		}
 	}
 
-	//update session and save to mongo 
+	//update session and save to mongo
 	saveUserJobs($sessionId, $SGE_updated);
-	return 1;
 }
 
 
-function processRunningJobInfo($job, $jobProcess, $pid, $title, $descrip, $filesPending, $SGE_updated)
+function processRunningJobInfo($job, $jobProcess, $pid, $title, $descrip, &$filesPending, $SGE_updated)
 {
 	getProjectLogger()->debug("Start processRunningJobInfo $pid.  Job data: " . json_encode($job));
 
