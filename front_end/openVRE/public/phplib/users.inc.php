@@ -103,25 +103,29 @@ function createUserFromToken($login, $token, $userinfo = array(), $anonID = fals
 
     // create user directory
     if (!$userArray['dataDir']) {
+        getUsersLogger()->debug("Creating workspace for user: " . $userArray['id']);
         // create new workspace
         $dataDirId =  prepUserWorkSpace($userArray['id'], $userArray['activeProject']);
         $userArray['dataDir'] = $dataDirId;
         $_SESSION['User']['dataDir'] = $dataDirId;
-    }
-
-    // if not all user metadata mapped from oauth2 provider, ask the user
-    if (!$userArray['Name'] || !$userArray['Surname'] || !$userArray['Inst']) {
-        redirect($GLOBALS['BASEURL'] . 'user/usrProfile.php');
-        exit(0);
+        getUsersLogger()->info("Workspace created for user: " . $userArray['id']);
     }
 
     // register user in mongo. NOT in ldap, as user exists for a oauth2 provider
     try {
+        getUsersLogger()->debug("Saving new user into Mongo database");
         saveNewUser($userArray);
     } catch (Exception $e) {
         getUsersLogger()->error("Error saving new user into Mongo database");
         unset($_SESSION['User']);
         throw $e;
+    }
+
+    // if not all user metadata mapped from oauth2 provider, ask the user
+    if (!$userArray['Name'] || !$userArray['Surname'] || !$userArray['Inst']) {
+        getUsersLogger()->info("User metadata incomplete, redirecting to profile page");
+        redirect($GLOBALS['BASEURL'] . 'user/usrProfile.php');
+        exit(0);
     }
 
     return $userArray;
