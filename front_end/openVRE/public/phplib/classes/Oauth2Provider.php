@@ -45,7 +45,6 @@ class Oauth2Provider extends GenericProvider {
         $basic_auth   = array(  "user" => $this->clientId,
                                 "pass" => $this->clientSecret
                         );
-        #print "CMD: curl -v -X POST -H \"Content-Type: application/x-www-form-urlencoded\" --user $this->clientId:$this->clientSecret --data \"$post_data\" --url ".$this->urlLogout. "</br/>";
         list($resp,$info) =post($post_data,$GLOBALS['urlLogout'],$headers,$basic_auth);
 
         if ($info['http_code'] == 400){

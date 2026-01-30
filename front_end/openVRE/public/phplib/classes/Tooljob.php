@@ -1563,7 +1563,7 @@ class Tooljob
 	{
 		if ($cloudName == 'marenostrum') {
 			$vaultUrl = $GLOBALS['vaultUrl'];
-			$accessToken = $_SESSION['userToken']['access_token'];
+			$accessToken = $_SESSION['userToken']->getToken();
 			$vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
 
 			//Get the credentials

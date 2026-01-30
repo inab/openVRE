@@ -281,8 +281,8 @@ class DataTransfer
     public function handleFileLocation($location, $file_path, $local_file_path, $vaultUrl, $vaultRole)
     {
 
-        if (isset($_SESSION['userToken']['access_token']) && !empty($_SESSION['userToken']['access_token'])) {
-            $accessToken = $_SESSION['userToken']['access_token'];
+        if (isset($_SESSION['userToken']->getToken()) && !empty($_SESSION['userToken']->getToken())) {
+            $accessToken = $_SESSION['userToken']->getToken();
 
             print "</br> $vaultUrl </br>";
 

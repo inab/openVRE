@@ -9,7 +9,7 @@ if ($_REQUEST) {
     $provider = new Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . $_SERVER['PHP_SELF']]);
 
     try {
-        $refresh_token = $_SESSION['userToken']['refresh_token'];
+        $refresh_token = $_SESSION['userToken']->getRefreshToken();
         $r = $provider->logoutSession($refresh_token);
     } catch (\Exception $e) {
         redirect($GLOBALS['URL'] . 'home');

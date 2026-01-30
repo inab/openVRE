@@ -1553,21 +1553,17 @@ function downloadFile($rfn)
 
 function refresh_token($force = false)
 {
-
-	if (!$_SESSION['userToken']['access_token']) {
+	if (!$_SESSION['userToken']->getToken()) {
 		ob_clean();
 		header('Location: ' . $GLOBALS['BASEURL'] . '/htmlib/errordb.php?msg=MuG Authentification Session Expired. <a href=' . $GLOBALS['URL'] . '>Login again</a>');
 	}
-	$existingTokenO = new AccessToken($_SESSION['userToken']);
 
-	$provider = new Oauth2Provider\Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . $_SERVER['PHP_SELF']]);
+	$existingToken = $_SESSION['userToken'];
+	$provider = new Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . $_SERVER['PHP_SELF']]);
 
-	if ($force || $existingTokenO->hasExpired()) {
+	if ($force || $existingToken->hasExpired()) {
 		try {
-			$newTokenO = $provider->getAccessToken('refresh_token', ['refresh_token' => $existingTokenO->getRefreshToken()]);
-			if ($newTokenO->getToken()) {
-				$newToken  = json_decode(json_encode($newTokenO), true);
-			}
+			$newToken = $provider->getAccessToken('refresh_token', ['refresh_token' => $existingToken->getRefreshToken()]);
 		} catch (Exception $e) {
 			$_SESSION['errorData']['Error'][] = "Cannot validate token from refresh token.";
 			$_SESSION['errorData']['Error'][] = $e->getMessage();
@@ -1588,7 +1584,6 @@ function refresh_token($force = false)
 }
 
 
-
 function refresh_vault_token($force = false)
 {
 	if (!$_SESSION['userVaultInfo']['vaultKey']) {
@@ -1598,7 +1593,7 @@ function refresh_vault_token($force = false)
 
 	$existingToken = $_SESSION['userVaultInfo']['vaultKey'];
 	//add them to mongo
-	$provider = new VaultClient($_SESSION['userVaultInfo']['vaultUrl'], $_SESSION['userToken']['access_token'], $_SESSION['userVaultInfo']['vaultRole'], $_POST['username']);
+	$provider = new VaultClient($_SESSION['userVaultInfo']['vaultUrl'], $_SESSION['userToken']->getToken(), $_SESSION['userVaultInfo']['vaultRole'], $_POST['username']);
 
 	$expirationTime = $provider->getTokenExpirationTime($_SESSION['userVaultInfo']['vaultUrl'], $existingToken);
 	if ($force || ($expirationTime !== false)) {

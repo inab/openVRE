@@ -58,7 +58,7 @@ if ($_REQUEST) {
     // Get user openstack credentials.
     if ($_REQUEST['action'] == "getOpenstackUser") {
         $vaultUrl = $GLOBALS['vaultUrl'];
-        $accessToken = $_SESSION['userToken']['access_token'];
+        $accessToken = $_SESSION['userToken']->getToken();
         $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
         $username = $_POST['username'];
 
@@ -90,7 +90,7 @@ if ($_REQUEST) {
         $container = $_POST['container'];
         getObjectStorageOpenstackLogger()->info("Main script - received container: $container");
         $vaultUrl = $GLOBALS['vaultUrl'];
-        $accessToken = $_SESSION['userToken']['access_token'];
+        $accessToken = $_SESSION['userToken']->getToken();
         $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
         $username = $_POST['username'];
 
@@ -113,7 +113,7 @@ if ($_REQUEST) {
         $fileName = $_POST['fileName']; // Get the file URL (container/filename)
         $container = $_POST['container'];
         $vaultUrl = $GLOBALS['vaultUrl'];
-        $accessToken = $_SESSION['userToken']['access_token'];
+        $accessToken = $_SESSION['userToken']->getToken();
         $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
         $username = $_POST['username'];
 

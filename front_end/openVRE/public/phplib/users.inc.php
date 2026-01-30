@@ -48,8 +48,9 @@ function checkToolDev()
 }
 
 // create user - after being authentified by the Auth Server
-function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID = false)
+function createUserFromToken($login, $token, $userinfo = array(), $anonID = false)
 {
+    $jwt = json_encode($token);
     if (!$anonID) {
         $userAttributes = array(
             "Email"        => $login,
@@ -94,9 +95,6 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
     }
 
     $objUser = new User($userAttributes['Email'], $userAttributes['secretsId'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", $userAttributes['JWT']);
-    if (!$objUser) {
-        return false;
-    }
 
     $userArray = (array) $objUser;
     //load user in current session
@@ -107,23 +105,8 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
     if (!$userArray['dataDir']) {
         // create new workspace
         $dataDirId =  prepUserWorkSpace($userArray['id'], $userArray['activeProject']);
-        if (!$dataDirId) {
-            $_SESSION['errorData']['Error'][] = "Error creating data dir";
-
-            return false;
-        }
-
         $userArray['dataDir'] = $dataDirId;
         $_SESSION['User']['dataDir'] = $dataDirId;
-    }
-
-    // register user in mongo. NOT in ldap, as user exists for a oauth2 provider
-    try {
-        saveNewUser($userArray);
-    } catch (Exception $e) {
-        getUsersLogger()->error("Error saving new user into Mongo database");
-        getUsersLogger()->error($e->getMessage());
-        unset($_SESSION['User']);
     }
 
     // if not all user metadata mapped from oauth2 provider, ask the user
@@ -132,7 +115,16 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
         exit(0);
     }
 
-    return true;
+    // register user in mongo. NOT in ldap, as user exists for a oauth2 provider
+    try {
+        saveNewUser($userArray);
+    } catch (Exception $e) {
+        getUsersLogger()->error("Error saving new user into Mongo database");
+        unset($_SESSION['User']);
+        throw $e;
+    }
+
+    return $userArray;
 }
 
 
@@ -296,11 +288,12 @@ function loadUser($login, $pass)
     return $user;
 }
 
-function loadUserWithToken($userinfo, $token, $jwt)
+function loadUserWithToken($user, $userinfo, $token)
 {
-    $user = getUserById($userinfo['email']);
-    if (!$user['_id'] || $user['Status'] == UserStatus::Inactive->value) {
-        return false;
+    $jwt = json_encode($token);
+    if ($user['Status'] == UserStatus::Inactive->value) {
+        getUsersLogger()->error("Requested user is inactive. Cannot load user.");
+        throw new UnexpectedValueException("Requested user is inactive. Cannot load user.");
     }
 
     $auxlastlog = $user['lastLogin'];
