@@ -224,18 +224,6 @@ sort($visualizers);
 								<span class="title">Upload Files</span>
 							</a>
 						</li>
-						<li class="nav-item <?php if ($currentSubSection == 'rp') { ?>active open<?php } ?>">
-							<a href="javascript:;" class="nav-link nav-toggle ">
-								<span class="title">From Catalogue</span>
-								<span class="arrow"></span>
-							</a>
-						</li>
-
-						<li class="nav-item <?php if ($currentSubSection == 'sd') { ?>active open<?php } ?>">
-							<a href="getdata/sampleDataList.php" class="nav-link ">
-								<span class="title">Import example dataset</span>
-							</a>
-						</li>
 					</ul>
 				</li>
 
