@@ -48,7 +48,7 @@ redirectOutside();
 				//chek input files from REQUEST[fn]
 				$filesData = array();
 				$filesMeta = array();
-				if (is_null($_REQUEST['fn']) || !$_REQUEST['fn'] || !count($_REQUEST['fn'])) {
+				if (!isset($_REQUEST['fn']) || !$_REQUEST['fn'] || !count($_REQUEST['fn'])) {
 					$_SESSION['errorData']['Error'][] = "No file selected. Please, select or upload a file to edit.";
 				} elseif (substr($_REQUEST['fn'][0], 0, 3) != substr($GLOBALS['AppPrefix'], 0, 3)) {
 					$_SESSION['errorData']['Error'][] = "An error occurred while registering your file. No valid file identifier received.";
