@@ -19,6 +19,7 @@ function getDataLogger()
 
 function getData_fromLocal()
 {
+    getDataLogger()->info("Uploading local file");
     $dataDirPath = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "path");
     $localWorkingDir = "$dataDirPath/uploads";
     $workingDir = $GLOBALS['dataDir'] . "/" . $localWorkingDir;
@@ -113,6 +114,7 @@ function getData_fromLocal()
 // upload file from URL via CURL
 function getData_fromUrl($url, $meta = null)
 {
+    getDataLogger()->info("Uploading file from URL $url");
     [$toolArgs, $toolOuts, $output_dir] = prepare_getData_fromURL($url, "uploads", $GLOBALS['BASEURL'] . "/getdata/uploadForm.php#load_from_url", $meta);
     getData_wget_asyncron($toolArgs, $toolOuts, $output_dir);
 }
@@ -284,6 +286,7 @@ function  getData_wget_asyncron($toolArgs, $toolOuts, $output_dir)
 /////////////////////////////////
 function getData_fromTXT()
 {
+    getDataLogger()->info("Uploading text file");
     $filename = $_REQUEST['filename'];
     $data = $_REQUEST['txtdata'];
 
@@ -405,6 +408,7 @@ function process_URL($url)
 // import from Repository (URL) to user workspace
 function getData_fromRepository($url, $datatype, $filetype, $description)
 {
+    getDataLogger()->info("Uploading file from Repository");
     $url_data = process_URL($url);
     $filename = $url_data['filename'];
     if (empty($filename)) {
@@ -588,6 +592,7 @@ function getData_fromSampleData($params = [])
 
 function getData_fromEGA($datasetIds, $fileIds, $filenames, $fileSizes)
 {
+    getDataLogger()->info("Uploading file from EGA");
     $datasetIdsArray = explode(',', $datasetIds);
     $fileIdsArray = explode(',', $fileIds);
     $filenamesArray = explode(',', $filenames);

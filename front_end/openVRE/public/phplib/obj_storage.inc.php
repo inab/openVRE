@@ -18,13 +18,12 @@ function getObjectStorageLogger()
 }
 
 
-function getOpenstackUser($vaultUrl, $accessToken, $vaultRolename, $username)
+function getOpenstackUser($accessToken)
 {
 
-	$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-	$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
+	$vaultClient = new VaultClient($accessToken);
 
-	$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'Swift');
+	$credentials = $vaultClient->retrieveDatafromVault('Swift');
 	if ($credentials) {
 		$appId = $credentials['app_id'];
 		$appSecret = $credentials['app_secret'];
@@ -39,12 +38,11 @@ function getOpenstackUser($vaultUrl, $accessToken, $vaultRolename, $username)
 }
 
 
-function getSwiftClient($vaultUrl, $accessToken, $vaultRolename, $username)
+function getSwiftClient($accessToken)
 {
 
-	$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-	$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-	$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'Swift');
+	$vaultClient = new VaultClient($accessToken);
+	$credentials = $vaultClient->retrieveDatafromVault('Swift');
 
 	if ($credentials) {
 		$appId = $credentials['app_id'];
@@ -62,12 +60,11 @@ function getSwiftClient($vaultUrl, $accessToken, $vaultRolename, $username)
 
 
 
-function getSSHClient($vaultUrl, $accessToken, $vaultRolename, $username, $remote_dir, $siteId)
+function getSSHClient($accessToken, $remote_dir, $siteId)
 {
 
-	$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-	$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-	$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
+	$vaultClient = new VaultClient($accessToken);
+	$credentials = $vaultClient->retrieveDatafromVault('SSH');
 
 	if ($credentials) {
 		$sshPrivateKey = $credentials['private_key'];
@@ -107,7 +104,6 @@ function getSSHClient($vaultUrl, $accessToken, $vaultRolename, $username, $remot
 
 function getContainers($swiftClient)
 {
-	#echo $vaultUrl;
 	$lista = $swiftClient->runList();
 	$lista = json_encode($lista);
 	if (json_last_error() !== JSON_ERROR_NONE) {

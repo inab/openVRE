@@ -767,7 +767,7 @@ class Tooljob
 
 					break;
 				case "Slurm":
-					$cmd = $this->setHPCRequest($this->cloudName, $tool, $_POST['username']);
+					$cmd = $this->setHPCRequest($this->cloudName, $tool);
 					if (!$cmd) {
 						return 0;
 					}
@@ -1519,12 +1519,11 @@ class Tooljob
 	}
 
 
-	public function getSSHCred($vaultUrl, $accessToken, $vaultRolename, $username, $remote_dir, $siteId)
+	public function getSSHCred($accessToken, $remote_dir, $siteId)
 	{
 		#retrieve the credential and update the site collection with it
-		$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-		$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-		$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
+		$vaultClient = new VaultClient($accessToken);
+		$credentials = $vaultClient->retrieveDatafromVault('SSH');
 		if ($credentials) {
 			$sshPrivateKey = $credentials['priv_key'];
 			$sshPublicKey = $credentials['pub_key'];
@@ -1559,15 +1558,13 @@ class Tooljob
 	}
 
 
-	protected function setHPCRequest($cloudName, $tool, $username)
+	protected function setHPCRequest($cloudName, $tool)
 	{
 		if ($cloudName == 'marenostrum') {
-			$vaultUrl = $GLOBALS['vaultUrl'];
 			$accessToken = $_SESSION['userToken']->getToken();
-			$vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
 
 			//Get the credentials
-			$remoteSSH = $this->getSSHCred($vaultUrl, $accessToken, $vaultRolename, $username, null, $cloudName);
+			$remoteSSH = $this->getSSHCred($accessToken, null, $cloudName);
 			if (isset($remoteSSH['error'])) {
 				$_SESSION['errorData']['Internal Error'][] = "Failed to retrieve SSH credentials: " . $remoteSSH['error'];
 				return 0;

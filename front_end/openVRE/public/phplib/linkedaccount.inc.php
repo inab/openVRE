@@ -54,22 +54,29 @@ function addUserLinkedAccount($accountType, $action, $userId, $site_id, $postDat
 				break;
 			}
 		case "ega":
-			if (isset($_POST["submitOption"])) {
-				$submitOption = $_POST["submitOption"];
-				if ($submitOption === "clearAccount") {
-					handleEgaAccount("delete", $userId, $postData);
-					break;
-				} elseif ($submitOption === "updateAccount") {
-					handleEgaAccount("update", $userId, $postData);
-					break;
+			try {
+				if (isset($_POST["submitOption"])) {
+					$submitOption = $_POST["submitOption"];
+					if ($submitOption === "clearAccount") {
+						handleEgaAccount("delete", $userId, $postData);
+						break;
+					} elseif ($submitOption === "updateAccount") {
+						handleEgaAccount("update", $userId, $postData);
+						break;
+					} else {
+						handleEgaAccount($action, $userId, $postData);
+						break;
+					}
 				} else {
 					handleEgaAccount($action, $userId, $postData);
 					break;
 				}
-			} else {
-				handleEgaAccount($action, $userId, $postData);
-				break;
+			} catch (Exception $e) {
+				$_SESSION['errorData']['Error'][] = $e->getMessage();
+				redirect($_SERVER['HTTP_REFERER']);
 			}
+
+			break;
 		default:
 			$_SESSION['errorData']['Error'][] = "Account of type '$accountType' is not yet supported.";
 			redirect($_SERVER['HTTP_REFERER']);
@@ -185,25 +192,15 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 	}
 
 	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
-	$vaultClient = new VaultClient(
-		$GLOBALS['vaultUrl'],
-		$accessToken,
-		$_SESSION['userVaultInfo']['vaultRolename'],
-		$postData['username']
-	);
-	$key = $vaultClient->uploadKeystoVault($data);
-	$tokenTime = $vaultClient->getTokenExpirationTime($GLOBALS['vaultUrl'], $key);
+	$vaultClient = new VaultClient($accessToken);
+
+	$vaultClient->uploadKeystoVault($data);
+	$tokenTime = $vaultClient->getTokenExpirationTime();
 	if ($tokenTime !== false) {
 		$_SESSION['userVaultInfo']['expires_in'] = $tokenTime;
 	}
 	// Update user data with vault key
-	$_SESSION['userVaultInfo']['vaultKey'] = $key;
 	updateUser($_SESSION['User']);
-	if (!$key) {
-		$_SESSION['errorData']['Error'][] = "Failed to link SSH account";
-		$_SESSION['formData'] = $postData;
-		redirect($_SERVER['HTTP_REFERER']);
-	}
 
 	$_SESSION['errorData']['Info'][] = "SSH account successfully linked.";
 	redirect($_SERVER['HTTP_REFERER']);
@@ -304,12 +301,7 @@ function handleObjectStorageAccount($action, $userId, $site_id, $postData)
 	}
 
 	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
-	$vaultClient = new VaultClient(
-		$GLOBALS['vaultUrl'],
-		$accessToken,
-		$_SESSION['userVaultInfo']['vaultRolename'],
-		$postData['user_key']
-	);
+	$vaultClient = new VaultClient($accessToken);
 
 	$key = $vaultClient->uploadKeystoVault($data);
 	// Update user data with vault key
@@ -359,19 +351,9 @@ function handleEgaAccount($action, $userId, $postData)
 	}
 
 	$accessToken = json_decode($_SESSION['userVaultInfo']['jwt'], true)["access_token"];
-	$vaultClient = new VaultClient(
-		$GLOBALS['vaultUrl'],
-		$accessToken,
-		$_SESSION['userVaultInfo']['vaultRolename'],
-		$postData['username']
-	);
+	$vaultClient = new VaultClient($accessToken);
 
-	$key = $vaultClient->uploadKeystoVault($data);
-	$_SESSION['userVaultInfo']['vaultKey'] = $key;
-	if (!$key) {
-		getLinkedAccountLogger()->error("Failed to link EGA account");
-		throw new UnexpectedValueException("Failed to link EGA account");
-	}
+	$vaultClient->uploadKeystoVault($data);
 
 	$_SESSION['errorData']['Info'][] = "EGA account successfully linked.";
 	getLinkedAccountLogger()->info("EGA account successfully linked.");

@@ -9,28 +9,24 @@ use UnexpectedValueException;
 class VaultClient
 {
 
-	private $vaultUrl;
-	private $roleName;
 	private $jwtToken;
 	private Logger $logger;
 
 
-	public function __construct($vaultUrl, $jwtToken, $roleName)
+	public function __construct($jwtToken)
 	{
 		$this->logger = LoggerFactory::getLogger("Vault interface");
-		$this->vaultUrl = $vaultUrl;
 		$this->jwtToken = $jwtToken;
-		$this->roleName = $roleName;
 	}
 
 
-	public function checkToken()
+	private function fetchVaultToken()
 	{
 		$headers = array("Content-Type: application/json",);
-		$url = $this->vaultUrl . "/auth/jwt/login";
+		$url = $GLOBALS['vaultUrl'] . "/auth/jwt/login";
 
 		$data = [
-			'role' => $this->roleName,
+			'role' => $GLOBALS['vaultRolename'],
 			'jwt' => $this->jwtToken,
 			'ttl' => '15m',
 			'renewable' => true,
@@ -45,15 +41,22 @@ class VaultClient
 		$response = curl_exec($ch);
 		if ($response === false) {
 			$error = curl_error($ch);
-			throw new Exception("Failed to send the JWT login request: $error");
+			throw new UnexpectedValueException("Failed to send the JWT login request: $error");
 		}
 
 		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$response = json_decode($response, true);
 
-		return array(
-			'statusCode' => $httpCode,
-			'response' => $response
-		);
+		if ($httpCode >= 400) {
+			$this->logger->error("Failed to fetch the Vault token: HTTP $httpCode");
+			foreach ($response["errors"] as $error) {
+				$this->logger->error($error);
+			}
+
+			throw new UnexpectedValueException("Failed to fetch the Vault token.");
+		}
+
+		return $response["auth"]["client_token"];
 	}
 
 
@@ -108,9 +111,10 @@ class VaultClient
 	}
 
 
-	function uploadFileToVault($url, $secretPath, $userSecretsId, $secretName, $token, $data)
+	public function uploadFileToVault($secretName, $data)
 	{
-		$vaultUrl = $url . "/" . $secretPath . $userSecretsId . '/' . $secretName;
+		$vaultUrl = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $_SESSION['User']['secretsId'] . '/' . $secretName;
+		$token = $this->fetchVaultToken();
 		$headers = [
 			'X-Vault-Token: ' . $token,
 			'Content-Type: application/json'
@@ -128,14 +132,32 @@ class VaultClient
 			throw new UnexpectedValueException("Error saving secrets.");
 		}
 
-		return $response;
+		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		$response = json_decode($response, true);
+
+		if ($httpCode >= 400) {
+			$this->logger->error("Failed to upload file to Vault: HTTP $httpCode");
+			$this->logger->error("Request url is: " . $vaultUrl);
+			$this->logger->error("Request token is: " . $token);
+			$this->logger->error("Request data is: " . json_encode($data));
+			foreach ($response["errors"] as $error) {
+				$this->logger->error($error);
+			}
+
+			throw new UnexpectedValueException("Failed to upload file to Vault.");
+		}
+
+		$_SESSION['userVaultInfo']['vaultKey'] = $token;
+
+		$this->logger->info("Vault file uploaded successfully.");
+		$this->logger->info($response);
 	}
 
 
 	// Function to retrieve token lookup response from Vault
-	public function retrieveTokenLookup($vaultUrl, $vaultToken)
+	public function retrieveTokenLookup($vaultToken)
 	{
-		$url = $vaultUrl . 'auth/token/lookup-self';
+		$url = $GLOBALS['vaultUrl'] . 'auth/token/lookup-self';
 		$headers = ['X-Vault-Token: ' . $vaultToken];
 
 		$ch = curl_init();
@@ -155,10 +177,10 @@ class VaultClient
 
 
 	//Function using the loookup to see if the token has expired and needs a refresh
-	public function isTokenExpired($vaultUrl, $vaultToken)
+	public function isTokenExpired($vaultToken)
 	{
 		date_default_timezone_set('UTC');
-		$tokenLookup = $this->retrieveTokenLookup($vaultUrl, $vaultToken);
+		$tokenLookup = $this->retrieveTokenLookup($vaultToken);
 		if ($tokenLookup && isset($tokenLookup['data']['expire_time'])) {
 			$ttl = $tokenLookup['data']['ttl'];
 			$currentTimestamp = time();
@@ -172,10 +194,10 @@ class VaultClient
 	}
 
 
-	public function getTokenExpirationTime($vaultUrl, $vaultToken)
+	public function getTokenExpirationTime()
 	{
 		date_default_timezone_set('UTC');
-		$tokenLookup = $this->retrieveTokenLookup($vaultUrl, $vaultToken);
+		$tokenLookup = $this->retrieveTokenLookup($_SESSION['userVaultInfo']['vaultKey']);
 		if ($tokenLookup && isset($tokenLookup['data']['expire_time'])) {
 			$ttl = $tokenLookup['data']['ttl'];
 			$currentTimestamp = time();
@@ -206,50 +228,22 @@ class VaultClient
 
 			if ($this->isValidSSHPublicKey($publicKey) && $this->validateOpenSSHPrivateKey($privateKey)) {
 				$this->logger->info("SSH keys are set and have the correct format.");
-				// First access the Vault with the Token provided by Keycloak
-				$token = $this->checkToken();
-				$responseArray = $token["response"];
-				$respondeData = json_decode($responseArray, true);
-				$vaultToken = $respondeData["auth"]["client_token"];
-
-				if ($this->isTokenExpired($this->vaultUrl, $vaultToken)) {
-					$_SESSION['errorData']['Error'][] = "The Vault token has expired.";
-				} else {
-					$_SESSION['errorData']['Error'][] = "The Vault token is still valid.";
-				}
-
-				$secretPath = $GLOBALS['secretPath'];
-				$this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "SSH", $vaultToken, $data);
-				return $vaultToken;
+				$this->uploadFileToVault("SSH", $data);
 			}
 		} elseif (isset($data['data']['Swift'])) {
-			$token = $this->checkToken();
-			$responseArray = $token["response"];
-			$respondeData = json_decode($responseArray, true);
-			$vaultToken = $respondeData["auth"]["client_token"];
-			$secretPath = $GLOBALS['secretPath'];
-			$this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "Swift", $vaultToken, $data);
-			return $vaultToken;
+			$this->uploadFileToVault("Swift", $data);
 		} elseif (isset($data['data']['EGA'])) {
-			$token = $this->checkToken();
-			$responseArray = $token["response"];
-			$respondeData = json_decode($responseArray, true);
-			$vaultToken = $respondeData["auth"]["client_token"];
-			$secretPath = $GLOBALS['secretPath'];
-
-			// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
-			$this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "EGA", $vaultToken, $data);
-			return $vaultToken;
+			$this->uploadFileToVault("EGA", $data);
 		} else {
 			$_SESSION['errorData']['Error'][] = "Invalid data format or system type";
 		}
 	}
 
 
-	function renewVaultToken($vaultUrl, $vaultToken)
+	function renewVaultToken($vaultToken)
 	{
 		// Specify the endpoint for token renewal
-		$renewEndpoint = $vaultUrl . 'auth/token/renew-self';
+		$renewEndpoint = $GLOBALS['vaultUrl'] . 'auth/token/renew-self';
 		// Prepare the cURL request
 		$ch = curl_init($renewEndpoint);
 		// Set cURL option
@@ -285,9 +279,10 @@ class VaultClient
 	}
 
 
-	public function retrieveDatafromVault($vaultToken, $url, $secretPath, $userSecretsId, $system)
+	public function retrieveDatafromVault($system)
 	{
-		$vaultUrl = $url . "/" . $secretPath . $userSecretsId . '/' . $system;
+		$vaultUrl = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $_SESSION['User']['secretsId'] . '/' . $system;
+		$vaultToken = $_SESSION['userVaultInfo']['vaultKey'];
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $vaultUrl);
@@ -305,7 +300,7 @@ class VaultClient
 
 		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		if ($httpCode === 403) {
-			if ($this->isTokenExpired($url, $vaultToken)) {
+			if ($this->isTokenExpired($vaultToken)) {
 				$_SESSION['errorData']['Error'][] = "The Vault token has expired, need to refresh it in the User section.";
 			} else {
 				$_SESSION['errorData']['Error'][] = "The Vault token is still valid.";

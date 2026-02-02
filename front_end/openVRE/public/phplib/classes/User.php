@@ -66,9 +66,6 @@ class User
         $_SESSION['userVaultInfo'] = array(
             "jwt"          => $jwt ??  "",
             "vaultKey"     => null,
-            "secretPath"   => $GLOBALS['secretPath'] ?? '',
-            "vaultRolename" => $GLOBALS['vaultRolename'] ?? '',
-            "vaultUrl"     => $GLOBALS['vaultUrl'] ?? ''
         );
     }
 

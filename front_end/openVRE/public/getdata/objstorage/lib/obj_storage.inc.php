@@ -4,13 +4,11 @@ use OpenVRE\SwiftClient;
 use OpenVRE\VaultClient;
 
 
-function getOpenstackUser($vaultUrl, $accessToken, $vaultRolename, $username)
+function getOpenstackUser($accessToken)
 {
+	$vaultClient = new VaultClient($accessToken);
 
-	$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-	$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-
-	$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'Swift');
+	$credentials = $vaultClient->retrieveDatafromVault('Swift');
 	if ($credentials) {
 		$appId = $credentials['app_id'];
 		$appSecret = $credentials['app_secret'];

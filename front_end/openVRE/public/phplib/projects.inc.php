@@ -1498,6 +1498,7 @@ function formatSize($bytes)
 
 function downloadFile($rfn)
 {
+	getProjectLogger()->info("Downloading file " . $rfn);
 	$fileInfo      = pathinfo($rfn);
 	$filename      = $fileInfo['basename'];
 	$fileExtension = $fileInfo['extension'];
@@ -1548,6 +1549,8 @@ function downloadFile($rfn)
 		flush();
 		readfile($rfn);
 	}
+
+	getProjectLogger()->info("Downloaded file " . $rfn);
 	exit(0);
 }
 
@@ -1556,7 +1559,7 @@ function refresh_token($force = false)
 {
 	if (!$_SESSION['userToken']->getToken()) {
 		ob_clean();
-		header('Location: ' . $GLOBALS['BASEURL'] . '/htmlib/errordb.php?msg=MuG Authentification Session Expired. <a href=' . $GLOBALS['URL'] . '>Login again</a>');
+		header('Location: ' . $GLOBALS['BASEURL'] . '/htmlib/errordb.php?msg=Authentification Session Expired. <a href=' . $GLOBALS['URL'] . '>Login again</a>');
 	}
 
 	$existingToken = $_SESSION['userToken'];
@@ -1570,10 +1573,6 @@ function refresh_token($force = false)
 			$_SESSION['errorData']['Error'][] = $e->getMessage();
 			return false;
 		}
-
-		// save in mongo
-		$user = $_SESSION['User'];
-		updateUser($user);
 
 		// load new token in session
 		$_SESSION['userToken'] = $newToken;
@@ -1594,16 +1593,16 @@ function refresh_vault_token($force = false)
 
 	$existingToken = $_SESSION['userVaultInfo']['vaultKey'];
 	//add them to mongo
-	$provider = new VaultClient($_SESSION['userVaultInfo']['vaultUrl'], $_SESSION['userToken']->getToken(), $_SESSION['userVaultInfo']['vaultRole'], $_POST['username']);
+	$provider = new VaultClient($_SESSION['userToken']->getToken());
 
-	$expirationTime = $provider->getTokenExpirationTime($_SESSION['userVaultInfo']['vaultUrl'], $existingToken);
+	$expirationTime = $provider->getTokenExpirationTime();
 	if ($force || ($expirationTime !== false)) {
 		try {
-			$newToken = $provider->renewVaultToken($_SESSION['userVaultInfo']['vaultUrl'], $existingToken);
+			$newToken = $provider->renewVaultToken($existingToken);
 			if ($newToken) {
 				$newToken  = json_decode($newToken, true);
 				$_SESSION['userVaultInfo']['vaultKey'] = $newToken;
-				$tokenTime = $provider->getTokenExpirationTime($_SESSION['userVaultInfo']['vaultUrl'], $_SESSION['userVaultInfo']['vaultKey']);
+				$tokenTime = $provider->getTokenExpirationTime();
 				if ($tokenTime !== false) {
 					$_SESSION['userVaultInfo']['expires_in'] = $tokenTime;
 				}
@@ -1789,6 +1788,8 @@ function deleteFiles($fileIds, $force = false)
 		$fileIds = [$fileIds];
 	}
 
+	getProjectLogger()->info("Deleting files with ids " . implode(',', $fileIds));
+
 	$result = true;
 	foreach ($fileIds as $fileId) {
 		$file = getGSFile_fromId($fileId);
@@ -1848,6 +1849,8 @@ function deleteFiles($fileIds, $force = false)
 			}
 		}
 	}
+
+	getProjectLogger()->info("Deleted files with ids " . implode(',', $fileIds));
 
 	return $result;
 }

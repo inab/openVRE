@@ -278,15 +278,13 @@ class DataTransfer
 
 
 
-    public function handleFileLocation($location, $file_path, $local_file_path, $vaultUrl, $vaultRole)
+    public function handleFileLocation($location, $file_path, $local_file_path, $vaultRole)
     {
 
         if (isset($_SESSION['userToken']->getToken()) && !empty($_SESSION['userToken']->getToken())) {
             $accessToken = $_SESSION['userToken']->getToken();
 
-            print "</br> $vaultUrl </br>";
-
-            $vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRole, $_POST['username']);
+            $vaultClient = new VaultClient($accessToken);
             $vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
             if (empty($vaultKey)) {
                 $_SESSION['errorData']['Error'][] = "No key to access Vault, check the User credentials.";
@@ -311,7 +309,7 @@ class DataTransfer
                     }
                     break;
                 case "MN":
-                    $credentials = $this->handleSSHCase($accessToken, $vaultClient, $vaultKey, $vaultUrl);
+                    $credentials = $this->handleSSHCase($accessToken, $vaultClient);
                     var_dump($credentials);
                     print $this->http_host;
                     $dest = $this->handleSSHPathFile($credentials, $file_path, $this->root_dir_df, $this->http_host);
@@ -338,14 +336,9 @@ class DataTransfer
     protected function handleSwiftCase($accessToken, $vaultClient, $vaultKey)
     {
         echo "SWIFT case is true <br></br>";
-        //
         //Assuming location is the same for all files
-        $vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-        $vaultUrl = $GLOBALS['vaultUrl'];
-        echo "Vault Key: $vaultKey<br>";
-        echo "Vault Url: $vaultUrl<br>";
 
-        $credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'Swift');
+        $credentials = $vaultClient->retrieveDatafromVault('Swift');
         // ($system, $clientToken, $url, $secretPath, $filename)
         echo "System <br></br>";
         echo strtoupper("swift");
@@ -353,31 +346,19 @@ class DataTransfer
         echo "Token <br></br>";
         echo $vaultKey;
 
-        echo "Vault Url <br></br>";
-        echo $vaultUrl;
-
         var_dump($credentials);
         return $credentials;
         // Rest of the code to download the data using the credentials
     }
 
 
-    public function handleSSHCase($accessToken, $vaultClient, $vaultKey, $vaultUrl)
+    public function handleSSHCase($accessToken, $vaultClient)
     {
-
-
         echo "SSH case is true <br></br>";
-        //var_dump($_SESSION['User']);
+        $credentials = $vaultClient->retrieveDatafromVault('SSH');
 
-        echo "Vault Key: $vaultKey<br>";
-        echo "Vault Url: $vaultUrl<br>";
-
-        $credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
-
-        //var_dump($credentials);
         return $credentials;
         // Rest of the code to check if there is the path/file or it is necessary to download them there from locally
-
     }
 
     public function handleSSHPathFile($credentials, $file_path, $remote_dir, $http_server)
@@ -395,7 +376,6 @@ class DataTransfer
 
             if ($success) {
                 // File copied successfully, continue with the tool
-                //$this->handleTool($remoteDir . basename($path_file), $accessToken, $vaultClient, $vaultKey, $vaultUrl);
                 return 1;
             } else {
                 // Handle the case when the file copy fails

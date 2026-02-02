@@ -57,13 +57,10 @@ if ($_REQUEST) {
 
     // Get user openstack credentials.
     if ($_REQUEST['action'] == "getOpenstackUser") {
-        $vaultUrl = $GLOBALS['vaultUrl'];
         $accessToken = $_SESSION['userToken']->getToken();
-        $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
-        $username = $_POST['username'];
 
         // Obtain the SwiftClient directly:
-        $swiftClient = getSwiftClient($vaultUrl, $accessToken, $vaultRolename, $username);
+        $swiftClient = getSwiftClient($accessToken);
 
         if (!$swiftClient) {
             logError('Failed to obtain Swift client.');
@@ -89,12 +86,9 @@ if ($_REQUEST) {
     if (isset($_REQUEST['action']) && $_REQUEST['action'] == "getContainerFiles" && isset($_POST['container'])) {
         $container = $_POST['container'];
         getObjectStorageOpenstackLogger()->info("Main script - received container: $container");
-        $vaultUrl = $GLOBALS['vaultUrl'];
         $accessToken = $_SESSION['userToken']->getToken();
-        $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
-        $username = $_POST['username'];
 
-        $swiftClient = getSwiftClient($vaultUrl, $accessToken, $vaultRolename, $username);
+        $swiftClient = getSwiftClient($accessToken);
 
         if (!$swiftClient) {
             logError('Failed to obtain Swift client.');
@@ -112,13 +106,10 @@ if ($_REQUEST) {
     if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'downloadFile' && isset($_POST['fileName'])) {
         $fileName = $_POST['fileName']; // Get the file URL (container/filename)
         $container = $_POST['container'];
-        $vaultUrl = $GLOBALS['vaultUrl'];
         $accessToken = $_SESSION['userToken']->getToken();
-        $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
-        $username = $_POST['username'];
 
         // Obtain the SwiftClient directly:
-        $swiftClient = getSwiftClient($vaultUrl, $accessToken, $vaultRolename, $username);
+        $swiftClient = getSwiftClient($accessToken);
 
         if (!$swiftClient) {
             logError('Failed to obtain Swift client.');

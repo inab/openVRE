@@ -222,6 +222,7 @@ function delUser($id)
 
 function logoutUser()
 {
+    getUsersLogger()->info("User " . $_SESSION['User']['id'] . " logging out");
     session_unset();
 }
 
@@ -311,9 +312,6 @@ function loadUserWithToken($user, $userinfo, $token)
     $_SESSION['userVaultInfo'] = array(
         "jwt"          => $jwt ??  "",
         "vaultKey"     => null,
-        "secretPath"   => $GLOBALS['secretPath'] ?? '',
-        "vaultRolename" => $GLOBALS['vaultRolename'] ?? '',
-        "vaultUrl"     => $GLOBALS['vaultUrl'] ?? ''
     );
 
     return $user;
