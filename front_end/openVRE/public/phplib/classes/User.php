@@ -25,7 +25,7 @@ class User
     public $activeProject;
     public Logger $logger;
 
-    public function __construct(string $email, string $secretsId, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject, ?string $jwt)
+    public function __construct(string $email, string $secretsId, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject)
     {
         $this->logger = LoggerFactory::getLogger('User');
         if ($type != UserType::Guest->value && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -64,8 +64,7 @@ class User
         $this->Name    = ucfirst($this->Name);
 
         $_SESSION['userVaultInfo'] = array(
-            "jwt"          => $jwt ??  "",
-            "vaultKey"     => null,
+            "vaultKey"     => null
         );
     }
 

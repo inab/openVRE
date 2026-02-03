@@ -50,11 +50,9 @@ function checkToolDev()
 // create user - after being authentified by the Auth Server
 function createUserFromToken($login, $token, $userinfo = array(), $anonID = false)
 {
-    $jwt = json_encode($token);
     if (!$anonID) {
         $userAttributes = array(
             "Email"        => $login,
-            "JWT"          => $jwt,
             "Type"         => UserType::Registered->value
         );
     } else {
@@ -62,12 +60,10 @@ function createUserFromToken($login, $token, $userinfo = array(), $anonID = fals
         // overwrite currently logged anon user
         if ($userAttributes) {
             $userAttributes["Email"] = $login;
-            $userAttributes["JWT"]   = $jwt;
             $userAttributes["Type"]  = UserType::Registered->value;
         } else {
             $userAttributes = array(
                 "Email"        => $login,
-                "JWT"          => $jwt,
                 "Type"         => UserType::Registered->value
             );
         }
@@ -94,7 +90,7 @@ function createUserFromToken($login, $token, $userinfo = array(), $anonID = fals
         $_SESSION['tokenInfo'] = $userinfo;
     }
 
-    $objUser = new User($userAttributes['Email'], $userAttributes['secretsId'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", $userAttributes['JWT']);
+    $objUser = new User($userAttributes['Email'], $userAttributes['secretsId'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "");
 
     $userArray = (array) $objUser;
     //load user in current session
@@ -295,7 +291,6 @@ function loadUser($login, $pass)
 
 function loadUserWithToken($user, $userinfo, $token)
 {
-    $jwt = json_encode($token);
     if ($user['Status'] == UserStatus::Inactive->value) {
         getUsersLogger()->error("Requested user is inactive. Cannot load user.");
         throw new UnexpectedValueException("Requested user is inactive. Cannot load user.");
@@ -310,7 +305,6 @@ function loadUserWithToken($user, $userinfo, $token)
     setUser($user, $auxlastlog);
 
     $_SESSION['userVaultInfo'] = array(
-        "jwt"          => $jwt ??  "",
         "vaultKey"     => null,
     );
 

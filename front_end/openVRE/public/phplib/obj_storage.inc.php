@@ -3,7 +3,7 @@
 use OpenVRE\LoggerFactory;
 use OpenVRE\RemoteSSH;
 use OpenVRE\SwiftClient;
-use OpenVRE\VaultClient;
+use OpenVRE\VaultClientFactory;
 
 
 function getObjectStorageLogger()
@@ -18,10 +18,9 @@ function getObjectStorageLogger()
 }
 
 
-function getOpenstackUser($accessToken)
+function getOpenstackUser()
 {
-
-	$vaultClient = new VaultClient($accessToken);
+	$vaultClient = VaultClientFactory::create();
 
 	$credentials = $vaultClient->retrieveDatafromVault('Swift');
 	if ($credentials) {
@@ -38,10 +37,10 @@ function getOpenstackUser($accessToken)
 }
 
 
-function getSwiftClient($accessToken)
+function getSwiftClient()
 {
 
-	$vaultClient = new VaultClient($accessToken);
+	$vaultClient = VaultClientFactory::create();
 	$credentials = $vaultClient->retrieveDatafromVault('Swift');
 
 	if ($credentials) {
@@ -60,10 +59,10 @@ function getSwiftClient($accessToken)
 
 
 
-function getSSHClient($accessToken, $remote_dir, $siteId)
+function getSSHClient($remote_dir, $siteId)
 {
 
-	$vaultClient = new VaultClient($accessToken);
+	$vaultClient = VaultClientFactory::create();
 	$credentials = $vaultClient->retrieveDatafromVault('SSH');
 
 	if ($credentials) {

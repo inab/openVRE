@@ -424,41 +424,6 @@ redirectOutside();
                                                         <pre><?php echo json_encode($_SESSION['tokenInfo'], JSON_PRETTY_PRINT); ?></pre>
                                                     </div>
 
-
-                                                    <div class="form-group mt-clipboard-container">
-                                                        <input id="vault-exp-token" type="hidden"
-                                                            value="<?php echo $_SESSION['userVaultInfo']['expires_in']; ?>">
-                                                        <input id="curr-time" type="hidden"
-                                                            value="<?php echo time(); ?>">
-                                                        <?php
-                                                        $expirationTimestamp = intval($_SESSION['userVaultInfo']['expires_in']);
-                                                        $ed = gmdate('h:i:s A (jS \of F Y)', $expirationTimestamp);
-                                                        $expiresIn = $expirationTimestamp - time();
-                                                        if ($expiresIn > 0)
-                                                            $vexpDate = "Token will expire in " . intval($expiresIn / 60) . " minutes, at $ed";
-                                                        else
-                                                            $vexpDate = "This Token is expired...  It needs a refresh!";
-                                                        ?>
-
-                                                        <div class="form-group">
-                                                            <label class="control-label">Expiration Vault date <i
-                                                                    class="icon-question tooltips" data-container="body"
-                                                                    data-html="true" data-placement="right"
-                                                                    data-original-title="<p align='left' style='margin:0'>Vault token expiration time. Its lifespan is short, so VRE refreshs it just before accessing the requested resource, if needed.</p>"></i></label>
-                                                            <div class="input-group">
-                                                                <input id="token-exp-date" type="text"
-                                                                    value="<?php echo $vexpDate; ?>"
-                                                                    class="form-control" readonly
-                                                                    style="background:#fff;" />
-                                                                <span class="input-group-btn">
-                                                                    <a href="applib/refreshVaultToken.php"
-                                                                        class="btn green button"><i
-                                                                            class="fa fa-refresh"></i> Renew token</a>
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
                                                     <br />
                                                     <br />
                                                     <span

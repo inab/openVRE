@@ -1,12 +1,12 @@
 <?php
 
 use OpenVRE\SwiftClient;
-use OpenVRE\VaultClient;
+use OpenVRE\VaultClientFactory;
 
 
-function getOpenstackUser($accessToken)
+function getOpenstackUser()
 {
-	$vaultClient = new VaultClient($accessToken);
+	$vaultClient = VaultClientFactory::create();
 
 	$credentials = $vaultClient->retrieveDatafromVault('Swift');
 	if ($credentials) {

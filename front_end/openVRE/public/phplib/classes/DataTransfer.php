@@ -3,7 +3,7 @@
 namespace OpenVRE;
 
 use OpenVRE\RemoteSSH;
-use OpenVRE\VaultClient;
+use OpenVRE\VaultClientFactory;
 
 
 class DataTransfer
@@ -282,9 +282,8 @@ class DataTransfer
     {
 
         if (isset($_SESSION['userToken']->getToken()) && !empty($_SESSION['userToken']->getToken())) {
-            $accessToken = $_SESSION['userToken']->getToken();
 
-            $vaultClient = new VaultClient($accessToken);
+            $vaultClient = VaultClientFactory::create();
             $vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
             if (empty($vaultKey)) {
                 $_SESSION['errorData']['Error'][] = "No key to access Vault, check the User credentials.";
@@ -305,11 +304,11 @@ class DataTransfer
 
                     } else {
                         $_SESSION['errorData']['Warning'][] = "Files are not available locally, check the Catalogue session to download them.";
-                        $credentials = $this->handleSwiftCase($accessToken, $vaultClient, $vaultKey);
+                        $credentials = $this->handleSwiftCase($vaultClient, $vaultKey);
                     }
                     break;
                 case "MN":
-                    $credentials = $this->handleSSHCase($accessToken, $vaultClient);
+                    $credentials = $this->handleSSHCase($vaultClient);
                     var_dump($credentials);
                     print $this->http_host;
                     $dest = $this->handleSSHPathFile($credentials, $file_path, $this->root_dir_df, $this->http_host);
@@ -333,7 +332,7 @@ class DataTransfer
 
 
 
-    protected function handleSwiftCase($accessToken, $vaultClient, $vaultKey)
+    protected function handleSwiftCase($vaultClient, $vaultKey)
     {
         echo "SWIFT case is true <br></br>";
         //Assuming location is the same for all files
@@ -352,7 +351,7 @@ class DataTransfer
     }
 
 
-    public function handleSSHCase($accessToken, $vaultClient)
+    public function handleSSHCase($vaultClient)
     {
         echo "SSH case is true <br></br>";
         $credentials = $vaultClient->retrieveDatafromVault('SSH');

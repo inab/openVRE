@@ -1584,64 +1584,6 @@ function refresh_token($force = false)
 }
 
 
-function refresh_vault_token($force = false)
-{
-	if (!$_SESSION['userVaultInfo']['vaultKey']) {
-		ob_clean();
-		header('Location: ' . $GLOBALS['BASEURL'] . '/htmlib/errordb.php?msg=Vault Authentification Session Expired. <a href=' . $GLOBALS['URL'] . '>Login again</a>');
-	}
-
-	$existingToken = $_SESSION['userVaultInfo']['vaultKey'];
-	//add them to mongo
-	$provider = new VaultClient($_SESSION['userToken']->getToken());
-
-	$expirationTime = $provider->getTokenExpirationTime();
-	if ($force || ($expirationTime !== false)) {
-		try {
-			$newToken = $provider->renewVaultToken($existingToken);
-			if ($newToken) {
-				$newToken  = json_decode($newToken, true);
-				$_SESSION['userVaultInfo']['vaultKey'] = $newToken;
-				$tokenTime = $provider->getTokenExpirationTime();
-				if ($tokenTime !== false) {
-					$_SESSION['userVaultInfo']['expires_in'] = $tokenTime;
-				}
-				updateUser($_SESSION['User']);
-				$_SESSION['userVaultInfo']['vaultKey'] = $newToken;
-				$_SESSION['userVaultInfo']['expires_in'] = $tokenTime;
-				return true;
-			}
-		} catch (Exception $e) {
-			$_SESSION['errorData']['Error'][] = "Cannot validate token from refresh Vault token.";
-			$_SESSION['errorData']['Error'][] = $e->getMessage();
-			return false;
-		}
-	} else {
-		$_SESSION['errorData']['Warning'][] = "Vault token is expired, you should save or  update your credentials to generate a new one.";
-		return false;
-	}
-}
-
-
-
-
-
-/*
-function downloadFileSmall( $rfn ){
-		$fileInfo	= pathinfo($rfn);
-		$filename  = $fileInfo['basename'];
-		$fileExtension   = $fileInfo['extension'];
-		$content_type = (array_key_exists($fileExtension, mimeTypes()) ? mimeTypes()[$fileExtension] : "application/octet-stream");
-
-		header("Content-Disposition: attachment;filename=\"" . basename($rfn) . "\"");
-		header('Content-Type: ' . $contentType);
-		header("Content-Length: " .filesize($rfn));
-
-		print passthru("/bin/cat \"$rfn\"");
-}
-*/
-
-
 function mimeTypes()
 {
 	$mime_types = array(

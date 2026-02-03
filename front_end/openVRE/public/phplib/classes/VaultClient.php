@@ -8,55 +8,20 @@ use UnexpectedValueException;
 
 class VaultClient
 {
-
-	private $jwtToken;
 	private Logger $logger;
+	private string $secretId;
+	private string $secretPath;
+	private string $token;
+	private string $url;
 
 
-	public function __construct($jwtToken)
+	public function __construct(string $secretId, string $secretPath, string $token, string $url)
 	{
 		$this->logger = LoggerFactory::getLogger("Vault interface");
-		$this->jwtToken = $jwtToken;
-	}
-
-
-	private function fetchVaultToken()
-	{
-		$headers = array("Content-Type: application/json",);
-		$url = $GLOBALS['vaultUrl'] . "/auth/jwt/login";
-
-		$data = [
-			'role' => $GLOBALS['vaultRolename'],
-			'jwt' => $this->jwtToken,
-			'ttl' => '15m',
-			'renewable' => true,
-		];
-
-		$ch = curl_init($url);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-		$response = curl_exec($ch);
-		if ($response === false) {
-			$error = curl_error($ch);
-			throw new UnexpectedValueException("Failed to send the JWT login request: $error");
-		}
-
-		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		$response = json_decode($response, true);
-
-		if ($httpCode >= 400) {
-			$this->logger->error("Failed to fetch the Vault token: HTTP $httpCode");
-			foreach ($response["errors"] as $error) {
-				$this->logger->error($error);
-			}
-
-			throw new UnexpectedValueException("Failed to fetch the Vault token.");
-		}
-
-		return $response["auth"]["client_token"];
+		$this->secretId = $secretId;
+		$this->secretPath = $secretPath;
+		$this->token = $token;
+		$this->url = $url;
 	}
 
 
@@ -113,14 +78,14 @@ class VaultClient
 
 	public function uploadFileToVault($secretName, $data)
 	{
-		$vaultUrl = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $_SESSION['User']['secretsId'] . '/' . $secretName;
-		$token = $this->fetchVaultToken();
+		$this->logger->info("Uploading file to $secretName Vault path");
+		$url = $this->url . "/" . $this->secretPath . $this->secretId . '/' . $secretName;
 		$headers = [
-			'X-Vault-Token: ' . $token,
+			'X-Vault-Token: ' . $this->token,
 			'Content-Type: application/json'
 		];
 
-		$curl = curl_init($vaultUrl);
+		$curl = curl_init($url);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
 		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
@@ -137,9 +102,6 @@ class VaultClient
 
 		if ($httpCode >= 400) {
 			$this->logger->error("Failed to upload file to Vault: HTTP $httpCode");
-			$this->logger->error("Request url is: " . $vaultUrl);
-			$this->logger->error("Request token is: " . $token);
-			$this->logger->error("Request data is: " . json_encode($data));
 			foreach ($response["errors"] as $error) {
 				$this->logger->error($error);
 			}
@@ -147,67 +109,7 @@ class VaultClient
 			throw new UnexpectedValueException("Failed to upload file to Vault.");
 		}
 
-		$_SESSION['userVaultInfo']['vaultKey'] = $token;
-
 		$this->logger->info("Vault file uploaded successfully.");
-		$this->logger->info($response);
-	}
-
-
-	// Function to retrieve token lookup response from Vault
-	public function retrieveTokenLookup($vaultToken)
-	{
-		$url = $GLOBALS['vaultUrl'] . 'auth/token/lookup-self';
-		$headers = ['X-Vault-Token: ' . $vaultToken];
-
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-		$response = curl_exec($ch);
-		if (curl_errno($ch)) {
-			$this->logger->error('Error retrieving token lookup: ' . curl_error($ch));
-			return null;
-		}
-
-		return json_decode($response, true);
-	}
-
-
-	//Function using the loookup to see if the token has expired and needs a refresh
-	public function isTokenExpired($vaultToken)
-	{
-		date_default_timezone_set('UTC');
-		$tokenLookup = $this->retrieveTokenLookup($vaultToken);
-		if ($tokenLookup && isset($tokenLookup['data']['expire_time'])) {
-			$ttl = $tokenLookup['data']['ttl'];
-			$currentTimestamp = time();
-			$expireTimestamp = $currentTimestamp + $ttl;
-			$remainingTimeInMinutes = ceil(($expireTimestamp - $currentTimestamp) / 60);
-
-			return $remainingTimeInMinutes <= 0;
-		}
-
-		return true;
-	}
-
-
-	public function getTokenExpirationTime()
-	{
-		date_default_timezone_set('UTC');
-		$tokenLookup = $this->retrieveTokenLookup($_SESSION['userVaultInfo']['vaultKey']);
-		if ($tokenLookup && isset($tokenLookup['data']['expire_time'])) {
-			$ttl = $tokenLookup['data']['ttl'];
-			$currentTimestamp = time();
-			$expireTimestamp = $currentTimestamp + $ttl;
-			// Return the expiration time in a human-readable format
-			return $expireTimestamp;
-		}
-
-		// Return false if token lookup or expire_time is not available
-		return false;
 	}
 
 
@@ -240,55 +142,15 @@ class VaultClient
 	}
 
 
-	function renewVaultToken($vaultToken)
-	{
-		// Specify the endpoint for token renewal
-		$renewEndpoint = $GLOBALS['vaultUrl'] . 'auth/token/renew-self';
-		// Prepare the cURL request
-		$ch = curl_init($renewEndpoint);
-		// Set cURL option
-		$headers = [
-			'X-Vault-Token: ' . $vaultToken,
-			'Content-Type: application/json',
-		];
-
-		$postData = json_encode(['increment' => '10m']);
-
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-		// Execute the cURL request
-		$response = curl_exec($ch);
-
-		// Check for cURL errors
-		if (curl_errno($ch)) {
-			$this->logger->error('Curl error: ' . curl_error($ch));
-		}
-
-		$responseData = json_decode($response, true);
-
-		// Check if the response contains a new token
-		if (isset($responseData['auth']['client_token'])) {
-			// Return the new token
-			return $responseData['auth']['client_token'];
-		}
-
-		return false;
-	}
-
-
 	public function retrieveDatafromVault($system)
 	{
-		$vaultUrl = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $_SESSION['User']['secretsId'] . '/' . $system;
-		$vaultToken = $_SESSION['userVaultInfo']['vaultKey'];
+		$url = $this->url . "/" . $this->secretPath . $this->secretId . '/' . $system;
 
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $vaultUrl);
+		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-			'X-Vault-Token: ' . $vaultToken,
+			'X-Vault-Token: ' . $this->token,
 		]);
 
 		$response = curl_exec($ch);
@@ -296,15 +158,6 @@ class VaultClient
 		if (curl_errno($ch)) {
 			$this->logger->error('Error retrieving data from Vault: ' . curl_error($ch));
 			return null;
-		}
-
-		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		if ($httpCode === 403) {
-			if ($this->isTokenExpired($vaultToken)) {
-				$_SESSION['errorData']['Error'][] = "The Vault token has expired, need to refresh it in the User section.";
-			} else {
-				$_SESSION['errorData']['Error'][] = "The Vault token is still valid.";
-			}
 		}
 
 		$data = json_decode($response, true);

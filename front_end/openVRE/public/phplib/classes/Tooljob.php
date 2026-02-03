@@ -3,6 +3,7 @@
 namespace OpenVRE;
 
 use Monolog\Logger;
+use OpenVRE\VaultClientFactory;
 use UnexpectedValueException;
 
 
@@ -1519,10 +1520,10 @@ class Tooljob
 	}
 
 
-	public function getSSHCred($accessToken, $remote_dir, $siteId)
+	public function getSSHCred($remote_dir, $siteId)
 	{
 		#retrieve the credential and update the site collection with it
-		$vaultClient = new VaultClient($accessToken);
+		$vaultClient = VaultClientFactory::create();
 		$credentials = $vaultClient->retrieveDatafromVault('SSH');
 		if ($credentials) {
 			$sshPrivateKey = $credentials['priv_key'];
@@ -1561,10 +1562,8 @@ class Tooljob
 	protected function setHPCRequest($cloudName, $tool)
 	{
 		if ($cloudName == 'marenostrum') {
-			$accessToken = $_SESSION['userToken']->getToken();
-
 			//Get the credentials
-			$remoteSSH = $this->getSSHCred($accessToken, null, $cloudName);
+			$remoteSSH = $this->getSSHCred(null, $cloudName);
 			if (isset($remoteSSH['error'])) {
 				$_SESSION['errorData']['Internal Error'][] = "Failed to retrieve SSH credentials: " . $remoteSSH['error'];
 				return 0;
