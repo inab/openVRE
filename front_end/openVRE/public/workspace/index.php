@@ -601,7 +601,7 @@ $files = addTreeTableNodesToFiles($files);
 									</div>
 
 									<div id="extra-space-home">
-										<?php if (allowedRoles($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
+										<?php if (in_array($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
 											Do you need extra disk space? Click the button below to contact us!
 											<br><br>
 											<a href="<?php echo $GLOBALS['BASEURL']; ?>helpdesk/?sel=space"

@@ -26,7 +26,7 @@ else $tdev = array();
 
 if ((isset($_SESSION['User'])
 		&& ($user['Status'] == UserStatus::Active->value)
-		&& (allowedRoles($user['Type'], $GLOBALS['TOOLDEV']))
+		&& (in_array($user['Type'], $GLOBALS['TOOLDEV']))
 		&& (in_array($tool, $tdev))) ||
 	(isset($_SESSION['User'])
 		&& ($user['Status'] == UserStatus::Active->value)

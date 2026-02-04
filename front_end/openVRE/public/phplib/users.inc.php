@@ -37,14 +37,14 @@ function checkAdmin()
 {
     $user = getUserById($_SESSION['User']['_id']);
 
-    return isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (allowedRoles($user['Type'], $GLOBALS['ADMIN']));
+    return isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (in_array($user['Type'], $GLOBALS['ADMIN']));
 }
 
 function checkToolDev()
 {
     $user = getUserById($_SESSION['User']['_id']);
 
-    return isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (allowedRoles($user['Type'], $GLOBALS['TOOLDEV']) || allowedRoles($user['Type'], $GLOBALS['ADMIN']));
+    return isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (in_array($user['Type'], $GLOBALS['TOOLDEV']) || in_array($user['Type'], $GLOBALS['ADMIN']));
 }
 
 // create user - after being authentified by the Auth Server
@@ -312,15 +312,6 @@ function loadUserWithToken($user, $userinfo, $token)
     return $user;
 }
 
-function allowedRoles($role, $allowed)
-{
-
-    if (in_array($role, $allowed)) {
-        return true;
-    } else {
-        return false;
-    }
-}
 
 function getUser_diskQuota($login)
 {

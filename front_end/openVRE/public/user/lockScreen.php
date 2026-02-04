@@ -1,7 +1,7 @@
 <?php
 
 require __DIR__."/../../config/bootstrap.php";
-if(!allowedRoles($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) redirectInside(); 
+if(!in_array($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) redirectInside(); 
 redirectOutside();
 
 $firstLetterName = substr($_SESSION['User']['Name'], 0, 1);

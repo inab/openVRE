@@ -339,7 +339,7 @@ sort($visualizers);
 								?>
 							</ul>
 						</li> -->
-						<!-- <?php //if (allowedRoles($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { 
+						<!-- <?php //if (in_array($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { 
 								?>
 							<li class="nav-item  <?php //if ($currentSubSection == 'h7') { 
 													?>active open<?php //} 
@@ -373,7 +373,7 @@ sort($visualizers);
 						</li> -->
 					</ul>
 				</li>
-				<?php if (allowedRoles($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
+				<?php if (in_array($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
 					<li>
 					<li class="nav-item <?php if ($currentSection == 'hd') { ?>active open<?php } ?>">
 						<a href="helpdesk/" class="nav-link nav-toggle">
@@ -382,7 +382,7 @@ sort($visualizers);
 						</a>
 					</li>
 				<?php } ?>
-				<?php if (allowedRoles($_SESSION['User']['Type'], $GLOBALS['ADMIN']) || allowedRoles($_SESSION['User']['Type'], $GLOBALS['TOOLDEV'])) { ?>
+				<?php if (in_array($_SESSION['User']['Type'], $GLOBALS['ADMIN']) || in_array($_SESSION['User']['Type'], $GLOBALS['TOOLDEV'])) { ?>
 					<li class="nav-item  <?php if ($currentSection == 'ad') { ?>active open<?php } ?>">
 						<a href="javascript:;" class="nav-link nav-toggle">
 							<i class="icon-settings"></i>
@@ -391,14 +391,14 @@ sort($visualizers);
 							<span class="arrow <?php if ($currentSection == 'ad') { ?>open<?php } ?>"></span>
 						</a>
 						<ul class="sub-menu">
-							<?php if (!allowedRoles($_SESSION['User']['Type'], $GLOBALS['TOOLDEV'])) { ?>
+							<?php if (!in_array($_SESSION['User']['Type'], $GLOBALS['TOOLDEV'])) { ?>
 								<li class="nav-item  <?php if ($currentSubSection == 'ds') { ?>active open<?php } ?>">
 									<a href="admin/dashboard.php" class="nav-link ">
 										<span class="title">Dashboard</span>
 									</a>
 								</li>
 							<?php } ?>
-							<?php if (!allowedRoles($_SESSION['User']['Type'], $GLOBALS['TOOLDEV'])) { ?>
+							<?php if (!in_array($_SESSION['User']['Type'], $GLOBALS['TOOLDEV'])) { ?>
 								<li class="nav-item  <?php if ($currentSubSection == 'au') { ?>active open<?php } ?>">
 									<a href="admin/adminUsers.php" class="nav-link ">
 										<span class="title">Users Administration</span>

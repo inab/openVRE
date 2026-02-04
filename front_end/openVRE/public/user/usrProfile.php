@@ -186,7 +186,7 @@ redirectOutside();
                                                                 value="<?php echo $_SESSION['User']['Inst']; ?>"
                                                                 class="form-control" />
                                                         </div>
-                                                        <?php if (!allowedRoles($_SESSION['User']['Type'], $GLOBALS['TOOLDEV']) && (checkTermsOfUse())) { ?>
+                                                        <?php if (!in_array($_SESSION['User']['Type'], $GLOBALS['TOOLDEV']) && (checkTermsOfUse())) { ?>
                                                             <div class="form-group margin-top-30">
                                                                 <label class="control-label">You are a standard user. Do you
                                                                     want to bring your own tool?
