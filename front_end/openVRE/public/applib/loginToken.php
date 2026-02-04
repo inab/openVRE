@@ -105,11 +105,10 @@ if (!isset($_GET['code'])) {
         } catch (\Exception $e) {
             exit('Login error: failed to create local VRE user: ' . $e->getMessage());
         }
-    } else {
-        getLoginLogger()->info("Loaded existing user from access token.");
     }
 
     $user = loadUserWithToken($user, $userInfo, $accessToken);
+    getLoginLogger()->info("Loaded existing user from access token.");
 
     if ($user) {
         redirect("../home/redirect.php");

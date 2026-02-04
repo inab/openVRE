@@ -218,4 +218,11 @@ class User
     {
         $this->registrationDate = $registrationDate;
     }
+
+    public function toDocument(): array
+    {
+        $data = get_object_vars($this);
+        unset($data['logger']);
+        return $data;
+    }
 }

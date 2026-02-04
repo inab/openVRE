@@ -298,9 +298,10 @@ function loadUserWithToken($user, $userinfo, $token)
 
     $auxlastlog = $user['lastLogin'];
     $user['lastLogin'] = moment();
+    $user['secretsId'] = $userinfo['sub'];
     $_SESSION['userToken'] = $token;
     $_SESSION['tokenInfo'] = $userinfo;
-
+    
     updateUser($user);
     setUser($user, $auxlastlog);
 
