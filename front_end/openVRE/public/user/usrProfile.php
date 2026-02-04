@@ -431,74 +431,76 @@ redirectOutside();
                                                         Accounts</span>
 
                                                     <!-- HPC ACCOUNT -->
-                                                    <hr>
-                                                    <img src="https://cdn-icons-png.flaticon.com/512/5225/5225347.png" /
-                                                        style="float: right; height: 50px; margin: 0 50px;">
-                                                    <h4>HPC resources access (via SSH)</h4>
+                                                    <div hidden>
+                                                        <hr>
+                                                        <img src="https://cdn-icons-png.flaticon.com/512/5225/5225347.png" /
+                                                            style="float: right; height: 50px; margin: 0 50px;">
+                                                        <h4>HPC resources access (via SSH)</h4>
 
-                                                    <div style="padding-left: 15px;border-left: 2px solid lightgray;">
-                                                        <?php
-                                                        if (is_null($_SESSION['User']['linked_accounts']['mn'])) { ?>
-                                                            <p>
-                                                                <span style="color: #666;font-weight: bold;">
-                                                                    Do you have an account to an HPC facility?
-                                                                </span>
-                                                                Link it and you'll be able to launch jobs there. Data will
-                                                                be transferred via SSH, from/to your HPC home directory.
-                                                            </p>
-                                                            <div class="row" style="margin-left:30px;">
-                                                                <?php echo generateSSHButtons(); ?>
-                                                            </div>
-
-                                                        <?php } else {
-                                                        ?>
-                                                            <div class="form-group">
-                                                                <label class="control-label">HPC system Username</label>
-                                                                <br />
-                                                                <input type="text"
-                                                                    value="<?php echo $_SESSION['User']['linked_accounts']['mn']['hpc_username'] ?>"
-                                                                    class="form-control" readonly
-                                                                    style="background:#fff;" />
-                                                            </div>
-
-                                                            <div class="form-group">
-                                                                <label class="control-label">SSH Public Key</label>
-                                                                <br />
-                                                                <input type="text"
-                                                                    value="<?php echo $_SESSION['User']['linked_accounts']['mn']['hpc_pub_key'] ?>"
-                                                                    class="form-control" readonly
-                                                                    style="background:#fff;" />
-                                                            </div>
-
-                                                            <div class="form-group">
-                                                                <label class="control-label">SSH Private key</label>
-
-                                                                <i onclick="this.classList.toggle('fa-eye-slash');x=document.getElementById('priv_key');if (x.style.display === 'none') {x.style.display = 'block';} else {x.style.display = 'none';}"
-                                                                    class="fa fa-eye font-green"
-                                                                    style="margin:10px; font-size:18px"></i>
-                                                                <br />
-                                                                <div style="height:150px;display:none;" id="ssh_priv_key">
-                                                                    <pre><?php echo $_SESSION['User']['linked_accounts']['SSH']['hpc_priv_key'] ?></pre>
+                                                        <div style="padding-left: 15px;border-left: 2px solid lightgray;">
+                                                            <?php
+                                                            if (is_null($_SESSION['User']['linked_accounts']['mn'])) { ?>
+                                                                <p>
+                                                                    <span style="color: #666;font-weight: bold;">
+                                                                        Do you have an account to an HPC facility?
+                                                                    </span>
+                                                                    Link it and you'll be able to launch jobs there. Data will
+                                                                    be transferred via SSH, from/to your HPC home directory.
+                                                                </p>
+                                                                <div class="row" style="margin-left:30px;">
+                                                                    <?php echo generateSSHButtons(); ?>
                                                                 </div>
-                                                            </div>
 
-                                                            <div class="form-group">
-                                                                <label class="control-label">Creation Time</label>
-                                                                <br />
-                                                                <span class="form-control" readonly
-                                                                    style="background:#fff;"><?php echo $_SESSION['User']['linked_accounts']['SSH']['creation_time']; ?></span>
-                                                            </div>
+                                                            <?php } else {
+                                                            ?>
+                                                                <div class="form-group">
+                                                                    <label class="control-label">HPC system Username</label>
+                                                                    <br />
+                                                                    <input type="text"
+                                                                        value="<?php echo $_SESSION['User']['linked_accounts']['mn']['hpc_username'] ?>"
+                                                                        class="form-control" readonly
+                                                                        style="background:#fff;" />
+                                                                </div>
 
-                                                            <div class="form-group">
-                                                                <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=MN&action=update"
-                                                                    class="btn btn-xs green"><i class="fa fa-refresh"></i>
-                                                                    &nbsp; Generate new pair of Keys</a>
-                                                                <a href="<?php echo $GLOBALS['BASEURL']; ?>applib/linkedAccount.php?account=MN&action=delete"
-                                                                    class="btn btn-xs green"><i class="fa fa-trash"></i>
-                                                                    &nbsp; Delete Account</a>
-                                                            </div>
+                                                                <div class="form-group">
+                                                                    <label class="control-label">SSH Public Key</label>
+                                                                    <br />
+                                                                    <input type="text"
+                                                                        value="<?php echo $_SESSION['User']['linked_accounts']['mn']['hpc_pub_key'] ?>"
+                                                                        class="form-control" readonly
+                                                                        style="background:#fff;" />
+                                                                </div>
+
+                                                                <div class="form-group">
+                                                                    <label class="control-label">SSH Private key</label>
+
+                                                                    <i onclick="this.classList.toggle('fa-eye-slash');x=document.getElementById('priv_key');if (x.style.display === 'none') {x.style.display = 'block';} else {x.style.display = 'none';}"
+                                                                        class="fa fa-eye font-green"
+                                                                        style="margin:10px; font-size:18px"></i>
+                                                                    <br />
+                                                                    <div style="height:150px;display:none;" id="ssh_priv_key">
+                                                                        <pre><?php echo $_SESSION['User']['linked_accounts']['SSH']['hpc_priv_key'] ?></pre>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="form-group">
+                                                                    <label class="control-label">Creation Time</label>
+                                                                    <br />
+                                                                    <span class="form-control" readonly
+                                                                        style="background:#fff;"><?php echo $_SESSION['User']['linked_accounts']['SSH']['creation_time']; ?></span>
+                                                                </div>
+
+                                                                <div class="form-group">
+                                                                    <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=MN&action=update"
+                                                                        class="btn btn-xs green"><i class="fa fa-refresh"></i>
+                                                                        &nbsp; Generate new pair of Keys</a>
+                                                                    <a href="<?php echo $GLOBALS['BASEURL']; ?>applib/linkedAccount.php?account=MN&action=delete"
+                                                                        class="btn btn-xs green"><i class="fa fa-trash"></i>
+                                                                        &nbsp; Delete Account</a>
+                                                                </div>
+                                                        </div>
+                                                    <?php } ?>
                                                     </div>
-                                                <?php } ?>
                                                 </div>
                                                 <!-- END MN ACCOUNT -->
                                                 <hr>
@@ -528,7 +530,7 @@ redirectOutside();
                                                 <hr>
                                                 <!-- START opnestack ACCOUnt -->
 
-                                                <div style="padding-top: 15px; padding-left: 15px;border-left: 2px solid lightgray;">
+                                                <div hidden style="padding-top: 15px; padding-left: 15px;border-left: 2px solid lightgray;">
                                                     <?php
                                                     if (! isset($_SESSION['User']['linked_accounts']['openstack'])) { ?>
                                                         <p>
