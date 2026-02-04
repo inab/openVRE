@@ -144,6 +144,7 @@ class VaultClient
 
 	public function retrieveDatafromVault($system)
 	{
+		$this->logger->info("Retrieving $system data from Vault");
 		$url = $this->url . "/" . $this->secretPath . $this->secretId . '/' . $system;
 
 		$ch = curl_init();
@@ -156,56 +157,26 @@ class VaultClient
 		$response = curl_exec($ch);
 
 		if (curl_errno($ch)) {
-			$this->logger->error('Error retrieving data from Vault: ' . curl_error($ch));
-			return null;
+			$this->logger->error('Failed to request data from Vault: ' . curl_error($ch));
+			throw new UnexpectedValueException('Failed to request data from Vault.');
 		}
 
-		$data = json_decode($response, true);
-		if ($data === null) {
-			return null;
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$response = json_decode($response, true);
+
+		if ($httpCode >= 400) {
+			$this->logger->error("Failed to retrieve data from Vault: HTTP $httpCode");
+			foreach ($response["errors"] as $error) {
+				$this->logger->error($error);
+			}
+
+			throw new UnexpectedValueException("Failed to retrieve data from Vault.");
 		}
-		if ($system == 'Swift') {
-			$user_id = $data['data']['data']['Swift']['_id'];
-			$app_id = $data['data']['data']['Swift']['app_id'];
-			$app_secret = $data['data']['data']['Swift']['app_secret'];
-			$domainName = $data['data']['data']['Swift']['domainName'];
-			$projectName = $data['data']['data']['Swift']['projectName'];
-			$interface = $data['data']['data']['Swift']['interface'];
-			$projectDomainId = $data['data']['data']['Swift']['projectDomainId'];
-			$projectId = $data['data']['data']['Swift']['projectId'];
-			$projectDomainName = $data['data']['data']['Swift']['projectDomainName'];
 
-			return [
-				'user_id' => $user_id,
-				'app_id' => $app_id,
-				'app_secret' => $app_secret,
-				'domainName' => $domainName,
-				'projectDomainName' => $projectDomainName,
-				'interface' => $interface,
-				'projectDomainId' => $projectDomainId,
-				'projectId' => $projectId,
-				'projectName' => $projectName,
-			];
-		} elseif ($system == 'SSH') {
-			$user_id = $data['data']['data']['SSH']['_id'];
-			$pub_key = $data['data']['data']['SSH']['public_key'];
-			$priv_key = $data['data']['data']['SSH']['private_key'];
-			$username = $data['data']['data']['SSH']['username'];
-
-			return [
-				'user_id' => $user_id,
-				'pub_key' => $pub_key,
-				'priv_key' => $priv_key,
-				'hpc_username' => $username,
-			];
-		} elseif ($system == 'ega') {
-			$user_id = $data['data']['data']['EGA']['_id'];
-			$username = $data['data']['data']['EGA']['username'];
-
-			return [
-				'user_id' => $user_id,
-				'username' => $username,
-			];
+		if (json_last_error() !== JSON_ERROR_NONE) {
+			throw new UnexpectedValueException('Error decoding JSON data: ' . json_last_error_msg());
 		}
+
+		return $response['data']['data'][$system];
 	}
 }

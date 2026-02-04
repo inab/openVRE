@@ -1526,9 +1526,9 @@ class Tooljob
 		$vaultClient = VaultClientFactory::create();
 		$credentials = $vaultClient->retrieveDatafromVault('SSH');
 		if ($credentials) {
-			$sshPrivateKey = $credentials['priv_key'];
-			$sshPublicKey = $credentials['pub_key'];
-			$sshUsername = $credentials['hpc_username'];
+			$sshPrivateKey = $credentials['private_key'];
+			$sshPublicKey = $credentials['public_key'];
+			$sshUsername = $credentials['username'];
 			$sshId = $credentials['_id'];
 
 			// Set up the credentials array for the RemoteSSH class

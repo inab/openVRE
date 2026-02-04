@@ -3,6 +3,11 @@
 require __DIR__ . "/../../config/globals.inc.php";
 
 
+use OpenVRE\LoggerFactory;
+use OpenVRE\VaultClientFactory;
+
+
+$logger = LoggerFactory::getLogger('Fetch EGA datasets interface');
 
 $currentPage = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $offset = ($currentPage - 1) * 10;
@@ -11,37 +16,18 @@ $userEmail = $_SESSION['User']['Email'];
 $vaultToken = $_SESSION['userVaultInfo']['vaultKey'];
 $vaultAddress = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $_SESSION['User']['secretsId'] . '/EGA';
 
-function fetchVaultData($vaultAddress, $vaultToken)
-{
-    $ch = curl_init($vaultAddress);
+$vaultClient = VaultClientFactory::create();
+$data = $vaultClient->retrieveDatafromVault('EGA');
 
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "X-Vault-Token: $vaultToken"
-    ]);
-
-    $response = curl_exec($ch);
-
-    if (curl_errno($ch)) {
-        throw new UnexpectedValueException('cURL error: ' . curl_error($ch));
-    }
-
-    $responseData = json_decode($response, true);
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new UnexpectedValueException('Error decoding JSON data: ' . json_last_error_msg());
-    }
-
-    return $responseData;
-}
-
-$data = fetchVaultData($vaultAddress, $vaultToken);
-
-$egaUsername = $data['data']['data']['EGA']['username'] ?? null;
-$egaPassword = $data['data']['data']['EGA']['password'] ?? null;
+$egaUsername = $data['username'] ?? null;
+$egaPassword = $data['password'] ?? null;
 
 if ($egaUsername === null || $egaPassword === null) {
+    $logger->error('EGA credentials not found in Vault.');
     throw new UnexpectedValueException('EGA credentials not found. Try to link your EGA account again.');
 }
+
+$logger->info('EGA credentials loaded from Vault.');
 
 $params = [
     'client_id' => 'metadata-api',
@@ -71,10 +57,13 @@ if (json_last_error() !== JSON_ERROR_NONE) {
 $accessToken = $tokenDataArray['access_token'] ?? null;
 
 if ($accessToken === null) {
+    $logger->error('Error fetching EGA token.');
     throw new UnexpectedValueException('Error fetching EGA token. Check your credentials and try again.');
 }
 
-function fetch_dataset_files($dataset_id, $accessToken, $offset = 0, $limit = 10)
+$logger->info('EGA token fetched.');
+
+function fetchDatasetFiles($logger, $dataset_id, $accessToken, $offset = 0, $limit = 10)
 {
     $egaDatasetFilesEndpoint = $GLOBALS['EGA_METADATA_API'] . '/datasets/' . $dataset_id . '/files?offset=' . $offset . '&limit=' . $limit;
     $context = stream_context_create([
@@ -84,6 +73,11 @@ function fetch_dataset_files($dataset_id, $accessToken, $offset = 0, $limit = 10
     ]);
 
     $jsonData = file_get_contents($egaDatasetFilesEndpoint, false, $context);
+    if ($jsonData === false) {
+        $logger->error('Error fetching files for dataset ' . $dataset_id . '.');
+        throw new UnexpectedValueException('Error fetching files for dataset ' . $dataset_id . '.');
+    }
+
     return json_decode($jsonData, true);
 }
 
@@ -92,7 +86,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'fetch_files') {
     $accession_id = htmlspecialchars($_GET['accession_id']);
     $offset = isset($_GET['offset']) ? intval($_GET['offset']) : 0;
     $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 10;
-    $files = fetch_dataset_files($accession_id, $accessToken, $offset, $limit);
+    $files = fetchDatasetFiles($logger, $accession_id, $accessToken, $offset, $limit);
+    $logger->info('Fetched files for dataset ' . $accession_id);
     header('Content-Type: application/json');
     echo json_encode($files);
     exit;
