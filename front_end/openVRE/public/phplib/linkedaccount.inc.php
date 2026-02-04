@@ -53,7 +53,7 @@ function addUserLinkedAccount($accountType, $action, $userId, $site_id, $postDat
 				handleObjectStorageAccount($action, $userId, $site_id, $postData);
 				break;
 			}
-		case "ega":
+		case "EGA":
 			try {
 				if (isset($_POST["submitOption"])) {
 					$submitOption = $_POST["submitOption"];
@@ -186,9 +186,22 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 	}
 
 	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
-	$vaultClient = VaultClientFactory::create();
 
-	$vaultClient->uploadKeystoVault($data);
+	$publicKey = $data['data']['SSH']['public_key'];
+	$privateKey = $data['data']['SSH']['private_key'];
+
+	if (!isValidSSHPublicKey($publicKey)) {
+		getLinkedAccountLogger()->error("Invalid SSH public key format.");
+		throw new UnexpectedValueException("Invalid SSH public key format.");
+	}
+
+	if (!validateOpenSSHPrivateKey($privateKey)) {
+		getLinkedAccountLogger()->error("Invalid SSH private key format.");
+		throw new UnexpectedValueException("Invalid SSH private key format.");
+	}
+
+	$vaultClient = VaultClientFactory::create();
+	$vaultClient->uploadFileToVault("SSH", $data);
 	// Update user data with vault key
 	updateUser($_SESSION['User']);
 
@@ -290,16 +303,9 @@ function handleObjectStorageAccount($action, $userId, $site_id, $postData)
 	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
 	$vaultClient = VaultClientFactory::create();
 
-	$key = $vaultClient->uploadKeystoVault($data);
-	// Update user data with vault key
-	$_SESSION['userVaultInfo']['vaultKey'] = $key;
-	updateUser($_SESSION['User']);
-	if (!$key) {
-		getLinkedAccountLogger()->error("Failed to link Swift account");
-		$_SESSION['formData'] = $postData;
-		throw new UnexpectedValueException("Failed to link Swift account");
-	}
+	$vaultClient->uploadFileToVault("Swift", $data);
 
+	updateUser($_SESSION['User']);
 	$_SESSION['errorData']['Info'][] = "Swift account successfully linked.";
 	getLinkedAccountLogger()->info("Swift account successfully linked.");
 	redirect($_SERVER['HTTP_REFERER']);
@@ -314,7 +320,7 @@ function handleEgaAccount($action, $userId, $postData)
 			$_SESSION['User']['EGA']['token'] = $egaAuthToken;
 		} catch (Exception $e) {
 			getLinkedAccountLogger()->error("Could not connect to EGA: " . $e->getMessage());
-			throw new UnexpectedValueException("Could not connect to EGA.");
+			throw new UnexpectedValueException("Could not connect to EGA. Check your credentials and try again.");
 		}
 	}
 
@@ -338,7 +344,7 @@ function handleEgaAccount($action, $userId, $postData)
 	}
 
 	$vaultClient = VaultClientFactory::create();
-	$vaultClient->uploadKeystoVault($data);
+	$vaultClient->uploadFileToVault("EGA", $data);
 
 	$_SESSION['errorData']['Info'][] = "EGA account successfully linked.";
 	getLinkedAccountLogger()->info("EGA account successfully linked.");

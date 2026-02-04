@@ -70,7 +70,7 @@ require "../htmlib/header.inc.php"; ?>
                         <input type="hidden" name="account" id="account" value="<?php echo $_REQUEST['account']; ?>">
                         <input type="hidden" name="action" id="action" value="<?php echo $_REQUEST['action']; ?>">
 
-                        <?php if ($_REQUEST['account'] == "ega") {
+                        <?php if ($_REQUEST['account'] == "EGA") {
 
                         ?>
                             <div class="portlet box blue-oleo">

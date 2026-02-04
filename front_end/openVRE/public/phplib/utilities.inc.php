@@ -822,3 +822,58 @@ function indexArray($multiArray, $attr = "_id")
     }
     return $assocArray;
 }
+
+
+function isValidSSHPublicKey($key)
+{
+    // Define a regular expression pattern for SSH public keys
+    $pattern1 = '/^ssh-(rsa|ed25519|ecdsa-[a-z0-9-]+) [A-Za-z0-9+\/=]+ ?(?:\S+)?$/';
+    $pattern2 = '/^-----BEGIN PUBLIC KEY-----[A-Za-z0-9+\/=\s]+-----END PUBLIC KEY-----/';
+
+
+
+    // Check if the key matches the pattern
+    return preg_match($pattern1, $key) === 1 || preg_match($pattern2, $key) === 1;
+}
+
+
+function validateOpenSSHPrivateKey($key)
+{
+    // Check for OpenSSH Private Key headers
+
+    if (
+        strpos($key, '-----BEGIN OPENSSH PRIVATE KEY-----') === false ||
+        strpos($key, '-----END OPENSSH PRIVATE KEY-----') === false
+    ) {
+        getUtilitiesLogger()->error("Invalid OpenSSH private key headers.");
+
+        return false;
+    }
+
+    $keyBody = str_replace(
+        ["-----BEGIN OPENSSH PRIVATE KEY-----", "-----END OPENSSH PRIVATE KEY-----", "\r", "\n"],
+        "",
+        $key
+    );
+
+    // Decode the Base64 body
+
+    $decodedKey = base64_decode($keyBody, true);
+
+    if ($decodedKey === false) {
+        getUtilitiesLogger()->error("Base64 decoding failed. The key body might be corrupted.");
+
+        return false;
+    }
+
+    // Check if the decoded key starts with the OpenSSH magic header
+    if (substr($decodedKey, 0, 15) !== "openssh-key-v1\0") {
+        getUtilitiesLogger()->error("Invalid OpenSSH key format.");
+        
+        return false;
+    }
+
+    getUtilitiesLogger()->info("The key is a valid OpenSSH private key.");
+    
+    return true;
+}

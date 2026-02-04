@@ -439,7 +439,7 @@ redirectOutside();
 
                                                         <div style="padding-left: 15px;border-left: 2px solid lightgray;">
                                                             <?php
-                                                            if (is_null($_SESSION['User']['linked_accounts']['mn'])) { ?>
+                                                            if (!isset($_SESSION['User']['linked_accounts']['mn'])) { ?>
                                                                 <p>
                                                                     <span style="color: #666;font-weight: bold;">
                                                                         Do you have an account to an HPC facility?
@@ -519,7 +519,7 @@ redirectOutside();
                                                         </p>
                                                         <div class="row" style="margin-left:30px;">
                                                             <div class="col-md-6">
-                                                                <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=ega&action=new"
+                                                                <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=EGA&action=new"
                                                                     class="btn green"><i class="fa fa-plus"></i> &nbsp; Link
                                                                     your account</a>
                                                             </div>

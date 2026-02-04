@@ -34,7 +34,7 @@ switch ($_REQUEST['uploadType']) {
 		getData_fromSampleData($_REQUEST);
 		break;
 
-	case 'ega':
+	case 'EGA':
 		$datasetIds = $_REQUEST['datasetIds'];
 		$fileIds = $_REQUEST['fileIds'];
 		$filenames = $_REQUEST['displayNames'];

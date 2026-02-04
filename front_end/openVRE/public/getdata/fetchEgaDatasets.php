@@ -58,7 +58,7 @@ $accessToken = $tokenDataArray['access_token'] ?? null;
 
 if ($accessToken === null) {
     $logger->error('Error fetching EGA token.');
-    throw new UnexpectedValueException('Error fetching EGA token. Check your credentials and try again.');
+    throw new UnexpectedValueException('Error fetching EGA token.');
 }
 
 $logger->info('EGA token fetched.');
