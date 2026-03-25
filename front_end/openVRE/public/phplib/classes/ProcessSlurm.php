@@ -60,7 +60,7 @@ class ProcessSlurm {
                 if (!$vaultUrl || !$vaultKey || !$vaultRolename || !$accessToken || !$username) {
                         $_SESSION['errorData']['Error'][] =
                             "ProcessSlurm: Missing required Vault or session credentials.";
-                        throw new Exception("Missing Vault/session parameters.");
+                        return;
                 }
 
                 // Create Vault client
@@ -69,7 +69,7 @@ class ProcessSlurm {
                 $sshCredentials = $vaultClient->getSSHcredentials($vaultUrl, $vaultKey);
                 if (!$sshCredentials || !is_array($sshCredentials)) {
                         $_SESSION['errorData']['Error'][] = "ProcessSlurm: Failed to retrieve SSH credentials from Vault.";
-                        throw new Exception("SSH credentials not found.");
+                        return;
                     }
 
                     $this->sshCredentials = [

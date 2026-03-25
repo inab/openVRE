@@ -246,7 +246,9 @@ if ($doSync && in_array('marenostrum', $siteList)) {
 	}	 
 // Skip DataTransfer logic
 } else {
+	if ($debug) {
 	echo "<br/><strong>DEBUG:</strong> Skipping DataTransfer — 'marenostrum' not in site_list.<br/>";
+	}
 }
 
 

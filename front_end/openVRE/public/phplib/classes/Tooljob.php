@@ -735,20 +735,25 @@ class Tooljob
 			$_SESSION['errorData']['Internal Error'][] = "Cannot create metadata file. No 'working_dir' set";
 			return 0;
 		}
-
+		error_log("DEBUG: Starting setMetadata_file()");
 		$fileMuGs = [];
 		// add input_files metadata
 		foreach ($metadata as $fileId => $file) {
 			// convert metadata to DMP format
-			$fileMuG = $this->fromVREfile_toMUGfile($file);
+			error_log("DEBUG: Processing PRIVATE fileId: " . $fileId);
+   			error_log("DEBUG: Original file: " . json_encode($file));
 
+			$fileMuG = $this->fromVREfile_toMUGfile($file);
+			error_log("DEBUG: After conversion: " . json_encode($fileMuG));
 			// adapt metadata to App requirements
 			if (isset($fileMuG['sources'])) {
 				$source_list = [];
 				foreach ($fileMuG['sources'] as $sourceid) {
 					if ($sourceid) {
 						$source_path = getAttr_fromGSFileId($sourceid, "path");
+						error_log("DEBUG: Source ID: $sourceid -> Path: " . $source_path);
 						if ($source_path) {
+							error_log("DEBUG: Full source path: " . $this->root_dir_virtual . "/" . $source_path);
 							array_push($source_list, $this->root_dir_virtual . "/" . $source_path);
 						}
 					}
@@ -763,12 +768,14 @@ class Tooljob
 
 			if ($fileMuG['file_path']) {
 				$fileMuG['file_path'] = $this->root_dir_virtual . "/" . $fileMuG['file_path'];
+				error_log("DEBUG: Final file_path: " . $fileMuG['file_path']);
 			}
 
 
 			if ($fileMuG['meta_data']['parentDir']) {
 				$parent_path = getAttr_fromGSFileId($fileMuG['meta_data']['parentDir'], "path");
 				if ($parent_path) {
+					error_log("DEBUG: ParentDir ID: " . $fileMuG['meta_data']['parentDir'] . " -> Path: " . $parent_path);
 					$fileMuG['meta_data']['parentDir'] = $this->root_dir_virtual . "/" . $parent_path;
 				}
 			}
@@ -807,6 +814,7 @@ class Tooljob
 		}
 
 		$metadataFile = $this->metadata_file;
+		error_log("DEBUG: Writing metadata file to: " . $metadataFile);
 		try {
 			$F = fopen($metadataFile, "w");
 			if (!$F) {
@@ -824,6 +832,214 @@ class Tooljob
 	}
 
 
+	/**
+	 * Creates metadata JSON for results, since the file is on remote_path and can't be syncronized
+	 */
+	/**
+ * Creates metadata JSON for results, considering remote paths and input sources.
+ */
+	public function setResults_file($metadata, $configFilename)
+	{
+		if (!$this->working_dir) {
+			$_SESSION['errorData']['Internal Error'][] = "Cannot create results file. No 'working_dir' set";
+			return 0;
+		}
+
+		$sources = [];
+		$remoteBase = null;
+
+		// Collect sources and detect remote base path
+		foreach ($metadata as $file) {
+			$fileMuG = $this->fromVREfile_toMUGfile($file);
+
+			// Add local file path to sources
+			if (!empty($fileMuG['file_path'])) {
+				$sources[] = rtrim($this->root_dir_virtual, '/') . '/' . ltrim($fileMuG['file_path'], '/');
+			}
+
+			// Determine remote base path from the first remote_path
+			if (!$remoteBase && !empty($file['meta_data']['remote_paths'][0]['remote_path'])) {
+				$remoteFull = preg_replace('#/+#','/', $file['meta_data']['remote_paths'][0]['remote_path']);
+				$localFull  = preg_replace('#/+#','/', $file['file_path'] ?? '');
+				if (strpos($remoteFull, $localFull) !== false) {
+					$remoteBase = str_replace($localFull, '', $remoteFull);
+					error_log("DEBUG: Remote base detected: " . $remoteBase);
+				}
+			}
+		}
+
+		// Load configuration file
+		$config = json_decode(file_get_contents($configFilename), true);
+		if (!$config || empty($config['output_files'])) {
+			$_SESSION['errorData']['Internal Error'][] = "Invalid config file or missing output_files";
+			return 0;
+		}
+
+		$output_files = [];
+
+		foreach ($config['output_files'] as $out) {
+			$fileName = $out['name'] . "." . strtolower($out['file']['file_type'] ?? "txt");
+
+			$localOutputPath = rtrim($this->root_dir_virtual, '/') . '/' . $this->execution . "/" . $fileName;
+
+			$entry = [
+				"name"       => $out['name'],
+				"type"       => $out['type'] ?? "file",
+				"file_path"  => $localOutputPath,
+				"data_type"  => $out['file']['data_type'] ?? "unknown",
+				"file_type"  => $out['file']['file_type'] ?? "TXT",
+				"sources"    => $sources,
+				"meta_data"  => [
+					"visible"     => $out['file']['metadata']['visible'] ?? true,
+					"description" => $out['file']['metadata']['description'] ?? "",
+					"tool"        => $this->toolId
+				]
+			];
+
+			// Update parentDir if present
+			if (!empty($out['meta_data']['parentDir'])) {
+				$parent_path = getAttr_fromGSFileId($out['meta_data']['parentDir'], "path");
+				if ($parent_path) {
+					error_log("DEBUG: ParentDir ID: " . $out['meta_data']['parentDir'] . " -> Path: " . $parent_path);
+					$entry['meta_data']['parentDir'] = rtrim($this->root_dir_virtual, '/') . '/' . ltrim($parent_path, '/');
+				}
+			}
+
+			// Override with remote path if remoteBase is detected
+			$firstKey = array_key_first($metadata);
+			$firstRemote = $metadata[$firstKey]['remote_paths'][0]['remote_path'] ?? null;
+			#error_log("DEBUG metadata: " . print_r($metadata, true));
+			
+			error_log("DEBUG remote_paths: " . print_r($firstRemote, true));
+
+
+			if ($firstRemote) {
+				$remoteOutputPath = rtrim(dirname($firstRemote), '/') . '/' . basename($localOutputPath);
+
+				$entry['file_path'] = null;
+				$entry['meta_data']['remote_paths'] = [[
+					"remote_path" => preg_replace('#/+#','/', $remoteOutputPath),
+					"location"    => "marenostrum"
+				]];
+
+				error_log("DEBUG: Remote output path set to: " . $entry['meta_data']['remote_paths'][0]['remote_path']);
+			}
+			
+			$output_files[] = $entry;
+
+			// 🔍 DEBUG
+			error_log("DEBUG: Output entry built:");
+			error_log(json_encode($entry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+		}
+
+		// 🔍 DEBUG
+		error_log("DEBUG: Output files:");
+		error_log(json_encode($output_files, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+		$results = ["output_files" => $output_files];
+
+		// Ensure results_file is defined
+		if (empty($this->results_file)) {
+			$this->results_file = rtrim($this->working_dir, '/') . "/.results.json";
+		}
+
+		$resultsFile = $this->results_file;
+
+		error_log("DEBUG: Writing results file to: " . $resultsFile);
+
+		try {
+			$F = fopen($resultsFile, "w");
+			if (!$F) {
+				throw new Exception('Failed to create results file for tool execution ' . $resultsFile);
+			}
+		} catch (Exception $e) {
+			$_SESSION['errorData']['Internal Error'][] = $e->getMessage();
+			return 0;
+		}
+
+		fwrite($F, json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+		fclose($F);
+
+		error_log("DEBUG: Results file written to: " . $resultsFile);
+		error_log("DEBUG: FINAL RESULTS JSON:\n" . json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+		// Automatically set stageout_file to results JSON path
+		$this->stageout_file = $resultsFile;
+
+		return $resultsFile;
+	}
+
+	public function setToolLog_file($metadata)
+	{
+		if (!$this->working_dir) {
+			$_SESSION['errorData']['Internal Error'][] = "Cannot create tool log file. No 'working_dir' set";
+			return 0;
+		}
+
+		// -----------------------------
+		// 1. Detect remote base from metadata
+		// -----------------------------
+		$remoteBase = null;
+
+		foreach ($metadata as $file) {
+			if (!empty($file['meta_data']['remote_paths'][0]['remote_path'])) {
+				$remoteFull = preg_replace('#/+#','/', $file['meta_data']['remote_paths'][0]['remote_path']);
+				$localFull  = preg_replace('#/+#','/', $file['file_path'] ?? '');
+				if (strpos($remoteFull, $localFull) !== false) {
+					$remoteBase = str_replace($localFull, '', $remoteFull);
+					error_log("DEBUG: Remote base detected for log: " . $remoteBase);
+				}
+				break;
+			}
+		}
+
+		// -----------------------------
+		// 2. Define local log path
+		// -----------------------------
+		$this->logName = ".tool.log";
+		$localLogPath = rtrim($this->working_dir, '/') . '/' . $this->logName;
+
+		// -----------------------------
+		// 3. Map to remote path if applicable
+		// -----------------------------
+		if (!empty($remoteBase)) {
+			$relativePath = str_replace(
+				rtrim($this->root_dir_virtual, '/'),
+				'',
+				$localLogPath
+			);
+
+			$this->log_file = preg_replace('#/+#','/', rtrim($remoteBase, '/') . '/' . ltrim($relativePath, '/'));
+		} else {
+			$this->log_file = $localLogPath;
+		}
+
+		// -----------------------------
+		// 4. Create local placeholder file
+		// -----------------------------
+		try {
+			$F = fopen($localLogPath, "a"); // append mode
+			if (!$F) {
+				throw new Exception("Failed to create tool log file " . $localLogPath);
+			}
+
+			fwrite($F, "=== TOOL EXECUTION LOG ===\n");
+			fwrite($F, "Execution: " . $this->execution . "\n");
+			fwrite($F, "Tool: " . $this->toolId . "\n");
+			fwrite($F, "Date: " . date("Y-m-d H:i:s") . "\n");
+			fwrite($F, "--------------------------\n");
+
+			fclose($F);
+
+		} catch (Exception $e) {
+			$_SESSION['errorData']['Internal Error'][] = $e->getMessage();
+			return 0;
+		}
+
+		error_log("DEBUG: Tool log file path set to: " . $this->log_file);
+
+		return $this->log_file;
+	}
 	/**
 	 * Creates execution Command Line and Submission File
 	 */
@@ -873,7 +1089,7 @@ class Tooljob
 			}
 
 			#$_SESSION['errorData']['Error'][] = "Launcher '$launcher' not implemented.";
-			switch ($launcher) {
+			switch ($launcher) {  
 				case "SGE":
 					$cmd  = $this->setBashCmd_SGE($tool);
 					if (!$cmd) {
@@ -930,9 +1146,12 @@ class Tooljob
 					$dataLocations = $_REQUEST['arguments_exec']['dataLocations'] ?? $this->arguments_exec['dataLocations'] ?? [];					
 					if (empty($dataLocations)) {
 						$_SESSION['errorData']['Error'][] = "Data Locations not recognized, not mirrored in remote system.";
-						print_r($dataLocations);
+						//print_r($dataLocations);
 						break;
 					}
+
+					$this->setResults_file($metadata, $configFilename);
+					$this->setToolLog_file($metadata);
 					$cmd = $this->setBashCmd_Singularity($tool, $dataLocations);
 					if (!$cmd) {
 						return 0;
@@ -1024,6 +1243,7 @@ class Tooljob
 			$_SESSION['errorData']['Internal Error'][] = "No free ports available to run the interactive tool.";
 			return 0;
 		}
+		$this->containerName = $tool['infrastructure']['container_image'];
 
 		$checkEnvironment = <<<EOF
 			FREE_PORT=$hostPort
@@ -1062,7 +1282,7 @@ class Tooljob
 			--rm \
 			--privileged \
 			-v /var/run/docker.sock:/var/run/docker.sock -d \
-			--net=\$NET_NAME --name $this->containerName \
+			--net={$GLOBALS['network_name']} --name $this->containerName \
 			$cmd_envs \
 			-v {$this->pub_dir_volumes}:{$GLOBALS['shared']}public_tmp/ \
 			-v {$this->root_dir_volumes}:{$GLOBALS['shared']}userdata_tmp/{$_SESSION['User']['id']} \
@@ -1155,6 +1375,9 @@ EOF;
 		$this->containerName = $tool['infrastructure']['container_image'] . "_" . $_SESSION['User']['id'] . "_" . $timestamp;
 		$cmd_envs = "";
 		foreach ($tool['infrastructure']['container_env'] as $env_key => $env_value) {
+			if ($env_key === 'RSTUDIO_HOME') {
+				$env_value = $GLOBALS['shared'] . "userdata_tmp/{$_SESSION['User']['id']}" . "/" . $this->project . "/rstudio";
+			}
 			$cmd_envs .= "-e $env_key=$env_value ";
 		}
 
@@ -1497,7 +1720,7 @@ EOF;
 		// Write SLURM headers
 		fwrite($fout, "#!/bin/bash\n");
 		fwrite($fout, "#SBATCH --job-name=" . $this->toolId . "_job\n");
-		fwrite($fout, "#SBATCH -q " . $siteDetails['queue_name'] . "\n");
+		fwrite($fout, "#SBATCH --qos " . $siteDetails['queue_name'] . "\n");
 		fwrite($fout, "#SBATCH -A " . $siteDetails['domain'] . "\n");
 		fwrite($fout, "#SBATCH --cpus-per-task=" . $siteDetails['cpu_count'] . "\n");
 		fwrite($fout, "#SBATCH --output=serial_%j.out\n");

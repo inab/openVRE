@@ -504,11 +504,23 @@ function addTreeTableNodesToFiles($filesAll)
 		if (isset($r['files'])) {
 			if (isset($filesAll[$r['_id']]['tree_id']) && $filesAll[$r['_id']]['tree_id'])
 				continue;
-
+			
 			$filesAll[$r['_id']]['tree_id']     = $n;
 			$filesAll[$r['_id']]['size']	= calcGSUsedSpaceDir($r['_id']);
 			$filesAll[$r['_id']]['size_parent'] = $filesAll[$r['_id']]['size'];
-			$filesAll[$r['_id']]['mtime_parent'] = (isset($r['atime']) ? $r['atime']->toDateTime()->format('U') : $r['mtime']);
+			//$filesAll[$r['_id']]['mtime_parent'] = (isset($r['atime']) ? $r['atime']->toDateTime()->format('U') : $r['mtime']);
+			$filesAll[$r['_id']]['mtime_parent'] =
+				((isset($r['atime']) && ($t = $r['atime']->toDateTime()->getTimestamp()) > 0) ? $t :
+				((isset($r['mtime']) && $r['mtime'] > 0) ? $r['mtime'] :
+				(!empty($filesAll[$r['_id']]['mtime_parent']) ? $filesAll[$r['_id']]['mtime_parent'] :
+				time())));	
+			if ($filesAll[$r['_id']]['mtime_parent'] == 0) {
+					$_SESSION['errorData']['Error'][] =
+						"MTIME_PARENT STILL ZERO for " . $r['_id'] .
+						" | atime=" . (isset($r['atime']) ? $r['atime']->toDateTime()->getTimestamp() : 'NULL') .
+						" | mtime=" . ($r['mtime'] ?? 'NULL') .
+						" | existing=" . ($filesAll[$r['_id']]['mtime_parent'] ?? 'NULL');
+				}			
 			$i = 1;
 			foreach ($r['files'] as $rr) {
 				$filesAll[$rr]['tree_id']       = "$n.$i";
@@ -577,6 +589,8 @@ function printTable($filesAll = array())
 					} elseif (isset($r['_id'])) {
 						if ($r['validated']) {
 							print parseTemplate(formatData($r), getTemplate('/TreeTblworkspace/TR_file.htm'));
+						} elseif (!file_exists($r['path'])) {
+							print parseTemplate(formatData($r), getTemplate('/TreeTblworkspace/TR_fileDisabledRemote.htm'));
 						} else {
 							print parseTemplate(formatData($r), getTemplate('/TreeTblworkspace/TR_fileDisabled.htm'));
 						}
@@ -652,7 +666,7 @@ function printLastJobs($filesAll = array())
 function getToolsByDT($data_type, $status = 1)
 {
 	$tl = $GLOBALS['toolsCol']->find(array('external' => true, 'status' => array('$in' => [$status, 3])));
-	if ($_SESSION['User']['Type'] == UserType::ToolDev->value) {
+	if ($_SESSION['User']['Type'] == UserType::ToolDev) {
 		$tools_list = iterator_to_array($tl, false);
 		foreach ($tools_list as $key => $tool) {
 			if ($tool["status"] == 3 && !in_array($tool["_id"], $_SESSION['User']["ToolsDev"])) {
@@ -733,6 +747,7 @@ function formatData($data)
 			}
 		}
 	}
+	/* to be changed to not being = 0 for remote
 
 	if (isset($data['atime'])) {
 		if (is_object($data['atime']))
@@ -740,6 +755,22 @@ function formatData($data)
 		$data['atime'] = datefmt_format(getDateTimeFormat(), $data['atime']);
 		$data['mtime'] = $data['atime'];
 	}
+	*/
+
+	if (isset($data['atime'])) {
+
+		$ts = is_object($data['atime'])
+			? $data['atime']->toDateTime()->getTimestamp()
+			: $data['atime'];
+
+		if ($ts > 0) {
+			$dt = new DateTime("@$ts");
+			$formatted = datefmt_format(getDateTimeFormat(), $dt);
+			$data['atime'] = $formatted;
+			$data['mtime'] = $formatted;
+		}
+	}
+
 	//format
 	if (!isset($data['format']))
 		$data['format'] = "";
@@ -852,9 +883,40 @@ function formatData($data)
 		$data['filename'] = maxlength(basename($data['path']), 15);
 		$data['longfilename'] = basename($data['path']);
 	}
+
+
 	//file_url
-	if (isset($data['file_url'])) {
-		$data['show_file_url'] = "<span style=\"margin: -8px;\" title=\"" . $data['file_url'] . "\" ><i class=\"fa fa-link font-green\"></i></span>";
+		
+	if (isset($data['file_url']) || isset($data['path'])) {
+
+		$has_remote = false;
+
+		$filename = $data['longfilename'] 
+			?? basename($data['path'] ?? $data['file_url'] ?? 'unknown');
+
+		$state = $data['state'] ?? '';
+
+		if (isset($data['path']) && strpos($data['path'], '/gpfs/') !== false) {
+			$has_remote = true;
+		}
+
+
+		if ($has_remote) {
+			$data['show_file_url'] =
+				"<span class=\"$state\" 
+					style=\"color:#7f8c8d; cursor:not-allowed;\"
+					title=\"Remote file (not accessible)\">
+					&nbsp;&nbsp;&nbsp;$filename
+				</span>";
+		} else {
+			$data['show_file_url'] =
+				"<a class=\"$state\" 
+					href=\"workspace/workspace.php?op=openPlainFile&fn={$data['_id_URL']}\" 
+					title=\"open file $filename\" target=\"_blank\">
+					&nbsp;&nbsp;&nbsp;$filename
+				</a>";
+		}
+		
 	}
 	//remote_path && location
 	$locationMap = [
@@ -1263,7 +1325,7 @@ function processPendingFiles($sessionId, $files = array())
 				'_id'     => $dummyId,
 				'pid'     => $pid,
 				'title'   => $title,
-				'mtime'   => new MongoDB\BSON\UTCDateTime(strtotime($jobProcess['submission_time']) * 1000),
+				'mtime'   => new MongoDB\BSON\UTCDateTime(),
 				'size'    => "",
 				'visible' => 1,
 				'tool'    => $job['toolId'],
@@ -1358,25 +1420,37 @@ function processPendingFiles($sessionId, $files = array())
 						print "<\br>_____________\n";
 					}
 
-					//check requirement : required
-					if (!isset($out_data['file_path'])) {
-						if ($is_required) {
-							$_SESSION['errorData']['Error'][] = "Job output file ($out_name) not created";
-							log_addOutregister($pid, "Job output file ($out_name) not created. No 'file_path' found. Job finished without creating 'out_metadata'?");
-							$job_in_err = 1;
-						}
-						if ($debug) {
-							print "<br/>file_path NO SET, but not required. Continuing. The merged metadata is:<br/>\n";
-							var_dump($out_data);
-						}
-						continue;
+					if (!isset($out_data['file_path']) || empty($out_data['file_path'])) {
+						// Recover from remote_paths
+						if (isset($out_data['meta_data']['remote_paths'][0]['remote_path'])) {
+							$remote_path = $out_data['meta_data']['remote_paths'][0]['remote_path'];
+							if ($debug) {
+								print "<br/>Recovering file_path from remote_paths: $remote_path<br/>";
+								$_SESSION['errorData']['Error'][] = "Recovering file_path from remote_paths: $remote_path";
+							}
+							// this is right (?)
+							$out_data['file_path'] = $remote_path;
+
+						} else {
+							if ($is_required) {
+								$_SESSION['errorData']['Error'][] = "Job output file ($out_name) not created";
+								$msg = "Job output file ($out_name) not created";
+								$msg .= ". No 'file_path' and no usable 'remote_paths' found.";
+								$msg .= ". Job metadata: " . print_r($out_data, true);
+								$_SESSION['errorData']['Error'][] = $msg;
+								log_addOutregister($pid, $msg);
+								$job_in_err = 1;
+							}
+							continue;
+							}
 					}
+
 
 					// resolve virtual path to local absolute path
 					$rfn = resolvePath_toLocalAbsolutePath($out_data['file_path'], $job);
-
 					$outPath  = fromAbsPath_toPath($rfn);
 					$fileId   = getGSFileId_fromPath($outPath);
+
 					if ($debug)
 						print "PID = [$pid] file_path=" . $out_data['file_path'] . " --> fn=$outPath rfn=$rfn . Has Id? $fileId <br/>\n";
 
@@ -1475,11 +1549,20 @@ function processPendingFiles($sessionId, $files = array())
 
 						// job successfully finished but not yet on mongo. Save output
 
-					} elseif ((is_file($rfn) || is_dir($rfn)) && $out_mug && $out_validation_score != 0) {
+					} elseif (
+						(
+							is_file($rfn) || 
+							is_dir($rfn) || 
+							isset($out_data['meta_data']['remote_paths'][0]['remote_path'])
+						)
+							&& $out_mug 
+							&& $out_validation_score != 0
+					)   {
 						if ($debug) {
 							print "<br>JOB $pid FINISHED AND NOT YET IN MONGO ($outPath). Saving!<br/>\n";
 						}
 
+						$has_remote = isset($out_data['meta_data']['remote_paths'][0]['remote_path']);
 						//register file and save updated metadata
 						list($out_vre, $metadata) = getVREfile_fromFile($out_mug);
 						if ($debug) {
@@ -1494,8 +1577,15 @@ function processPendingFiles($sessionId, $files = array())
 							print "<br>VRE METADATA SEND TO saveResults IS:<br/>\n";
 							var_dump($metadata);
 						}
-						$fileInfo = saveResults($outPath, $metadata, $job);
-
+						
+						if ($has_remote) {
+									// use GPFS path
+								$fileInfo = saveResults($rfn, $metadata, $job);
+						} else {
+							// normal local case
+							$fileInfo = saveResults($outPath, $metadata, $job);
+						}
+		
 						//list new metadata in table
 						if (is_array($fileInfo)) {
 							$fileId = $fileInfo['_id'];
@@ -1525,7 +1615,17 @@ function processPendingFiles($sessionId, $files = array())
 						log_addOutregister($pid, "Failed to register outfile $out_name '$rfn'. File found but missing required metadata. The invalid file is: " . json_encode($out_mug));
 						$job_in_err = 1;
 					} else {
-						$_SESSION['errorData']['Error'][] = "Job output outfile ($out_name) generated (" . basename($rfn) . ").";
+						#$_SESSION['errorData']['Error'][] = "Job output outfile ($out_name) generated (" . basename($rfn) . ").";
+						$msg = "Job output outfile ($out_name) NOT found locally (" . basename($rfn) . ")";
+						if (isset($out_data['meta_data']['remote_paths'])) {
+							$msg .= ". Remote paths: " . print_r($out_data['meta_data']['remote_paths'], true);
+						} else {
+							$msg .= ". No remote_paths available.";
+						}
+						$msg .= ". Validation score: " . var_export($out_validation_score, true);
+						$msg .= ". out_mug: " . print_r($out_mug, true);
+						$_SESSION['errorData']['Error'][] = $msg;
+
 						log_addOutregister($pid, "Failed to register outfile $out_name '$rfn'. File NOT found in disk");
 						if ($debug) {
 							print "<br/>JOB $pid FINISHED BUT NO EXPECTED OUTFILE '$rfn' FOUND  IN DISK. Set ERROR<br>";
@@ -1654,15 +1754,24 @@ function saveResults($filePath, $metaData = array(), $job = array(), $rfn = 0, $
 	//if (in_array($ext,$GLOBALS['internalResults']) || preg_match('/^\./',basename($filePath)) ){
 	//	return 1;
 	//}
+	// check if file is local or remote
+	$is_remote = preg_match('/^\/gpfs\//', $filePath);
 
 	// check given filePath
-	if ($rfn == 0)
-		$rfn  = $GLOBALS['dataDir'] . "/" . $filePath;
-	if (preg_match('/^\//', $filePath)) {
+	if ($rfn == 0) {
+		if ($is_remote) {
+			$rfn = $filePath;
+		} else {
+			$rfn  = $GLOBALS['dataDir'] . "/" . $filePath;
+		}
+	}
+		
+	if (preg_match('/^\//', $filePath) && !$is_remote) {
 		$rfn      = $filePath;
 		$filePath = str_replace($GLOBALS['dataDir'] . "/", "", $rfn);
 	}
-	if ((!is_file($rfn) && !is_dir($rfn)) || (is_file($rfn) && !filesize($rfn))) {
+
+	if (!$is_remote && (!is_file($rfn) && !is_dir($rfn)) || (is_file($rfn) && !filesize($rfn))) {
 		if (!is_dir($rfn)) {
 			$_SESSION['errorData']['Error'][] = "Execution result '$rfn' does not exist or has size 0. Cannot save it into database";
 			return 0;
@@ -1674,7 +1783,31 @@ function saveResults($filePath, $metaData = array(), $job = array(), $rfn = 0, $
 
 	# prepare Parent
 	$parentPath = dirname($filePath);
-	$parentId = getGSFileId_fromPath($parentPath, $asRoot);
+	#$parentId = getGSFileId_fromPath($parentPath, $asRoot);
+
+	if ($is_remote) {
+		 $parentPath = fromAbsPath_toPath($job['output_dir']);
+		 $parentId = getGSFileId_fromPath($parentPath, $asRoot);
+		 if (!$parentId) {
+			$_SESSION['errorData']['Error'][] =
+				"Cannot attach remote file '" . basename($filePath) . "' to job output directory '$parentPath'";
+			return 0;
+		}
+	} else {
+		$parentId = getGSFileId_fromPath($parentPath, $asRoot);
+		if (!$parentId) {
+			if (isset($job['hasExecutionFolder']) && $job['hasExecutionFolder'] === false) {
+				$parentPath = fromAbsPath_toPath($job['output_dir']);
+				$parentId = getGSFileId_fromPath($parentPath, $asRoot);
+			}
+			if (!$parentId) {
+				$_SESSION['errorData']['Error'][] =
+					"Cannot save result '" . basename($filePath) . "' at '$parentPath'. Parent directory not accessible";
+				return 0;
+			}
+		}
+	}
+	/*
 	if (!$parentId) {
 		if (isset($job['hasExecutionFolder']) &&  $job['hasExecutionFolder'] === false) {
 			$parentPath = fromAbsPath_toPath($job['output_dir']);
@@ -1685,12 +1818,18 @@ function saveResults($filePath, $metaData = array(), $job = array(), $rfn = 0, $
 			return 0;
 		}
 	}
+	*/
 
 	#save Data
 	$fileId      = createLabel();
 	$insert_type = (isset($metaData['type']) ? $metaData['type'] : (is_dir($rfn) ? "dir" : "file"));
 	$size        = ($insert_type == "dir" ? getDirectorySize($rfn) : filesize($rfn));
 	$child_files = (isset($metaData['files']) ? $metaData['fields'] : (is_dir($rfn) ? array() : false));
+	if ($is_remote) {
+		$mtime = new MongoDB\BSON\UTCDateTime(); // NOW
+	} else {
+		$mtime = new MongoDB\BSON\UTCDateTime(filemtime($rfn) * 1000);
+	}
 
 	$insertData = array(
 		'_id'   => $fileId,
@@ -1699,7 +1838,7 @@ function saveResults($filePath, $metaData = array(), $job = array(), $rfn = 0, $
 		'size'  => $size,
 		'path'  => $filePath,
 		'project' => $job['project'],
-		'mtime' => new MongoDB\BSON\UTCDateTime(filemtime($rfn) * 1000),
+		'mtime' => $mtime,
 		'parentDir' => $parentId
 	);
 	if ($child_files !== false) {

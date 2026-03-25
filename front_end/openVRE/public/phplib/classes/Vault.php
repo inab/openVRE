@@ -119,7 +119,7 @@ class VaultClient
 
 
 		if (strpos($key, $header) !== 0 || strpos($key, $footer) === false) {
-			echo "Missing or incorrect header.\n";
+			$_SESSION['errorData']['Error'][] = "Missing OpenSSH or incorrect key headers.";
 			return false;
 		}
 
@@ -130,7 +130,7 @@ class VaultClient
 
         // Check if the body is base64 encoded
 	    if (!$this->isBase64($keyBody)) {
-		    echo "Key body is not valid base64.\n";
+			$_SESSION['errorData']['Error'][] = "Key body is not valid base64.";
 	//	    return false;
 	    }
 
@@ -138,12 +138,10 @@ class VaultClient
 	    $decodedKey = base64_decode($keyBody, true); 
         // Ensure the decoded key is in valid DER format
 	    if (!$this->isValidDERFormat($decodedKey)) {
-		    echo "Key is not in valid DER format.\n";
+			$_SESSION['errorData']['Error'][] = "Key is not in valid DER format.";
 		    return false;
 	    }
-	    
-	    echo "Key is valid.\n";
-	    return true;    
+	    	    return true;    
     
     }
 
@@ -155,7 +153,7 @@ class VaultClient
 			strpos($key, '-----BEGIN OPENSSH PRIVATE KEY-----') === false ||
 			strpos($key, '-----END OPENSSH PRIVATE KEY-----') === false
 		) {
-			echo "Invalid OpenSSH private key headers.\n";
+			$_SESSION['errorData']['Error'][] = "Invalid OpenSSH private key headers.";
 			return false;
 		}
 
@@ -170,16 +168,15 @@ class VaultClient
 		$decodedKey = base64_decode($keyBody, true);
 
 		if ($decodedKey === false) {
-			echo "Base64 decoding failed. The key body might be corrupted.\n";
+			$_SESSION['errorData']['Error'][] = "Base64 decoding failed. The key body might be corrupted.";
 			return false;
 		}
 
 		// Check if the decoded key starts with the OpenSSH magic header
 		if (substr($decodedKey, 0, 15) !== "openssh-key-v1\0") {
-			echo "Invalid OpenSSH key format.\n";
+			$_SESSION['errorData']['Error'][] = "Invalid OpenSSH key format.\n";
 			return false;
 		}
-		echo "The key is a valid OpenSSH private key.\n";
 		return true;
 	}
 
@@ -261,11 +258,10 @@ class VaultClient
 		$response = curl_exec($curl);
 
 		if (curl_errno($curl)) {
-			echo "Error occurred: " . curl_error($curl) . "\n";
+			$_SESSION['errorData']['Error'][] = "Error occurred: " . curl_error($curl);
+			// echo "Error occurred: " . curl_error($curl) . "\n";
 		} else {
-
-			echo "Secrets in Vault:\n";
-			echo $response . "\n";
+			//echo "Response: " . $response . "\n";
 		}
 		curl_close($curl);
 	}
@@ -344,16 +340,16 @@ class VaultClient
 			$privateKey = $data['data']['SSH']['private_key'];
 			// Validate the public key
 			if (!$this->isValidSSHPublicKey($publicKey)) {
-				echo "Invalid SSH public key format.";
+				$_SESSION['errorData']['Error'][] = "Invalid SSH public key format.";
 			}
 			// Validate the private key
 			//if (!$this->isValidSSHPrivateKey($privateKey)) {
 			if (!$this->validateOpenSSHPrivateKey($privateKey)) {
-				echo "Invalid SSH private key format.";
+				$_SESSION['errorData']['Error'][] = "Invalid SSH private key format.";
 			}
 
 			if ($this->isValidSSHPublicKey($publicKey) && $this->validateOpenSSHPrivateKey($privateKey)) {
-				echo "SSH keys are set and have the correct format.";
+	
 
 				try {
 
@@ -391,7 +387,8 @@ class VaultClient
 					return $vaultToken;
 
 				} catch (Exception $e) {
-					echo "Error: " . $e->getMessage();
+					$_SESSION['errorData']['Error'][] = "Error: " . $e->getMessage();
+					
 				}
 			} else {
 				//SSH Key do not have the correct format
@@ -418,7 +415,7 @@ class VaultClient
 				$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "Swift", $vaultToken, $data);
 				return $vaultToken;
 			} catch (Exception $e) {
-				echo "Error: " . $e->getMessage();
+				$_SESSION['errorData']['Error'][] = "Error: " . $e->getMessage();
 			}
 		} elseif (isset($data['data']['EGA'])) {
 			try {
@@ -471,7 +468,7 @@ class VaultClient
 
 		// Check for cURL errors
 		if (curl_errno($curl)) {
-			echo 'Curl error: ' . curl_error($curl);
+			$_SESSION['errorData']['Error'][] = "Curl error: " . curl_error($curl);
 		}
 
 		$responseData = json_decode($response, true);
@@ -502,7 +499,7 @@ class VaultClient
 		$response = curl_exec($curl);
 
 		if (curl_errno($curl)) {
-			echo 'Error: ' . curl_error($curl);
+			$_SESSION['errorData']['Error'][] = "Curl error: " . curl_error($curl);
 			return null;
 		}
 
@@ -604,7 +601,7 @@ class VaultClient
 		curl_close($curl);
 		// Check for cURL errors
 		if (curl_errno($curl)) {
-			echo 'Error: ' . curl_error($curl);
+			$_SESSION['errorData']['Error'][] = "Curl error: " . curl_error($curl);
 			return null;
 		}
 		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -616,12 +613,12 @@ class VaultClient
 				$_SESSION['errorData']['Warning'][] = "Needing to renew the token.";
 				return $responseData['auth']['client_token'];
 			} else {
-				echo 'Error: Unable to extract renewed token from response';
+				$_SESSION['errorData']['Error'][] = "Error: Unable to extract renewed token from response";
 				return null;
 			}
 		} else {
 			// Handle other HTTP response codes or set an error message
-			echo 'Error: Token renewal failed. HTTP Code: ' . $httpCode;
+			$_SESSION['errorData']['Error'][] = "Error: Token renewal failed. HTTP Code: " . $httpCode;
 			return null;
 		}
 	}
@@ -630,7 +627,7 @@ class VaultClient
 	{
 		if (!$vaultKey) {
 			$_SESSION['errorData']['Error'][] = "Vault Key is empty, are you sure you saved your credentials?";
-			exit;
+			return 0;
 		}
 		$credentials = $this->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
 		if (!$credentials) {

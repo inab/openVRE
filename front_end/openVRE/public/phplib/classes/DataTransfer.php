@@ -59,7 +59,6 @@ class DataTransfer {
             $_SESSION['errorData']['Info'][] ="No files to transfer.";
             return []; 
         } else {
-            $_SESSION['errorData']['Info'][] = "Files are gonna be transferred in remote system.";
             $vaultUrl = $GLOBALS['vaultUrl'];
             $accessToken = $_SESSION['User']['Token']['access_token'];
             $vaultRolename = $_SESSION['User']['Vault']['vaultRolename'];
@@ -95,7 +94,7 @@ class DataTransfer {
             foreach ($updatedDataLocations as $file) {
                 // Example: Use the updated data locations
                 // For instance, logging the updated remote path
-                $_SESSION['errorData']['Info'][] = "File {$file['filename']} will be transferred to {$file['remote_path']}";
+                //$_SESSION['errorData']['Info'][] = "File {$file['filename']} will be transferred to {$file['remote_path']}";
             }
             // o return de syncommand o añadir al object $dataTransfer
             // ASYNC or SYNC 
@@ -107,7 +106,6 @@ class DataTransfer {
                 $mongoUpdate = $this->registerMongoTransferredFile($updatedDataLocations);
                 if ($mongoUpdate === true) {
                     foreach ($updatedDataLocations as $file) {
-                        $_SESSION['errorData']['Info'][] = "File {$file['filename']} new location registered to {$file['remote_path']}/{$file['filename']}";
                         error_log("DEBUG: File {$file['filename']} new location registered to {$file['remote_path']}/{$file['filename']}");
                     }
                 } else { 
@@ -146,7 +144,6 @@ class DataTransfer {
         $_SESSION['errorData']['Error'][] = "Invalid working directory format: $localDir";
         throw new Exception();
     }
-    $_SESSION['errorData']['Info'][] = "Preparing to sync local dir $localDir to remote MN system...";
     error_log("DEBUG: syncWorkingDir - preparing to sync local dir $localDir to remote MN system...");
     // Step 2: Get SSH credentials from Vault
     $vaultUrl     = $_SESSION['userVaultInfo']['vaultUrl'];
@@ -171,7 +168,6 @@ class DataTransfer {
     $site = explode('_', (in_array('local', $siteList ?? [], true) ? 'local' : ($siteList[0] ?? 'unknown')), 2)[0];
     $siteDetails = $this->getSiteDetailsFromMongoDB($site);
     if (empty($siteDetails)) {
-        $_SESSION['errorData']['Info'][] = "Site '{$site}' not found in MongoDB collection!";
         error_log("DEBUG: syncWorkingDir - site '{$site}' not found in MongoDB collection!");
         return 0;
     }   
@@ -190,11 +186,9 @@ class DataTransfer {
     $singularityImagePath = ($this->singularityImage !== null) ? $remoteUploadPath . "/../public/" . $this->singularityImage : null;
     $rsyncSuccess = $remoteSSH->executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteRunPath, $server, $singularityImagePath, $mode = "upload");
     if ($rsyncSuccess === true) {
-        $_SESSION['errorData']['Info'][] = "Successfully synced $runId to remote path: $remoteRunPath";
         error_log("DEBUG: syncWorkingDir - successfully synced $runId to remote path: $remoteRunPath");
         return true;
     } else {
-        $_SESSION['errorData']['Error'][] = "Failed syncing $runId to remote path: $remoteRunPath";
         error_log("DEBUG: syncWorkingDir - failed syncing $runId to remote path: $remoteRunPath");
         return false;
     }
@@ -232,11 +226,9 @@ class DataTransfer {
         $site = explode('_', (in_array('local', $siteList ?? [], true) ? 'local' : ($siteList[0] ?? 'unknown')), 2)[0];
         $siteDetails = $this->getSiteDetailsFromMongoDB($site);
         if (empty($siteDetails)) {
-            $_SESSION['errorData']['Info'][] = "Site '{$site}' not found in MongoDB collection!";
             return [];
         }   
         if ($site === 'local') {
-            $_SESSION['errorData']['Info'][] = "Skipping file {$fileId} as it is already local.";
             return []; 
         }
         // Append file information to the dataLocations array
@@ -252,7 +244,8 @@ class DataTransfer {
     return $dataLocations;
 }
 
-    public function getSiteDetailsFromMongoDB(string $site): array|false {
+    public function getSiteDetailsFromMongoDB(string $site): array
+    {
         $result = $GLOBALS['sitesCol']->findOne(['_id' => $site]);
         if (!$result) {
             return false;

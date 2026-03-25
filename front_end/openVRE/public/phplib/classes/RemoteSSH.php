@@ -225,7 +225,7 @@ class RemoteSSH {
                     return 0;
                 }
             } else {
-                $_SESSION['errorData']['Info'][] = "Directory already exists in $server, no need to create it.";
+                //$_SESSION['errorData']['Info'][] = "Directory already exists in $server, no need to create it.";
             }
             // Step 3: Execute the rsync command
             error_log("Command to be executed: $syncCommand");
@@ -275,7 +275,6 @@ class RemoteSSH {
                     $_SESSION['errorData']['Error'][] = "Failed to create remote dir: $remoteDir";
                     return false;
                 }
-                $_SESSION['errorData']['Info'][] = "Created remote dir: $remoteDir";
             }
             // Check for Singularity Image
             if ($mode === "upload")  {
@@ -287,7 +286,6 @@ class RemoteSSH {
                     $_SESSION['errorData']['Error'][] = "Required Singularity image is missing: $singularityImage";
                     return false;
                 }
-                $_SESSION['errorData']['Info'][] = "Singularity image found: $singularityImage";
             }
             // Perform rsync
             $tempKeyFile = tempnam(sys_get_temp_dir(), 'ssh_key_');
