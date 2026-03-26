@@ -8,15 +8,12 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_INITDB_USERNAME: ${MONGO_INITDB_USERNAME}
       MONGO_INITDB_PASSWORD: ${MONGO_INITDB_PASSWORD}
-      MONGO_PORT: ${MONGO_PORT}
-      MONGO_SERVER: ${MONGO_SERVER}
-      MONGO_INITDB_DATABASE: ${MONGO_DB}
+      MONGO_MAIN_DB: ${MONGO_MAIN_DB}
     ports:
       - "${MONGO_PORT}:27017"
-    command: mongod --port ${MONGO_PORT}
-    env_file: .env
+    command: mongod
     volumes:
-      - mongoDB_data:/data/db:rw
+      - mongo_data:/data/db:rw
       - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
       - ./mongodb/init_documents:/init_documents:ro
     networks:
@@ -26,13 +23,14 @@ services:
 
   vault-server:
     container_name: vault-server
+    hostname: vault-server
     image: hashicorp/vault:1.20
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: myroot
       VAULT_DEV_LISTEN_ADDRESS: ${VAULT_DEV_LISTEN_ADDRESS}
       VAULT_ADDR: ${VAULT_ADDR}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
-      KEYCLOAK_SERVER: "http://172.21.0.12:8080/auth" # temporary hack for this keycloak v15.0.2
+      KEYCLOAK_SERVER: ${KEYCLOAK_SERVER}
     ports:
       - "${VAULT_PORT}:8200"
     volumes:
@@ -44,51 +42,28 @@ services:
     networks:
       net_vre:
         ipv4_address: 172.21.0.18
-    restart: on-failure:2
-
-  postgres:
-    container_name: postgres
-    image: postgres:17.3
-    profiles: ["local_auth"]
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - keycloak_data:/var/lib/postgresql/data
-    networks:
-      net_vre:
-        ipv4_address: 172.21.0.13
+    depends_on:
+      - keycloak
     restart: on-failure:2
 
   keycloak:
     container_name: keycloak
-    image: quay.io/keycloak/keycloak:15.0.2
+    hostname: keycloak
+    image: keycloak/keycloak:26.4
     profiles: ["local_auth"]
     environment:
-      DB_VENDOR: ${DB_VENDOR}
-      DB_ADDR: ${DB_ADDR}
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USER: ${DB_USER}
-      DB_SCHEMA: ${DB_SCHEMA}
-      DB_PASSWORD: ${DB_PASSWORD}
-      KEYCLOAK_USER: ${KEYCLOAK_USER}
-      KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
-      PROXY_ADDRESS_FORWARDING: "false"
-      KEYCLOAK_FRONTEND_URL: "http://172.21.0.12:8080/auth" # temporary hack for this keycloak v15.0.2
-    #KEYCLOAK_FRONTEND_URL: ${FQDN_HOST_PROTOCOL}://${FQDN_HOST}/auth
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME: ${KEYCLOAK_SERVER}
+      KEYCLOAK_SECRET: ${KEYCLOAK_SECRET}
     volumes:
-      - ./keycloak/realms:/opt/jboss/keycloak/imports
-    command:
-      - '-b 0.0.0.0 -Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/opt/jboss/keycloak/imports/realm-export.json -Dkeycloak.migration.strategy=IGNORE_EXISTING'
+      - ${KEYCLOAK_REALMS_DIR}:${KEYCLOAK_IMPORT_DIR}:ro
+    command: ["start-dev", "--import-realm"]
     ports:
       - ${KEYCLOAK_PORT}:8080
-    hostname: keycloak
     networks:
       net_vre:
         ipv4_address: 172.21.0.12
-    depends_on:
-      - postgres
     restart: on-failure:2
 
   front_end:
@@ -99,16 +74,22 @@ services:
       context: ./front_end/
     image: front_end
     environment:
-      KEYCLOAK_CLIENT: ${KEYCLOAK_CLIENT}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT: ${KEYCLOAK_CLIENT}
       KEYCLOAK_SECRET: ${KEYCLOAK_SECRET}
+      KEYCLOAK_SERVER: ${KEYCLOAK_SERVER}
       MAIL_HOST: ${MAIL_HOST}
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
-      MONGODB_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
-      MONGODB_SERVER: ${MONGO_SERVER}
-      MONGODB_PORT: ${MONGO_PORT}
-      MONGO_DB: ${MONGO_DB}
+      MONGO_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
+      MONGO_MAIN_DB: ${MONGO_MAIN_DB}
+      MONGO_SERVER: ${MONGO_SERVER}
+      SERVER_DOMAIN: ${FQDN_HOST}
+      SERVER_PORT: ${FRONTEND_PORT}
+      VAULT_ADDR: ${VAULT_ADDR}
+      VAULT_API_VERSION: ${VAULT_API_VERSION}
+      VAULT_ROLENAME: ${VAULT_ROLENAME}
+      VAULT_SECRET_PATH: ${VAULT_SECRET_PATH}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
@@ -137,8 +118,6 @@ services:
         DOCKER_GROUP: "${DOCKER_GROUP}"
     container_name: sgecore
     hostname: sgecore
-    extra_hosts:
-      - ${FRONTEND_HOSTNAME}:172.21.0.14
     environment:
       SHARED_DATA_UID: ${UID}
       SHARED_DATA_GID: ${GID}
@@ -148,6 +127,7 @@ services:
       - ./sge/configuration:/etc/gridengine/configuration:rprivate
       - ./sge/shared_scripts:/shared_scripts:rshared
       - ./shared_data:/shared_data:rshared
+      - ./tools/docker:/tools:rshared
     devices:
       - '/dev/fuse:/dev/fuse'
     cap_add:
@@ -162,10 +142,8 @@ services:
     restart: on-failure:2
 
 volumes:
-  mongoDB_data:
-    name: ${MONGODB_VOLUME}
-  keycloak_data:
-    name: ${KEYCLOAK_DB_VOLUME}
+  mongo_data:
+    name: ${MONGO_VOLUME}
 
 networks:
   net_vre:

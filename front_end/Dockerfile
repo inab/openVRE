@@ -33,6 +33,7 @@ RUN apt-get install -y mongodb-org
 #
 ADD setup.sh /usr/local/bin/setup.sh
 RUN chmod +x /usr/local/bin/setup.sh
+RUN mkdir -p /var/log/apache
 
 WORKDIR /var/www/html
 ADD openVRE /var/www/html/openVRE
