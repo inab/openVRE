@@ -45,7 +45,7 @@ redirectOutside();
 		<div class="note note-info">
 		<h4 class="block">Use the following statement to acknowledge the use of VRE</h4>
 		<p> 
-Results in this work have been obtained using the VRE (<a href="<?php echo $GLOBALS['SERVER'];?>" target="_blank"><?php echo $GLOBALS['SERVER'];?></a>), which receives funding from the European Union and innovation programme under grant agreement XXXXX
+Results in this work have been obtained using the VRE (<a href="<?php echo $GLOBALS['URL'];?>" target="_blank"><?php echo $GLOBALS['URL'];?></a>), which receives funding from the European Union and innovation programme under grant agreement XXXXX
 </p>
 													</div>	
 
