@@ -95,7 +95,7 @@ if(file_exists($mt['log_file'])) {
                                 break;
 
                         case "WARNING":
-                                $icon = ($c == $total) ? "fa-spinner fa-spin fa-fw" : "fa-exclamation-circle";
+                                $icon = ($c == $total) ? "fa-spinner fa-spin fa-fw" : "fa-exclamation-triangle";
                                 $ballclass = "progress-warning";
                                 $msgclass = ($c == $total) ? "bold progress-msg-warning" : "progress-msg-warning";
                                 break;

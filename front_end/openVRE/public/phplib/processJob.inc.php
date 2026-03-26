@@ -47,7 +47,7 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
             error_log("DEBUG: Submitting job via docker_SGE. Parameters: shFile=$shFile, workDir=$workDir, queue=$queue, jobname=$jobname, cpus=$cpus, mem=$mem, logFile=$logFile, errFile=$errFile");
             $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
             break;
-        case "Slurm":
+        case "Slurm_Singularity":
             $remote_system = $_REQUEST['sites']['site_list'][0];
             error_log("DEBUG: Submitting job via Slurm to $remote_system. Parameters: shFile=$shFile, workDir=$workDir, logFile=$logFile, errFile=$errFile");
             $process = new ProcessSlurm($shFile, $workDir, $logFile, $errFile, $remote_system);
@@ -155,7 +155,7 @@ function getRunningJobInfo($pid, $launcherType = NULL, $cloudName = "local")
     } elseif ($launcherType == "PMES") {
         $process = new ProcessPMES($cloudName);
         $job = $process->getRunningJobInfo($pid);
-    } elseif ($launcherType == "Slurm") {
+    } elseif ($launcherType == "Slurm_Singularity") {
         $process = new ProcessSlurm();
         $job = $process->getRunningJobInfo($pid);
         logger("getRunningJobInfo: $job");

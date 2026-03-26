@@ -46,7 +46,7 @@ if ($_REQUEST['op'] == "new"){
 
     $_REQUEST['pr_id']   = $proj_id;
     $_REQUEST['pr_code'] = $proj_code;
-    $_SESSION['Data']['Info'][] = "Done! New project '".$projData['name']."' created.";
+    $_SESSION['errorData']['Info'][] = "Done! New project '".$projData['name']."' created.";
 
 
 //

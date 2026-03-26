@@ -123,7 +123,7 @@ class Tooljob
 				$this->auth = $GLOBALS['clouds'][$this->cloudName]['auth'];
 				$this->http_host = $GLOBALS['clouds'][$this->cloudName]['http_host'];
 				break;
-			case "Slurm":
+			case "Slurm_Singularity":
 				$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'] . "/" . $_SESSION['User']['id'];
 				$this->root_dir_mug     = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
 				$this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
@@ -1142,7 +1142,7 @@ class Tooljob
 
 					break;
 
-				case "Slurm":
+				case "Slurm_Singularity":
 					$dataLocations = $_REQUEST['arguments_exec']['dataLocations'] ?? $this->arguments_exec['dataLocations'] ?? [];					
 					if (empty($dataLocations)) {
 						$_SESSION['errorData']['Error'][] = "Data Locations not recognized, not mirrored in remote system.";
@@ -1159,9 +1159,8 @@ class Tooljob
 					$submissionFilename = $this->createSubmitFile_Slurm($cloudName, $cmd); 
 					if (!is_file($submissionFilename)) {
 						return 0;
-					} else {
-						//error_log("DEBUG createSubmitFile_Slurm (1) - Generated SLURM submission script:\n\n" . file_get_contents($submissionFilename));
 					}
+
 					break;
 
 				default:
@@ -1375,9 +1374,6 @@ EOF;
 		$this->containerName = $tool['infrastructure']['container_image'] . "_" . $_SESSION['User']['id'] . "_" . $timestamp;
 		$cmd_envs = "";
 		foreach ($tool['infrastructure']['container_env'] as $env_key => $env_value) {
-			if ($env_key === 'RSTUDIO_HOME') {
-				$env_value = $GLOBALS['shared'] . "userdata_tmp/{$_SESSION['User']['id']}" . "/" . $this->project . "/rstudio";
-			}
 			$cmd_envs .= "-e $env_key=$env_value ";
 		}
 
@@ -1421,7 +1417,7 @@ EOF;
 		$overlayPath  = $tool['infrastructure']['singularity_overlay']; 
 		
 		// Configuration files
-		$runFolder = $_REQUEST['execution'] ?? "run001";
+		$runFolder = $_REQUEST['execution'];
 		$first = $dataLocations[0];
 		$pathDir = dirname($first['absolute_path']); 
 		$baseDir = dirname($pathDir);
@@ -1699,14 +1695,8 @@ EOF;
 
 	protected function createSubmitFile_Slurm($siteId, $cmd)
 	{
-		$workingDir = $this->working_dir;
 		$bashFilename = $this->submission_file;
 		$siteDetails = $this->getLauncher_SlurmInfo($siteId);
-		/* error_log("DEBUG createSubmitFile_Slurm:"
-			. " workingDir=$workingDir"
-			. " bashFilename=$bashFilename"
-		);
-		error_log("DEBUG createSubmitFile_Slurm - siteDetails: " . json_encode($siteDetails));*/
 		try {
 			$fout = fopen($bashFilename, "w");
 			if ($fout === false) {
@@ -1799,7 +1789,7 @@ EOF;
 			case "ega_demo":
 			case "docker_SGE":
 				return $this->enqueue($tool);
-			case "Slurm":
+			case "Slurm_Singularity":
 				return $this->enqueue($tool);
 			case "PMES":
 				return $this->callPMES();
@@ -2198,7 +2188,7 @@ EOF;
 			'server'      => $launcher['access_credentials']['server'] ?? null,
 			'root_path'   => $launcher['access_credentials']['rootpath_default'] ?? null,
 			'username'    => $launcher['access_credentials']['username'] ?? null,
-			'job_manager' => $launcher['job_manager'] ?? 'Slurm',
+			'job_manager' => $launcher['job_manager'] ?? 'Slurm_Singularity',
 		];
 		return $launcherInfo;
 	}

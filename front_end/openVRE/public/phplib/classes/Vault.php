@@ -129,9 +129,10 @@ class VaultClient
 		$keyBody = trim($keyBody);
 
         // Check if the body is base64 encoded
+	
 	    if (!$this->isBase64($keyBody)) {
 			$_SESSION['errorData']['Error'][] = "Key body is not valid base64.";
-	//	    return false;
+		    return false;
 	    }
 
         // Decode the base64 key body
@@ -229,8 +230,6 @@ class VaultClient
 		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
 		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 		$response = curl_exec($curl);
-
-		$response = curl_exec($curl);
 		if (curl_errno($curl)) {
 			throw new Exception("Failed to send the JWT login request:" . curl_error($curl));
 		}
@@ -253,8 +252,6 @@ class VaultClient
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
 		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);  // Ignore SSL certificate verification
-		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);  // Ignore host verification
 		$response = curl_exec($curl);
 
 		if (curl_errno($curl)) {
@@ -283,8 +280,6 @@ class VaultClient
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);  // Ignore SSL certificate verification
-		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);  // Ignore host verification
 
 		$response = curl_exec($curl);
 		if (curl_errno($curl)) {
@@ -356,15 +351,15 @@ class VaultClient
 					// First access the Vault with the Token provided by Keycloak
 					$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
 
-					$responseArray = json_decode($token["response"], true);					
+					$responseData = json_decode($token["response"], true);					
 				
 					if ($token["statusCode"] !== 200) {
-						$errorMessage = isset($responseArray['errors']) ? ($responseArray['errors'][0]) : "Unknown error";
+						$errorMessage = isset($responseData['errors']) ? ($responseData['errors'][0]) : "Unknown error";
 						$_SESSION['errorData']['Error'][] = "Vault request failed with status: ". print_r($errorMessage, true); 
 						exit;
 					}
 					
-					$vaultToken = $responseArray["auth"]["client_token"];
+					$vaultToken = $responseData["auth"]["client_token"];
 
 					if (empty($vaultToken)) {
 						$_SESSION['errorData']['Error'][] = " Vault authentication failed. No client token received.";
@@ -399,18 +394,10 @@ class VaultClient
 	
 				$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
 
-
 				$responseArray = $token["response"];
 				$respondeData = json_decode($responseArray, true);
-
 				$vaultToken = $respondeData["auth"]["client_token"];
-
 				$secretPath = $GLOBALS['secretPath'];
-				if (isset($data['data']['Swift']['_id'])) {
-					$filename = $data['data']['Swift']['_id'] . '_credentials.txt';
-				} elseif (isset($data['data']['Swift']['_id'])) {
-					$filename = $data['data']['Swift']['_id'] . '_credentials.txt';
-				}
 
 				$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "Swift", $vaultToken, $data);
 				return $vaultToken;
@@ -460,8 +447,6 @@ class VaultClient
 		curl_setopt($curl, CURLOPT_POST, true);
 		curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
 		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);  // Ignore SSL certificate verification
-		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);  // Ignore host verification
 
 		// Execute the cURL request
 		$response = curl_exec($curl);
@@ -490,8 +475,6 @@ class VaultClient
 		$curl = curl_init();
 		curl_setopt($curl, CURLOPT_URL, $vaultUrl);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);  // Ignore SSL certificate verification
-		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);  // Ignore host verification
 		curl_setopt($curl, CURLOPT_HTTPHEADER, [
 			'X-Vault-Token: ' . $vaultToken,
 		]);
@@ -589,8 +572,6 @@ class VaultClient
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($curl, CURLOPT_POST, true);
 		curl_setopt($curl, CURLOPT_POSTFIELDS, $payload);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);  // Ignore SSL certificate verification
-		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);  // Ignore host verification
 		curl_setopt($curl, CURLOPT_HTTPHEADER, [
 			'X-Vault-Token: ' . $currentToken,
 			'Content-Type: application/json',

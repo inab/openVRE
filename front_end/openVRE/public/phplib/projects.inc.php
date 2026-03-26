@@ -510,10 +510,13 @@ function addTreeTableNodesToFiles($filesAll)
 			$filesAll[$r['_id']]['size_parent'] = $filesAll[$r['_id']]['size'];
 			//$filesAll[$r['_id']]['mtime_parent'] = (isset($r['atime']) ? $r['atime']->toDateTime()->format('U') : $r['mtime']);
 			$filesAll[$r['_id']]['mtime_parent'] =
-				((isset($r['atime']) && ($t = $r['atime']->toDateTime()->getTimestamp()) > 0) ? $t :
-				((isset($r['mtime']) && $r['mtime'] > 0) ? $r['mtime'] :
-				(!empty($filesAll[$r['_id']]['mtime_parent']) ? $filesAll[$r['_id']]['mtime_parent'] :
-				time())));	
+				((isset($r['atime']) && ($t = $r['atime']->toDateTime()->getTimestamp()) > 0) 
+					? $t
+					: ((isset($r['mtime']) && $r['mtime'] > 0) 
+						? $r['mtime']
+						: (!empty($filesAll[$r['_id']]['mtime_parent'])
+							? $filesAll[$r['_id']]['mtime_parent']
+							: time())));	
 			if ($filesAll[$r['_id']]['mtime_parent'] == 0) {
 					$_SESSION['errorData']['Error'][] =
 						"MTIME_PARENT STILL ZERO for " . $r['_id'] .
@@ -666,7 +669,7 @@ function printLastJobs($filesAll = array())
 function getToolsByDT($data_type, $status = 1)
 {
 	$tl = $GLOBALS['toolsCol']->find(array('external' => true, 'status' => array('$in' => [$status, 3])));
-	if ($_SESSION['User']['Type'] == UserType::ToolDev) {
+	if ($_SESSION['User']['Type'] == UserType::ToolDev->value) {
 		$tools_list = iterator_to_array($tl, false);
 		foreach ($tools_list as $key => $tool) {
 			if ($tool["status"] == 3 && !in_array($tool["_id"], $_SESSION['User']["ToolsDev"])) {

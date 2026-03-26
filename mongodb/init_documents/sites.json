@@ -15,7 +15,7 @@
         "type": 2,
         "launcher": {
           "accessible_via": "SSH",
-          "job_manager": "Slurm",
+          "job_manager": "Slurm_Singularity",
           "access_credentials": {
             "username": null,
             "private_key": null,

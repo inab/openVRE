@@ -446,7 +446,6 @@ function InputTool_printSettings($arguments, $rerun) {
 
 function InputTool_generateLocationOptions($sites) {
     $options = '';
-	var_dump($sites);
     foreach ($sites as $site) {
         $op = ($site['status'] == '1') ? 'selected' : '';
         $options .= "<option {$op} value=\"{$site['site_id']}\"> {$site['name']} </option>\n";
