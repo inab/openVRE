@@ -68,7 +68,7 @@ class ProcessSlurm {
                 // Retrieve SSH credentials
                 $sshCredentials = $vaultClient->getSSHcredentials($vaultUrl, $vaultKey);
                 if (!$sshCredentials || !is_array($sshCredentials)) {
-                        $_SESSION['errorData']['Error'][] = "ProcessSlurm: Failed to retrieve SSH credentials from Vault.";
+                       error_log("ProcessSlurm: getSSHcredentials - failed to retrieve SSH credentials from Vault.");
                         return;
                     }
 

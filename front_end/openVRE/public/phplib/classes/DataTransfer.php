@@ -67,7 +67,7 @@ class DataTransfer {
             $vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
             $sshCredentials = $vaultClient->getSSHcredentials($vaultUrl, $vaultKey);
             if ($sshCredentials == 0) {
-                $_SESSION['errorData']['Error'][] = "Error: Failed to retrieve SSH credentials from Vault.";
+                //$_SESSION['errorData']['Error'][] = "Error: Failed to retrieve SSH credentials from Vault.";
                 error_log("DEBUG: getSSHcredentials - failed to retrieve SSH credentials from Vault.");
             return [];
             }

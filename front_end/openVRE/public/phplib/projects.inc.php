@@ -929,7 +929,17 @@ function formatData($data)
 
 	if (isset($data['remote_paths'])) {
 		$html = '';
-		foreach ($data['remote_paths'] as $entry) {  //for each entry get the location and show the location
+		$seen = [];
+		foreach ($data['remote_paths'] as $entry) {  
+			$remotePath = $entry['remote_path'] ?? '';
+			$location   = $entry['location'] ?? 'unknown';
+			$key = $location . '|' . $remotePath;
+
+			if (isset($seen[$key])) {
+				continue;
+			}
+			$seen[$key] = true;
+			//for each entry get the location and show the location
 			$locKey = strtolower($entry['location'] ?? 'unknown');
 			$short  = $locationMap[$locKey] ?? strtoupper(substr($locKey, 0, 3)); // map the location to $locationMaps or do the 3 first letter of the system in MongoDB
 			$remote_file = basename($entry['remote_path']);
@@ -943,6 +953,7 @@ function formatData($data)
                 </span>
             </span>";
 		}
+		
 		$data['show_remote_path'] = $html;
 
 	} else {
@@ -1918,18 +1929,21 @@ function  build_outputs_list($tool, $stageout_job, $stageout_file)
 			}
 		}
 	}
-	print "\n__________FROM FILE________________\n";
-	print json_encode($stageout_meta, JSON_PRETTY_PRINT);
+	if ($debug)	{
+		
+		print "\n__________FROM FILE________________\n";
+		print json_encode($stageout_meta, JSON_PRETTY_PRINT);
 
-	print "\n__________FROM JOB________________\n";
-	print json_encode($stageout_data, JSON_PRETTY_PRINT);
+		print "\n__________FROM JOB________________\n";
+		print json_encode($stageout_data, JSON_PRETTY_PRINT);
 
-	// Merge FILE + JOB (job overrides file)
-	$stageout_meta = array_merge($stageout_meta, $stageout_data);
+		// Merge FILE + JOB (job overrides file)
+		$stageout_meta = array_merge($stageout_meta, $stageout_data);
 
-	print "\n__________MERGED (FILE + JOB)________________\n";
-	print json_encode($stageout_meta, JSON_PRETTY_PRINT);
-
+		print "\n__________MERGED (FILE + JOB)________________\n";
+		print json_encode($stageout_meta, JSON_PRETTY_PRINT);
+	}
+	
 	// merging file data from tool and stageout_file
 
 	foreach ($tool['output_files'] as $out_name => $out_data) {

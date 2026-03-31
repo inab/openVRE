@@ -607,7 +607,7 @@ class VaultClient
 	public function getSSHCredentials($vaultUrl, $vaultKey)
 	{
 		if (!$vaultKey) {
-			$_SESSION['errorData']['Error'][] = "Vault Key is empty, are you sure you saved your credentials?";
+			//$_SESSION['errorData']['Error'][] = "Vault Key is empty, are you sure you saved your credentials?";
 			return 0;
 		}
 		$credentials = $this->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
