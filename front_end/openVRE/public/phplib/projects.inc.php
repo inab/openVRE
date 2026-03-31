@@ -1378,6 +1378,8 @@ function processPendingFiles($sessionId, $files = array())
 				var_dump($job['stageout_data']);
 				print "<br>\nSTAGEOUT_FILE.<br>";
 				var_dump($job['stageout_file']);
+				print "<br>\nJOB.<br>";
+				var_dump($job);
 			}
 
 			// build output list merging: stageout_file + stageout_data + tool defintion data
@@ -1916,14 +1918,17 @@ function  build_outputs_list($tool, $stageout_job, $stageout_file)
 			}
 		}
 	}
+	print "\n__________FROM FILE________________\n";
+	print json_encode($stageout_meta, JSON_PRETTY_PRINT);
+
 	print "\n__________FROM JOB________________\n";
-	$json_string = json_encode($stageout_data, JSON_PRETTY_PRINT);
+	print json_encode($stageout_data, JSON_PRETTY_PRINT);
 
-	// merging stageout file and stageout data
-	$stageout_meta = array_merge($stageout_data, $stageout_meta);
+	// Merge FILE + JOB (job overrides file)
+	$stageout_meta = array_merge($stageout_meta, $stageout_data);
 
-	print "\n__________FROM FILE + JOB________________\n";
-	$json_string = json_encode($stageout_meta, JSON_PRETTY_PRINT);
+	print "\n__________MERGED (FILE + JOB)________________\n";
+	print json_encode($stageout_meta, JSON_PRETTY_PRINT);
 
 	// merging file data from tool and stageout_file
 

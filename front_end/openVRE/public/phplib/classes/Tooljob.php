@@ -1149,7 +1149,6 @@ class Tooljob
 						//print_r($dataLocations);
 						break;
 					}
-
 					$this->setResults_file($metadata, $configFilename);
 					$this->setToolLog_file($metadata);
 					$cmd = $this->setBashCmd_Singularity($tool, $dataLocations);
