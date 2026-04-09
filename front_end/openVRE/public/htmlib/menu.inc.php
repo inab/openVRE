@@ -246,19 +246,24 @@ sort($visualizers);
 						</li>
 						<li class="nav-item <?php if ($currentSubSection == 'rp') { ?>active open<?php } ?>">
 							<a href="javascript:;" class="nav-link nav-toggle ">
-								<span class="title">From Catalogue</span>
+								<span class="title">Data Archives</span>
 								<span class="arrow"></span>
 							</a>
 
 							<ul class="sub-menu">
 								<li class="nav-item <?php if ($currentSubSubSection == 'bs') { ?>active open<?php } ?>">
 									<a href="getdata/datasets.php" class="nav-link">
-										<span class="title">My Datasets </span>
+										<span class="title">External Datasets </span>
+									</a>
+								</li>
+								<li class="nav-item <?php if ($currentSubSubSection == 'ps') { ?>active open<?php } ?>">
+									<a href="getdata/objStorage.php" class="nav-link">
+										<span class="title">External Storage</span>
 									</a>
 								</li>
 							</ul> 
 						</li>
-
+			
 						<li class="nav-item <?php if ($currentSubSection == 'sd') { ?>active open<?php } ?>">
 							<a href="getdata/sampleDataList.php" class="nav-link ">
 								<span class="title">Import example dataset</span>

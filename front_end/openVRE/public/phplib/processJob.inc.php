@@ -5,9 +5,10 @@
 #
 
 
-function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log")
+function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log", $jobManager = "docker_SGE")
 {
-    logger("Start job submission via SGE");
+    logger("Start job submission via $jobManager");
+    error_log("DEBUG- execJob: Start job submission via $jobManager");
 
     if (!isset($_SESSION['User']['id'])) {
         $_SESSION['errorData']['Error'][] = "User ID not found in session.";
@@ -28,7 +29,7 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
 
     // Validate queue
     $queue = $queue ?: ($GLOBALS['queueTask'] ?? null);
-    if (!$queue) {
+    if (!$queue && strtoupper($jobManager) === "SGE") {
         $_SESSION['errorData']['Error'][] = "Queue not provided.";
         return [0, "Queue not provided."];
     }
@@ -39,19 +40,33 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
 
     //
     // Start SGE process
-    $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
+    //$process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
 
-    $pid = $process->getPid();
-
+    switch ($jobManager) {
+        case "docker_SGE":
+            error_log("DEBUG: Submitting job via docker_SGE. Parameters: shFile=$shFile, workDir=$workDir, queue=$queue, jobname=$jobname, cpus=$cpus, mem=$mem, logFile=$logFile, errFile=$errFile");
+            $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
+            break;
+        case "Slurm_Singularity":
+            $remote_system = $_REQUEST['sites']['site_list'][0];
+            error_log("DEBUG: Submitting job via Slurm to $remote_system. Parameters: shFile=$shFile, workDir=$workDir, logFile=$logFile, errFile=$errFile");
+            $process = new ProcessSlurm($shFile, $workDir, $logFile, $errFile, $remote_system);
+            break;
+        default:
+            $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
+            break;  
+    }
+ 
     if (!$process->status()) {
-        $_SESSION['errorData']['Error'][] = "Job submission failed.<br/>" . $process->getFullCommand . "<br/>" . $process->getErr();
-        $errMesg = "ERROR: Job submission failed. FullCommand: '" . $process->getFullCommand . "'. ErrorSGE: '" . $process->getErr() . "'";
+        $_SESSION['errorData']['Error'][] = "Job submission failed.<br/>" . $process->getFullCommand() . "<br/>" . $process->getErr();
+        $errMesg = "ERROR: Job submission failed. FullCommand: '" . $process->getFullCommand() . "'. ErrorSGE: '" . $process->getErr() . "'";
         logger($errMesg);
         return array(0, $errMesg);
     }
 
+    $pid = $process->getPid();
     error_log("Process started successfully: PID = $pid");
-    logger("The process $cmd is currently running PID = $pid");
+    logger("The process is currently running PID = $pid");
     return array($pid, "");
 }
 
@@ -121,6 +136,8 @@ function getRunningJobInfo($pid, $launcherType = NULL, $cloudName = "local")
     if (! $pid)
         return $job;
 
+    logger("getRunningJobInfo: start processing $pid");
+
     // guess launcher
     if (!$launcherType) {
         if (is_numeric($pid))
@@ -129,6 +146,8 @@ function getRunningJobInfo($pid, $launcherType = NULL, $cloudName = "local")
             $launcherType = "PMES";
     }
 
+    logger("getRunningJobInfo: launcherType = $launcherType");
+
     // create new jobProcess
     if ($launcherType == "SGE" || $launcherType == "docker_SGE") {
         $process = new ProcessSGE();
@@ -136,10 +155,18 @@ function getRunningJobInfo($pid, $launcherType = NULL, $cloudName = "local")
     } elseif ($launcherType == "PMES") {
         $process = new ProcessPMES($cloudName);
         $job = $process->getRunningJobInfo($pid);
+    } elseif ($launcherType == "Slurm_Singularity") {
+        $process = new ProcessSlurm();
+        $job = $process->getRunningJobInfo($pid);
+        logger("getRunningJobInfo: $job");
     } else {
-        $_SESSION['errorData']['Error'][] = "Cannot monitor job '$pid' of type '$launcher'. Launcher not implemented.";
+        logger("getRunningJobInfo: error due to unknown launcher type '$launcherType'");
+        $_SESSION['errorData']['Error'][] = "Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.";
         return $job;
     }
+
+    logger("getRunningJobInfo: end processing $pid");
+
     // return job info
     return $job;
 }

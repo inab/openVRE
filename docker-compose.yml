@@ -97,6 +97,7 @@ services:
       - ./front_end/openVRE/data:/var/www/html/openVRE/data
       - ./front_end/openVRE/apache/server.conf:/opt/docker/etc/httpd/conf.d/10-server.conf
       - ./tools/front:/var/www/html/openVRE/public/tools
+      - ./tools/images:/var/www/html/openVRE/public/tools/images
       - ./shared_data:/shared_data
     depends_on:
       - sgecore
@@ -139,7 +140,8 @@ services:
     ports:
       - "6444:6444"
     restart: on-failure:2
-
+    extra_hosts:
+    - "front_end:172.21.0.14"
 volumes:
   mongo_data:
     name: ${MONGO_VOLUME}

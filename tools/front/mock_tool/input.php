@@ -15,11 +15,7 @@ $dirName = InputTool_getDefExName();
 // get tool details
 $toolId = "mock_tool";
 $tool = getTool_fromId($toolId, 1);
-
-
-// op = 0 || count(fn) = 1 -> FASTA 
-// op = 1 || count(fn) = 2 -> 2 x FASTA
-
+$sites = getSites_Info($toolId);
 ?>
 
 <?php require "../../htmlib/header.inc.php"; ?>
@@ -141,13 +137,31 @@ $tool = getTool_fromId($toolId, 1);
 		 <!-- BEGIN PORTLET 2: SECTION 1 -->
 		 <div class="portlet box blue form-block-header" id="form-block-header1">
 		     <div class="portlet-title">
-			 <div class="caption">
-			  <i class="fa fa-cogs" ></i> Tool settings
-			 </div>
+				 <div class="caption">
+					  <i class="fa fa-cogs" ></i> Tool settings
+				 </div>
 		     </div>
 		     <div class="portlet-body form form-block" id="form-block1">
-			 <div class="form-body">
-
+				 <div class="form-body">
+						<h4 class="form-section">Execution Location</h4>
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-group">
+									<label class="control-label">Available locations in the network (default: all active sites)</label>
+									<select id="siteDropdown" name="sites[site_list][]" class="form-control">
+										<?php echo InputTool_generateLocationOptions($sites); ?>
+									</select>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="form-group">
+									<label class="control-label">Available Launcher</label>
+									<select id="launcherDropdown" name="arguments_exec[site_list][]" class="form-control">
+										<?php echo InputTool_generateLauncherOptions($sites); ?>
+									</select>
+								</div>
+							</div>
+						</div>
     				<!-- PRINT TOOL INPUT FILES -->
 			     <h4 class="form-section">File inputs</h4>
 
@@ -209,7 +223,80 @@ $tool = getTool_fromId($toolId, 1);
     <!-- /.modal-dialog -->
 </div>
     
- 
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    // Get the sites data from PHP and convert it to a JavaScript object
+    var sitesData = <?php echo json_encode($sites); ?>;
+    // Function to generate launcher options based on the selected site and job manager
+    function updateLauncherOptions(selectedSiteId, selectedJobManager) {
+	    console.log('Current sitesData:', sitesData); 
+	    var launcherOptions = '';
+	    var selectedSite = sitesData.find(site => site.site_id === selectedSiteId);
+	    console.log('Received selectedSiteId:', selectedSiteId);
+	    console.log('Received selectedJobManager:', selectedJobManager);
+
+        if (selectedSite && selectedSite.launcher) {
+            console.log('Selected Site Data:', selectedSite);
+
+            // Check if launcher is an object or an array
+            if (typeof selectedSite.launcher === 'object') {
+                // Handle case where launcher is an object
+                var launcher = selectedSite.launcher;
+                if (launcher && launcher.job_manager) {
+                    var op = (launcher.job_manager === selectedJobManager) ? 'selected' : '';
+                    launcherOptions += '<option ' + op + ' value="' + selectedSiteId + '_' + launcher.job_manager + '">' + launcher.job_manager + '</option>';
+                } else {
+                    console.log('Invalid launcher data:', launcher);
+                }
+            } else if (Array.isArray(selectedSite.launcher)) {
+                // Handle case where launcher is an array
+                $.each(selectedSite.launcher, function (index, launcher) {
+                    if (launcher && launcher.job_manager) {
+                        var op = (launcher.job_manager === selectedJobManager) ? 'selected' : '';
+                        launcherOptions += '<option ' + op + ' value="' + selectedSiteId + '_' + launcher.job_manager + '">' + launcher.job_manager + '</option>';
+                    } else {
+                        console.log('Invalid launcher data:', launcher);
+                    }
+                });
+            } else {
+                console.log('Invalid launcher data. Expected an array or an object:', selectedSite.launcher);
+            }
+        } else {
+            console.log('Invalid selected site data:', selectedSite);
+        }
+
+        // Update the options of the launcher dropdown
+        $('#launcherDropdown').html(launcherOptions);
+        console.log('Launcher options updated.');
+    }
+
+    // Initial update based on the default selected site (if any)
+
+    // Event handler for the site dropdown change
+    $('#siteDropdown').on('change', function () {
+        var selectedSiteId = $(this).val();
+        console.log('Site dropdown changed. Selected Site:', selectedSiteId);
+
+        // Retrieve the selected job manager based on the selected site
+        var selectedJobManager = $('#hiddenJobManager').val();
+        console.log('Retrieved selected job manager:', selectedJobManager);
+
+        // Update launcher options with the selected site and job manager
+        updateLauncherOptions(selectedSiteId, selectedJobManager);
+    });
+</script>
+
+
+
+<script>
+    $('#siteDropdown').on('change', function () {
+        // Your existing logic to determine selectedSiteId
+
+	    // Set the selected job manager based on your logic
+        $('#hiddenJobManager').val('SelectedJobManagerValue');
+    });
+</script>
+
 <?php 
 
 require "../../htmlib/footer.inc.php"; 

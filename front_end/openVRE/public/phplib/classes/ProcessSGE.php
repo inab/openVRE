@@ -53,7 +53,6 @@ class ProcessSGE{
             
             $this->runCom();
         }
-        return $this;
 	}
 
 
@@ -97,7 +96,6 @@ class ProcessSGE{
 		$command .= " ".$this->command;
 		$this->fullcommand = $command;
 	}
-
 
 	//list all VRE Jobs  (not used anymore)
 	public function getRunningJobs(){

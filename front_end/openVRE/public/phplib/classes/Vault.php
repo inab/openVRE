@@ -1,6 +1,6 @@
 <?php
 
-
+namespace OpenVRE\SSH;
 use GuzzleHttp\Client;
 
 class VaultClient
@@ -28,7 +28,7 @@ class VaultClient
 	public function checkToken($vaultUrl, $jwtToken, $roleName)
 	{
 		$headers = array("Content-Type: application/json",);
-		$url = $this->vaultUrl . "/auth/jwt/login";
+		$url = $vaultUrl . "/auth/jwt/login";
 
 		$data = [
 			'role' => $roleName,
@@ -119,7 +119,7 @@ class VaultClient
 
 
 		if (strpos($key, $header) !== 0 || strpos($key, $footer) === false) {
-			echo "Missing or incorrect header.\n";
+			$_SESSION['errorData']['Error'][] = "Missing OpenSSH or incorrect key headers.";
 			return false;
 		}
 
@@ -128,27 +128,23 @@ class VaultClient
 		$keyBody = str_replace([$header, $footer], '', $key);
 		$keyBody = trim($keyBody);
 
-		echo ("keyBody");
-		echo ($keyBody);
-		// Check if the body is base64 encoded
-		if (!$this->isBase64($keyBody)) {
-			echo "Key body is not valid base64.\n";
-			//	    return false;
-		}
+        // Check if the body is base64 encoded
+	
+	    if (!$this->isBase64($keyBody)) {
+			$_SESSION['errorData']['Error'][] = "Key body is not valid base64.";
+		    return false;
+	    }
 
-		// Decode the base64 key body
-		$decodedKey = base64_decode($keyBody, true);
-		echo ("Decode");
-		echo ($decodedKey);
-		// Ensure the decoded key is in valid DER format
-		if (!$this->isValidDERFormat($decodedKey)) {
-			echo "Key is not in valid DER format.\n";
-			return false;
-		}
-
-		echo "Key is valid.\n";
-		return true;
-	}
+        // Decode the base64 key body
+	    $decodedKey = base64_decode($keyBody, true); 
+        // Ensure the decoded key is in valid DER format
+	    if (!$this->isValidDERFormat($decodedKey)) {
+			$_SESSION['errorData']['Error'][] = "Key is not in valid DER format.";
+		    return false;
+	    }
+	    	    return true;    
+    
+    }
 
 	private function validateOpenSSHPrivateKey($key)
 	{
@@ -158,7 +154,7 @@ class VaultClient
 			strpos($key, '-----BEGIN OPENSSH PRIVATE KEY-----') === false ||
 			strpos($key, '-----END OPENSSH PRIVATE KEY-----') === false
 		) {
-			echo "Invalid OpenSSH private key headers.\n";
+			$_SESSION['errorData']['Error'][] = "Invalid OpenSSH private key headers.";
 			return false;
 		}
 
@@ -173,16 +169,15 @@ class VaultClient
 		$decodedKey = base64_decode($keyBody, true);
 
 		if ($decodedKey === false) {
-			echo "Base64 decoding failed. The key body might be corrupted.\n";
+			$_SESSION['errorData']['Error'][] = "Base64 decoding failed. The key body might be corrupted.";
 			return false;
 		}
 
 		// Check if the decoded key starts with the OpenSSH magic header
 		if (substr($decodedKey, 0, 15) !== "openssh-key-v1\0") {
-			echo "Invalid OpenSSH key format.\n";
+			$_SESSION['errorData']['Error'][] = "Invalid OpenSSH key format.\n";
 			return false;
 		}
-		echo "The key is a valid OpenSSH private key.\n";
 		return true;
 	}
 
@@ -210,15 +205,10 @@ class VaultClient
 		return base64_encode(base64_decode($str, true)) === $str;
 	}
 
-	// Helper method to check if a DER encoded key is valid
-	private function isValidDERFormat($der)
-	{
-		// Perform basic DER format validation
-		// PKCS#1 DER format starts with 0x30 (SEQUENCE)
-		// if (ord($der[0]) != 0x30) {
-		//	echo "DER format does not start with 0x30.\n";
-		//	return false;
-		//}
+    // Helper method to check if a DER encoded key is valid
+    private function isValidDERFormat($decodedKey) {
+        // Perform basic DER format validation
+        // PKCS#1 DER format starts with 0x30 (SEQUENCE)
 
 		return substr($decodedKey, 0, 1) === "\x30";
 		// More advanced checks can be added here
@@ -240,7 +230,6 @@ class VaultClient
 		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
 		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 		$response = curl_exec($curl);
-
 		if (curl_errno($curl)) {
 			throw new Exception("Failed to send the JWT login request:" . curl_error($curl));
 		}
@@ -258,22 +247,18 @@ class VaultClient
 		];
 
 		$vaultUrl = $url . $secretPath . $userName;
-		//echo ' BHOOOOOO';
-		//echo $vaultUrl;
-
+		
 		$curl = curl_init($vaultUrl);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
 		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-
 		$response = curl_exec($curl);
 
 		if (curl_errno($curl)) {
-			echo "Error occurred: " . curl_error($curl) . "\n";
+			$_SESSION['errorData']['Error'][] = "Error occurred: " . curl_error($curl);
+			// echo "Error occurred: " . curl_error($curl) . "\n";
 		} else {
-
-			echo "Secrets in Vault:\n";
-			echo $response . "\n";
+			//echo "Response: " . $response . "\n";
 		}
 		curl_close($curl);
 	}
@@ -290,33 +275,24 @@ class VaultClient
 		$headers = ['X-Vault-Token: ' . $vaultToken];
 		$data = json_encode(['token' => 'ClientToken']);
 
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, $url);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 
-		$response = curl_exec($ch);
-		if (curl_errno($ch)) {
-			echo 'Error: ' . curl_error($ch);
+		$response = curl_exec($curl);
+		if (curl_errno($curl)) {
+			error_log('Error: ' . curl_error($curl));
 			return null;
 		}
-		$requestDetails = [
-			'URL' => $url,
-			'Method' => 'GET',
-			'Headers' => $headers,
-			'Data' => $data,
-			'HTTP Code' => $httpCode,
-			'Response' => $response,
-		];
 
+		curl_close($curl);
 
-		//echo "<pre>";
-		//print_r($requestDetails);
-		//echo "</pre>";
+		$tokenLookup = json_decode($response, true);
+		error_log('Token Lookup Response: ' . json_encode($tokenLookup, JSON_PRETTY_PRINT));
 
-		curl_close($ch);
-		return json_decode($response, true);
+		return $tokenLookup;
 	}
 
 
@@ -326,26 +302,11 @@ class VaultClient
 		date_default_timezone_set('UTC');
 
 		$tokenLookup = $this->retrieveTokenLookup($vaultUrl, $vaultToken);
-		//echo "tokenÑLookip";
-		//var_dump($tokenLookup);
+	
 		if ($tokenLookup && isset($tokenLookup['data']['expire_time'])) {
-			//echo "tokenLookup_datatime";
-			//var_dump($tokenLookup['data']['expire_time']);    
-			$ttl = $tokenLookup['data']['ttl'];
-			$currentTimestamp = time();
-			$expireTimestamp = $currentTimestamp + $ttl;
-
-			//echo 'Expire Time: ' . date('Y-m-d H:i:s', $expireTimestamp) . PHP_EOL;
-
-			$remainingTimeInMinutes = ceil(($expireTimestamp - $currentTimestamp) / 60);
-
-			//echo 'Remaining Time until Expiration: ' . $remainingTimeInMinutes . ' minutes' . PHP_EOL;		
-
-			return $remainingTimeInMinutes <= 0;
+			return true;
 		}
-
-		//echo "vale?";
-		return true;
+		return false;
 	}
 
 
@@ -374,94 +335,74 @@ class VaultClient
 			$privateKey = $data['data']['SSH']['private_key'];
 			// Validate the public key
 			if (!$this->isValidSSHPublicKey($publicKey)) {
-				echo "Invalid SSH public key format.";
+				$_SESSION['errorData']['Error'][] = "Invalid SSH public key format.";
 			}
 			// Validate the private key
 			//if (!$this->isValidSSHPrivateKey($privateKey)) {
 			if (!$this->validateOpenSSHPrivateKey($privateKey)) {
-				echo "Invalid SSH private key format.";
+				$_SESSION['errorData']['Error'][] = "Invalid SSH private key format.";
 			}
 
 			if ($this->isValidSSHPublicKey($publicKey) && $this->validateOpenSSHPrivateKey($privateKey)) {
-				echo "SSH keys are set and have the correct format.";
+	
 
 				try {
+
 					// First access the Vault with the Token provided by Keycloak
 					$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
-					$responseArray = $token["response"];
-					$respondeData = json_decode($responseArray, true);
-					$vaultToken = $respondeData["auth"]["client_token"];
-					//				$tokenTime = $this->getTokenExpirationTime($vaultUrl, $vaultToken);	
 
-					//	echo "client token:";
-					//	echo  $responseArray;	
+					$responseData = json_decode($token["response"], true);					
+				
+					if ($token["statusCode"] !== 200) {
+						$errorMessage = isset($responseData['errors']) ? ($responseData['errors'][0]) : "Unknown error";
+						$_SESSION['errorData']['Error'][] = "Vault request failed with status: ". print_r($errorMessage, true); 
+						exit;
+					}
+					
+					$vaultToken = $responseData["auth"]["client_token"];
 
+					if (empty($vaultToken)) {
+						$_SESSION['errorData']['Error'][] = " Vault authentication failed. No client token received.";
+						error_log("Vault Error: Vault authentication failed. No client token received.");
+						return false;
+					}
+				
 					if ($this->isTokenExpired($this->vaultUrl, $vaultToken)) {
 						$_SESSION['errorData']['Error'][] = "The Vault token has expired.";
 					} else {
-						$_SESSION['errorData']['Error'][] = "The Vault token is still valid.";
+						$_SESSION['errorData']['Info'][] = "The Vault token is valid.";
 					}
 
 
 					$secretPath = $GLOBALS['secretPath'];
 					// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
-					//	var_dump($rz);
-					//	echo json_encode($rz, JSON_PRETTY_PRINT);
-					//$rx = $this->listSecretsInVault($clientToken, $this->vaultUrl, $secretPath, $filename);
-					//	echo json_encode($rx, JSON_PRETTY_PRINT);
-					//$system = 'SSH';
+				
 					$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "SSH", $vaultToken, $data);
-					//	echo 'BHOOOOOOOOOO';
-					//$xx = $this->retrieveDatafromVault($system, $clientToken, $this->vaultUrl, $secretPath, $filename);
-					//var_dump($xx);
-					//
-					//	var_dump($rz);
-					//		echo json_encode($rz, JSON_PRETTY_PRINT);
+					
 					return $vaultToken;
+
 				} catch (Exception $e) {
-					echo "Error: " . $e->getMessage();
+					$_SESSION['errorData']['Error'][] = "Error: " . $e->getMessage();
+					
 				}
 			} else {
 				//SSH Key do not have the correct format
-				//echo "PUB" . $data['data']['SSH']['public_key'];
-				//echo "PRIV" . $data['data']['SSH']['private_key'];
 				//	echo "SSH keys are set but do not have the correct format.";
 			}
 		} elseif (isset($data['data']['Swift'])) {
 			try {
-
-				// First access the Vault with the Token provided by Keycloak
-				//echo "Vault URL: " . $this->vaultUrl . "\n";
-				//echo "JWT Token: " . $this->jwtToken . "\n";
-				//echo "Role Name: " . $this->roleName . "\n";
-
-
-
+	
 				$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
-				//print "Token1";
-				//echo $token;
-				//echo "Token response: " . print_r($token, true) . "\n";
 
 				$responseArray = $token["response"];
-				//echo "Response Array: " . $responseArray . "\n";
 				$respondeData = json_decode($responseArray, true);
-				//echo "Decoded Response Data: " . print_r($respondeData, true) . "\n";
-
 				$vaultToken = $respondeData["auth"]["client_token"];
-				//echo "Vault Client Token: " . $vaultToken . "\n";
-
 				$secretPath = $GLOBALS['secretPath'];
-				//echo "Swift Data: " . print_r($data['data']['Swift'], true) . "\n";
-
-				//echo "Filename: " . $filename . "\n";
-				// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
-				// uploadFileToVault($url, $secretPath, $username, $token, $data)
 
 				$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "Swift", $vaultToken, $data);
-				//echo "Upload Result: " . print_r($rz, true) . "\n";
 				return $vaultToken;
 			} catch (Exception $e) {
-				echo "Error: " . $e->getMessage();
+				$_SESSION['errorData']['Error'][] = "Error: " . $e->getMessage();
 			}
 		} elseif (isset($data['data']['EGA'])) {
 			try {
@@ -493,11 +434,8 @@ class VaultClient
 
 		$renewEndpoint = $vaultUrl . 'auth/token/renew-self';
 		// Prepare the cURL request
-		$ch = curl_init($renewEndpoint);
-		// Set cURL option 
-		//echo "renewVaultToken_1";
-		//echo $renewEndpoint;
-		//echo $vaultToken;
+		$curl = curl_init($renewEndpoint);
+
 		$headers = [
 			'X-Vault-Token: ' . $vaultToken,
 			'Content-Type: application/json',
@@ -505,40 +443,22 @@ class VaultClient
 
 		$postData = json_encode(['increment' => '10m']);
 
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_POST, true);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
+		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 
 		// Execute the cURL request
-		$response = curl_exec($ch);
+		$response = curl_exec($curl);
 
 		// Check for cURL errors
-		if (curl_errno($ch)) {
-			echo 'Curl error: ' . curl_error($ch);
+		if (curl_errno($curl)) {
+			$_SESSION['errorData']['Error'][] = "Curl error: " . curl_error($curl);
 		}
-
-		$requestDetails = [
-			'URL' => $renewEndpoint,
-			'Headers' => $headers,
-			'Data' => $data,
-			'HTTP Code' => $httpCode,
-			'Response' => $response,
-		];
-
-
-		//echo "<pre>";
-		//print_r($requestDetails);
-		//echo "</pre>";
-
 
 		$responseData = json_decode($response, true);
 		// Close cURL session
-		curl_close($ch);
-
-		// Output the response
-		//echo $response;
-		// Check if the response contains a new token
+		curl_close($curl);
 
 		if (isset($responseData['auth']['client_token'])) {
 			// Return the new token
@@ -548,72 +468,25 @@ class VaultClient
 	}
 
 
-
-	public function uploadKeystoVault_check($data)
-	{
-		if (isset($data['data']['SSH'])) {
-			if ($this->isValidSSHPublicKey($data['data']['SSH']['public_key'])) {
-				//echo "SSH keys are set and have the correct format.";
-				if ($this->validateOpenSSHPrivateKey($data['data']['SSH']['private_key'])) {
-					try {
-						// First access the Vault with the Token provided by Keycloak
-						$token = $this->checkToken($this->vaultUrl, $this->jwtToken, $this->roleName);
-						$responseArray = $token["response"];
-						$respondeData = json_decode($responseArray, true);
-						$clientToken = $respondeData["auth"]["client_token"];
-
-						//echo "client token:";
-						//echo  $responseArray;
-
-						$secretPath = $GLOBALS['secretPath'];
-						// Calling the function to actually wrote the $data in the Vault using the Token obtained after Keycloak identification
-						$rz = $this->uploadFileToVault($this->vaultUrl, $secretPath, $_SESSION['User']['secretsId'], "SSH", $clientToken, $data);
-						//var_dump($rz);
-						//echo json_encode($rz, JSON_PRETTY_PRINT);
-						//$rx = $this->listSecretsInVault($clientToken, $this->vaultUrl, $secretPath, $filename);
-						//echo json_encode($rx, JSON_PRETTY_PRINT);
-						//$system = 'SSH';
-						//echo 'BHOOOOOOOOOO';
-						//$xx = $this->retrieveDatafromVault($system, $clientToken, $this->vaultUrl, $secretPath, $filename);
-						//var_dump($xx);
-						return $clientToken;
-					} catch (Exception $e) {
-						echo "Error: " . $e->getMessage();
-					}
-				} else {
-					// SSH private key is invalid
-					echo "Error: Invalid SSH private key format.";
-				}
-			} else {
-				//SSH Key do not have the correct format
-				//echo "PUB" . $data['data']['SSH']['public_key'];
-				//echo "PRIV" . $data['data']['SSH']['private_key'];
-				echo "Error: Invalid SSH public key format.";
-				echo "SSH keys are set but do not have the correct format.";
-			}
-		}
-	}
-
-
 	public function retrieveDatafromVault($vaultToken, $url, $secretPath, $userSecretsId, $system)
 	{
 		$vaultUrl = $url . "/" . $secretPath . $userSecretsId . '/' . $system;
 
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $vaultUrl);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, [
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, $vaultUrl);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_HTTPHEADER, [
 			'X-Vault-Token: ' . $vaultToken,
 		]);
 
-		$response = curl_exec($ch);
+		$response = curl_exec($curl);
 
-		if (curl_errno($ch)) {
-			echo 'Error: ' . curl_error($ch);
+		if (curl_errno($curl)) {
+			$_SESSION['errorData']['Error'][] = "Curl error: " . curl_error($curl);
 			return null;
 		}
 
-		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		if ($httpCode === 403) {
 			if ($this->isTokenExpired($url, $vaultToken)) {
 				$_SESSION['errorData']['Error'][] = "The Vault token has expired, need to refresh it in the User section.";
@@ -622,12 +495,14 @@ class VaultClient
 			}
 		}
 
-		curl_close($ch);
+		curl_close($curl);
 		$data = json_decode($response, true);
 		if ($data === null) {
 			return null;
 		}
 		if ($system == 'Swift') {
+			// Extract app_id and app_secret from the JSON data
+			
 			$user_id = $data['data']['data']['Swift']['_id'];
 			$app_id = $data['data']['data']['Swift']['app_id'];
 			$app_secret = $data['data']['data']['Swift']['app_secret'];
@@ -653,7 +528,7 @@ class VaultClient
 			$user_id = $data['data']['data']['SSH']['_id'];
 			$pub_key = $data['data']['data']['SSH']['public_key'];
 			$priv_key = $data['data']['data']['SSH']['private_key'];
-			$username = $data['data']['data']['SSH']['username'];
+			$username = $data['data']['data']['SSH']['user_key'];
 
 			return [
 				'user_id' => $user_id,
@@ -662,6 +537,7 @@ class VaultClient
 				'hpc_username' => $username,
 			];
 		} elseif ($system == 'ega') {
+			
 			if ($filename == $GLOBALS['bscEgaCredentialsFilename']) {
 				$username = $data['data']['data']['username'];
 				$password = $data['data']['data']['password'];
@@ -692,42 +568,24 @@ class VaultClient
 
 		$payload = json_encode(['clientToken' => $currentToken]);
 		// Set up cURL options
-		$ch = curl_init($vaultUrl);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, [
+		$curl = curl_init($vaultUrl);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_POST, true);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, $payload);
+		curl_setopt($curl, CURLOPT_HTTPHEADER, [
 			'X-Vault-Token: ' . $currentToken,
 			'Content-Type: application/json',
 		]);
-
 		// Execute cURL request and store the response
-		$response = curl_exec($ch);
-
-
+		$response = curl_exec($curl);
+		// Close cURL resource
+		curl_close($curl);
 		// Check for cURL errors
-
-		if (curl_errno($ch)) {
-			echo 'Error: ' . curl_error($ch);
+		if (curl_errno($curl)) {
+			$_SESSION['errorData']['Error'][] = "Curl error: " . curl_error($curl);
 			return null;
 		}
-
-		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-		// Log the request details for debugging purposes
-		$requestDetails = [
-			'URL' => $vaultUrl,
-			'Method' => 'POST',
-			'Headers' => ['X-Vault-Token: ' . $currentToken, 'Content-Type: application/json'],
-			'Data' => $payload,
-			'HTTP Code' => $httpCode,
-			'Response' => $response,
-		];
-
-		//echo "<pre>";
-		//print_r($requestDetails);
-		//echo "</pre>";
-
+		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		if ($httpCode === 200) {
 			// Extract and return the renewed token from the response
 			$responseData = json_decode($response, true);
@@ -736,16 +594,36 @@ class VaultClient
 				$_SESSION['errorData']['Warning'][] = "Needing to renew the token.";
 				return $responseData['auth']['client_token'];
 			} else {
-				echo 'Error: Unable to extract renewed token from response';
+				$_SESSION['errorData']['Error'][] = "Error: Unable to extract renewed token from response";
 				return null;
 			}
 		} else {
 			// Handle other HTTP response codes or set an error message
-			echo 'Error: Token renewal failed. HTTP Code: ' . $httpCode;
+			$_SESSION['errorData']['Error'][] = "Error: Token renewal failed. HTTP Code: " . $httpCode;
 			return null;
 		}
+	}
 
-		// Close cURL resource
-		curl_close($ch);
+	public function getSSHCredentials($vaultUrl, $vaultKey)
+	{
+		if (!$vaultKey) {
+			//$_SESSION['errorData']['Error'][] = "Vault Key is empty, are you sure you saved your credentials?";
+			return 0;
+		}
+		$credentials = $this->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
+		if (!$credentials) {
+			$_SESSION['errorData']['Error'][] = "Failed to retrieve SSH credentials from Vault, not present.";
+			return 0;
+		}
+		// Extract SSH credentials
+		$sshPrivateKey = $credentials['priv_key'];
+		$sshPublicKey = $credentials['pub_key'];
+		$sshUsername = $credentials['hpc_username'];
+		// Store credentials in class properties instead of database
+		return [
+			'private_key' => $sshPrivateKey,
+			'public_key' => $sshPublicKey,
+			'username' => $sshUsername
+		];
 	}
 }

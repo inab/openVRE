@@ -76,19 +76,25 @@ class Tooljob
 		$this->arguments_exec = $arguments_exec;
 
 		// Set paths in the virtual machine
-		if (!empty($this->arguments_exec['site_list']) && count($this->arguments_exec['site_list']) >= 1) {
+		if (!empty($this->arguments_exec['site_list'])) {
 			$site_list = $this->arguments_exec['site_list'];
-			// The first element in site_list is the cloudName
-			$this->cloudName = $site_list[0];
-
-			// The second element in site_list is the launcher
-			$this->launcher = str_replace($this->cloudName . "_", "", $site_list[1]);
-		} else {
-
-			// If not enough information is provided, fall back to default method
+			// single element: marenostrum_Slurm
+			if (count($site_list) === 1) {
+				$full = $site_list[0];
+				// Split into cloudName + launcher
+				[$cloud, $launcher] = array_pad(explode('_', $full, 2), 2, '');
+				$this->cloudName = $cloud;
+				$this->launcher  = $launcher;
+				//error_log("DEBUG: parsed cloudName = $cloud");
+				//error_log("DEBUG: parsed launcher = $launcher");
+			}
+			} else {
+			// No site_list provided → fallback
 			$this->set_cloudName($tool);
 			$this->launcher = $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
 		}
+
+
 		switch ($this->launcher) {
 			case "SGE":
 			case "docker_SGE":
@@ -117,11 +123,13 @@ class Tooljob
 				$this->auth = $GLOBALS['clouds'][$this->cloudName]['auth'];
 				$this->http_host = $GLOBALS['clouds'][$this->cloudName]['http_host'];
 				break;
-			case "Slurm":
-				$this->root_dir_df = $GLOBALS['clouds'][$this->cloudName]['mn_dir'] .  "/" . substr($_SESSION['User']['linked_accounts']['MN']['username'], 0, 6) . "/" . $_SESSION['User']['linked_accounts']['MN']['username'] . "/" . $GLOBALS['clouds'][$this->cloudName]['dataDir_fs'];
-				$this->pub_dir_fs = $GLOBALS['clouds'][$this->cloudName]['mn_dir'] .  "/" . substr($_SESSION['User']['linked_accounts']['MN']['username'], 0, 6) . "/" . $_SESSION['User']['linked_accounts']['MN']['username'] . "/" . $GLOBALS['clouds'][$this->cloudName]['pubDir_fs'];
-				$this->auth = $GLOBALS['clouds'][$this->cloudName]['auth'];
-				$this->http_host = $GLOBALS['clouds'][$this->cloudName]['http_host'];
+			case "Slurm_Singularity":
+				$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'] . "/" . $_SESSION['User']['id'];
+				$this->root_dir_mug     = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
+				$this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
+				$this->pub_dir_volumes  = $GLOBALS['clouds'][$this->cloudName]['pubDir_host'];
+				$this->root_dir_volumes  = $GLOBALS['clouds'][$this->cloudName]['dataDir_host'] . "/" . $_SESSION['User']['id'];
+				$this->pub_dir_intern   = rtrim($this->pub_dir_virtual, "/") . "_tmp";
 				break;
 			default:
 				$_SESSION['errorData']['Error'][] = "Tool '$this->toolId' not properly registered. Launcher type is set to '" . $this->launcher . "'. Case not implemented.";
@@ -287,8 +295,6 @@ class Tooljob
 		$this->log_file_virtual       = $this->root_dir_virtual . "/" . $this->project . "/" . $GLOBALS['tmpUser_dir'] . $this->execution . "/" . $this->logName;
 	}
 
-
-	/**
 
     /**
 	 * Create working directory
@@ -729,20 +735,25 @@ class Tooljob
 			$_SESSION['errorData']['Internal Error'][] = "Cannot create metadata file. No 'working_dir' set";
 			return 0;
 		}
-
+		error_log("DEBUG: Starting setMetadata_file()");
 		$fileMuGs = [];
 		// add input_files metadata
 		foreach ($metadata as $fileId => $file) {
 			// convert metadata to DMP format
-			$fileMuG = $this->fromVREfile_toMUGfile($file);
+			error_log("DEBUG: Processing PRIVATE fileId: " . $fileId);
+   			error_log("DEBUG: Original file: " . json_encode($file));
 
+			$fileMuG = $this->fromVREfile_toMUGfile($file);
+			error_log("DEBUG: After conversion: " . json_encode($fileMuG));
 			// adapt metadata to App requirements
 			if (isset($fileMuG['sources'])) {
 				$source_list = [];
 				foreach ($fileMuG['sources'] as $sourceid) {
 					if ($sourceid) {
 						$source_path = getAttr_fromGSFileId($sourceid, "path");
+						error_log("DEBUG: Source ID: $sourceid -> Path: " . $source_path);
 						if ($source_path) {
+							error_log("DEBUG: Full source path: " . $this->root_dir_virtual . "/" . $source_path);
 							array_push($source_list, $this->root_dir_virtual . "/" . $source_path);
 						}
 					}
@@ -757,12 +768,14 @@ class Tooljob
 
 			if ($fileMuG['file_path']) {
 				$fileMuG['file_path'] = $this->root_dir_virtual . "/" . $fileMuG['file_path'];
+				error_log("DEBUG: Final file_path: " . $fileMuG['file_path']);
 			}
 
 
 			if ($fileMuG['meta_data']['parentDir']) {
 				$parent_path = getAttr_fromGSFileId($fileMuG['meta_data']['parentDir'], "path");
 				if ($parent_path) {
+					error_log("DEBUG: ParentDir ID: " . $fileMuG['meta_data']['parentDir'] . " -> Path: " . $parent_path);
 					$fileMuG['meta_data']['parentDir'] = $this->root_dir_virtual . "/" . $parent_path;
 				}
 			}
@@ -801,6 +814,7 @@ class Tooljob
 		}
 
 		$metadataFile = $this->metadata_file;
+		error_log("DEBUG: Writing metadata file to: " . $metadataFile);
 		try {
 			$F = fopen($metadataFile, "w");
 			if (!$F) {
@@ -819,12 +833,223 @@ class Tooljob
 
 
 	/**
+	 * Creates metadata JSON for results, since the file is on remote_path and can't be syncronized
+	 */
+	/**
+ * Creates metadata JSON for results, considering remote paths and input sources.
+ */
+	public function setResults_file($metadata, $configFilename)
+	{
+		if (!$this->working_dir) {
+			$_SESSION['errorData']['Internal Error'][] = "Cannot create results file. No 'working_dir' set";
+			return 0;
+		}
+
+		$sources = [];
+		$remoteBase = null;
+
+		// Collect sources and detect remote base path
+		foreach ($metadata as $file) {
+			$fileMuG = $this->fromVREfile_toMUGfile($file);
+
+			// Add local file path to sources
+			if (!empty($fileMuG['file_path'])) {
+				$sources[] = rtrim($this->root_dir_virtual, '/') . '/' . ltrim($fileMuG['file_path'], '/');
+			}
+
+			// Determine remote base path from the first remote_path
+			if (!$remoteBase && !empty($file['meta_data']['remote_paths'][0]['remote_path'])) {
+				$remoteFull = preg_replace('#/+#','/', $file['meta_data']['remote_paths'][0]['remote_path']);
+				$localFull  = preg_replace('#/+#','/', $file['file_path'] ?? '');
+				if (strpos($remoteFull, $localFull) !== false) {
+					$remoteBase = str_replace($localFull, '', $remoteFull);
+					error_log("DEBUG: Remote base detected: " . $remoteBase);
+				}
+			}
+		}
+
+		// Load configuration file
+		$config = json_decode(file_get_contents($configFilename), true);
+		if (!$config || empty($config['output_files'])) {
+			$_SESSION['errorData']['Internal Error'][] = "Invalid config file or missing output_files";
+			return 0;
+		}
+
+		$output_files = [];
+
+		foreach ($config['output_files'] as $out) {
+			$fileName = $out['name'] . "." . strtolower($out['file']['file_type'] ?? "txt");
+
+			$localOutputPath = rtrim($this->root_dir_virtual, '/') . '/' . $this->execution . "/" . $fileName;
+
+			$entry = [
+				"name"       => $out['name'],
+				"type"       => $out['type'] ?? "file",
+				"file_path"  => $localOutputPath,
+				"data_type"  => $out['file']['data_type'] ?? "unknown",
+				"file_type"  => $out['file']['file_type'] ?? "TXT",
+				"sources"    => $sources,
+				"meta_data"  => [
+					"visible"     => $out['file']['metadata']['visible'] ?? true,
+					"description" => $out['file']['metadata']['description'] ?? "",
+					"tool"        => $this->toolId
+				]
+			];
+
+			// Update parentDir if present
+			if (!empty($out['meta_data']['parentDir'])) {
+				$parent_path = getAttr_fromGSFileId($out['meta_data']['parentDir'], "path");
+				if ($parent_path) {
+					error_log("DEBUG: ParentDir ID: " . $out['meta_data']['parentDir'] . " -> Path: " . $parent_path);
+					$entry['meta_data']['parentDir'] = rtrim($this->root_dir_virtual, '/') . '/' . ltrim($parent_path, '/');
+				}
+			}
+
+			// Override with remote path if remoteBase is detected
+			$firstKey = array_key_first($metadata);
+			$firstRemote = $metadata[$firstKey]['remote_paths'][0]['remote_path'] ?? null;
+			#error_log("DEBUG metadata: " . print_r($metadata, true));
+			
+			error_log("DEBUG remote_paths: " . print_r($firstRemote, true));
+
+
+			if ($firstRemote) {
+				$remoteOutputPath = rtrim(dirname($firstRemote), '/') . '/' . basename($localOutputPath);
+
+				$entry['file_path'] = null;
+				$entry['meta_data']['remote_paths'] = [[
+					"remote_path" => preg_replace('#/+#','/', $remoteOutputPath),
+					"location"    => "marenostrum"
+				]];
+
+				error_log("DEBUG: Remote output path set to: " . $entry['meta_data']['remote_paths'][0]['remote_path']);
+			}
+			
+			$output_files[] = $entry;
+
+			// 🔍 DEBUG
+			error_log("DEBUG: Output entry built:");
+			error_log(json_encode($entry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+		}
+
+		// 🔍 DEBUG
+		error_log("DEBUG: Output files:");
+		error_log(json_encode($output_files, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+		$results = ["output_files" => $output_files];
+
+		// Ensure results_file is defined
+		if (empty($this->results_file)) {
+			$this->results_file = rtrim($this->working_dir, '/') . "/.results.json";
+		}
+
+		$resultsFile = $this->results_file;
+
+		error_log("DEBUG: Writing results file to: " . $resultsFile);
+
+		try {
+			$F = fopen($resultsFile, "w");
+			if (!$F) {
+				throw new Exception('Failed to create results file for tool execution ' . $resultsFile);
+			}
+		} catch (Exception $e) {
+			$_SESSION['errorData']['Internal Error'][] = $e->getMessage();
+			return 0;
+		}
+
+		fwrite($F, json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+		fclose($F);
+
+		error_log("DEBUG: Results file written to: " . $resultsFile);
+		error_log("DEBUG: FINAL RESULTS JSON:\n" . json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+		// Automatically set stageout_file to results JSON path
+		$this->stageout_file = $resultsFile;
+
+		return $resultsFile;
+	}
+
+	public function setToolLog_file($metadata)
+	{
+		if (!$this->working_dir) {
+			$_SESSION['errorData']['Internal Error'][] = "Cannot create tool log file. No 'working_dir' set";
+			return 0;
+		}
+
+		// -----------------------------
+		// 1. Detect remote base from metadata
+		// -----------------------------
+		$remoteBase = null;
+
+		foreach ($metadata as $file) {
+			if (!empty($file['meta_data']['remote_paths'][0]['remote_path'])) {
+				$remoteFull = preg_replace('#/+#','/', $file['meta_data']['remote_paths'][0]['remote_path']);
+				$localFull  = preg_replace('#/+#','/', $file['file_path'] ?? '');
+				if (strpos($remoteFull, $localFull) !== false) {
+					$remoteBase = str_replace($localFull, '', $remoteFull);
+					error_log("DEBUG: Remote base detected for log: " . $remoteBase);
+				}
+				break;
+			}
+		}
+
+		// -----------------------------
+		// 2. Define local log path
+		// -----------------------------
+		$this->logName = ".tool.log";
+		$localLogPath = rtrim($this->working_dir, '/') . '/' . $this->logName;
+
+		// -----------------------------
+		// 3. Map to remote path if applicable
+		// -----------------------------
+		if (!empty($remoteBase)) {
+			$relativePath = str_replace(
+				rtrim($this->root_dir_virtual, '/'),
+				'',
+				$localLogPath
+			);
+
+			$this->log_file = preg_replace('#/+#','/', rtrim($remoteBase, '/') . '/' . ltrim($relativePath, '/'));
+		} else {
+			$this->log_file = $localLogPath;
+		}
+
+		// -----------------------------
+		// 4. Create local placeholder file
+		// -----------------------------
+		try {
+			$F = fopen($localLogPath, "a"); // append mode
+			if (!$F) {
+				throw new Exception("Failed to create tool log file " . $localLogPath);
+			}
+
+			fwrite($F, "=== TOOL EXECUTION LOG ===\n");
+			fwrite($F, "Execution: " . $this->execution . "\n");
+			fwrite($F, "Tool: " . $this->toolId . "\n");
+			fwrite($F, "Date: " . date("Y-m-d H:i:s") . "\n");
+			fwrite($F, "--------------------------\n");
+
+			fclose($F);
+
+		} catch (Exception $e) {
+			$_SESSION['errorData']['Internal Error'][] = $e->getMessage();
+			return 0;
+		}
+
+		error_log("DEBUG: Tool log file path set to: " . $this->log_file);
+
+		return $this->log_file;
+	}
+	/**
 	 * Creates execution Command Line and Submission File
 	 */
 	public function prepareExecution($tool, $metadata, $metadata_pub = [])
 	{
 		$launcher = $this->launcher;
 		$cloudName = $this->cloudName;
+		if (!isset($this->arguments_exec)) {
+			$this->arguments_exec = [];
+		}
 
 		if ($tool['external'] === false) {
 			switch ($launcher) {
@@ -863,7 +1088,8 @@ class Tooljob
 				return 0;
 			}
 
-			switch ($launcher) {
+			#$_SESSION['errorData']['Error'][] = "Launcher '$launcher' not implemented.";
+			switch ($launcher) {  
 				case "SGE":
 					$cmd  = $this->setBashCmd_SGE($tool);
 					if (!$cmd) {
@@ -916,16 +1142,29 @@ class Tooljob
 
 					break;
 
-				case "Slurm":
-					$username = $_POST['username'];
-					$cmd = $this->setHPCRequest($cloudName, $tool, $username);
+				case "Slurm_Singularity":
+					$dataLocations = $_REQUEST['arguments_exec']['dataLocations'] ?? $this->arguments_exec['dataLocations'] ?? [];					
+					if (empty($dataLocations)) {
+						$_SESSION['errorData']['Error'][] = "Data Locations not recognized, not mirrored in remote system.";
+						//print_r($dataLocations);
+						break;
+					}
+					error_log("DEBUG: Metadata: " . json_encode($metadata));
+					$this->setResults_file($metadata, $configFilename);
+					$this->setToolLog_file($metadata);
+					$cmd = $this->setBashCmd_Singularity($tool, $dataLocations);
 					if (!$cmd) {
 						return 0;
 					}
-					$_SESSION['errorData']['Debug'][] = "CMD:" . $cmd;
+					$submissionFilename = $this->createSubmitFile_Slurm($cloudName, $cmd); 
+					if (!is_file($submissionFilename)) {
+						return 0;
+					}
+
 					break;
+
 				default:
-					$_SESSION['errorData']['Error'][] = "Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
+					$_SESSION['errorData']['Error'][] = "prepareExec - Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$launcher\". Case not implemented.";
 					return 0;
 			}
 
@@ -1003,6 +1242,7 @@ class Tooljob
 			$_SESSION['errorData']['Internal Error'][] = "No free ports available to run the interactive tool.";
 			return 0;
 		}
+		$this->containerName = $tool['infrastructure']['container_image'];
 
 		$checkEnvironment = <<<EOF
 			FREE_PORT=$hostPort
@@ -1041,7 +1281,7 @@ class Tooljob
 			--rm \
 			--privileged \
 			-v /var/run/docker.sock:/var/run/docker.sock -d \
-			--net=\$NET_NAME --name $this->containerName \
+			--net={$GLOBALS['network_name']} --name $this->containerName \
 			$cmd_envs \
 			-v {$this->pub_dir_volumes}:{$GLOBALS['shared']}public_tmp/ \
 			-v {$this->root_dir_volumes}:{$GLOBALS['shared']}userdata_tmp/{$_SESSION['User']['id']} \
@@ -1050,46 +1290,45 @@ class Tooljob
 		EOF;
 
 		$checkContainerStatus = <<<EOF
-			if ! docker top \$CONTAINER_ID &>/dev/null; then
-				printf '%s | %s\n' "$(date)" "Container crashed unexpectedly...";
-				exit 1;
-			fi
+	if ! docker top \$CONTAINER_ID &>/dev/null; then
+		printf '%s | %s\n' "$(date)" "Container crashed unexpectedly...";
+		exit 1;
+	fi
 
-			if ! docker inspect --format='{{.State.Running}}' \$CONTAINER_ID | grep -q true; then
-				printf '%s | %s\n' "$(date)" "Container not running anymore";
-				exit 1;
-			fi
-		EOF;
+	if ! docker inspect --format='{{.State.Running}}' \$CONTAINER_ID | grep -q true; then
+		printf '%s | %s\n' "$(date)" "Container not running anymore";
+		exit 1;
+	fi
+EOF;
 
 		$reportContainerInfo = <<<EOF
-			CONTAINER_URL="http://$this->containerName:$container_port"
-			printf '%s | %s\n' "\$(date)" "ContainerID: \$CONTAINER_ID";
-			printf '%s | %s\n' "\$(date)" "ExposedPort: \$FREE_PORT";
-			printf '%s | %s\n' "\$(date)" "ContainerURL: \$CONTAINER_URL";
-		EOF;
+	CONTAINER_URL="http://$this->containerName:$container_port"
+	printf '%s | %s\n' "\$(date)" "ContainerID: \$CONTAINER_ID";
+	printf '%s | %s\n' "\$(date)" "ExposedPort: \$FREE_PORT";
+	printf '%s | %s\n' "\$(date)" "ContainerURL: \$CONTAINER_URL";
+EOF;
 
 		$monitorContainer = <<<EOF
-			docker logs -f \$CONTAINER_ID &> $this->log_file_virtual &
+		docker logs -f \$CONTAINER_ID &> $this->log_file_virtual &
+		printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
+		if timeout 420 wget --retry-connrefused --tries=10 --waitretry=100 -O /dev/null \$CONTAINER_URL; then
+			printf '%s | %s\n' "\$(date)" "Service UP";
+		else
+			printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
+		fi
 
-			printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
-			if timeout 420 wget --retry-connrefused --tries=10 --waitretry=100 -O /dev/null \$CONTAINER_URL; then
-				printf '%s | %s\n' "\$(date)" "Service UP";
-			else
-				printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
-			fi
+		printf '%s | %s\n' "\$(date)" "Wait while container is running...";
+		exit_code="\$(docker wait \$CONTAINER_ID)";
+		printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
 
-			printf '%s | %s\n' "\$(date)" "Wait while container is running...";
-			exit_code="\$(docker wait \$CONTAINER_ID)";
-			printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
-
-			echo '# End time:' \$(date) >> $this->log_file_virtual;
-		EOF;
+		echo '# End time:' \$(date) >> $this->log_file_virtual;
+EOF;
 
 		return $checkEnvironment . "\n" . $configureDockerGroup . "\n" . $runContainer . "\n" . $checkContainerStatus . "\n" . $reportContainerInfo . "\n" . $monitorContainer;
 	}
 
 
-	protected function setBashCommandDockerCompose($tool)
+	protected function setBashCommandDockerCompose($tool, $cmd_envs)
 	{
 		$this->job_type = "interactive";
 		$dockerComposeFile = $GLOBALS['toolsPath'] . $tool['infrastructure']['docker_path'];
@@ -1103,23 +1342,23 @@ class Tooljob
 		$this->containerName = $tool['infrastructure']['container_image'];
 
 		$monitorContainer = <<<EOF
-			CONTAINER_URL="http://$this->containerName:$container_port"
-			whoami;
-			printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
-			if timeout 420 wget --retry-connrefused --tries=10 --wait=7 -O /dev/null \$CONTAINER_URL; then
-				printf '%s | %s\n' "\$(date)" "Service UP";
-			else
-				printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
-			fi
+		CONTAINER_URL="http://$this->containerName:$container_port"
+		whoami;
+		printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
+		if timeout 420 wget --retry-connrefused --tries=10 --wait=7 -O /dev/null \$CONTAINER_URL; then
+			printf '%s | %s\n' "\$(date)" "Service UP";
+		else
+			printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
+		fi
 
-			printf '%s | %s\n' "\$(date)" "Wait while container is running...";
-			exit_code="\$(docker wait $this->containerName)";
-			printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
+		printf '%s | %s\n' "\$(date)" "Wait while container is running...";
+		exit_code="\$(docker wait $this->containerName)";
+		printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
 
-			echo '# End time:' \$(date) >> $this->log_file_virtual;
+		echo '# End time:' \$(date) >> $this->log_file_virtual;
 		EOF;
 
-		return $cmd . "\n" . $monitorContainer;
+		return $cmd . "\n" . $monitorContainer . $cmd_envs;
 	}
 
 
@@ -1168,6 +1407,55 @@ class Tooljob
 		return $cmd;
 	}
 
+
+	protected function setBashCmd_Singularity($tool, $dataLocations){
+		//error_log("setBashCmd_Singularity - dataLocations: " . json_encode($dataLocations));
+		if (empty($dataLocations)) {
+			$_SESSION['errorData']['Error'][] = "dataLocations is empty — cannot build paths.";
+		}
+		//Singularity overlay
+		$overlayPath  = $tool['infrastructure']['singularity_overlay']; 
+		
+		// Configuration files
+		$runFolder = $_REQUEST['execution'];
+		$first = $dataLocations[0];
+		$pathDir = dirname($first['absolute_path']); 
+		$baseDir = dirname($pathDir);
+		
+		$sBase = rtrim(preg_replace('#/shared_data.*$#', '/', $first['remote_path']), '/');
+		//error_log("setBashCmd_Singularity - runFolder: $runFolder, dataLocations: " . json_encode($dataLocations) . ", baseDir: $baseDir");
+		
+	
+		// Singularity image and executable
+		$singularityExec = $tool['infrastructure']['executable']; 		
+		$singularityImage =  $sBase . "/shared_data/public/" . $tool['infrastructure']['singularity_image']; //doing it automatically
+		error_log("setBashCmd_Singularity - singularityExec: $singularityExec, singularityImage: $singularityImage");
+		//Singularity overlay
+		$overlayPath  = $sBase . "/shared_data/public/" . $tool['infrastructure']['singularity_overlay'];
+
+		// Example paths using runFolder
+		$configFile     = "$baseDir/$runFolder/.config.json";
+		$inputMetadata  = "$baseDir/$runFolder/.input_metadata.json";
+		$outputMetadata = "$baseDir/$runFolder/.results.json";
+		$logFile        = "$baseDir/$runFolder/.tool.log";
+		
+		// Build command
+		$cmd  = "singularity exec ";
+		$cmd .= "--overlay $overlayPath ";
+		$cmd .= "--env HOST_GID=100 --env HOST_UID=1000 ";
+		$cmd .= "--bind $sBase/shared_data/public:/shared_data/public_tmp ";
+		$cmd .= "--bind $sBase/shared_data/userdata:/shared_data/userdata ";
+		$cmd .= "$singularityImage ";
+		$cmd .= "$singularityExec ";
+		$cmd .= "--config $configFile ";
+		$cmd .= "--in_metadata $inputMetadata ";
+		$cmd .= "--out_metadata $outputMetadata ";
+		$cmd .= "--log_file $logFile ";
+		//$cmd .= " >> $logFile 2>&1";
+	
+		return $cmd;
+
+	}
 
 	protected function setBashCmd_docker_EGA($tool)
 	{
@@ -1373,68 +1661,6 @@ class Tooljob
 	}
 
 
-	protected function setBashCmd_Slurm($tool, $metadata, $launcherInfo)
-	{
-
-		// Ensure that the tool has a registered module to be loaded
-		if (!isset($tool['infrastructure']['module'])) {
-			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'module' property.";
-			return 0;
-		}
-
-		//Module name
-		$module = $tool['infrastructure']['module'];
-
-
-		// First cmd
-		$cmd = "module load $module && sbatch ";
-
-		//Setting the header of the SLURM script
-		$cmd .= "--job-name=" . escapeshellarg($this->toolId) . " ";  // Job name
-		if (isset($launcherInfo['launcher']['access_credentials']['username'])) {
-			$username = $launcherInfo['launcher']['access_credentials']['username'];
-			$remoteOutputDir = "/home/bsc/" . substr($username, 0, 6) . "/$username/MN4/$username";
-			$cmd .= "--output=" . escapeshellarg($remoteOutputDir . "/%x_%j.out") . " ";
-		} else {
-			$_SESSION['errorData']['Internal Error'][] = "Launcher info missing username details.";
-		}
-
-		// Check and add the partition (queue)
-		if (isset($launcherInfo['launcher']['partition']) && !empty($launcherInfo['launcher']['partition'])) {
-			$partition = $launcherInfo['launcher']['partition'];
-			$cmd .= "--partition=" . escapeshellarg($partition) . " ";
-		} else {
-			$_SESSION['errorData']['Internal Error'][] = "Launcher info missing partition/queue details.";
-		}
-
-		// Constructing the command 
-		$executable = $tool['infrastructure']['executable'];
-		$cmd .= "--wrap=\"" . $executable;
-
-
-		// Adding the inputs
-		foreach ($this->input_files as $input_name => $fnIds) {
-			$_SESSION['errorData']['Debug'][] = "Processing input:" . $input_name;
-			$_SESSION['errorData']['Debug'][] = "File IDs: " . print_r($fnIds, true);
-			foreach ($fnIds as $fnId) {
-
-				$_SESSION['errorData']['Debug'][] = "File: " . $fnId;
-				$fn = $metadata[$fnId]['path'];
-				// $rfn = $GLOBALS['dataDir'] . "/$fn";
-				$cmd .= " " . escapeshellarg($fnId);
-			}
-		}
-
-		// Arguments??
-		foreach ($this->arguments as $k => $v) {
-			$cmd .= " --$k " . escapeshellarg($v);
-		}
-
-
-
-		$cmd .= "\"";
-		return $cmd;
-	}
 
 
 	protected function createSubmitFile_SGE($cmd)
@@ -1467,6 +1693,37 @@ class Tooljob
 		return $bashFilename;
 	}
 
+	protected function createSubmitFile_Slurm($siteId, $cmd)
+	{
+		$bashFilename = $this->submission_file;
+		$siteDetails = $this->getLauncher_SlurmInfo($siteId);
+		try {
+			$fout = fopen($bashFilename, "w");
+			if ($fout === false) {
+				$_SESSION['errorData']['Error'][] = "Failed to create SLURM submission file. " . $bashFilename;
+				return 0;
+			}
+		} catch (Exception $e) {
+			$_SESSION['errorData']['Error'][] = "Failed to create SLURM submission file. " . $e->getMessage();
+			return 0;
+		}
+		// Write SLURM headers
+		fwrite($fout, "#!/bin/bash\n");
+		fwrite($fout, "#SBATCH --job-name=" . $this->toolId . "_job\n");
+		fwrite($fout, "#SBATCH --qos " . $siteDetails['queue_name'] . "\n");
+		fwrite($fout, "#SBATCH -A " . $siteDetails['domain'] . "\n");
+		fwrite($fout, "#SBATCH --cpus-per-task=" . $siteDetails['cpu_count'] . "\n");
+		fwrite($fout, "#SBATCH --output=serial_%j.out\n");
+		fwrite($fout, "#SBATCH --error=serial_%j.err\n");
+		fwrite($fout, "#SBATCH -N " . $siteDetails['n_tasks'] . "\n");
+		fwrite($fout, "#SBATCH -n " . $siteDetails['n_nodes'] . "\n");
+		fwrite($fout, "#SBATCH --time=01:00:00\n\n\n"); // Adjust as needed
+		fwrite($fout, "srun " . "$cmd\n");
+
+		fclose($fout);
+
+		return $bashFilename;
+	}
 
 	protected function createSubmitFile_PMES($data)
 	{
@@ -1532,10 +1789,12 @@ class Tooljob
 			case "ega_demo":
 			case "docker_SGE":
 				return $this->enqueue($tool);
+			case "Slurm_Singularity":
+				return $this->enqueue($tool);
 			case "PMES":
 				return $this->callPMES();
 			default:
-				$_SESSION['errorData']['Error'][] = "Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"" . $tool['infrastructure']['clouds'][$this->cloudName]['launcher'] . "\". Case not implemented.";
+				$_SESSION['errorData']['Error'][] = "submit - Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"" . $tool['infrastructure']['clouds'][$this->cloudName]['launcher'] . "\". Case not implemented.";
 				return 0;
 		}
 	}
@@ -1543,26 +1802,28 @@ class Tooljob
 
 	protected function enqueue($tool)
 	{
-
-		logger("");
 		$launcherInfo = $this->getLauncher_Info($this->cloudName);
 		if (!$launcherInfo || empty($launcherInfo)) {
 			$_SESSION['errorData']['Error'][] = "Launcher information is incomplete or missing.";
 			return 0;
 		}
+		$jobManager = $launcherInfo['launcher']['job_manager'] 
+                  ?? $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
 		$memory = $launcherInfo['memory'] ?? $tool['infrastructure']['memory'];
 		$cpus = $launcherInfo['cpus'] ?? $tool['infrastructure']['cpus'];
 		$queue = $launcherInfo['queue'] ?? $tool['infrastructure']['clouds'][$this->cloudName]['queue'];
-		logger("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory");
+		// error_log("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory, jobManager=$jobManager");
 
-		list($pid, $errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file);
+		list($pid, $errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file, $jobManager);
 		if (!$pid) {
-			log_addError($pid, $errMesg, NULL, $this->toolId, $this->cloudName, "SGE", $cpus, $memory);
+			//error_log($pid, $errMesg, NULL, $this->toolId, $this->cloudName, "SGE", $cpus, $memory);
+			error_log("Error: $errMesg");
 			$_SESSION['errorData']['Error'][] = "Internal error. Cannot enqueue job.";
 			return 0;
 		}
-		logger("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
-		log_addSubmission($pid, $this->toolId, $this->cloudName, "SGE", $cpus, $memory, $this->working_dir);
+		#logger("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
+		//error_log("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
+		log_addSubmission($pid, $this->toolId, $this->cloudName, $jobManager, $cpus, $memory, $this->working_dir);
 
 		$this->pid = $pid;
 		return $pid;
@@ -1892,96 +2153,42 @@ class Tooljob
 		return 1;
 	}
 
-	public function getSSHCred($vaultUrl, $accessToken, $vaultRolename, $username, $remote_dir, $siteId)
-	{
-		#retrieve the credential and update the site collection with it
-		$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-		$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-		$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
-		if ($credentials) {
-			$sshPrivateKey = $credentials['priv_key'];
-			$sshPublicKey = $credentials['pub_key'];
-			$sshUsername = $credentials['hpc_username'];
-			$sshId = $credentials['_id'];
-
-			// Set up the credentials array for the RemoteSSH class
-			$sshCredentials = [
-				'private_key' => $sshPrivateKey,
-				'public_key' => $sshPublicKey,
-				'username' => $sshUsername
-			];
-
-			// Retrieve site info from the sites collection
-			$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-			// Assuming the site document exists, update the launcher section with SSH credentials
-			if ($siteDocument) {
-				$siteDocument['launcher']['access_credentials']['username'] = $sshUsername;
-				$siteDocument['launcher']['access_credentials']['private_key'] = $sshPrivateKey;
-				$siteDocument['launcher']['access_credentials']['public_key'] = $sshPublicKey;
-				// Save the updated site document back to the collection
-				$updateResult = $GLOBALS['sitesCol']->updateOne(['_id' => $siteId], ['$set' => $siteDocument]);
-				$updatedSiteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-
-				return true;
-			} else {
-				return array('error' => 'Site document not found for site ID: ' . $siteId);
-			}
-		} else {
-			return array('error' => 'Failed to retrieve SSH credentials from Vault, not present.');
-		}
-	}
-
-
-	protected function setHPCRequest($cloudName, $tool, $username)
-	{
-		if ($cloudName == 'marenostrum') {
-			$vaultUrl = $GLOBALS['vaultUrl'];
-			$accessToken = $_SESSION['userToken']['access_token'];
-			$vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
-
-			//Get the credentials
-			$remoteSSH = $this->getSSHCred($vaultUrl, $accessToken, $vaultRolename, $username, null, $cloudName);
-			if (isset($remoteSSH['error'])) {
-				$_SESSION['errorData']['Internal Error'][] = "Failed to retrieve SSH credentials: " . $remoteSSH['error'];
-				return 0;
-			}
-
-			//Retrieve the launcher details
-			$launcherInfo = $this->getLauncher_Info($cloudName);
-			if (!$launcherInfo || empty($launcherInfo)) {
-				$_SESSION['errorData']['Internal Error'][] = "Cannot set tool command line. Launcher details are not available.";
-				return 0;
-			}
-
-			//Set Bash command for Slurm
-			$cmd = $this->setBashCmd_Slurm($tool, $metadata, $launcherInfo);
-			if (!$cmd) {
-				return 0;
-			}
-
-
-			return $cmd; //Return the command if everything is fine for MN
-		} else {
-			//For future HPC environments
-			$_SESSION['errorData']['Internal Error'][] = "Cloud environment '$cloudName' is not supported yet.";
-			return 0;
-		}
-	}
-
 
 	function getLauncher_Info($siteId)
 	{
-
 		// Retrieve tool document from the tools collection
 		$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
 		if (!$siteDocument) {
 			return null;
 		}
-
 		$launcherInfo = [
 			'site_id' => $siteDocument['_id'],
 			'name' => $siteDocument['name'],
 			'launcher' => $siteDocument['launcher']
+		];
+		return $launcherInfo;
+	}
+
+	public static function getLauncher_SlurmInfo($siteId)
+	{	
+		$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
+		if (!$siteDocument) {
+			return null;
+		}
+		$launcher = $siteDocument['launcher'] ?? [];
+		
+		$launcherInfo = [
+			'site_id' => $siteDocument['_id'],
+			'queue_name' => $launcher['queue_name'] ?? 'default',
+        	'queue_p'    => $launcher['partition']  ?? '',
+			'cpu_count'  => $launcher['cpu_count'] ?? 1,
+			'n_tasks'    => $launcher['n_tasks']   ?? 1,
+			'n_nodes'    => $launcher['n_nodes']   ?? 1,
+			'domain'     => $launcher['access_credentials']['domain'] ?? null,
+			'server'      => $launcher['access_credentials']['server'] ?? null,
+			'root_path'   => $launcher['access_credentials']['rootpath_default'] ?? null,
+			'username'    => $launcher['access_credentials']['username'] ?? null,
+			'job_manager' => $launcher['job_manager'] ?? 'Slurm_Singularity',
 		];
 		return $launcherInfo;
 	}
