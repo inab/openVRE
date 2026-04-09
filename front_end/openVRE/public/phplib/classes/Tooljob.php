@@ -71,7 +71,7 @@ class Tooljob
 		$this->project   = $project;
 
 		// Set paths in VRE
-		$this->root_dir  = $GLOBALS['dataDir'] . "/" . $_SESSION['User']['id'];
+		$this->root_dir  = $GLOBALS['dataDir'] . $_SESSION['User']['id'];
 		$this->pub_dir   = $GLOBALS['pubDir'];
 		$this->arguments_exec = $arguments_exec;
 
