@@ -1640,8 +1640,8 @@ function processPendingFiles($sessionId, $files = array())
 						}
 						$msg .= ". Validation score: " . var_export($out_validation_score, true);
 						$msg .= ". out_mug: " . print_r($out_mug, true);
-						$_SESSION['errorData']['Error'][] = $msg;
-
+						error_log($msg);
+						
 						log_addOutregister($pid, "Failed to register outfile $out_name '$rfn'. File NOT found in disk");
 						if ($debug) {
 							print "<br/>JOB $pid FINISHED BUT NO EXPECTED OUTFILE '$rfn' FOUND  IN DISK. Set ERROR<br>";
