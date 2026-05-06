@@ -5,10 +5,9 @@
 #
 
 
-function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log", $jobManager = "docker_SGE")
+function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log", $launcherType = "SGE", $toolId = "", $jobOptions = array())
 {
-    logger("Start job submission via $jobManager");
-    error_log("DEBUG- execJob: Start job submission via $jobManager");
+    logger("Start job submission via " . $launcherType);
 
     if (!isset($_SESSION['User']['id'])) {
         $_SESSION['errorData']['Error'][] = "User ID not found in session.";
@@ -29,42 +28,31 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
 
     // Validate queue
     $queue = $queue ?: ($GLOBALS['queueTask'] ?? null);
-    if (!$queue && strtoupper($jobManager) === "SGE") {
+    if (!$queue) {
         $_SESSION['errorData']['Error'][] = "Queue not provided.";
         return [0, "Queue not provided."];
     }
 
 
     $queue   = (isset($queue) ? $queue : $GLOBALS['queueTask']);
-    $jobname = $_SESSION['User']['id'] . "#" . basename($shFile);
+    $jobname = $_SESSION['User']['id'] . "#" . ($toolId ?: basename($shFile));
 
-    //
-    // Start SGE process
-    //$process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
-
-    switch ($jobManager) {
-        case "docker_SGE":
-            error_log("DEBUG: Submitting job via docker_SGE. Parameters: shFile=$shFile, workDir=$workDir, queue=$queue, jobname=$jobname, cpus=$cpus, mem=$mem, logFile=$logFile, errFile=$errFile");
-            $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
-            break;
-        case "Slurm_Singularity":
-            $remote_system = $_REQUEST['sites']['site_list'][0];
-            error_log("DEBUG: Submitting job via Slurm to $remote_system. Parameters: shFile=$shFile, workDir=$workDir, logFile=$logFile, errFile=$errFile");
-            $process = new ProcessSlurm($shFile, $workDir, $logFile, $errFile, $remote_system);
-            break;
-        default:
-            $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
-            break;  
+    if ($launcherType === "kubernetes_native") {
+        require_once __DIR__ . "/classes/ProcessK8s.php";
+        $process = new ProcessK8s($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile, $jobOptions);
+    } else {
+        $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
     }
- 
+
+    $pid = $process->getPid();
+
     if (!$process->status()) {
-        $_SESSION['errorData']['Error'][] = "Job submission failed.<br/>" . $process->getFullCommand() . "<br/>" . $process->getErr();
-        $errMesg = "ERROR: Job submission failed. FullCommand: '" . $process->getFullCommand() . "'. ErrorSGE: '" . $process->getErr() . "'";
+        $_SESSION['errorData']['Error'][] = "Job submission failed.<br/>" . $process->getFullCommand . "<br/>" . $process->getErr();
+        $errMesg = "ERROR: Job submission failed. FullCommand: '" . $process->getFullCommand . "'. ErrorSGE: '" . $process->getErr() . "'";
         logger($errMesg);
         return array(0, $errMesg);
     }
 
-    $pid = $process->getPid();
     error_log("Process started successfully: PID = $pid");
     logger("The process is currently running PID = $pid");
     return array($pid, "");
@@ -136,37 +124,32 @@ function getRunningJobInfo($pid, $launcherType = NULL, $cloudName = "local")
     if (! $pid)
         return $job;
 
-    logger("getRunningJobInfo: start processing $pid");
-
     // guess launcher
     if (!$launcherType) {
-        if (is_numeric($pid))
+        if (is_numeric($pid)) {
             $launcherType = "SGE";
-        else
+        } elseif (strpos((string)$pid, "-") !== false) {
+            $launcherType = "kubernetes_native";
+        } else {
             $launcherType = "PMES";
+        }
     }
-
-    logger("getRunningJobInfo: launcherType = $launcherType");
 
     // create new jobProcess
     if ($launcherType == "SGE" || $launcherType == "docker_SGE") {
         $process = new ProcessSGE();
         $job = $process->getRunningJobInfo($pid);
+    } elseif ($launcherType == "kubernetes_native") {
+        require_once __DIR__ . "/classes/ProcessK8s.php";
+        $process = new ProcessK8s();
+        $job = $process->getRunningJobInfo($pid);
     } elseif ($launcherType == "PMES") {
         $process = new ProcessPMES($cloudName);
         $job = $process->getRunningJobInfo($pid);
-    } elseif ($launcherType == "Slurm_Singularity") {
-        $process = new ProcessSlurm();
-        $job = $process->getRunningJobInfo($pid);
-        logger("getRunningJobInfo: $job");
     } else {
-        logger("getRunningJobInfo: error due to unknown launcher type '$launcherType'");
-        $_SESSION['errorData']['Error'][] = "Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.";
+        $_SESSION['errorData']['Error'][] = "Cannot monitor job '$pid' of type '$launcher'. Launcher not implemented.";
         return $job;
     }
-
-    logger("getRunningJobInfo: end processing $pid");
-
     // return job info
     return $job;
 }
@@ -304,6 +287,8 @@ function delJob($pid, $launcherType = NULL, $cloudName = "local", $login = NULL)
     if (!$launcherType) {
         if (is_numeric($pid)) {
             $launcherType = "docker_SGE";
+        } elseif (strpos((string)$pid, "-") !== false) {
+            $launcherType = "kubernetes_native";
         } else {
             $launcherType = "PMES";
         }
@@ -321,6 +306,10 @@ function delJob($pid, $launcherType = NULL, $cloudName = "local", $login = NULL)
             updateLogFromJobInfo($jobInfo['log'], $pid, $launcherType, $cloudName);
             // Add any other file redirection logic here
         }
+    } elseif ($launcherType == "kubernetes_native") {
+        require_once __DIR__ . "/classes/ProcessK8s.php";
+        $processK8s = new ProcessK8s();
+        list($r_sge, $msg_sge) = $processK8s->stop($pid);
     } elseif ($launcherType == "PMES") {
         $process = new ProcessPMES();
         $r = $process->stop($pid);

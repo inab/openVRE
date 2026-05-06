@@ -98,6 +98,7 @@ class Tooljob
 		switch ($this->launcher) {
 			case "SGE":
 			case "docker_SGE":
+			case "kubernetes_native":
 				$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'] . "/" . $_SESSION['User']['id'];
 				$this->root_dir_mug     = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
 				$this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
@@ -1116,6 +1117,19 @@ class Tooljob
 
 					break;
 
+				case "kubernetes_native":
+					$cmd  = $this->setBashCmd_SGE($tool);
+					if (!$cmd) {
+						return 0;
+					}
+
+					$submissionFilename = $this->createSubmitFile_SGE($cmd);
+					if (!is_file($submissionFilename)) {
+						return 0;
+					}
+
+					break;
+
 				case "PMES":
 					$json_data = $this->setPMESrequest($tool);
 					if (!$json_data) {
@@ -1394,6 +1408,10 @@ EOF;
 				" --in_metadata "    . $this->metadata_file_virtual .
 				" --out_metadata "   . $this->stageout_file_virtual .
 				" --log_file "       . $this->log_file_virtual;
+
+			if (isset($this->launcher) && $this->launcher === "kubernetes_native") {
+				return $cmd_vre;
+			}
 
 
 			$cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d" .
@@ -1788,6 +1806,7 @@ EOF;
 			case "SGE":
 			case "ega_demo":
 			case "docker_SGE":
+			case "kubernetes_native":
 				return $this->enqueue($tool);
 			case "Slurm_Singularity":
 				return $this->enqueue($tool);
@@ -1808,21 +1827,33 @@ EOF;
 			return 0;
 		}
 		$jobManager = $launcherInfo['launcher']['job_manager'] 
-                  ?? $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
+                 ?? $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
 		$memory = $launcherInfo['memory'] ?? $tool['infrastructure']['memory'];
 		$cpus = $launcherInfo['cpus'] ?? $tool['infrastructure']['cpus'];
 		$queue = $launcherInfo['queue'] ?? $tool['infrastructure']['clouds'][$this->cloudName]['queue'];
-		// error_log("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory, jobManager=$jobManager");
+		$jobOptions = array();
+		if ($jobManager === "kubernetes_native") {
+			$jobOptions["mode"] = "native";
+			$jobOptions["image"] = $tool['infrastructure']['container_image'] ?? "";
+			if ($jobOptions["image"] === "") {
+				$_SESSION['errorData']['Error'][] = "Missing infrastructure.container_image for kubernetes_native launcher.";
+				return 0;
+			}
+			$jobOptions["env"] = array();
+			if (isset($tool['infrastructure']['container_env']) && is_array($tool['infrastructure']['container_env'])) {
+				foreach ($tool['infrastructure']['container_env'] as $env_key => $env_value) {
+					$jobOptions["env"][$env_key] = (string)$env_value;
+				}
+			}
+		}
 
-		list($pid, $errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file, $jobManager);
+		list($pid, $errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file, $jobManager, $this->toolId, $jobOptions);
 		if (!$pid) {
-			//error_log($pid, $errMesg, NULL, $this->toolId, $this->cloudName, "SGE", $cpus, $memory);
-			error_log("Error: $errMesg");
+			log_addError($pid, $errMesg, NULL, $this->toolId, $this->cloudName, $jobManager, $cpus, $memory);
 			$_SESSION['errorData']['Error'][] = "Internal error. Cannot enqueue job.";
 			return 0;
 		}
-		#logger("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
-		//error_log("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
+		logger("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:" . $jobManager . ", TOOL:" . $this->toolId . ", PID:$pid");
 		log_addSubmission($pid, $this->toolId, $this->cloudName, $jobManager, $cpus, $memory, $this->working_dir);
 
 		$this->pid = $pid;
