@@ -450,7 +450,7 @@ if ($_SESSION['User']['Type'] ==  UserType::Admin->value || $_SESSION['User']['T
 	if (file_exists($mt['log_file'])) { ?>
 		<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['log_file']); ?>" class="btn green" target="_blank"><i class="fa fa-file-text-o"></i> VIEW LOG FILE </a>
 	<?php } else { ?>
-		<a href="javascript:;" class="btn grey tooltips" data-container="body" data-html="true" data-placement="bottom" data-original-title="<p align='left' style='margin:0'>Fie not available</p>"><i class="fa fa-exclamation-triangle"></i> VIEW LOG FILE </a>
+		<a href="javascript:;" class="btn grey tooltips" data-container="body" data-html="true" data-placement="bottom" data-original-title="<p align='left' style='margin:0'>File not available</p>"><i class="fa fa-exclamation-triangle"></i> VIEW LOG FILE </a>
 	<?php }
 
 
@@ -461,7 +461,7 @@ if ($_SESSION['User']['Type'] ==  UserType::Admin->value || $_SESSION['User']['T
 		<?php if (file_exists($mt['submission_file'])) { ?>
 			<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['submission_file']); ?>" class="btn green" target="_blank"><i class="fa fa-paper-plane"></i> VIEW SUBMIT FILE </a>
 		<?php } else { ?>
-			<a href="javascript:;" class="btn grey tooltips" data-container="body" data-html="true" data-placement="bottom" data-original-title="<p align='left' style='margin:0'>Fie not available</p>"><i class="fa fa-exclamation-triangle"></i> VIEW SUBMIT FILE </a>
+			<a href="javascript:;" class="btn grey tooltips" data-container="body" data-html="true" data-placement="bottom" data-original-title="<p align='left' style='margin:0'>File not available</p>"><i class="fa fa-exclamation-triangle"></i> VIEW SUBMIT FILE </a>
 		<?php } ?>
 		<?php if (file_exists($mt['config_file'])) { ?>
 			<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['config_file']); ?>" class="btn green" target="_blank"><i class="fa fa-cog"></i> VIEW CONFIG FILE </a>

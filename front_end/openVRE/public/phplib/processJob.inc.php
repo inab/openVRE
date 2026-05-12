@@ -17,7 +17,7 @@ function getJobProcessLogger()
 }
 
 
-function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log")
+function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log", $jobManager = "docker_SGE")
 {
     getJobProcessLogger()->info("Start job submission via SGE");
 
@@ -43,8 +43,26 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
     }
 
     $jobname = $_SESSION['User']['id'] . "#" . basename($shFile);
-    $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
 
+    //
+    // Start SGE process
+    //$process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
+
+    switch ($jobManager) {
+        case "docker_SGE":
+            error_log("DEBUG: Submitting job via docker_SGE. Parameters: shFile=$shFile, workDir=$workDir, queue=$queue, jobname=$jobname, cpus=$cpus, mem=$mem, logFile=$logFile, errFile=$errFile");
+            $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
+            break;
+        case "Slurm_Singularity":
+            $remote_system = $_REQUEST['sites']['site_list'][0];
+            error_log("DEBUG: Submitting job via Slurm to $remote_system. Parameters: shFile=$shFile, workDir=$workDir, logFile=$logFile, errFile=$errFile");
+            $process = new ProcessSlurm($shFile, $workDir, $logFile, $errFile, $remote_system);
+            break;
+        default:
+            $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
+            break;  
+    }
+ 
     if (!$process->status()) {
         $errMesg = "Job submission failed. ErrorSGE: '" . $process->getErr() . "'";
         getJobProcessLogger()->error($errMesg);
@@ -69,7 +87,9 @@ function getRunningJobInfo($pid, $launcherType = null)
         $launcherType = "SGE";
     }
 
-    if (!in_array($launcherType, array("SGE", "docker_SGE"))) {
+    logger("getRunningJobInfo: launcherType = $launcherType");
+
+    if (!in_array($launcherType, array("SGE", "docker_SGE", "Slurm_Singularity"))) {
         getJobProcessLogger()->error("Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.");
         throw new UnexpectedValueException("Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.");
     }

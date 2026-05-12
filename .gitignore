@@ -1,11 +1,15 @@
+#Environmental variables
 .env
 composer.lock
 front_end/openVRE/config/globals.inc.php
-front_end/openVRE/config/*.conf
+shared_data
+tools/*
 vault/config/public-key.pem
 vault/file/*
 vault/config/jwt-user-policies.hcl
 vendor/
+
+#Volumes environment
 volumes/
 *.crt
 *.key

@@ -20,14 +20,27 @@ function getObjectStorageOpenstackLogger()
 
 function logError($errorMessage, $responseText = '')
 {
-    session_start();
-    if (is_null($_SESSION['errorData']['error'])) {
-        $_SESSION['errorData']['error'] = ['Info' => []];
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
     }
-    $_SESSION['errorData']['error'][] = $errorMessage;
+
+    if (is_null($_SESSION['errorData']['Error'])) {
+        $_SESSION['errorData']['Error'] = [];
+    }
+
+    $_SESSION['errorData']['Error'][] = $errorMessage;
+
     if (!empty($responseText)) {
-        $_SESSION['errorData']['error'][] = 'Response: ' . $responseText;
+        $_SESSION['errorData']['Error'][] = 'Response: ' . $responseText;
     }
+    header('Content-Type: application/json');
+    // Also echo JSON so JS can see it instantly
+    echo json_encode([
+        'error' => true,
+        'message' => $errorMessage,
+        'response' => $responseText
+    ]);
+    exit;
 }
 
 function logSuccess($successMessage)
@@ -67,18 +80,9 @@ if ($_REQUEST) {
             echo json_encode(array('error' => 'Failed to obtain Swift client.'));
             exit;
         }
-
         $_SESSION['swiftClient'] = $swiftClient;
-
         $containers = getContainers($swiftClient);
-
         echo json_encode($containers);
-        exit;
-    }
-
-    // Get user info
-    if (isset($_REQUEST['action']) && $_REQUEST['action'] == "getUser") {
-        echo getUser($_SESSION['User']['id']);
         exit;
     }
 

@@ -437,18 +437,49 @@ redirectOutside();
                                                             style="float: right; height: 50px; margin: 0 50px;">
                                                         <h4>HPC resources access (via SSH)</h4>
 
-                                                        <div style="padding-left: 15px;border-left: 2px solid lightgray;">
-                                                            <?php
-                                                            if (!isset($_SESSION['User']['linked_accounts']['mn'])) { ?>
-                                                                <p>
-                                                                    <span style="color: #666;font-weight: bold;">
-                                                                        Do you have an account to an HPC facility?
-                                                                    </span>
-                                                                    Link it and you'll be able to launch jobs there. Data will
-                                                                    be transferred via SSH, from/to your HPC home directory.
-                                                                </p>
-                                                                <div class="row" style="margin-left:30px;">
-                                                                    <?php echo generateSSHButtons(); ?>
+                                                    <div style="padding-left: 15px;border-left: 2px solid lightgray;">
+                                                        <?php
+                                                        if (!isset($_SESSION['User']['linked_accounts']['mn'])) { ?>
+                                                            <p>
+                                                                <span style="color: #666;font-weight: bold;">
+                                                                    Do you have an account to an HPC facility?
+                                                                </span>
+                                                                Link it and you'll be able to launch jobs there. Data will
+                                                                be transferred via SSH, from/to your HPC home directory.
+                                                            </p>
+                                                            <div class="row" style="margin-left:30px;">
+                                                                <?php echo generateSSHButtons(); ?>
+                                                            </div>
+
+                                                        <?php } else {
+                                                        ?>
+                                                            <div class="form-group">
+                                                                <label class="control-label">HPC system Username</label>
+                                                                <br />
+                                                                <input type="text"
+                                                                    value="<?php echo $_SESSION['User']['linked_accounts']['mn']['hpc_username'] ?>"
+                                                                    class="form-control" readonly
+                                                                    style="background:#fff;" />
+                                                            </div>
+
+                                                            <div class="form-group">
+                                                                <label class="control-label">SSH Public Key</label>
+                                                                <br />
+                                                                <input type="text"
+                                                                    value="<?php echo $_SESSION['User']['linked_accounts']['mn']['hpc_pub_key'] ?>"
+                                                                    class="form-control" readonly
+                                                                    style="background:#fff;" />
+                                                            </div>
+
+                                                            <div class="form-group">
+                                                                <label class="control-label">SSH Private key</label>
+
+                                                                <i onclick="this.classList.toggle('fa-eye-slash');x=document.getElementById('priv_key');if (x.style.display === 'none') {x.style.display = 'block';} else {x.style.display = 'none';}"
+                                                                    class="fa fa-eye font-green"
+                                                                    style="margin:10px; font-size:18px"></i>
+                                                                <br />
+                                                                <div style="height:150px;display:none;" id="ssh_">
+                                                                    <pre><?php echo $_SESSION['User']['linked_accounts']['SSH']['hpc_priv_key'] ?></pre>
                                                                 </div>
 
                                                             <?php } else {

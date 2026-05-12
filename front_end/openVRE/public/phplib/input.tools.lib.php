@@ -260,7 +260,6 @@ function InputTool_printListOfFiles($input, $rerun, $required)
 	$output .= '</select>
 		</div>
 	</div>';
-
 	echo $output;
 }
 
@@ -275,6 +274,7 @@ function InputTool_printInput($input, $type)
 	$min  = "";
 	$range = "";
 	$step = "";
+	$st   = "any";
 
 	if (isset($input["maximum"]) && isset($input["minimum"])) {
 		$max = $input["maximum"];
@@ -297,12 +297,10 @@ function InputTool_printInput($input, $type)
 
 	if (isset($input['default']) && ($input['default'] !== null) && ($input['default'] !== "null")) $value = $input['default'];
 	else $value = "";
-
 	$output = '<div class="form-group">
 				<label class="control-label">' . $input['description'] . ' <i class="icon-question tooltips" data-container="body" data-html="true" data-placement="right" data-original-title="<p align=\'left\' style=\'margin:0\'>' . $input['help'] . '</p>"></i></label>
 				<input type="' . $type . '" ' . $range . ' ' . $step . ' name="arguments[' . $input['name'] . ']" id="' . str_replace(":", "_", $input['name']) . '" class="form-control form-field-enabled ' . $req . '" value="' . $value . '">
 				</div>';
-
 	return $output;
 }
 
@@ -340,7 +338,6 @@ function InputTool_printSelect($input)
 	} else {
 		$tool_options = $input['enum_items'];
 	}
-
 	$output = '<div class="form-group">
 				<label class="control-label">' . $input['description'] . ' <i class="icon-question tooltips" data-container="body" data-html="true" data-placement="right" data-original-title="<p align=\'left\' style=\'margin:0\'>' . $input['help'] . '</p>"></i></label>
 				<select  name="arguments[' . $input['name'] . ']" id="' . str_replace(":", "_", $input['name']) . '" class="form-control ' . $req . '">';
@@ -352,7 +349,6 @@ function InputTool_printSelect($input)
 	}
 	$output .= '</select>
 		</div>';
-
 	return $output;
 }
 
@@ -365,9 +361,7 @@ function InputTool_printSelectMultiple($input)
 
 	if (($input['default'] !== null) && ($input['default'] !== "null") && ($input['default'] !== "")) $default = array_values($input['default']);
 	else $default = "";
-
 	$tool_options = $input['enum_items'];
-
 	$output = '<div class="form-group">
 				<label class="control-label">' . $input['description'] . ' <i class="icon-question tooltips" data-container="body" data-html="true" data-placement="right" data-original-title="<p align=\'left\' style=\'margin:0\'>' . $input['help'] . '</p>"></i></label>
 				<select  name="arguments[' . $input['name'] . '][]" id="' . str_replace(":", "_", $input['name']) . '" class="form-control ' . $req . '" multiple="multiple">';
@@ -379,7 +373,6 @@ function InputTool_printSelectMultiple($input)
 	}
 	$output .= '</select>
 		</div>';
-
 	return $output;
 }
 
@@ -439,7 +432,6 @@ function InputTool_printSettings($arguments, $rerun)
 {
 
 	$output = '';
-
 	$c = 0;
 	foreach ($arguments as $arg) {
 
@@ -453,7 +445,6 @@ function InputTool_printSettings($arguments, $rerun)
 
 		$c++;
 	}
-
 	echo $output;
 }
 

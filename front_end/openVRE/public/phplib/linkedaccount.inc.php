@@ -114,10 +114,6 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 			$_SESSION['User']['credentials'] = [
 				'timestamp' => time()  // Only store the timestamp
 			];
-
-
-
-			$_SESSION['errorData']['Info'][] = "Credentials in the system, saving to Vault...";
 		} else {
 			// Handle the case where app_id or app_secret is empty
 			$_SESSION['errorData']['Error'][] = "Please provide both keys.";
@@ -136,8 +132,6 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 			$_SESSION['User']['credentials'] = [
 				'timestamp' => time()  // Only store the timestamp
 			];
-
-			$_SESSION['errorData']['Info'][] = "Credentials in the system, saving to Vault...";
 		} else {
 			// Handle the case where app_id or app_secret is empty
 			$_SESSION['errorData']['Error'][] = "Please provide both keys.";
@@ -162,9 +156,7 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 			$updateResult = $GLOBALS['sitesCol']->updateOne(
 				['_id' => $site_id],  // Match document by siteId    
 				['$set' => [  // Use the $unset operator to remove fields
-					'launcher.access_credentials.private_key' => null,
-					'launcher.access_credentials.public_key' => null,
-					'launcher.access_credentials.user_key' => null
+					'launcher.access_credentials.username' => null
 				]]
 			);
 

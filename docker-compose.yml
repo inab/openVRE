@@ -141,7 +141,8 @@ services:
     extra_hosts:
       - "front_end:172.21.0.14"
     restart: on-failure:2
-
+    extra_hosts:
+    - "front_end:172.21.0.14"
 volumes:
   mongo_data:
     name: ${MONGO_VOLUME}
