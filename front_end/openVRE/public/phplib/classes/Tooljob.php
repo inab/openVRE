@@ -1833,7 +1833,6 @@ EOF;
 		$queue = $launcherInfo['queue'] ?? $tool['infrastructure']['clouds'][$this->cloudName]['queue'];
 		$jobOptions = array();
 		if ($jobManager === "kubernetes_native") {
-			$jobOptions["mode"] = "native";
 			$jobOptions["image"] = $tool['infrastructure']['container_image'] ?? "";
 			if ($jobOptions["image"] === "") {
 				$_SESSION['errorData']['Error'][] = "Missing infrastructure.container_image for kubernetes_native launcher.";
