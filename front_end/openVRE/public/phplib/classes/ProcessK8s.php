@@ -6,19 +6,19 @@
  * This class is responsible for the full lifecycle of Kubernetes Jobs that run
  * OpenVRE tools: creation, status polling, and deletion/cancellation.
  *
- * All communication with Kubernetes goes through the kubectl-runner proxy — a
- * dedicated HTTP microservice deployed as a sidecar or separate pod that holds
- * the Kubernetes service-account credentials. The frontend pod itself does NOT
- * need a mounted service-account token or direct K8s API access, which improves
- * security by limiting the blast radius of a frontend compromise.
+ * All communication with Kubernetes goes through the scheduler — a dedicated
+ * HTTP microservice deployed as a separate pod that holds the Kubernetes
+ * service-account credentials. The frontend pod itself does NOT need a mounted
+ * service-account token or direct K8s API access, which improves security by
+ * limiting the blast radius of a frontend compromise.
  *
  * Environment variables consumed (all optional, with defaults):
  *   OPENVRE_K8S_NAMESPACE       — target namespace for Jobs (default: "bsctre-v2")
  *   OPENVRE_K8S_JOB_IMAGE       — fallback container image for the Job pod
  *   OPENVRE_K8S_SHARED_PVC      — PVC name for /shared_data volume
  *   OPENVRE_K8S_TOOLS_PVC       — PVC name for /var/www/html/openVRE/public/tools volume
- *   OPENVRE_K8S_LAUNCHER_URL    — base URL of kubectl-runner (REQUIRED)
- *   OPENVRE_K8S_LAUNCHER_TOKEN  — Bearer token for kubectl-runner authentication
+ *   OPENVRE_K8S_SCHEDULER_URL   — base URL of the scheduler service (REQUIRED)
+ *   OPENVRE_K8S_SCHEDULER_TOKEN — Bearer token for scheduler authentication
  *   OPENVRE_K8S_RUN_AS_UID      — UID the Job pod runs as (default: 1000)
  *   OPENVRE_K8S_RUN_AS_GID      — GID / fsGroup for the Job pod (default: 1000)
  *   OPENVRE_K8S_JOB_TTL         — seconds to keep a finished Job before auto-deletion (default: 120)
@@ -63,11 +63,11 @@ class ProcessK8s
     /** @var string  PVC name mounted at the tools directory inside the Job pod */
     private $toolsPvc = "dashboard-frontend-tools";
 
-    /** @var string  Base URL of the kubectl-runner HTTP proxy (REQUIRED) */
-    private $launcherUrl = "";
+    /** @var string  Base URL of the scheduler HTTP service (REQUIRED) */
+    private $schedulerUrl = "";
 
-    /** @var string  Bearer token sent to kubectl-runner for authentication */
-    private $launcherToken = "";
+    /** @var string  Bearer token sent to the scheduler for authentication */
+    private $schedulerToken = "";
 
     /** @var int  UID the Job pod container runs as */
     private $runAsUid = 1000;
@@ -113,8 +113,8 @@ class ProcessK8s
         $this->jobImage = getenv("OPENVRE_K8S_JOB_IMAGE") ?: "";
         $this->sharedPvc = getenv("OPENVRE_K8S_SHARED_PVC") ?: "dashboard-frontend-sgecore-shareddata";
         $this->toolsPvc = getenv("OPENVRE_K8S_TOOLS_PVC") ?: "dashboard-frontend-tools";
-        $this->launcherUrl = rtrim(getenv("OPENVRE_K8S_LAUNCHER_URL") ?: "", "/");
-        $this->launcherToken = getenv("OPENVRE_K8S_LAUNCHER_TOKEN") ?: "";
+        $this->schedulerUrl = rtrim(getenv("OPENVRE_K8S_SCHEDULER_URL") ?: "", "/");
+        $this->schedulerToken = getenv("OPENVRE_K8S_SCHEDULER_TOKEN") ?: "";
         $this->runAsUid = (int)(getenv("OPENVRE_K8S_RUN_AS_UID") ?: 1000);
         $this->runAsGid = (int)(getenv("OPENVRE_K8S_RUN_AS_GID") ?: 1000);
 
@@ -169,7 +169,7 @@ class ProcessK8s
     // ---------------------------------------------------------------
 
     /**
-     * Builds a Kubernetes Job manifest and submits it to kubectl-runner.
+     * Builds a Kubernetes Job manifest and submits it to the scheduler.
      *
      * @param int $cpu  Number of CPU cores (request and limit)
      * @param int $mem  Memory in GB (0 = default 4Gi)
@@ -183,9 +183,9 @@ class ProcessK8s
             return;
         }
 
-        // Abort if kubectl-runner URL is not configured — we cannot submit jobs.
-        if ($this->launcherUrl === "") {
-            $this->stderr = "OPENVRE_K8S_LAUNCHER_URL is not set";
+        // Abort if scheduler URL is not configured — we cannot submit jobs.
+        if ($this->schedulerUrl === "") {
+            $this->stderr = "OPENVRE_K8S_SCHEDULER_URL is not set";
             $_SESSION['errorData']['Error'][] = $this->stderr;
             return;
         }
@@ -201,7 +201,7 @@ class ProcessK8s
         $memLimit = ((int)$mem > 0 ? ((int)$mem . "Gi") : "4Gi");
 
         // Build the full Kubernetes Job manifest as a PHP associative array.
-        // This will be serialized to YAML before submission to kubectl-runner.
+        // This will be serialized to YAML before submission to the scheduler.
         $manifest = array(
             "apiVersion" => "batch/v1",
             "kind" => "Job",
@@ -298,13 +298,13 @@ class ProcessK8s
             }
         }
 
-        // Serialize the manifest array to YAML for submission to kubectl-runner.
+        // Serialize the manifest array to YAML for submission to the scheduler.
         $yaml = $this->arrayToYaml($manifest);
 
-        // Submit Job via kubectl-runner proxy.
-        $this->fullcommand = "POST " . $this->launcherUrl . "/jobs";
-        logger("K8s job submission via kubectl-runner '" . $this->fullcommand . "'");
-        $response = $this->launcherRequest("POST", "/jobs", array(
+        // Submit Job via the scheduler service.
+        $this->fullcommand = "POST " . $this->schedulerUrl . "/jobs";
+        logger("K8s job submission via scheduler '" . $this->fullcommand . "'");
+        $response = $this->schedulerRequest("POST", "/jobs", array(
             "namespace" => $this->namespace,
             "manifest" => $yaml
         ));
@@ -325,11 +325,11 @@ class ProcessK8s
     }
 
     // ---------------------------------------------------------------
-    // HTTP client: kubectl-runner proxy
+    // HTTP client: scheduler service
     // ---------------------------------------------------------------
 
     /**
-     * Sends an HTTP request to the kubectl-runner proxy service.
+     * Sends an HTTP request to the scheduler service.
      * This is the sole communication channel with Kubernetes.
      *
      * @param string     $method   HTTP method (GET, POST, DELETE)
@@ -337,22 +337,22 @@ class ProcessK8s
      * @param array|null $payload  JSON-serializable body (for POST)
      * @return array     ["ok" => bool, "error" => string, "data" => array]
      */
-    private function launcherRequest($method, $path, $payload = null)
+    private function schedulerRequest($method, $path, $payload = null)
     {
-        if ($this->launcherUrl === "") {
-            return array("ok" => false, "error" => "OPENVRE_K8S_LAUNCHER_URL is not set");
+        if ($this->schedulerUrl === "") {
+            return array("ok" => false, "error" => "OPENVRE_K8S_SCHEDULER_URL is not set");
         }
         if (!function_exists("curl_init")) {
             return array("ok" => false, "error" => "PHP curl extension is required");
         }
 
-        $url = $this->launcherUrl . $path;
+        $url = $this->schedulerUrl . $path;
         $ch = curl_init($url);
         $headers = array("Content-Type: application/json");
 
-        // Authenticate to kubectl-runner with a Bearer token.
-        if ($this->launcherToken !== "") {
-            $headers[] = "Authorization: Bearer " . $this->launcherToken;
+        // Authenticate to the scheduler with a Bearer token.
+        if ($this->schedulerToken !== "") {
+            $headers[] = "Authorization: Bearer " . $this->schedulerToken;
         }
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -367,24 +367,24 @@ class ProcessK8s
         if ($raw === false) {
             $err = curl_error($ch);
             curl_close($ch);
-            return array("ok" => false, "error" => "kubectl-runner request failed: " . $err);
+            return array("ok" => false, "error" => "Scheduler request failed: " . $err);
         }
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         $json = json_decode($raw, true);
 
-        // Non-2xx status from kubectl-runner indicates an error.
+        // Non-2xx status from the scheduler indicates an error.
         if ($code < 200 || $code >= 300) {
-            $msg = is_array($json) && isset($json["error"]) ? $json["error"] : ("HTTP " . $code . " from kubectl-runner");
+            $msg = is_array($json) && isset($json["error"]) ? $json["error"] : ("HTTP " . $code . " from scheduler");
             return array("ok" => false, "error" => $msg);
         }
         if (!is_array($json)) {
-            return array("ok" => false, "error" => "Invalid JSON response from kubectl-runner");
+            return array("ok" => false, "error" => "Invalid JSON response from scheduler");
         }
-        // kubectl-runner returns {"ok": false, "error": "..."} on application-level errors.
+        // The scheduler returns {"ok": false, "error": "..."} on application-level errors.
         if (isset($json["ok"]) && !$json["ok"]) {
-            return array("ok" => false, "error" => isset($json["error"]) ? $json["error"] : "kubectl-runner error");
+            return array("ok" => false, "error" => isset($json["error"]) ? $json["error"] : "Scheduler error");
         }
         return array("ok" => true, "data" => $json);
     }
@@ -395,7 +395,7 @@ class ProcessK8s
 
     /**
      * Converts a nested PHP associative array into a YAML string.
-     * Used to serialize the Job manifest before sending it to kubectl-runner.
+     * Used to serialize the Job manifest before sending it to the scheduler.
      * This avoids requiring the Symfony YAML or ext-yaml extension.
      */
     private function arrayToYaml($data, $indent = 0)
@@ -463,8 +463,8 @@ class ProcessK8s
         $job = array();
         if (!$pid) return $job;
 
-        // Query job status via kubectl-runner.
-        $response = $this->launcherRequest("GET", "/jobs/" . rawurlencode($pid) . "?namespace=" . rawurlencode($this->namespace));
+        // Query job status via the scheduler.
+        $response = $this->schedulerRequest("GET", "/jobs/" . rawurlencode($pid) . "?namespace=" . rawurlencode($this->namespace));
 
         if ($response["ok"] !== true) {
             return array();
@@ -538,8 +538,8 @@ class ProcessK8s
     {
         if (!$this->pid) return false;
 
-        // Query job status via kubectl-runner.
-        $response = $this->launcherRequest("GET", "/jobs/" . rawurlencode($this->pid) . "?namespace=" . rawurlencode($this->namespace));
+        // Query job status via the scheduler.
+        $response = $this->schedulerRequest("GET", "/jobs/" . rawurlencode($this->pid) . "?namespace=" . rawurlencode($this->namespace));
 
         if ($response["ok"] !== true) {
             return false;
@@ -570,8 +570,8 @@ class ProcessK8s
     // ---------------------------------------------------------------
 
     /**
-     * Deletes a Kubernetes Job (and its pod) by name via kubectl-runner.
-     * kubectl-runner uses "Background" propagation policy so the API call
+     * Deletes a Kubernetes Job (and its pod) by name via the scheduler.
+     * The scheduler uses "Background" propagation policy so the API call
      * returns immediately and Kubernetes garbage-collects the pod asynchronously.
      *
      * @param  string|null $pid  Kubernetes Job name to delete
@@ -583,7 +583,7 @@ class ProcessK8s
             return array(false, "No job id '$pid' given");
         }
 
-        $response = $this->launcherRequest("DELETE", "/jobs/" . rawurlencode($pid) . "?namespace=" . rawurlencode($this->namespace));
+        $response = $this->schedulerRequest("DELETE", "/jobs/" . rawurlencode($pid) . "?namespace=" . rawurlencode($this->namespace));
 
         if ($response["ok"] === true) {
             $res = isset($response["data"]["stdout"]) ? trim((string)$response["data"]["stdout"]) : "";
