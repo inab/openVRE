@@ -44,25 +44,21 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
 
     $jobname = $_SESSION['User']['id'] . "#" . basename($shFile);
 
-    //
-    // Start SGE process
-    //$process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
-
     switch ($jobManager) {
         case "docker_SGE":
-            error_log("DEBUG: Submitting job via docker_SGE. Parameters: shFile=$shFile, workDir=$workDir, queue=$queue, jobname=$jobname, cpus=$cpus, mem=$mem, logFile=$logFile, errFile=$errFile");
+            getJobProcessLogger()->info("Submitting job via docker_SGE. Parameters: shFile=$shFile, workDir=$workDir, queue=$queue, jobname=$jobname, cpus=$cpus, mem=$mem, logFile=$logFile, errFile=$errFile");
             $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
             break;
         case "Slurm_Singularity":
             $remote_system = $_REQUEST['sites']['site_list'][0];
-            error_log("DEBUG: Submitting job via Slurm to $remote_system. Parameters: shFile=$shFile, workDir=$workDir, logFile=$logFile, errFile=$errFile");
+            getJobProcessLogger()->info("Submitting job via Slurm_Singularity to $remote_system. Parameters: shFile=$shFile, workDir=$workDir, logFile=$logFile, errFile=$errFile");
             $process = new ProcessSlurm($shFile, $workDir, $logFile, $errFile, $remote_system);
             break;
         default:
             $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
-            break;  
+            break;
     }
- 
+
     if (!$process->status()) {
         $errMesg = "Job submission failed. ErrorSGE: '" . $process->getErr() . "'";
         getJobProcessLogger()->error($errMesg);

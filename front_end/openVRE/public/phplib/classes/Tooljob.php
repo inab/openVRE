@@ -54,7 +54,7 @@ class Tooljob
 	public $stdout_file;
 	public $stderr_file;
 
-	public $stageout_data 	= [];
+	public $stageout_data   = [];
 	public $input_files     = [];
 	public $input_files_pub = [];
 	public $input_paths_pub = [];
@@ -99,7 +99,7 @@ class Tooljob
 				//error_log("DEBUG: parsed cloudName = $cloud");
 				//error_log("DEBUG: parsed launcher = $launcher");
 			}
-			} else {
+		} else {
 			// No site_list provided → fallback
 			$this->set_cloudName($tool);
 			$this->launcher = $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
@@ -693,6 +693,22 @@ class Tooljob
 		foreach ($metadata as $file) {
 			// convert metadata to DMP format
 			$fileMuG = $this->fromVREfile_toMUGfile($file);
+			// adapt metadata to App requirements
+			if (isset($fileMuG['sources'])) {
+				$source_list = [];
+				foreach ($fileMuG['sources'] as $sourceid) {
+					if ($sourceid) {
+						$source_path = getAttr_fromGSFileId($sourceid, "path");
+						error_log("DEBUG: Source ID: $sourceid -> Path: " . $source_path);
+						if ($source_path) {
+							error_log("DEBUG: Full source path: " . $this->root_dir_virtual . "/" . $source_path);
+							array_push($source_list, $this->root_dir_virtual . "/" . $source_path);
+						}
+					}
+				}
+
+				$fileMuG['sources'] = $source_list;
+			}
 
 			if ($fileMuG['data_source'] == "EGA") {
 				$fileMuG['file_path'] = "/clean_files/" . $file['ega_path']; // hardcoded ega path
@@ -716,6 +732,20 @@ class Tooljob
 		// add input_files public metadata
 		if (count($metadata_pub)) {
 			foreach ($metadata_pub as $fileMuG) {
+				if (isset($fileMuG['sources'])) {
+					$source_list = [];
+					foreach ($fileMuG['sources'] as $sourceid) {
+						if ($sourceid) {
+							$source_path = getAttr_fromGSFileId($sourceid, "path");
+							if ($source_path) {
+								array_push($source_list, $this->public_dir_virtual . "/" . $source_path);
+							}
+						}
+					}
+
+					$fileMuG['sources'] = $source_list;
+				}
+
 				$fileMuG['file_path'] ??= $this->pub_dir_virtual . "/" . $fileMuG['file_path'];
 				if ($fileMuG['parentDir']) {
 					$parent_path = getAttr_fromGSFileId($fileMuG['parentDir'], "path");
@@ -734,10 +764,8 @@ class Tooljob
 			throw new UnexpectedValueException('Failed to create metadata file for tool execution: ' . $this->metadata_file);
 		}
 
-		fwrite($F, json_encode($fileMuGs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-		fclose($F);
-
-		return $metadataFile;
+		fwrite($file, json_encode($fileMuGs, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+		fclose($file);
 	}
 
 
@@ -745,9 +773,9 @@ class Tooljob
 	 * Creates metadata JSON for results, since the file is on remote_path and can't be syncronized
 	 */
 	/**
- * Creates metadata JSON for results, considering remote paths and input sources.
- */
-	public function setResults_file($metadata, $configFilename)
+	 * Creates metadata JSON for results, considering remote paths and input sources.
+	 */
+	public function setResults_file($metadata)
 	{
 		if (!$this->working_dir) {
 			$_SESSION['errorData']['Internal Error'][] = "Cannot create results file. No 'working_dir' set";
@@ -768,8 +796,8 @@ class Tooljob
 
 			// Determine remote base path from the first remote_path
 			if (!$remoteBase && !empty($file['meta_data']['remote_paths'][0]['remote_path'])) {
-				$remoteFull = preg_replace('#/+#','/', $file['meta_data']['remote_paths'][0]['remote_path']);
-				$localFull  = preg_replace('#/+#','/', $file['file_path'] ?? '');
+				$remoteFull = preg_replace('#/+#', '/', $file['meta_data']['remote_paths'][0]['remote_path']);
+				$localFull  = preg_replace('#/+#', '/', $file['file_path'] ?? '');
 				if (strpos($remoteFull, $localFull) !== false) {
 					$remoteBase = str_replace($localFull, '', $remoteFull);
 					error_log("DEBUG: Remote base detected: " . $remoteBase);
@@ -778,7 +806,7 @@ class Tooljob
 		}
 
 		// Load configuration file
-		$config = json_decode(file_get_contents($configFilename), true);
+		$config = json_decode(file_get_contents($this->config_file), true);
 		if (!$config || empty($config['output_files'])) {
 			$_SESSION['errorData']['Internal Error'][] = "Invalid config file or missing output_files";
 			return 0;
@@ -818,7 +846,7 @@ class Tooljob
 			$firstKey = array_key_first($metadata);
 			$firstRemote = $metadata[$firstKey]['remote_paths'][0]['remote_path'] ?? null;
 			#error_log("DEBUG metadata: " . print_r($metadata, true));
-			
+
 			error_log("DEBUG remote_paths: " . print_r($firstRemote, true));
 
 
@@ -827,13 +855,13 @@ class Tooljob
 
 				$entry['file_path'] = null;
 				$entry['meta_data']['remote_paths'] = [[
-					"remote_path" => preg_replace('#/+#','/', $remoteOutputPath),
+					"remote_path" => preg_replace('#/+#', '/', $remoteOutputPath),
 					"location"    => "marenostrum"
 				]];
 
 				error_log("DEBUG: Remote output path set to: " . $entry['meta_data']['remote_paths'][0]['remote_path']);
 			}
-			
+
 			$output_files[] = $entry;
 
 			// 🔍 DEBUG
@@ -892,8 +920,8 @@ class Tooljob
 
 		foreach ($metadata as $file) {
 			if (!empty($file['meta_data']['remote_paths'][0]['remote_path'])) {
-				$remoteFull = preg_replace('#/+#','/', $file['meta_data']['remote_paths'][0]['remote_path']);
-				$localFull  = preg_replace('#/+#','/', $file['file_path'] ?? '');
+				$remoteFull = preg_replace('#/+#', '/', $file['meta_data']['remote_paths'][0]['remote_path']);
+				$localFull  = preg_replace('#/+#', '/', $file['file_path'] ?? '');
 				if (strpos($remoteFull, $localFull) !== false) {
 					$remoteBase = str_replace($localFull, '', $remoteFull);
 					error_log("DEBUG: Remote base detected for log: " . $remoteBase);
@@ -918,7 +946,7 @@ class Tooljob
 				$localLogPath
 			);
 
-			$this->log_file = preg_replace('#/+#','/', rtrim($remoteBase, '/') . '/' . ltrim($relativePath, '/'));
+			$this->log_file = preg_replace('#/+#', '/', rtrim($remoteBase, '/') . '/' . ltrim($relativePath, '/'));
 		} else {
 			$this->log_file = $localLogPath;
 		}
@@ -939,7 +967,6 @@ class Tooljob
 			fwrite($F, "--------------------------\n");
 
 			fclose($F);
-
 		} catch (Exception $e) {
 			$_SESSION['errorData']['Internal Error'][] = $e->getMessage();
 			return 0;
@@ -954,138 +981,6 @@ class Tooljob
 	 */
 	public function prepareExecution($tool, $metadata, $metadata_pub = [])
 	{
-		if (!$this->working_dir) {
-			$_SESSION['errorData']['Internal Error'][] = "Cannot create results file. No 'working_dir' set";
-			return 0;
-		}
-
-		$sources = [];
-		$remoteBase = null;
-
-		// Collect sources and detect remote base path
-		foreach ($metadata as $file) {
-			$fileMuG = $this->fromVREfile_toMUGfile($file);
-
-			// Add local file path to sources
-			if (!empty($fileMuG['file_path'])) {
-				$sources[] = rtrim($this->root_dir_virtual, '/') . '/' . ltrim($fileMuG['file_path'], '/');
-			}
-
-			// Determine remote base path from the first remote_path
-			if (!$remoteBase && !empty($file['meta_data']['remote_paths'][0]['remote_path'])) {
-				$remoteFull = preg_replace('#/+#','/', $file['meta_data']['remote_paths'][0]['remote_path']);
-				$localFull  = preg_replace('#/+#','/', $file['file_path'] ?? '');
-				if (strpos($remoteFull, $localFull) !== false) {
-					$remoteBase = str_replace($localFull, '', $remoteFull);
-					error_log("DEBUG: Remote base detected: " . $remoteBase);
-				}
-			}
-		}
-
-		// Load configuration file
-		$config = json_decode(file_get_contents($configFilename), true);
-		if (!$config || empty($config['output_files'])) {
-			$_SESSION['errorData']['Internal Error'][] = "Invalid config file or missing output_files";
-			return 0;
-		}
-
-			return 1;
-		} else {
-			$configFilename = $this->setConfiguration_file($tool);
-			if ($configFilename == "0") {
-				return 0;
-			}
-		} else {
-			$this->setConfiguration_file($tool);
-			$this->setMetadata_file($metadata, $metadata_pub);
-			if (!is_file($this->config_file) && !is_file($this->metadata_file)) {
-				$this->logger->error("Cannot set tool command line. It required configuration file ($this->config_file) and metadata file ($this->metadata_file)");
-				throw new UnexpectedValueException("Cannot set tool command line. It required configuration file ($this->config_file) and metadata file ($this->metadata_file)");
-			}
-
-			switch ($launcher) {
-				case "SGE":
-					$cmd  = $this->setBashCmd_SGE($tool);
-					$this->createSubmitFile_SGE($cmd);
-
-					break;
-
-				case "docker_SGE":
-					$cmd  = $this->setBashCommandDockerSge($tool);
-					$this->createSubmitFile_SGE($cmd);
-
-		// -----------------------------
-		// 1. Detect remote base from metadata
-		// -----------------------------
-		$remoteBase = null;
-
-		foreach ($metadata as $file) {
-			if (!empty($file['meta_data']['remote_paths'][0]['remote_path'])) {
-				$remoteFull = preg_replace('#/+#','/', $file['meta_data']['remote_paths'][0]['remote_path']);
-				$localFull  = preg_replace('#/+#','/', $file['file_path'] ?? '');
-				if (strpos($remoteFull, $localFull) !== false) {
-					$remoteBase = str_replace($localFull, '', $remoteFull);
-					error_log("DEBUG: Remote base detected for log: " . $remoteBase);
-				}
-				break;
-			}
-		}
-
-		// -----------------------------
-		// 2. Define local log path
-		// -----------------------------
-		$this->logName = ".tool.log";
-		$localLogPath = rtrim($this->working_dir, '/') . '/' . $this->logName;
-
-		// -----------------------------
-		// 3. Map to remote path if applicable
-		// -----------------------------
-		if (!empty($remoteBase)) {
-			$relativePath = str_replace(
-				rtrim($this->root_dir_virtual, '/'),
-				'',
-				$localLogPath
-			);
-
-			$this->log_file = preg_replace('#/+#','/', rtrim($remoteBase, '/') . '/' . ltrim($relativePath, '/'));
-		} else {
-			$this->log_file = $localLogPath;
-		}
-
-		// -----------------------------
-		// 4. Create local placeholder file
-		// -----------------------------
-		try {
-			$F = fopen($localLogPath, "a"); // append mode
-			if (!$F) {
-				throw new Exception("Failed to create tool log file " . $localLogPath);
-			}
-
-			fwrite($F, "=== TOOL EXECUTION LOG ===\n");
-			fwrite($F, "Execution: " . $this->execution . "\n");
-			fwrite($F, "Tool: " . $this->toolId . "\n");
-			fwrite($F, "Date: " . date("Y-m-d H:i:s") . "\n");
-			fwrite($F, "--------------------------\n");
-
-			fclose($F);
-
-		} catch (Exception $e) {
-			$_SESSION['errorData']['Internal Error'][] = $e->getMessage();
-			return 0;
-		}
-
-		error_log("DEBUG: Tool log file path set to: " . $this->log_file);
-
-		return $this->log_file;
-	}
-	/**
-	 * Creates execution Command Line and Submission File
-	 */
-	public function prepareExecution($tool, $metadata, $metadata_pub = [])
-	{
-		$launcher = $this->launcher;
-		$cloudName = $this->cloudName;
-
 		if ($tool['external'] === false) {
 			if ($this->launcher == "SGE") {
 				$cmd = $this->setBashCmd_withoutApp($tool, $metadata);
@@ -1102,7 +997,7 @@ class Tooljob
 				throw new UnexpectedValueException("Cannot set tool command line. It required configuration file ($this->config_file) and metadata file ($this->metadata_file)");
 			}
 
-			switch ($launcher) {
+			switch ($this->launcher) {
 				case "SGE":
 					$cmd  = $this->setBashCmd_SGE($tool);
 					$this->createSubmitFile_SGE($cmd);
@@ -1118,28 +1013,17 @@ class Tooljob
 					$this->createSubmitFile_EGA($cmd);
 
 					break;
-
 				case "Slurm_Singularity":
-					$dataLocations = $_REQUEST['arguments_exec']['dataLocations'] ?? $this->arguments_exec['dataLocations'] ?? [];					
+					$dataLocations = $_REQUEST['arguments_exec']['dataLocations'] ?? $this->arguments_exec['dataLocations'] ?? [];
 					if (empty($dataLocations)) {
-						$_SESSION['errorData']['Error'][] = "Data Locations not recognized, not mirrored in remote system.";
-						//print_r($dataLocations);
-						break;
+						$this->logger->error("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$this->launcher\". Case not implemented.");
+						throw new UnexpectedValueException("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$this->launcher\". Case not implemented.");
 					}
-					error_log("DEBUG: Metadata: " . json_encode($metadata));
-					$this->setResults_file($metadata, $configFilename);
-					$this->setToolLog_file($metadata);
+					$this->setResults_file($metadata);
 					$cmd = $this->setBashCmd_Singularity($tool, $dataLocations);
-					if (!$cmd) {
-						return 0;
-					}
-					$submissionFilename = $this->createSubmitFile_Slurm($cloudName, $cmd); 
-					if (!is_file($submissionFilename)) {
-						return 0;
-					}
+					$this->createSubmitFile_Slurm($cmd);
 
 					break;
-
 				default:
 					$this->logger->error("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$this->launcher\". Case not implemented.");
 					throw new UnexpectedValueException("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$this->launcher\". Case not implemented.");
@@ -1288,9 +1172,9 @@ EOF;
 			$this->logger->error("No free ports available to run the interactive tool.");
 			throw new UnexpectedValueException("No free ports available to run the interactive tool.");
 		}
-
-
+		$cmd = "HOST_PORT=$hostPort docker compose -f $dockerComposeFile up -d";
 		$this->containerName = $tool['infrastructure']['container_image'];
+
 		$monitorContainer = <<<EOF
 		CONTAINER_URL="http://$this->containerName:$container_port"
 		whoami;
@@ -1307,7 +1191,6 @@ EOF;
 
 		echo '# End time:' \$(date) >> $this->log_file_virtual;
 		EOF;
-		$cmd = "HOST_PORT=$hostPort docker compose -f $dockerComposeFile up -d";
 
 		return $cmd . "\n" . $monitorContainer . $cmd_envs;
 	}
@@ -1358,26 +1241,27 @@ EOF;
 	}
 
 
-	protected function setBashCmd_Singularity($tool, $dataLocations){
+	protected function setBashCmd_Singularity($tool, $dataLocations)
+	{
 		//error_log("setBashCmd_Singularity - dataLocations: " . json_encode($dataLocations));
 		if (empty($dataLocations)) {
 			$_SESSION['errorData']['Error'][] = "dataLocations is empty — cannot build paths.";
 		}
 		//Singularity overlay
-		$overlayPath  = $tool['infrastructure']['singularity_overlay']; 
-		
+		$overlayPath  = $tool['infrastructure']['singularity_overlay'];
+
 		// Configuration files
 		$runFolder = $_REQUEST['execution'];
 		$first = $dataLocations[0];
-		$pathDir = dirname($first['absolute_path']); 
+		$pathDir = dirname($first['absolute_path']);
 		$baseDir = dirname($pathDir);
-		
+
 		$sBase = rtrim(preg_replace('#/shared_data.*$#', '/', $first['remote_path']), '/');
 		//error_log("setBashCmd_Singularity - runFolder: $runFolder, dataLocations: " . json_encode($dataLocations) . ", baseDir: $baseDir");
-		
-	
+
+
 		// Singularity image and executable
-		$singularityExec = $tool['infrastructure']['executable']; 		
+		$singularityExec = $tool['infrastructure']['executable'];
 		$singularityImage =  $sBase . "/shared_data/public/" . $tool['infrastructure']['singularity_image']; //doing it automatically
 		error_log("setBashCmd_Singularity - singularityExec: $singularityExec, singularityImage: $singularityImage");
 		//Singularity overlay
@@ -1388,7 +1272,7 @@ EOF;
 		$inputMetadata  = "$baseDir/$runFolder/.input_metadata.json";
 		$outputMetadata = "$baseDir/$runFolder/.results.json";
 		$logFile        = "$baseDir/$runFolder/.tool.log";
-		
+
 		// Build command
 		$cmd  = "singularity exec ";
 		$cmd .= "--overlay $overlayPath ";
@@ -1402,9 +1286,8 @@ EOF;
 		$cmd .= "--out_metadata $outputMetadata ";
 		$cmd .= "--log_file $logFile ";
 		//$cmd .= " >> $logFile 2>&1";
-	
-		return $cmd;
 
+		return $cmd;
 	}
 
 	protected function setBashCmd_docker_EGA($tool)
@@ -1475,68 +1358,6 @@ EOF;
 	}
 
 
-	protected function setBashCmd_Slurm($tool, $metadata, $launcherInfo)
-	{
-
-		// Ensure that the tool has a registered module to be loaded
-		if (!isset($tool['infrastructure']['module'])) {
-			$_SESSION['errorData']['Internal Error'][] = "Tool '$this->toolId' not properly registered. Missing 'module' property.";
-			return 0;
-		}
-
-		//Module name
-		$module = $tool['infrastructure']['module'];
-
-
-		// First cmd
-		$cmd = "module load $module && sbatch ";
-
-		//Setting the header of the SLURM script
-		$cmd .= "--job-name=" . escapeshellarg($this->toolId) . " ";  // Job name
-		if (isset($launcherInfo['launcher']['access_credentials']['username'])) {
-			$username = $launcherInfo['launcher']['access_credentials']['username'];
-			$remoteOutputDir = "/home/bsc/" . substr($username, 0, 6) . "/$username/MN4/$username";
-			$cmd .= "--output=" . escapeshellarg($remoteOutputDir . "/%x_%j.out") . " ";
-		} else {
-			$_SESSION['errorData']['Internal Error'][] = "Launcher info missing username details.";
-		}
-
-		// Check and add the partition (queue)
-		if (isset($launcherInfo['launcher']['partition']) && !empty($launcherInfo['launcher']['partition'])) {
-			$partition = $launcherInfo['launcher']['partition'];
-			$cmd .= "--partition=" . escapeshellarg($partition) . " ";
-		} else {
-			$_SESSION['errorData']['Internal Error'][] = "Launcher info missing partition/queue details.";
-		}
-
-		// Constructing the command 
-		$executable = $tool['infrastructure']['executable'];
-		$cmd .= "--wrap=\"" . $executable;
-
-
-		// Adding the inputs
-		foreach ($this->input_files as $input_name => $fnIds) {
-			$_SESSION['errorData']['Debug'][] = "Processing input:" . $input_name;
-			$_SESSION['errorData']['Debug'][] = "File IDs: " . print_r($fnIds, true);
-			foreach ($fnIds as $fnId) {
-
-				$_SESSION['errorData']['Debug'][] = "File: " . $fnId;
-				$fn = $metadata[$fnId]['path'];
-				// $rfn = $GLOBALS['dataDir'] . "/$fn";
-				$cmd .= " " . escapeshellarg($fnId);
-			}
-		}
-
-		// Arguments??
-		foreach ($this->arguments as $k => $v) {
-			$cmd .= " --$k " . escapeshellarg($v);
-		}
-
-
-
-		$cmd .= "\"";
-		return $cmd;
-	}
 
 
 	protected function createSubmitFile_SGE($cmd)
@@ -1565,25 +1386,38 @@ EOF;
 		return $bashFilename;
 	}
 
-
-	protected function createSubmitFile_PMES($data)
+	protected function createSubmitFile_Slurm($cmd)
 	{
-		$jsonFile   = $this->submission_file;
+		$bashFilename = $this->submission_file;
+		$siteDetails = $this->getLauncher_SlurmInfo($this->cloudName);
 		try {
-			$fout = fopen($jsonFile, "w");
-			if (!$fout) {
-				throw new Exception('Failed to create tool configuration file: ' . $jsonFile);
+			$fout = fopen($bashFilename, "w");
+			if ($fout === false) {
+				$_SESSION['errorData']['Error'][] = "Failed to create SLURM submission file. " . $bashFilename;
+				return 0;
 			}
 		} catch (Exception $e) {
-			$_SESSION['errorData']['Error'][] = "Failed to create queue submission file. " . $e->getMessage();
+			$_SESSION['errorData']['Error'][] = "Failed to create SLURM submission file. " . $e->getMessage();
 			return 0;
 		}
+		// Write SLURM headers
+		fwrite($fout, "#!/bin/bash\n");
+		fwrite($fout, "#SBATCH --job-name=" . $this->toolId . "_job\n");
+		fwrite($fout, "#SBATCH --qos " . $siteDetails['queue_name'] . "\n");
+		fwrite($fout, "#SBATCH -A " . $siteDetails['domain'] . "\n");
+		fwrite($fout, "#SBATCH --cpus-per-task=" . $siteDetails['cpu_count'] . "\n");
+		fwrite($fout, "#SBATCH --output=serial_%j.out\n");
+		fwrite($fout, "#SBATCH --error=serial_%j.err\n");
+		fwrite($fout, "#SBATCH -N " . $siteDetails['n_tasks'] . "\n");
+		fwrite($fout, "#SBATCH -n " . $siteDetails['n_nodes'] . "\n");
+		fwrite($fout, "#SBATCH --time=01:00:00\n\n\n"); // Adjust as needed
+		fwrite($fout, "srun " . "$cmd\n");
 
-		fwrite($fout, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 		fclose($fout);
 
-		return $jsonFile;
+		return $bashFilename;
 	}
+
 
 	protected function createSubmitFile_EGA($cmd)
 	{
@@ -1623,8 +1457,8 @@ EOF;
 	 */
 	public function submit($tool)
 	{
-		$jobLauncher = $this->getLauncher_Info($this->cloudName)['launcher']['job_manager'] ?? $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
-		switch ($jobLauncher) {
+		$jobManager = $this->getLauncher_Info($this->cloudName)['launcher']['job_manager'];
+		switch ($jobManager ?? $tool['infrastructure']['clouds'][$this->cloudName]['launcher']) {
 			case "SGE":
 			case "ega_demo":
 			case "docker_SGE":
@@ -1632,8 +1466,8 @@ EOF;
 			case "Slurm_Singularity":
 				return $this->enqueue($tool);
 			default:
-				$_SESSION['errorData']['Error'][] = "Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"" . $tool['infrastructure']['clouds'][$this->cloudName]['launcher'] . "\". Case not implemented.";
-				return 0;
+				$this->logger->error("submit - Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"" . $tool['infrastructure']['clouds'][$this->cloudName]['launcher'] . "\". Case not implemented.");
+				throw new UnexpectedValueException("submit - Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to: \"" . $tool['infrastructure']['clouds'][$this->cloudName]['launcher'] . "\". Case not implemented.");
 		}
 	}
 
@@ -1645,22 +1479,17 @@ EOF;
 			$this->logger->error("Launcher information is incomplete or missing.");
 			throw new UnexpectedValueException("Launcher information is incomplete or missing.");
 		}
+
+		$jobManager = $launcherInfo['launcher']['job_manager'] ?? $tool['infrastructure']['clouds'][$this->cloudName]['launcher'];
 		$memory = $launcherInfo['memory'] ?? $tool['infrastructure']['memory'];
 		$cpus = $launcherInfo['cpus'] ?? $tool['infrastructure']['cpus'];
 		$queue = $launcherInfo['queue'] ?? $tool['infrastructure']['clouds'][$this->cloudName]['queue'];
-		logger("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory");
+		$this->logger->info("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory");
 
-		list($pid, $errMesg) = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file);
-		if (!$pid) {
-			log_addError($pid, $errMesg, NULL, $this->toolId, $this->cloudName, "SGE", $cpus, $memory);
-			$_SESSION['errorData']['Error'][] = "Internal error. Cannot enqueue job.";
-			return 0;
-		}
-		logger("USER:" . $_SESSION['User']['_id'] . ", ID:" . $_SESSION['User']['id'] . ", LAUNCHER:SGE, TOOL:" . $this->toolId . ", PID:$pid");
-		log_addSubmission($pid, $this->toolId, $this->cloudName, "SGE", $cpus, $memory, $this->working_dir);
+		$pid = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file, $jobManager);
+		$this->logger->info("Tool job submitted to SGE queue '$queue' (PID=$pid)");
 
 		$this->pid = $pid;
-
 		return $pid;
 	}
 
