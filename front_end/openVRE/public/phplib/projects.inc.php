@@ -2347,7 +2347,12 @@ function resolvePath_toLocalAbsolutePath($path, $job)
 				$rfn = str_replace($job['root_dir_virtual'], $GLOBALS['dataDir'] . $_SESSION['User']['id'], $path);
 
 				//SGE finds mounted dataDir as root_dir_virtual
-			} elseif ($job['launcher'] == "SGE" || $job['launcher'] == "ega_demo" || $job['launcher'] == "docker_SGE") {
+			} elseif (
+				$job['launcher'] == "SGE" ||
+				$job['launcher'] == "ega_demo" ||
+				$job['launcher'] == "docker_SGE" ||
+				$job['launcher'] == "kubernetes_native"
+			) {
 				$rfn = str_replace($job['root_dir_mug'], $GLOBALS['dataDir'], $path);
 			}
 			// direct from file_path
@@ -2380,6 +2385,10 @@ function resolvePath_toLocalAbsolutePath($path, $job)
 		}
 	}
 	//clean slashes
+	if ($rfn === "") {
+		// Keep original absolute path instead of returning empty when launcher mapping is missing.
+		$rfn = $path;
+	}
 	$rfn = preg_replace('#/+#', '/', $rfn);
 
 	//return absolute path
