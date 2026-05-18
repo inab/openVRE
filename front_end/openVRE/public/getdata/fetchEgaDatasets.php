@@ -4,6 +4,7 @@ require __DIR__ . "/../../config/globals.inc.php";
 
 
 use OpenVRE\LoggerFactory;
+use OpenVRE\Site;
 use OpenVRE\VaultClientFactory;
 
 
@@ -17,7 +18,7 @@ $vaultToken = $_SESSION['userVaultInfo']['vaultKey'];
 $vaultAddress = $GLOBALS['vaultUrl'] . "/" . $GLOBALS['secretPath'] . $_SESSION['User']['secretsId'] . '/EGA';
 
 $vaultClient = VaultClientFactory::create();
-$data = $vaultClient->retrieveDatafromVault('EGA');
+$data = $vaultClient->retrieveDatafromVault(Site::EGA);
 
 $egaUsername = $data['username'] ?? null;
 $egaPassword = $data['password'] ?? null;

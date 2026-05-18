@@ -1,6 +1,7 @@
 <?php
 
 use OpenVRE\LoggerFactory;
+use OpenVRE\Site;
 use OpenVRE\VaultClientFactory;
 
 
@@ -90,7 +91,7 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 	if ($action === "new") {
 		// Check if the credentials are already saved
 
-		if (isset($postData['private_key'], $postData['public_key'])) {
+		if (isset($postData['private_key'])) {
 			// If credentials are provided, use them directly
 			if (isset($_SESSION['User']['credentials']['timestamp'])) {
 				$savedTime = $_SESSION['User']['credentials']['timestamp'];
@@ -108,7 +109,6 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 		} elseif (isset($postData["save_credential"]) && $postData["save_credential"] == "true") {
 			$data['data']['SSH'] = [];
 			$data['data']['SSH']['private_key'] = $postData['private_key'];
-			$data['data']['SSH']['public_key'] = $postData['public_key'];
 			$data['data']['SSH']['user_key'] = $postData['user_key'];
 			$data['data']['SSH']['_id'] = $userId;
 			$_SESSION['User']['credentials'] = [
@@ -123,10 +123,9 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 	} elseif ($action === "update") {
 		// Add logic for handling MN account and uploading credentials to Vault for "update" action
 
-		if (!empty($postData['private_key']) && !empty($postData['public_key'])) {
+		if (!empty($postData['private_key'])) {
 			$data['data']['SSH'] = [];
 			$data['data']['SSH']['private_key'] = $postData['private_key'];
-			$data['data']['SSH']['public_key'] = $postData['public_key'];
 			$data['data']['SSH']['user_key'] = $postData['user_key'];
 			$data['data']['SSH']['_id'] = $userId;
 			$_SESSION['User']['credentials'] = [
@@ -141,15 +140,13 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 	} elseif ($action === "delete") {
 		// Reset data for "delete" action
 		$data = [];
-		if (isset($postData['private_key'], $postData['public_key'])) {
+		if (isset($postData['private_key'])) {
 			$postData['private_key'] = null;
-			$postData['public_key'] = null;
 			$postData['user_key'] = null;
 		}
 		$postData['timestamp'] = null;
 		$userId = null;
 
-		#var_dump($postData);
 		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
 
 		if (isset($site_id)) {
@@ -178,14 +175,7 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 	}
 
 	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
-
-	$publicKey = $data['data']['SSH']['public_key'];
 	$privateKey = $data['data']['SSH']['private_key'];
-
-	if (!isValidSSHPublicKey($publicKey)) {
-		getLinkedAccountLogger()->error("Invalid SSH public key format.");
-		throw new UnexpectedValueException("Invalid SSH public key format.");
-	}
 
 	if (!validateOpenSSHPrivateKey($privateKey)) {
 		getLinkedAccountLogger()->error("Invalid SSH private key format.");
@@ -193,7 +183,7 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 	}
 
 	$vaultClient = VaultClientFactory::create();
-	$vaultClient->uploadFileToVault("SSH", $data);
+	$vaultClient->uploadFileToVault(Site::SSH, $data);
 	// Update user data with vault key
 	updateUser($_SESSION['User']);
 
@@ -295,7 +285,7 @@ function handleObjectStorageAccount($action, $userId, $site_id, $postData)
 	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
 	$vaultClient = VaultClientFactory::create();
 
-	$vaultClient->uploadFileToVault("Swift", $data);
+	$vaultClient->uploadFileToVault(Site::Swift, $data);
 
 	updateUser($_SESSION['User']);
 	$_SESSION['errorData']['Info'][] = "Swift account successfully linked.";
@@ -336,7 +326,7 @@ function handleEgaAccount($action, $userId, $postData)
 	}
 
 	$vaultClient = VaultClientFactory::create();
-	$vaultClient->uploadFileToVault("EGA", $data);
+	$vaultClient->uploadFileToVault(Site::EGA, $data);
 
 	$_SESSION['errorData']['Info'][] = "EGA account successfully linked.";
 	getLinkedAccountLogger()->info("EGA account successfully linked.");

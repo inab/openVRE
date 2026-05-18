@@ -3,7 +3,6 @@
 namespace OpenVRE;
 
 use Monolog\Logger;
-use OpenVRE\VaultClientFactory;
 use UnexpectedValueException;
 
 
@@ -1243,12 +1242,9 @@ EOF;
 
 	protected function setBashCmd_Singularity($tool, $dataLocations)
 	{
-		//error_log("setBashCmd_Singularity - dataLocations: " . json_encode($dataLocations));
 		if (empty($dataLocations)) {
 			$_SESSION['errorData']['Error'][] = "dataLocations is empty — cannot build paths.";
 		}
-		//Singularity overlay
-		$overlayPath  = $tool['infrastructure']['singularity_overlay'];
 
 		// Configuration files
 		$runFolder = $_REQUEST['execution'];
@@ -1257,8 +1253,6 @@ EOF;
 		$baseDir = dirname($pathDir);
 
 		$sBase = rtrim(preg_replace('#/shared_data.*$#', '/', $first['remote_path']), '/');
-		//error_log("setBashCmd_Singularity - runFolder: $runFolder, dataLocations: " . json_encode($dataLocations) . ", baseDir: $baseDir");
-
 
 		// Singularity image and executable
 		$singularityExec = $tool['infrastructure']['executable'];
@@ -1285,10 +1279,10 @@ EOF;
 		$cmd .= "--in_metadata $inputMetadata ";
 		$cmd .= "--out_metadata $outputMetadata ";
 		$cmd .= "--log_file $logFile ";
-		//$cmd .= " >> $logFile 2>&1";
 
 		return $cmd;
 	}
+
 
 	protected function setBashCmd_docker_EGA($tool)
 	{
@@ -1708,6 +1702,7 @@ EOF;
 						'_id'       => $fn,
 						'path' => $input_value,
 						'meta_data' => array(),
+						'sources'   => array(0)
 					);
 
 					if (isset($tool['input_files_public_dir'][$input_name]['data_type']) && is_array($tool['input_files_public_dir'][$input_name]['data_type'])) {
@@ -1800,96 +1795,33 @@ EOF;
 		return 1;
 	}
 
-	public function getSSHCred($vaultUrl, $accessToken, $vaultRolename, $username, $remote_dir, $siteId)
-	{
-		#retrieve the credential and update the site collection with it
-		$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-		$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-		$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
-		if ($credentials) {
-			$sshPrivateKey = $credentials['priv_key'];
-			$sshPublicKey = $credentials['pub_key'];
-			$sshUsername = $credentials['hpc_username'];
-			$sshId = $credentials['_id'];
-
-			// Set up the credentials array for the RemoteSSH class
-			$sshCredentials = [
-				'private_key' => $sshPrivateKey,
-				'public_key' => $sshPublicKey,
-				'username' => $sshUsername
-			];
-
-			// Retrieve site info from the sites collection
-			$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-			// Assuming the site document exists, update the launcher section with SSH credentials
-			if ($siteDocument) {
-				$siteDocument['launcher']['access_credentials']['username'] = $sshUsername;
-				$siteDocument['launcher']['access_credentials']['private_key'] = $sshPrivateKey;
-				$siteDocument['launcher']['access_credentials']['public_key'] = $sshPublicKey;
-				// Save the updated site document back to the collection
-				$updateResult = $GLOBALS['sitesCol']->updateOne(['_id' => $siteId], ['$set' => $siteDocument]);
-				$updatedSiteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-
-				return true;
-			} else {
-				return array('error' => 'Site document not found for site ID: ' . $siteId);
-			}
-		} else {
-			return array('error' => 'Failed to retrieve SSH credentials from Vault, not present.');
-		}
-	}
-
-
-	protected function setHPCRequest($cloudName, $tool, $username)
-	{
-		if ($cloudName == 'marenostrum') {
-			$vaultUrl = $GLOBALS['vaultUrl'];
-			$accessToken = $_SESSION['userToken']['access_token'];
-			$vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
-
-			//Get the credentials
-			$remoteSSH = $this->getSSHCred($vaultUrl, $accessToken, $vaultRolename, $username, null, $cloudName);
-			if (isset($remoteSSH['error'])) {
-				$_SESSION['errorData']['Internal Error'][] = "Failed to retrieve SSH credentials: " . $remoteSSH['error'];
-				return 0;
-			}
-
-			//Retrieve the launcher details
-			$launcherInfo = $this->getLauncher_Info($cloudName);
-			if (!$launcherInfo || empty($launcherInfo)) {
-				$_SESSION['errorData']['Internal Error'][] = "Cannot set tool command line. Launcher details are not available.";
-				return 0;
-			}
-
-			//Set Bash command for Slurm
-			$cmd = $this->setBashCmd_Slurm($tool, $metadata, $launcherInfo);
-			if (!$cmd) {
-				return 0;
-			}
-
-
-			return $cmd; //Return the command if everything is fine for MN
-		} else {
-			//For future HPC environments
-			$_SESSION['errorData']['Internal Error'][] = "Cloud environment '$cloudName' is not supported yet.";
-			return 0;
-		}
-	}
-
 
 	function getLauncher_Info($siteId)
 	{
-
-		// Retrieve tool document from the tools collection
 		$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
 		if (is_null($siteDocument)) {
 			return null;
 		}
 
+		return [
+			'site_id' => $siteDocument['_id'],
+			'name' => $siteDocument['name'],
+			'launcher' => $siteDocument['launcher']
+		];
+	}
+
+	public static function getLauncher_SlurmInfo($siteId)
+	{
+		$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
+		if (is_null($siteDocument)) {
+			return null;
+		}
+		$launcher = $siteDocument['launcher'] ?? [];
+
 		$launcherInfo = [
 			'site_id' => $siteDocument['_id'],
 			'queue_name' => $launcher['queue_name'] ?? 'default',
-        	'queue_p'    => $launcher['partition']  ?? '',
+			'queue_p'    => $launcher['partition']  ?? '',
 			'cpu_count'  => $launcher['cpu_count'] ?? 1,
 			'n_tasks'    => $launcher['n_tasks']   ?? 1,
 			'n_nodes'    => $launcher['n_nodes']   ?? 1,
@@ -1899,7 +1831,9 @@ EOF;
 			'username'    => $launcher['access_credentials']['username'] ?? null,
 			'job_manager' => $launcher['job_manager'] ?? 'Slurm_Singularity',
 		];
+		return $launcherInfo;
 	}
+
 
 	public function toDocument(): array
 	{

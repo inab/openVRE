@@ -25,10 +25,10 @@ class VaultClient
 	}
 
 
-	public function uploadFileToVault($system, $data)
+	public function uploadFileToVault(Site $site, $data)
 	{
-		$this->logger->info("Uploading file to $system Vault path");
-		$url = $this->url . "/" . $this->secretPath . $this->secretId . '/' . $system;
+		$this->logger->info("Uploading file to $site->value Vault path");
+		$url = $this->url . "/" . $this->secretPath . $this->secretId . '/' . $site->value;
 		$headers = [
 			'X-Vault-Token: ' . $this->token,
 			'Content-Type: application/json'
@@ -62,10 +62,10 @@ class VaultClient
 	}
 
 
-	public function retrieveDatafromVault($system)
+	public function retrieveDatafromVault(Site $site)
 	{
-		$this->logger->info("Retrieving $system data from Vault");
-		$url = $this->url . "/" . $this->secretPath . $this->secretId . '/' . $system;
+		$this->logger->info("Retrieving $site->value data from Vault");
+		$url = $this->url . "/" . $this->secretPath . $this->secretId . '/' . $site->value;
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -97,6 +97,6 @@ class VaultClient
 			throw new UnexpectedValueException('Error decoding JSON data: ' . json_last_error_msg());
 		}
 
-		return $response['data']['data'][$system];
+		return $response['data']['data'][$site->value];
 	}
 }

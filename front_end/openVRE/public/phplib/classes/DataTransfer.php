@@ -2,255 +2,189 @@
 
 namespace OpenVRE;
 
-use phpseclib3\Net\SSH2;
-use phpseclib3\Crypt\PublicKeyLoader;
-use OpenVRE\SSH\RemoteSSH;
-use OpenVRE\SSH\VaultClient;
 use MongoDB\BSON\UTCDateTime;
+use Monolog\Logger;
+use UnexpectedValueException;
 
-class DataTransfer {
+class DataTransfer
+{
+    private Logger $logger;
     private array $filesId;
-    private string $mode; // "async" or "sync"
-    private string $toolId;
-    private string $inputDirVirtual;
-    private string $workingDirPath; 
-    private string $execution;
-    private string $project;
-    private string $description;
-    private array $logs = [];
-    private array $movedFiles = [];
-    private array $siteList;
+    private string $workingDirPath;
     private array $arguments_exec;
-    private $sshCredentials;
-    private $tool;
     private $singularityImage = "";
 
     public function __construct(
         array $filesId,
-        string $mode,
         array $tool,
         string $workingDirPath,
-        string $execution = "",
-        array $arguments_exec = [],  
-        string $singularityImage = ""
-
+        array $arguments_exec = []
     ) {
+        $this->logger = LoggerFactory::getLogger('Data transfer interface');
         $this->filesId = $filesId;
-        $this->mode = $mode;
-        $this->toolId    = $tool['_id'];
         $this->workingDirPath = $workingDirPath;
-        $this->execution = $execution;
-        $this->arguments_exec = $arguments_exec; 
-        $this->tool = $tool;
-        $this->singularityImage = $tool['infrastructure']['singularity_image'];  
+        $this->arguments_exec = $arguments_exec;
+        $this->singularityImage = $tool['infrastructure']['singularity_image'];
     }
 
-    /**
-     * Calling functions to check the locations of file, and in case copy them to remote system. 
-     * Updating also their path in MongoDB.
-     *
-     * @return boolean
-     */
-    public function syncFiles(): array {
+
+    public function syncFiles(): array
+    {
         // Step 1: Get Data Locations
-
         $dataLocations = $this->getDataLocation();
+
         // Step 2: Check if there are no files to transfer
-        if ($dataLocations == 0) {
-            $_SESSION['errorData']['Info'][] ="No files to transfer.";
-            return []; 
-        } else {
-            $vaultUrl = $GLOBALS['vaultUrl'];
-            $accessToken = $_SESSION['User']['Token']['access_token'];
-            $vaultRolename = $_SESSION['User']['Vault']['vaultRolename'];
-            $vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-            $username = $_SESSION['User']['_id'];
-            $vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-            $sshCredentials = $vaultClient->getSSHcredentials($vaultUrl, $vaultKey);
-            if ($sshCredentials == 0) {
-                //$_SESSION['errorData']['Error'][] = "Error: Failed to retrieve SSH credentials from Vault.";
-                error_log("DEBUG: getSSHcredentials - failed to retrieve SSH credentials from Vault.");
-            return [];
-            }
-            
-            // Step 5: Create the rsync command using data locations
-            $localDir = preg_replace('#/+#', '/', $this->workingDirPath);
-            if (preg_match('#/shared_data/userdata/([^/]+/[^/]+)/#', $localDir, $matches)) {
-                $userProjPath = '/shared_data/userdata/' . $matches[1]; // Result: PROJECTUSER68245281ad3ee/__PROJ68245281ad3f03.79906233
-            } else {
-                throw new Exception("Invalid working directory format: $localDir");
-            }
-            error_log("DEBUG: syncFiles - localDir: $localDir");
-            error_log("DEBUG: syncFiles - workingDirPath: " . $this->workingDirPath);
-            error_log("DEBUG: syncFiles - userProjPath: $userProjPath");
-
-            $remoteSSH = new RemoteSSH($sshCredentials);
-            list($updatedDataLocations, $syncCommand) = $remoteSSH->prepareSyncCommand($dataLocations, $sshCredentials, $userProjPath);
-
-            if (empty($syncCommand)) {
-                $_SESSION['errorData']['Info'][] = "Error: Failed to generate rsync command.";
-                error_log("DEBUG: prepareSyncCommand - failed to generate rsync command.");
-                return []; 
-            }
-            foreach ($updatedDataLocations as $file) {
-                // Example: Use the updated data locations
-                // For instance, logging the updated remote path
-                //$_SESSION['errorData']['Info'][] = "File {$file['filename']} will be transferred to {$file['remote_path']}";
-            }
-            // o return de syncommand o añadir al object $dataTransfer
-            // ASYNC or SYNC 
-            error_log("DEBUG: Updated data locations: " . json_encode($updatedDataLocations));
-            // Step 6: Execute the rsync command using SSH credentials        
-            $rsyncResult = $remoteSSH->executeRsyncCommand($sshCredentials, $syncCommand, $updatedDataLocations, $userProjPath);
-
-            if ($rsyncResult === true){
-                $mongoUpdate = $this->registerMongoTransferredFile($updatedDataLocations);
-                if ($mongoUpdate === true) {
-                    foreach ($updatedDataLocations as $file) {
-                        error_log("DEBUG: File {$file['filename']} new location registered to {$file['remote_path']}/{$file['filename']}");
-                    }
-                } else { 
-                    $_SESSION['errorData']['Error'][] = "Something went wrong with the MongoUpdate for the file new location.";
-                    return [];
-                }
-            } else {
-                $_SESSION['errorData']['Error'][] = "Something went wrong with the Rsync, can't move files to remote location.";
-                error_log("DEBUG: executeRsyncCommand - something went wrong with the Rsync, can't move files to remote location.");
-                return [];
-            }
+        if (empty($dataLocations)) {
+            $this->logger->info("No files to transfer.");
+            throw new UnexpectedValueException("No files to transfer.");
         }
-        return $updatedDataLocations;     
-   
+
+        $vaultClient = VaultClientFactory::create();
+        $sshCredentials = $vaultClient->retrieveDatafromVault(Site::SSH);
+
+        // Step 5: Create the rsync command using data locations
+        $localDir = preg_replace('#/+#', '/', $this->workingDirPath);
+        if (preg_match('#/shared_data/userdata/([^/]+/[^/]+)/#', $localDir, $matches)) {
+            $userProjPath = '/shared_data/userdata/' . $matches[1];
+        } else {
+            $this->logger->error("Invalid working directory format: $localDir");
+            throw new UnexpectedValueException("Invalid working directory format: $localDir");
+        }
+
+        $this->logger->debug("syncFiles - localDir: $localDir");
+        $this->logger->debug("syncFiles - workingDirPath: " . $this->workingDirPath);
+        $this->logger->debug("syncFiles - userProjPath: $userProjPath");
+
+        $remoteSSH = new RemoteSSH();
+        list($updatedDataLocations, $syncCommand) = $remoteSSH->prepareSyncCommand($dataLocations, $sshCredentials, $userProjPath);
+
+        // Step 6: Execute the rsync command using SSH credentials
+        $remoteSSH->executeRsyncCommand($sshCredentials, $syncCommand, $updatedDataLocations, $userProjPath);
+        $mongoUpdate = $this->registerMongoTransferredFile($updatedDataLocations);
+        if (!$mongoUpdate) {
+            $this->logger->error("Something went wrong with the MongoUpdate for the file new location.");
+            throw new UnexpectedValueException("Something went wrong with the MongoUpdate for the file new location.");
+        }
+
+        foreach ($updatedDataLocations as $file) {
+            $this->logger->info("File {$file['filename']} new location registered to {$file['remote_path']}/{$file['filename']}");
+        }
+
+        $this->logger->info("Rsync command executed successfully.");
+
+        return $updatedDataLocations;
     }
 
 
     public function syncWorkingDir(): bool
-{
-    error_log("DEBUG: syncWorkingDir - starting to sync local dir: " . $this->workingDirPath);
-    // Step 1: Define local working directory
-    //$localDir = $this->workingDirPath; // e.g., /shared_data/userdata/USER/__PROJxxx/run006
-    $localDir = preg_replace('#/+#', '/', $this->workingDirPath); 
-    $runId = basename($localDir);   // e.g., run006
-    
-    if (!is_dir($localDir)) {
-        $_SESSION['errorData']['Error'][] = "Local working directory does not exist: $localDir";
-        error_log("DEBUG: syncWorkingDir - local working directory does not exist: $localDir");
-        return false;
-    }
-    //get proj and projuser
+    {
+        $this->logger->debug("syncWorkingDir - starting to sync local dir: " . $this->workingDirPath);
 
-    if (preg_match('#/shared_data/userdata/([^/]+/[^/]+)/#', $localDir, $matches)) {
-        $userProjPath = $matches[1]; // Result: PROJECTUSER68245281ad3ee/__PROJ68245281ad3f03.79906233
-    } else {
-        $_SESSION['errorData']['Error'][] = "Invalid working directory format: $localDir";
-        throw new Exception();
-    }
-    error_log("DEBUG: syncWorkingDir - preparing to sync local dir $localDir to remote MN system...");
-    // Step 2: Get SSH credentials from Vault
-    $vaultUrl     = $_SESSION['userVaultInfo']['vaultUrl'];
-    $accessToken  = $_SESSION['userToken']['access_token'];
-    $vaultRolename = $_SESSION['userVaultInfo']['vaultRolename'];
-    $username     = $_SESSION['User']['_id'];
-    $vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-    $vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-    $sshCredentials = $vaultClient->getSSHcredentials($vaultUrl, $vaultKey);
-    if ($sshCredentials === 0) {
-        $_SESSION['errorData']['Error'][] = "Failed to get SSH credentials from Vault.";
-        error_log("DEBUG: syncWorkingDir - failed to get SSH credentials from Vault.");
-        return false;
-    }
-    $siteList = $this->arguments_exec['site_list'] ?? [];
-    if (!is_array($siteList) || empty($siteList)) {
-        $_SESSION['errorData']['Error'][] = "No valid site list provided in arguments_exec.";
-        error_log("DEBUG: syncWorkingDir - no valid site list provided in arguments_exec.");
-        return 0;
-    }
-    // Determine the site (prefer 'local' if present, otherwise use first site in list)
-    $site = explode('_', (in_array('local', $siteList ?? [], true) ? 'local' : ($siteList[0] ?? 'unknown')), 2)[0];
-    $siteDetails = $this->getSiteDetailsFromMongoDB($site);
-    if (empty($siteDetails)) {
-        error_log("DEBUG: syncWorkingDir - site '{$site}' not found in MongoDB collection!");
-        return 0;
-    }   
-    $rootRemotePath = $siteDetails['root_path'];
-    $server =  $siteDetails['server'];
-    if (empty($rootRemotePath) || empty($server)) {
-        $_SESSION['errorData']['Error'][] = "Sync not possible - missing root remote path or server for site '{$site}'";
-        throw new Exception();
+        // Step 1: Define local working directory
+        $localDir = preg_replace('#/+#', '/', $this->workingDirPath);
+        $runId = basename($localDir);
+
+        if (!is_dir($localDir)) {
+            $this->logger->error("Local working directory does not exist: $localDir");
+            throw new UnexpectedValueException("Local working directory does not exist: $localDir");
+        }
+
+        if (preg_match('#/shared_data/userdata/([^/]+/[^/]+)/#', $localDir, $matches)) {
+            $userProjPath = $matches[1];
+        } else {
+            $this->logger->error("Invalid working directory format: $localDir");
+            throw new UnexpectedValueException("Invalid working directory format: $localDir");
+        }
+
+        $this->logger->debug("syncWorkingDir - localDir: $localDir");
+
+        // Step 2: Get SSH credentials from Vault
+        $vaultClient = VaultClientFactory::create();
+        $sshCredentials = $vaultClient->retrieveDatafromVault(Site::SSH);
+        $siteList = $this->arguments_exec['site_list'] ?? [];
+        if (!is_array($siteList) || empty($siteList)) {
+            $this->logger->error("No valid site list provided in arguments_exec.");
+            throw new UnexpectedValueException("No valid site list provided in arguments_exec.");
+        }
+
+        // Determine the site (prefer 'local' if present, otherwise use first site in list)
+        $site = explode('_', (in_array('local', $siteList ?? [], true) ? 'local' : ($siteList[0] ?? 'unknown')), 2)[0];
+        $siteDetails = $this->getSiteDetailsFromMongoDB($site);
+        $rootRemotePath = $siteDetails['root_path'];
+        $server =  $siteDetails['server'];
+        $remoteUploadPath = $this->constructingDestinationDir_MN($rootRemotePath, $sshCredentials['username']);
+        error_log("DEBUG: syncWorkingDir - remoteUploadPath: $remoteUploadPath");
+        $remoteRunPath = rtrim($remoteUploadPath, "/") . "/$userProjPath" . "/$runId";
+        // Step 4: Rsync full working directory to remote
+        $remoteSSH = new RemoteSSH($sshCredentials);
+        $singularityImagePath = ($this->singularityImage !== null) ? $remoteUploadPath . "/../public/" . $this->singularityImage : null;
+        $rsyncSuccess = $remoteSSH->executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteRunPath, $server, $singularityImagePath, $mode = "upload");
+        if ($rsyncSuccess === true) {
+            error_log("DEBUG: syncWorkingDir - successfully synced $runId to remote path: $remoteRunPath");
+            return true;
+        } else {
+            error_log("DEBUG: syncWorkingDir - failed syncing $runId to remote path: $remoteRunPath");
+            return false;
+        }
     }
 
-    $remoteUploadPath = $this->constructingDestinationDir_MN($rootRemotePath, $sshCredentials['username']);
-    error_log("DEBUG: syncWorkingDir - remoteUploadPath: $remoteUploadPath");
-    $remoteRunPath = rtrim($remoteUploadPath, "/") . "/$userProjPath" . "/$runId";
-    // Step 4: Rsync full working directory to remote
-    $remoteSSH = new RemoteSSH($sshCredentials);
-    $singularityImagePath = ($this->singularityImage !== null) ? $remoteUploadPath . "/../public/" . $this->singularityImage : null;
-    $rsyncSuccess = $remoteSSH->executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteRunPath, $server, $singularityImagePath, $mode = "upload");
-    if ($rsyncSuccess === true) {
-        error_log("DEBUG: syncWorkingDir - successfully synced $runId to remote path: $remoteRunPath");
-        return true;
-    } else {
-        error_log("DEBUG: syncWorkingDir - failed syncing $runId to remote path: $remoteRunPath");
-        return false;
-    }
-}
 
-    
     /**
      * Get data locations, combining the base directory and file paths.
      *
      * @return array|int Returns an array of paths if conditions are met, otherwise returns 0.
      */
     public function getDataLocation(): array
-{
-    $dataLocations = [];
-    // Assuming you want to use $workingDirPath and $inputDirVirtual to compute the absolute path
-    $workingDirPath = $this->workingDirPath ?? '';  // Get the working directory (you might need to pass this from the constructor)
-    // Loop through files and resolve their absolute paths
-    foreach ($this->filesId as $fileId => $fileData) {
-        // Combine baseDir with file's relative path to form the full path
-        $fullPath = $this->generateFinalPath($workingDirPath, $fileData['path'] );
-        $absolutePath = realpath($fullPath);
-        if ($absolutePath === false) {
-            $_SESSION['errorData']['Info'][] = "realpath() failed: File does not exist or invalid path.";
-            return 0;
-        } else {
+    {
+        $dataLocations = [];
+        // Loop through files and resolve their absolute paths
+        foreach ($this->filesId as $fileId => $fileData) {
+            // Combine baseDir with file's relative path to form the full path
+            $fullPath = $this->generateFinalPath($fileData['path']);
+            $absolutePath = realpath($fullPath);
+            if ($absolutePath === false) {
+                $this->logger->error("realpath() failed: File does not exist or invalid path.");
+                throw new UnexpectedValueException("realpath() failed: File does not exist or invalid path.");
+            }
+
+            // Get the site (using the first element of site_list or 'local')
+            $siteList = $this->arguments_exec['site_list'] ?? [];
+            if (!is_array($siteList) || empty($siteList)) {
+                $this->logger->error("No valid site list provided in arguments_exec.");
+                throw new UnexpectedValueException("No valid site list provided in arguments_exec.");
+            }
+
+            // Determine the site (prefer 'local' if present, otherwise use first site in list)
+            $site = explode('_', (in_array('local', $siteList ?? [], true) ? 'local' : ($siteList[0] ?? 'unknown')), 2)[0];
+            $siteDetails = $this->getSiteDetailsFromMongoDB($site);
+
+            if ($site === 'local') {
+                return [];
+            }
+
+            // Append file information to the dataLocations array
+            $dataLocations[] = [
+                '_id' => $fileId,
+                'filename' => basename($absolutePath), // Extract just the filename from the absolute path
+                'site' => $site,
+                'absolute_path' => $absolutePath,
+                'file_type' => is_dir($absolutePath) ? 'directory' : 'file',
+                'site_details' => $siteDetails
+            ];
         }
-        // Get the site (using the first element of site_list or 'local')
-        $siteList = $this->arguments_exec['site_list'] ?? [];
-        if (!is_array($siteList) || empty($siteList)) {
-            $_SESSION['errorData']['Error'][] = "No valid site list provided in arguments_exec.";
-            return [];
-        }
-        // Determine the site (prefer 'local' if present, otherwise use first site in list)
-        //$site = in_array('local', $siteList, true) ? 'local' : $siteList[0];
-        $site = explode('_', (in_array('local', $siteList ?? [], true) ? 'local' : ($siteList[0] ?? 'unknown')), 2)[0];
-        $siteDetails = $this->getSiteDetailsFromMongoDB($site);
-        if (empty($siteDetails)) {
-            return [];
-        }   
-        if ($site === 'local') {
-            return []; 
-        }
-        // Append file information to the dataLocations array
-        $dataLocations[] = [
-            '_id' => $fileId, 
-            'filename' => basename($absolutePath), // Extract just the filename from the absolute path
-            'site' => $site,
-            'absolute_path' => $absolutePath,
-            'file_type' => is_dir($absolutePath) ? 'directory' : 'file',
-            'site_details' => $siteDetails
-        ];
+
+        return $dataLocations;
     }
-    return $dataLocations;
-}
+
 
     public function getSiteDetailsFromMongoDB(string $site): array
     {
         $result = $GLOBALS['sitesCol']->findOne(['_id' => $site]);
-        if (!$result) {
-            return false;
+        if (empty($result)) {
+            $this->logger->error("Site document not found for site ID: $site");
+            throw new UnexpectedValueException("Site document not found for site ID: $site");
         }
+
         return [
             'name' => $result['name'] ?? null,
             'server' => $result['launcher']['access_credentials']['server'] ?? null,
@@ -259,24 +193,21 @@ class DataTransfer {
             'container' => $result['launcher']['container'] ?? null
         ];
     }
-    
 
-    public function registerMongoTransferredFile($updatedDataLocations)
+
+    public function registerMongoTransferredFile($updatedDataLocations): bool
     {
         $allFilesProcessed = true;
-    
         foreach ($updatedDataLocations as $file) {
-    
             $fileId = $file['_id'];
             $location = $file['site'] ?? null;
-            $date = new MongoDB\BSON\UTCDateTime();
+            $date = new UTCDateTime();
             $size = file_exists($file['absolute_path']) ? filesize($file['absolute_path']) : null;
             $remotePath = $file['remote_path'] . "/" . $file['filename'];
-    
             $fileMongo = $GLOBALS['filesCol']->findOne(['_id' => $fileId]);
-    
+
             // If no document exists → create a new one with remote_paths array
-            if (!$fileMongo) {
+            if (empty($fileMongo)) {
                 $insertData = [
                     '_id' => $fileId,
                     'remote_paths' => [[
@@ -289,14 +220,14 @@ class DataTransfer {
                 $GLOBALS['filesCol']->insertOne($insertData);
                 continue;
             }
-    
+
             // Build new array (always rewritten)
             $newRemotePaths = [];
             $found = false;
-    
+
             if (isset($fileMongo['remote_paths'])) {
                 foreach ($fileMongo['remote_paths'] as $rp) {
-    
+
                     if ($rp['remote_path'] === $remotePath) {
                         // FOUND: update this entry
                         $rp['location'] = $location;
@@ -304,12 +235,12 @@ class DataTransfer {
                         $rp['size']     = $size;
                         $found = true;
                     }
-    
+
                     // Always copy existing entry (updated or not)
                     $newRemotePaths[] = $rp;
                 }
             }
-    
+
             // If NOT found → append NEW entry
             if (!$found) {
                 $newRemotePaths[] = [
@@ -319,65 +250,27 @@ class DataTransfer {
                     'size'        => $size
                 ];
             }
-    
+
             // Now always rewrite the array
             $updateResult = $GLOBALS['filesCol']->updateOne(
                 ['_id' => $fileId],
                 ['$set' => ['remote_paths' => $newRemotePaths]]
             );
-    
+
             if ($updateResult->getModifiedCount() == 0) {
-                error_log("WARNING: No update performed for _id: $fileId");
+                $this->logger->warning("No update performed for _id: $fileId");
                 $allFilesProcessed = false;
             }
-            switch ($location) {
-
-                case "swift":
-                    if ($local_file_path) {
-                        //	$credentials= $this->handleSwiftCase($accessToken, $vaultClient, $vaultKey);
-                        //	var_dump($credentials);
-                        //return $credentials;
-                        //$dest = $this->handleSwiftPathFile($credentials, $file_path, $this->root_dir_df, $this->http_host);
-                        //if ($dest == 0) {
-                        $_SESSION['errorData']['Warning'][] = "Files have been copied from Swift to run the Tool locally";
-                        //} else if ($dest == 1) {
-                        //	$_SESSION['errorData']['Warning'][] = "Files have been copied from Swift to run the Tool locally.";
-
-                    } else {
-                        $_SESSION['errorData']['Warning'][] = "Files are not available locally, check the Catalogue session to download them.";
-                        $credentials = $this->handleSwiftCase($vaultClient, $vaultKey);
-                    }
-                    break;
-                case "MN":
-                    $credentials = $this->handleSSHCase($vaultClient);
-                    var_dump($credentials);
-                    print $this->http_host;
-                    $dest = $this->handleSSHPathFile($credentials, $file_path, $this->root_dir_df, $this->http_host);
-                    if ($dest == 0) {
-                        $_SESSION['errorData']['Warning'][] = "MareNostrum doesn't need file transfer, continuing.";
-                    } else if ($dest == 1) {
-                        $_SESSION['errorData']['Warning'][] = "Files have been copied to run the Tool in MareNostrum.";
-                    }
-                    break;
-                case "others":
-                    break;
-
-                default:
-                    break;
-            }
-        } else {
-            return  0;
-            //$_SESSION['errorData']['Error'][] = "Access Token is missing or empty.";
         }
-    
+
         return $allFilesProcessed;
     }
 
 
-    private function generateFinalPath($workingDir, $originalPath)
+    private function generateFinalPath($originalPath)
     {
         // Normalize paths: Remove trailing slashes from the working directory
-        $workingDir = rtrim($workingDir, DIRECTORY_SEPARATOR);
+        $workingDir = rtrim($this->workingDirPath, DIRECTORY_SEPARATOR);
         // Ensure originalPath is relative to the base folder (remove extra directories like 'runXXX')
         $originalPath = ltrim($originalPath, DIRECTORY_SEPARATOR);
         // Strip 'runXXX' part from workingDir
@@ -387,53 +280,38 @@ class DataTransfer {
         array_pop($workingDirParts);
         // Rebuild the base directory without the 'runXXX' part
         $baseDirWithoutRun = implode(DIRECTORY_SEPARATOR, $workingDirParts);
-        // Combine the cleaned baseDir with the 'uploads' directory and the file name
-        $pathParts = explode(DIRECTORY_SEPARATOR, $originalPath);
         // Extract the original file name with its extension
         $pathInfo = pathinfo($originalPath);
         // Get the original file name with its extension (no change to the extension)
         $finalFileName = $pathInfo['basename'];  // Keeps the original file extension
+
         // Construct the final path without 'runXXX' part, keeping the original extension
-        $finalPath = $baseDirWithoutRun . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $finalFileName;
-        return $finalPath;
+        return $baseDirWithoutRun . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $finalFileName;
     }
 
-   
-    public static function constructingDestinationDir_MN ( string $rootPath, string $username, string $filename = '') {
 
+    public static function constructingDestinationDir_MN(string $rootPath, string $username)
+    {
         //Constructing MN Path
         // Taking the numeric part from Username
         $numericPart = substr($username, 3);
         $numericPartWithoutZero = ltrim($numericPart, '0'); // To adjust to old path of MN4 still maintained in MN5
         $dynamicDir1 = substr($numericPartWithoutZero, 0, 2);
         $dynamicDir2 = substr($numericPartWithoutZero, 0, 5);
-        // Now construct the full destination path dynamically
-        if (empty($filename)) {
-            $destinationPath = "{$rootPath}bsc{$dynamicDir1}/MN4/bsc{$dynamicDir1}/bsc{$dynamicDir2}/shared_data/userdata";
-        } else {
-            $destinationPath = "{$rootPath}bsc{$dynamicDir1}/MN4/bsc{$dynamicDir1}/bsc{$dynamicDir2}/shared_data/userdata";
-        }
-        return $destinationPath;
 
+        return "{$rootPath}bsc{$dynamicDir1}/MN4/bsc{$dynamicDir1}/bsc{$dynamicDir2}/shared_data/userdata";
     }
-    public static function synchronizeDestinationDir_MN ( string $rootPath, string $username, string $filename = '') {
 
+
+    public static function synchronizeDestinationDir_MN(string $rootPath, string $username)
+    {
         //Constructing MN Path
         // Taking the numeric part from Username
         $numericPart = substr($username, 3);
         $numericPartWithoutZero = ltrim($numericPart, '0'); // To adjust to old path of MN4 still maintained in MN5
         $dynamicDir1 = substr($numericPartWithoutZero, 0, 2);
         $dynamicDir2 = substr($numericPartWithoutZero, 0, 5);
-        // Now construct the full destination path dynamically
-        if (empty($filename)) {
-            $destinationPath = "{$rootPath}bsc{$dynamicDir1}/MN4/bsc{$dynamicDir1}/bsc{$dynamicDir2}";
-        } else {
-            $destinationPath = "{$rootPath}bsc{$dynamicDir1}/MN4/bsc{$dynamicDir1}/bsc{$dynamicDir2}";
-        }
-        return $destinationPath;
 
+        return "{$rootPath}bsc{$dynamicDir1}/MN4/bsc{$dynamicDir1}/bsc{$dynamicDir2}";
     }
-        
-    }
-
-
+}

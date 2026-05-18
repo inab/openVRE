@@ -3,6 +3,7 @@
 use OpenVRE\LoggerFactory;
 use OpenVRE\NotFoundException;
 use OpenVRE\ProcessSGE;
+use OpenVRE\ProcessSlurm;
 
 
 function getJobProcessLogger()
@@ -82,8 +83,6 @@ function getRunningJobInfo($pid, $launcherType = null)
     if (is_null($launcherType) && is_numeric($pid)) {
         $launcherType = "SGE";
     }
-
-    logger("getRunningJobInfo: launcherType = $launcherType");
 
     if (!in_array($launcherType, array("SGE", "docker_SGE", "Slurm_Singularity"))) {
         getJobProcessLogger()->error("Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.");

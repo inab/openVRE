@@ -109,7 +109,6 @@ foreach ($files as $fnId => $file) {
 
 	if (!is_file($rfn)) {
 		$logger->info("File '" . basename($fn) . "' is not found or has size zero.");
-		$jobData = new DataTransfer($tool, $filesId, $_REQUEST['execution'], $_REQUEST['project'], $_REQUEST['description']);
 	}
 }
 
@@ -140,10 +139,8 @@ if ($doSync) {
 	if (in_array(Site::MareNostrum->value, $siteList)) {
 		$dataMeta = new DataTransfer(
 			$files,
-			'async',
 			$tool,
 			$jobMeta->working_dir,
-			$_REQUEST['execution'],
 			$_REQUEST['arguments_exec']
 		);
 		$dataLocations = $dataMeta->syncFiles();

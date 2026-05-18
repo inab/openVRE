@@ -6,7 +6,8 @@ namespace OpenVRE;
 enum Site: string
 {
     case SSH = "SSH";
-    case objectStorage = "objectStorage";
+    case Swift = "Swift";
     case EGA = "EGA";
     case MareNostrum = "MareNostrum";
+    case 
 }

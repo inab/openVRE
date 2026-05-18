@@ -2,6 +2,7 @@
 
 use OpenVRE\LoggerFactory;
 use OpenVRE\RemoteSSH;
+use OpenVRE\Site;
 use OpenVRE\SwiftClient;
 use OpenVRE\VaultClientFactory;
 
@@ -18,73 +19,18 @@ function getObjectStorageLogger()
 }
 
 
-function getOpenstackUser()
-{
-	$vaultClient = VaultClientFactory::create();
-
-	$credentials = $vaultClient->retrieveDatafromVault('Swift');
-	if ($credentials) {
-		$appId = $credentials['app_id'];
-		$appSecret = $credentials['app_secret'];
-		$projectName = $credentials['projectName'];
-		$userDomainName = $credentials['domainName'];
-		$projectDomainName = $credentials['projectId'];
-
-	$swiftClient = new SwiftClient(
-		$appId,
-		$appSecret,
-		$projectName,
-		$userDomainName,
-		$projectDomainName,
-		'public',
-		'https://ncloud.bsc.es:5000/v3/'
-	);
-	$lista = $swiftClient->runList();
-	echo json_encode([
-		'status'  => 'success',
-		'message' => 'Swift client initialized successfully.',
-		'data'    => $lista
-	]);
-	exit;
-    } catch (Throwable $e) {
-        http_response_code(500);
-        echo json_encode([
-            'error' => 'Failed to initialize Swift client: ' . $e->getMessage()
-        ]);
-        exit;
-	}
-}
-
-
 function getSwiftClient()
 {
-
-	$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-	$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-	$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'Swift');
-
-		if (empty($credentials) || !isset($credentials['app_id'], $credentials['app_secret'], $credentials['projectName'])) {
-			http_response_code(400);
-			echo json_encode([
-				'error' => "No valid Swift credentials found in the Vault for user: $username"
-			]);
-			exit;
-		}
+	try {
+		$vaultClient = VaultClientFactory::create();
+		$credentials = $vaultClient->retrieveDatafromVault(Site::Swift);
 
 		$appId = $credentials['app_id'];
 		$appSecret = $credentials['app_secret'];
-		$projectName = $credentials['projectName'];
-		$userDomainName = $credentials['domainName'] ?? 'default';
-		$projectDomainName = $credentials['projectId'] ?? 'default';
 
 		$swiftClient = new SwiftClient(
 			$appId,
-			$appSecret,
-			$projectName,
-			$userDomainName,
-			$projectDomainName,
-			'public',
-			'https://ncloud.bsc.es:5000/v3/'
+			$appSecret
 		);
 		return $swiftClient;
 	} catch (Throwable $e) {
@@ -105,34 +51,32 @@ function getSSHClient($remote_dir, $siteId)
 			throw new Exception('Missing Vault key for user: ' . $username);
 		}
 
-	$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
-	$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
-	$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
-	
-	if ($credentials) {
-		$sshPrivateKey = $credentials['private_key'];
-		$sshPublicKey = $credentials['public_key'];
-		$sshUsername = $credentials['username'];
-		$sshId = $credentials['_id'];
-		
-		// Set up the credentials array for the RemoteSSH class
-		$sshCredentials = [
-			'private_key' => $sshPrivateKey,
-			'public_key' => $sshPublicKey,
-			'username' => $sshUsername
-		];
-		
-		// Retrieve site info from the sites collection
-		$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
-		
-		if (!$siteDocument) {
-			throw new Exception('Site document not found for site ID: ' . $siteId);
-		}
-		
-		// Initialize the SSH client with retrieved credentials and site details
-		$remoteSSH = new RemoteSSH($sshCredentials, $remote_dir, 22, $siteDocument['launcher']['http_server']);
-		return $remoteSSH;
+		$vaultClient = new VaultClient($vaultUrl, $accessToken, $vaultRolename, $username);
+		$vaultKey = $_SESSION['userVaultInfo']['vaultKey'];
+		$credentials = $vaultClient->retrieveDatafromVault($vaultKey, $vaultUrl, $GLOBALS['secretPath'], $_SESSION['User']['secretsId'], 'SSH');
 
+		if ($credentials) {
+			$sshPrivateKey = $credentials['private_key'];
+			$sshUsername = $credentials['username'];
+			$sshId = $credentials['_id'];
+
+			// Set up the credentials array for the RemoteSSH class
+			$sshCredentials = [
+				'private_key' => $sshPrivateKey,
+				'username' => $sshUsername
+			];
+
+			// Retrieve site info from the sites collection
+			$siteDocument = $GLOBALS['sitesCol']->findOne(['_id' => $siteId]);
+
+			if (!$siteDocument) {
+				throw new Exception('Site document not found for site ID: ' . $siteId);
+			}
+
+			// Initialize the SSH client with retrieved credentials and site details
+			$remoteSSH = new RemoteSSH($sshCredentials, $remote_dir, 22, $siteDocument['launcher']['http_server']);
+			return $remoteSSH;
+		}
 	} catch (Throwable $e) {
 		http_response_code(500);
 		echo json_encode([

@@ -157,7 +157,6 @@ require "../htmlib/header.inc.php"; ?>
                                         $siteName = htmlspecialchars($site['name']);
                                         $siteAcronym = isset($site['sigla']) ? htmlspecialchars($site['sigla']) : 'N/A';
                                         $privKey = isset($site['launcher']['access_credentials']['private_key']) ? htmlspecialchars($site['launcher']['access_credentials']['private_key']) : '';
-                                        $pubKey = isset($site['launcher']['access_credentials']['public_key']) ? htmlspecialchars($site['launcher']['access_credentials']['public_key']) : '';
                                         $userKey = isset($site['launcher']['access_credentials']['user_key']) ? htmlspecialchars($site['launcher']['access_credentials']['user_key']) : '';
                                     }
                                 } else {
@@ -165,7 +164,6 @@ require "../htmlib/header.inc.php"; ?>
                                     echo "No valid site ID provided.";
                                     exit;
                                 }
-                                //echo generateSSHForm($siteId);
                             }
 
     ?>
@@ -205,14 +203,6 @@ require "../htmlib/header.inc.php"; ?>
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="control-label">Public Key</label>
-                                    <input type="text" name="public_key" id="public_key" class="form-control" value="<?php echo $pubKey; ?>">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="form-group">
                                     <label class="control-label">HPC Account Username</label>
                                     <input type="text" name="user_key" id="user_key" class="form-control" value="<?php echo $userKey; ?>">
                                 </div>
@@ -220,21 +210,21 @@ require "../htmlib/header.inc.php"; ?>
                         </div>
 
 
-                    <!-- Submit and action buttons -->
-                    <div class="col-md-12 text-right">
-			            <input type="hidden" name="save_credential" id="save_credential" value="false">
-			            <input type="hidden" name="site_id" value="<?php echo htmlspecialchars($siteId); ?>">
-                        <!-- <button type="submit" onclick="document.getElementById('save_credential').value=true" class="btn blue">
+                        <!-- Submit and action buttons -->
+                        <div class="col-md-12 text-right">
+                            <input type="hidden" name="save_credential" id="save_credential" value="false">
+                            <input type="hidden" name="site_id" value="<?php echo htmlspecialchars($siteId); ?>">
+                            <!-- <button type="submit" onclick="document.getElementById('save_credential').value=true" class="btn blue">
                             <i class="fa fa-check"></i> Accept
-                        </button> --> 
-                        <button type="submit" name="submitOption" value="clearAccount" href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=SSH&action=delete&site_id=<?php echo $siteId; ?>" class="btn" style="background-color: white">
-                            <i class="fa fa-plus"></i> &nbsp; Clear account
-                        </button>
-                        <button type="submit" name="submitOption" value="updateAccount" href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=SSH&action=update&site_id=<?php echo $siteId; ?>" class="btn" style="background-color: #d4d4d4">
-                            <i class="fa fa-plus"></i> &nbsp; Update account
-                        </button>
+                        </button> -->
+                            <button type="submit" name="submitOption" value="clearAccount" href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=SSH&action=delete&site_id=<?php echo $siteId; ?>" class="btn" style="background-color: white">
+                                <i class="fa fa-plus"></i> &nbsp; Clear account
+                            </button>
+                            <button type="submit" name="submitOption" value="updateAccount" href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=SSH&action=update&site_id=<?php echo $siteId; ?>" class="btn" style="background-color: #d4d4d4">
+                                <i class="fa fa-plus"></i> &nbsp; Update account
+                            </button>
+                        </div>
                     </div>
-                </div>
 
                     <h4>Generate SSH Key Pair</h4>
                     <p>If you have a user account for 'High Performance Computer', create a new SSH Key Pair to enable VRE access to it.</p>
