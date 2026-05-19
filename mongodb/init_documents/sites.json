@@ -10,7 +10,7 @@
         }
     },
     {
-        "_id": "marenostrum",
+        "_id": "MareNostrum",
         "name": "MareNostrum HPC Infrastructure",
         "type": 2,
         "launcher": {
@@ -20,7 +20,7 @@
             "username": null,
             "private_key": null,
             "public_key": null,
-            "server": "glogin1",
+            "server": "glogin1.bsc.es",
             "rootpath_default": "",
             "domain": ""
           },
