@@ -109,7 +109,7 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 		} elseif (isset($postData["save_credential"]) && $postData["save_credential"] == "true") {
 			$data['data']['SSH'] = [];
 			$data['data']['SSH']['private_key'] = $postData['private_key'];
-			$data['data']['SSH']['user_key'] = $postData['user_key'];
+			$data['data']['SSH']['username'] = $postData['username'];
 			$data['data']['SSH']['_id'] = $userId;
 			$_SESSION['User']['credentials'] = [
 				'timestamp' => time()  // Only store the timestamp
@@ -126,7 +126,7 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 		if (!empty($postData['private_key'])) {
 			$data['data']['SSH'] = [];
 			$data['data']['SSH']['private_key'] = $postData['private_key'];
-			$data['data']['SSH']['user_key'] = $postData['user_key'];
+			$data['data']['SSH']['username'] = $postData['username'];
 			$data['data']['SSH']['_id'] = $userId;
 			$_SESSION['User']['credentials'] = [
 				'timestamp' => time()  // Only store the timestamp
@@ -142,7 +142,7 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 		$data = [];
 		if (isset($postData['private_key'])) {
 			$postData['private_key'] = null;
-			$postData['user_key'] = null;
+			$postData['username'] = null;
 		}
 		$postData['timestamp'] = null;
 		$userId = null;
@@ -169,12 +169,12 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 		handleInvalidAction();
 	}
 
-	if (empty($postData['user_key'])) {
+	if (empty($postData['username'])) {
 		getLinkedAccountLogger()->error("Error: 'username' is missing in postData.");
 		throw new UnexpectedValueException("Username is required.");
 	}
 
-	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
+	$postData['username'] = $postData['username'] . '_' . $site_id;
 	$privateKey = $data['data']['SSH']['private_key'];
 
 	if (!validateOpenSSHPrivateKey($privateKey)) {

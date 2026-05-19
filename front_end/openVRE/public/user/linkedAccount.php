@@ -157,7 +157,7 @@ require "../htmlib/header.inc.php"; ?>
                                         $siteName = htmlspecialchars($site['name']);
                                         $siteAcronym = isset($site['sigla']) ? htmlspecialchars($site['sigla']) : 'N/A';
                                         $privKey = isset($site['launcher']['access_credentials']['private_key']) ? htmlspecialchars($site['launcher']['access_credentials']['private_key']) : '';
-                                        $userKey = isset($site['launcher']['access_credentials']['user_key']) ? htmlspecialchars($site['launcher']['access_credentials']['user_key']) : '';
+                                        $userKey = isset($site['launcher']['access_credentials']['username']) ? htmlspecialchars($site['launcher']['access_credentials']['username']) : '';
                                     }
                                 } else {
                                     // If no site_id is passed or site not found, handle this error accordingly
@@ -204,7 +204,7 @@ require "../htmlib/header.inc.php"; ?>
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="control-label">HPC Account Username</label>
-                                    <input type="text" name="user_key" id="user_key" class="form-control" value="<?php echo $userKey; ?>">
+                                    <input type="text" name="username" id="username" class="form-control" value="<?php echo $userKey; ?>">
                                 </div>
                             </div>
                         </div>

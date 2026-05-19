@@ -342,8 +342,8 @@ function getFilesToDisplay($dirSelection)
 		array_push($files[$parentId]['files'], $r['_id']);
 	}
 
-	getProjectLogger()->debug("Files to display: " . json_encode($files));
-	getProjectLogger()->debug("Pending files: " . json_encode($filesPending));
+	getProjectLogger()->debug("Files to display: " . json_encode(array_keys($files)));
+	getProjectLogger()->debug("Pending files: " . json_encode(array_keys($filesPending)));
 
 	return array_merge($files, $filesPending);
 }

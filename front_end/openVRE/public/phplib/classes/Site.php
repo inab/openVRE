@@ -9,5 +9,4 @@ enum Site: string
     case Swift = "Swift";
     case EGA = "EGA";
     case MareNostrum = "MareNostrum";
-    case 
 }

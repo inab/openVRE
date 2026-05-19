@@ -207,7 +207,8 @@ class ProcessSlurm
                 if ($job['state'] == "COMPLETED") {
                     $remoteDir = DataTransfer::synchronizeDestinationDir_MN($this->sshRemotePath, $this->sshUsername);
                     $this->logger->debug("ProcessSlurm: getRunningJobInfo: syncing remote dir $remoteDir to local dir $this->workDir");
-                    RemoteSSH::executeRsyncCommandForWorkingDir($this->sshCredentials, $this->workDir, $remoteDir, $this, null, "download");
+                    $remoteSSH = new RemoteSSH();
+                    $remoteSSH->executeRsyncCommandForWorkingDir($this->sshCredentials, $this->workDir, $remoteDir, $this, null, "download");
                 }
             } else {
                 list($id, $state, $time, $nodes) = explode("|", $line);
@@ -220,7 +221,7 @@ class ProcessSlurm
             $job['pid'] = $pid;
             return $job;
         } catch (\Exception $e) {
-            logger("ProcessSlurm: getRunningJobInfo: Exception: " . $e->getMessage());
+            $this->logger->error("ProcessSlurm: getRunningJobInfo: Exception: " . $e->getMessage());
             return $job;
         }
     }

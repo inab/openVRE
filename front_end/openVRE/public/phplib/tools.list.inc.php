@@ -181,7 +181,6 @@ function getInputFilesCombinations($tool)
 
 function getSites_Info($toolId)
 {
-
 	// Retrieve tool document from the tools collection
 	$toolDocument = $GLOBALS['toolsCol']->findOne(['_id' => $toolId]);
 	if (is_null($toolDocument)) {

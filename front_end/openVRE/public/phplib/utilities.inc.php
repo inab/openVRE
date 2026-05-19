@@ -809,7 +809,8 @@ function file_get_contents_chunked($file, $chunk_size, $callback)
     return true;
 }
 
-function indexArray($multiArray, $attr = "_id")
+
+function indexArray($multiArray)
 {
     $assocArray = array();
     foreach ($multiArray as $key => $value) {

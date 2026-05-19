@@ -198,11 +198,11 @@ function getGSFiles_filteredBy($filters, $asRoot = 0)
 		}
 
 		$fileData = $GLOBALS['filesCol']->find($filter_filesCol)->toArray();
-		$fileData_arr = indexArray($fileData);
 		if (empty($fileData)) {
 			return $files;
 		}
 
+		$fileData_arr = indexArray($fileData);
 		$ids = array_keys($fileData_arr);
 		$filter_filesMetaCol["_id"] = ['$in' => $ids];
 		$metadataFiles = $GLOBALS['filesMetaCol']->find($filter_filesMetaCol)->toArray();

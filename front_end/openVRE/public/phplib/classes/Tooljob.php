@@ -70,7 +70,7 @@ class Tooljob
 	 * Creates new toolExecutor instance
 	 * @param string $toolId Tool Id as appears in Mongo
 	 */
-	public function __construct($tool, $execution = "", $project = "", $descrip = "", $arguments_exec = "", $output_dir = "")
+	public function __construct($tool, $execution = "", $project = "", $descrip = "", $arguments_exec = [], $output_dir = "")
 	{
 		$this->logger = LoggerFactory::getLogger("Tool job");
 
@@ -95,8 +95,6 @@ class Tooljob
 				[$cloud, $launcher] = array_pad(explode('_', $full, 2), 2, '');
 				$this->cloudName = $cloud;
 				$this->launcher  = $launcher;
-				//error_log("DEBUG: parsed cloudName = $cloud");
-				//error_log("DEBUG: parsed launcher = $launcher");
 			}
 		} else {
 			// No site_list provided → fallback
@@ -686,7 +684,7 @@ class Tooljob
 			$this->logger->error("Cannot create metadata file. No 'working_dir' set");
 			throw new UnexpectedValueException("Cannot create metadata file. No 'working_dir' set");
 		}
-		error_log("DEBUG: Starting setMetadata_file()");
+		$this->logger->debug("Starting setMetadata_file()");
 		$fileMuGs = [];
 		// add input_files metadata
 		foreach ($metadata as $file) {
@@ -698,9 +696,9 @@ class Tooljob
 				foreach ($fileMuG['sources'] as $sourceid) {
 					if ($sourceid) {
 						$source_path = getAttr_fromGSFileId($sourceid, "path");
-						error_log("DEBUG: Source ID: $sourceid -> Path: " . $source_path);
+						$this->logger->debug("DEBUG: Source ID: $sourceid -> Path: " . $source_path);
 						if ($source_path) {
-							error_log("DEBUG: Full source path: " . $this->root_dir_virtual . "/" . $source_path);
+							$this->logger->debug("DEBUG: Full source path: " . $this->root_dir_virtual . "/" . $source_path);
 							array_push($source_list, $this->root_dir_virtual . "/" . $source_path);
 						}
 					}
@@ -715,7 +713,7 @@ class Tooljob
 
 			if ($fileMuG['file_path']) {
 				$fileMuG['file_path'] = $this->root_dir_virtual . "/" . $fileMuG['file_path'];
-				error_log("DEBUG: Final file_path: " . $fileMuG['file_path']);
+				$this->logger->debug("DEBUG: Final file_path: " . $fileMuG['file_path']);
 			}
 
 			if ($fileMuG['parentDir']) {
@@ -799,7 +797,7 @@ class Tooljob
 				$localFull  = preg_replace('#/+#', '/', $file['file_path'] ?? '');
 				if (strpos($remoteFull, $localFull) !== false) {
 					$remoteBase = str_replace($localFull, '', $remoteFull);
-					error_log("DEBUG: Remote base detected: " . $remoteBase);
+					$this->logger->debug("Remote base detected: " . $remoteBase);
 				}
 			}
 		}
@@ -836,7 +834,7 @@ class Tooljob
 			if (!empty($out['meta_data']['parentDir'])) {
 				$parent_path = getAttr_fromGSFileId($out['meta_data']['parentDir'], "path");
 				if ($parent_path) {
-					error_log("DEBUG: ParentDir ID: " . $out['meta_data']['parentDir'] . " -> Path: " . $parent_path);
+					$this->logger->debug("ParentDir ID: " . $out['meta_data']['parentDir'] . " -> Path: " . $parent_path);
 					$entry['meta_data']['parentDir'] = rtrim($this->root_dir_virtual, '/') . '/' . ltrim($parent_path, '/');
 				}
 			}
@@ -844,10 +842,8 @@ class Tooljob
 			// Override with remote path if remoteBase is detected
 			$firstKey = array_key_first($metadata);
 			$firstRemote = $metadata[$firstKey]['remote_paths'][0]['remote_path'] ?? null;
-			#error_log("DEBUG metadata: " . print_r($metadata, true));
 
-			error_log("DEBUG remote_paths: " . print_r($firstRemote, true));
-
+			$this->logger->debug("remote_paths: " . print_r($firstRemote, true));
 
 			if ($firstRemote) {
 				$remoteOutputPath = rtrim(dirname($firstRemote), '/') . '/' . basename($localOutputPath);
@@ -858,58 +854,44 @@ class Tooljob
 					"location"    => "marenostrum"
 				]];
 
-				error_log("DEBUG: Remote output path set to: " . $entry['meta_data']['remote_paths'][0]['remote_path']);
+				$this->logger->debug("Remote output path set to: " . $entry['meta_data']['remote_paths'][0]['remote_path']);
 			}
 
 			$output_files[] = $entry;
 
-			// 🔍 DEBUG
-			error_log("DEBUG: Output entry built:");
-			error_log(json_encode($entry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+			$this->logger->debug("Output entry built:");
+			$this->logger->debug(json_encode($entry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 		}
 
-		// 🔍 DEBUG
-		error_log("DEBUG: Output files:");
-		error_log(json_encode($output_files, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+		$this->logger->debug("Output files:");
+		$this->logger->debug(json_encode($output_files, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
 		$results = ["output_files" => $output_files];
+		$resultsFile = rtrim($this->working_dir, '/') . "/.results.json";
 
-		// Ensure results_file is defined
-		if (empty($this->results_file)) {
-			$this->results_file = rtrim($this->working_dir, '/') . "/.results.json";
+		$this->logger->debug("Writing results file to: " . $resultsFile);
+
+		$filePointer = fopen($resultsFile, "w");
+		if (!$filePointer) {
+			throw new UnexpectedValueException('Failed to create results file for tool execution ' . $resultsFile);
 		}
 
-		$resultsFile = $this->results_file;
+		fwrite($filePointer, json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+		fclose($filePointer);
 
-		error_log("DEBUG: Writing results file to: " . $resultsFile);
-
-		try {
-			$F = fopen($resultsFile, "w");
-			if (!$F) {
-				throw new Exception('Failed to create results file for tool execution ' . $resultsFile);
-			}
-		} catch (Exception $e) {
-			$_SESSION['errorData']['Internal Error'][] = $e->getMessage();
-			return 0;
-		}
-
-		fwrite($F, json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-		fclose($F);
-
-		error_log("DEBUG: Results file written to: " . $resultsFile);
-		error_log("DEBUG: FINAL RESULTS JSON:\n" . json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+		$this->logger->debug("Results file written to: " . $resultsFile);
+		$this->logger->debug("FINAL RESULTS JSON:\n" . json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
 		// Automatically set stageout_file to results JSON path
 		$this->stageout_file = $resultsFile;
-
-		return $resultsFile;
 	}
+
 
 	public function setToolLog_file($metadata)
 	{
 		if (!$this->working_dir) {
-			$_SESSION['errorData']['Internal Error'][] = "Cannot create tool log file. No 'working_dir' set";
-			return 0;
+			$this->logger->error("Cannot create tool log file. No 'working_dir' set");
+			throw new UnexpectedValueException('Cannot create tool log file. No "working_dir" set');
 		}
 
 		// -----------------------------
@@ -923,7 +905,7 @@ class Tooljob
 				$localFull  = preg_replace('#/+#', '/', $file['file_path'] ?? '');
 				if (strpos($remoteFull, $localFull) !== false) {
 					$remoteBase = str_replace($localFull, '', $remoteFull);
-					error_log("DEBUG: Remote base detected for log: " . $remoteBase);
+					$this->logger->debug("Remote base detected for log: " . $remoteBase);
 				}
 				break;
 			}
@@ -953,32 +935,30 @@ class Tooljob
 		// -----------------------------
 		// 4. Create local placeholder file
 		// -----------------------------
-		try {
-			$F = fopen($localLogPath, "a"); // append mode
-			if (!$F) {
-				throw new Exception("Failed to create tool log file " . $localLogPath);
-			}
-
-			fwrite($F, "=== TOOL EXECUTION LOG ===\n");
-			fwrite($F, "Execution: " . $this->execution . "\n");
-			fwrite($F, "Tool: " . $this->toolId . "\n");
-			fwrite($F, "Date: " . date("Y-m-d H:i:s") . "\n");
-			fwrite($F, "--------------------------\n");
-
-			fclose($F);
-		} catch (Exception $e) {
-			$_SESSION['errorData']['Internal Error'][] = $e->getMessage();
-			return 0;
+		$filePointer = fopen($localLogPath, "a"); // append mode
+		if (!$filePointer) {
+			$this->logger->error("Failed to create tool log file " . $localLogPath);
+			throw new UnexpectedValueException("Failed to create tool log file " . $localLogPath);
 		}
 
-		error_log("DEBUG: Tool log file path set to: " . $this->log_file);
+		fwrite($filePointer, "=== TOOL EXECUTION LOG ===\n");
+		fwrite($filePointer, "Execution: " . $this->execution . "\n");
+		fwrite($filePointer, "Tool: " . $this->toolId . "\n");
+		fwrite($filePointer, "Date: " . date("Y-m-d H:i:s") . "\n");
+		fwrite($filePointer, "--------------------------\n");
+
+		fclose($filePointer);
+
+		$this->logger->debug("Tool log file path set to: " . $this->log_file);
 
 		return $this->log_file;
 	}
+
+
 	/**
 	 * Creates execution Command Line and Submission File
 	 */
-	public function prepareExecution($tool, $metadata, $metadata_pub = [])
+	public function prepareExecution($tool, $metadata, $dataLocations = [], $metadata_pub = [])
 	{
 		if ($tool['external'] === false) {
 			if ($this->launcher == "SGE") {
@@ -1013,12 +993,13 @@ class Tooljob
 
 					break;
 				case "Slurm_Singularity":
-					$dataLocations = $_REQUEST['arguments_exec']['dataLocations'] ?? $this->arguments_exec['dataLocations'] ?? [];
+					$dataLocations = $dataLocations ?? $this->arguments_exec['dataLocations'];
 					if (empty($dataLocations)) {
 						$this->logger->error("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$this->launcher\". Case not implemented.");
 						throw new UnexpectedValueException("Tool '$this->toolId' not properly registered. Launcher for '$this->toolId' is set to \"$this->launcher\". Case not implemented.");
 					}
 					$this->setResults_file($metadata);
+					$this->setToolLog_file($metadata);
 					$cmd = $this->setBashCmd_Singularity($tool, $dataLocations);
 					$this->createSubmitFile_Slurm($cmd);
 
@@ -1243,7 +1224,8 @@ EOF;
 	protected function setBashCmd_Singularity($tool, $dataLocations)
 	{
 		if (empty($dataLocations)) {
-			$_SESSION['errorData']['Error'][] = "dataLocations is empty — cannot build paths.";
+			$this->logger->error("dataLocations is empty — cannot build paths.");
+			throw new UnexpectedValueException("dataLocations is empty — cannot build paths.");
 		}
 
 		// Configuration files
@@ -1257,7 +1239,7 @@ EOF;
 		// Singularity image and executable
 		$singularityExec = $tool['infrastructure']['executable'];
 		$singularityImage =  $sBase . "/shared_data/public/" . $tool['infrastructure']['singularity_image']; //doing it automatically
-		error_log("setBashCmd_Singularity - singularityExec: $singularityExec, singularityImage: $singularityImage");
+		$this->logger->debug("setBashCmd_Singularity - singularityExec: $singularityExec, singularityImage: $singularityImage");
 		//Singularity overlay
 		$overlayPath  = $sBase . "/shared_data/public/" . $tool['infrastructure']['singularity_overlay'];
 
@@ -1404,7 +1386,7 @@ EOF;
 		fwrite($fout, "#SBATCH --error=serial_%j.err\n");
 		fwrite($fout, "#SBATCH -N " . $siteDetails['n_tasks'] . "\n");
 		fwrite($fout, "#SBATCH -n " . $siteDetails['n_nodes'] . "\n");
-		fwrite($fout, "#SBATCH --time=01:00:00\n\n\n"); // Adjust as needed
+		fwrite($fout, "#SBATCH --time=00:05:00\n\n\n");
 		fwrite($fout, "srun " . "$cmd\n");
 
 		fclose($fout);

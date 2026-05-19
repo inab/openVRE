@@ -31,12 +31,16 @@ class DataTransfer
     public function syncFiles(): array
     {
         // Step 1: Get Data Locations
-        $dataLocations = $this->getDataLocation();
-
+        try {
+            $dataLocations = $this->getDataLocation();
+        } catch (\Exception $e) {
+            $this->logger->error("Cannot get data locations. " . $e->getMessage());
+        }
+        
         // Step 2: Check if there are no files to transfer
         if (empty($dataLocations)) {
             $this->logger->info("No files to transfer.");
-            throw new UnexpectedValueException("No files to transfer.");
+            return [];
         }
 
         $vaultClient = VaultClientFactory::create();
@@ -76,7 +80,7 @@ class DataTransfer
     }
 
 
-    public function syncWorkingDir(): bool
+    public function syncWorkingDir(): void
     {
         $this->logger->debug("syncWorkingDir - starting to sync local dir: " . $this->workingDirPath);
 
@@ -113,19 +117,15 @@ class DataTransfer
         $rootRemotePath = $siteDetails['root_path'];
         $server =  $siteDetails['server'];
         $remoteUploadPath = $this->constructingDestinationDir_MN($rootRemotePath, $sshCredentials['username']);
-        error_log("DEBUG: syncWorkingDir - remoteUploadPath: $remoteUploadPath");
+        $this->logger->debug("syncWorkingDir - remoteUploadPath: $remoteUploadPath");
         $remoteRunPath = rtrim($remoteUploadPath, "/") . "/$userProjPath" . "/$runId";
+
         // Step 4: Rsync full working directory to remote
-        $remoteSSH = new RemoteSSH($sshCredentials);
+        $remoteSSH = new RemoteSSH();
         $singularityImagePath = ($this->singularityImage !== null) ? $remoteUploadPath . "/../public/" . $this->singularityImage : null;
-        $rsyncSuccess = $remoteSSH->executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteRunPath, $server, $singularityImagePath, $mode = "upload");
-        if ($rsyncSuccess === true) {
-            error_log("DEBUG: syncWorkingDir - successfully synced $runId to remote path: $remoteRunPath");
-            return true;
-        } else {
-            error_log("DEBUG: syncWorkingDir - failed syncing $runId to remote path: $remoteRunPath");
-            return false;
-        }
+        $remoteSSH->executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteRunPath, $server, $singularityImagePath, "upload");
+        
+        $this->logger->info("Successfully synced $runId to remote path: $remoteRunPath");
     }
 
 

@@ -40,7 +40,7 @@ class RemoteSSH
         chmod($tempKeyFile, 0600);
         $commands = [];
         foreach ($dataLocations as &$file) {
-            error_log("prepareSync - location: " . json_encode($file));
+            $this->logger->debug("prepareSync - location: " . json_encode($file));
             $server = $file['site_details']['server'];
             $destinationPath = $this->constructingDestination_MN($file['site_details']['root_path'], $username, $userProjPath);
             $file['remote_path'] = $destinationPath;
@@ -160,13 +160,13 @@ class RemoteSSH
     }
 
 
-    public function executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteDir, $server, $singularityImage = null,  $mode = "upload")
+    public function executeRsyncCommandForWorkingDir($sshCredentials, $localDir, $remoteDir, $server, $singularityImage = null,  $mode = "upload"): void
     {
         $sshPrivateKey = trim($sshCredentials['private_key']);
         $username = $sshCredentials['username'];
         if (empty($sshPrivateKey) || empty($username) || empty($server)) {
-            $_SESSION['errorData']['Error'][] = "executeRsyncCommand: Missing SSH credentials.";
-            return false;
+            $this->logger->error("executeRsyncCommand: Missing SSH credentials.");
+            throw new UnexpectedValueException("Missing SSH credentials.");
         }
 
         $ssh = new SSH2($server);
@@ -174,9 +174,10 @@ class RemoteSSH
         $formattedKey = $this->formatSSHPrivateKey($sshPrivateKey);
         $key = PublicKeyLoader::load($formattedKey);
         if (!$key || !$ssh->login($username, $key)) {
-            $_SESSION['errorData']['Error'][] = "SSH authentication failed.";
-            return false;
+            $this->logger->error("executeRsyncCommand: SSH authentication failed.");
+            throw new UnexpectedValueException("SSH authentication failed.");
         }
+
         // Check and create remote dir
         $checkDirCommand = "[ -d \"$remoteDir\" ] && echo 'Exists' || echo 'NotExists'";
         $dirStatus = trim($ssh->exec($checkDirCommand));
@@ -187,20 +188,23 @@ class RemoteSSH
             $createStatus = preg_match('/(Created|Failed)/', $createStatus, $matches) ? $matches[1] : "Unknown";
             if ($createStatus !== "Created") {
                 $_SESSION['errorData']['Error'][] = "Failed to create remote dir: $remoteDir";
-                return false;
+                $this->logger->error("Failed to create remote dir: $remoteDir");
+                throw new UnexpectedValueException("Failed to create remote dir: $remoteDir");
             }
         }
+
         // Check for Singularity Image
         if ($mode === "upload") {
-            error_log("Looking for Singularity image in path: $singularityImage");
+            $this->logger->debug("Looking for Singularity image in path: $singularityImage");
             $checkSifCommand = "[ -f \"$singularityImage\" ] && echo 'SIFExists' || echo 'SIFMissing'";
             $sifStatus = trim($ssh->exec($checkSifCommand));
             $sifStatus = preg_match('/(SIFExists|SIFMissing)/', $sifStatus, $matches) ? $matches[1] : "Unknown";
             if ($sifStatus !== "SIFExists") {
-                $_SESSION['errorData']['Error'][] = "Required Singularity image is missing: $singularityImage";
-                return false;
+                $this->logger->error("Required Singularity image is missing: $singularityImage");
+                throw new UnexpectedValueException("Required Singularity image is missing: $singularityImage");
             }
         }
+
         // Perform rsync
         $tempKeyFile = tempnam(sys_get_temp_dir(), 'ssh_key_');
         file_put_contents($tempKeyFile, $formattedKey);
@@ -214,14 +218,12 @@ class RemoteSSH
         }
 
         exec($rsyncCommand, $output, $returnVar);
-        if ($returnVar === 0) {
-            error_log("Rsync success: " . implode("\n", $output));
-            return true;
-        } else {
-            error_log("Rsync failed: " . implode("\n", $output));
-            return false;
+        if ($returnVar !== 0) {
+            $this->logger->error("Rsync failed: " . implode("\n", $output));
+            throw new UnexpectedValueException("Rsync failed: " . implode("\n", $output));
         }
     }
+
 
     public static function formatSSHPrivateKey($singleLineKey)
     {
@@ -242,6 +244,7 @@ class RemoteSSH
         $formattedKeyBody = chunk_split($keyBody, 64, "\n");
         // Format the key with the markers and properly chunked key body
         $formattedKey = $start . "\n" . $formattedKeyBody . $end . "\n";
+
         return $formattedKey;
     }
 }

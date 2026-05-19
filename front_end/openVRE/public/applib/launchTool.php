@@ -95,7 +95,6 @@ $jobMeta->setInput_files($_REQUEST['input_files'], $tool, $files);
 
 $logger->debug("Processed input files: ", ['input_files' => $jobMeta->input_files]);
 
-
 // Checking input_files locally
 foreach ($files as $fnId => $file) {
 	$fn = getAttr_fromGSFileId($fnId, 'path');
@@ -133,6 +132,7 @@ try {
 
 $logger->debug("Working directory created at: ", ['working_dir' => $jobMeta->working_dir]);
 
+$dataLocations = [];
 $doSync = !empty($_REQUEST['sync_files']);
 $siteList = $_REQUEST['sites']['site_list'] ?? [];
 if ($doSync) {
@@ -144,7 +144,6 @@ if ($doSync) {
 			$_REQUEST['arguments_exec']
 		);
 		$dataLocations = $dataMeta->syncFiles();
-		$_REQUEST['arguments_exec']['dataLocations'] = $dataLocations;
 		$logger->debug("Data transfer locations: ", ['dataLocations' => $dataLocations]);
 	} else {
 		$logger->debug("Skipping DataTransfer — 'MareNostrum' not in site_list.");
@@ -152,16 +151,17 @@ if ($doSync) {
 }
 
 try {
-	$jobMeta->prepareExecution($tool, $files, $files_pub);
+	$jobMeta->prepareExecution($tool, $files, $dataLocations, $files_pub);
 } catch (Exception $e) {
 	$logger->error("Cannot prepare execution. " . $e->getMessage());
 	redirect($GLOBALS['BASEURL'] . "workspace/");
 }
 
 if ($doSync && in_array(Site::MareNostrum->value, $siteList)) {
-	$s = $dataMeta->syncWorkingDir();
-	if ($s === false) {
-		$_SESSION['errorData']['Error'][] = "Failed to rsync project directory to remote system. Can not continue with the job remotely.";
+	try {
+		$dataMeta->syncWorkingDir();
+	} catch (Exception $e) {
+		$logger->error("Cannot sync working directory. " . $e->getMessage());
 		redirect($GLOBALS['BASEURL'] . "workspace/");
 	}
 }
