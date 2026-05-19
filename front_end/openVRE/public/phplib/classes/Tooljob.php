@@ -713,7 +713,7 @@ class Tooljob
 
 			if ($fileMuG['file_path']) {
 				$fileMuG['file_path'] = $this->root_dir_virtual . "/" . $fileMuG['file_path'];
-				$this->logger->debug("DEBUG: Final file_path: " . $fileMuG['file_path']);
+				$this->logger->debug("Final file_path: " . $fileMuG['file_path']);
 			}
 
 			if ($fileMuG['parentDir']) {
