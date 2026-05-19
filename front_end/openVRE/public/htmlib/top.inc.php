@@ -43,7 +43,7 @@ if (file_exists($avatarImg)) {
         <div class="top-menu">
             <div class="display-hide" id="session-expire-top"> <i class="glyphicon glyphicon-time"></i> Your session will expire in <span>60</span> seconds </div>
 
-            <?php if (allowedRoles($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
+            <?php if (in_array($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
                 <ul class="nav navbar-nav pull-right">
 
                     <!-- BEGIN USER LOGIN DROPDOWN -->
@@ -61,7 +61,7 @@ if (file_exists($avatarImg)) {
                                 <a href="user/usrProfile.php">
                                     <i class="glyphicon glyphicon-user"></i> My Profile </a>
                             </li>
-                            <?php if ((allowedRoles($_SESSION['User']['Type'], $GLOBALS['ADMIN'])) && (!allowedRoles($_SESSION['User']['Type'], $GLOBALS['TOOLDEV']))) { ?>
+                            <?php if ((in_array($_SESSION['User']['Type'], $GLOBALS['ADMIN'])) && (!in_array($_SESSION['User']['Type'], $GLOBALS['TOOLDEV']))) { ?>
                                 <li>
                                     <a href="admin/dashboard.php">
                                         <i class="glyphicon glyphicon-dashboard"></i> Dashboard </a>

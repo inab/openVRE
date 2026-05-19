@@ -1,11 +1,27 @@
 <?php
 
+use OpenVRE\LoggerFactory;
+use OpenVRE\UserType;
+
+
 ////////////////////////////////////////////
 /////// DATATPYE INPUT FILE COMBINATIONS
 ////////////////////////////////////////////
 
-// return datatype for a list of files
 
+function getToolsFilteringLogger()
+{
+	static $logger = null;
+
+	if ($logger === null) {
+		$logger = LoggerFactory::getLogger('Tools filtering interface');
+	}
+
+	return $logger;
+}
+
+
+// return datatype for a list of files
 function getFiles_DataTypes($fn)
 {
 
@@ -16,28 +32,6 @@ function getFiles_DataTypes($fn)
 	foreach ($fdt as $v) $a[] = $v["data_type"];
 
 	return $a;
-}
-
-// return datatype for a given toolId
-
-function getDT_byFT_DEPRECATED($id)
-{
-
-	$dt = $GLOBALS['toolsCol']->find(array("_id" => $id), array("input_files" => true));
-
-	$arr_dt = [];
-
-	foreach ($dt as $tool) {
-		foreach ($tool["input_files"] as $t) {
-			$arr_dt = array_merge($arr_dt, $t["data_type"]);
-		}
-	}
-	$arr_dt = array_unique($arr_dt);
-
-	$array = [];
-	$array["id"] = $id;
-	$array["list1"] = array();
-	$array["list2"] = array();
 }
 
 
@@ -226,7 +220,7 @@ function getSingleTool_Help($toolID, $op)
 
 	$c = 0;
 
-	if (!isset($tool["input_files_combinations"])) {
+	if (is_null($tool["input_files_combinations"])) {
 		$_SESSION['errorData']['Error'][] = "TOOL " . $tool['_id'] . " no internal comb";
 		next;
 	}
@@ -250,7 +244,7 @@ function getSingleTool_Help($toolID, $op)
 					if ($inputf["required"] === true) $a["description"] .= " <span title='Mandatory file' style='color:#6d91b5;font-size:0.9em;'>(mandatory)</span>";
 					else $a["description"] .= " <span title='Optional file' style='color:#6d91b5;font-size:0.9em;'>(optional)</span>";
 
-					$a["format"] = $inputf["file_type"];
+					$a["format"] = $inputf["format"];
 
 					$b = [];
 					foreach ($inputf["data_type"] as $dt) {
@@ -276,55 +270,48 @@ function getSingleTool_Help($toolID, $op)
 
 function getTools_Help()
 {
-
-	$dt = $GLOBALS['toolsCol']->find(array("external" => true), array("input_files_combinations" => true, "input_files" => true));
-
+	$tools = $GLOBALS['toolsCol']->find(array("external" => true), array("input_files_combinations" => true, "input_files" => true));
 	$array = array();
+	$counter = 0;
 
-	$c = 0;
-
-	foreach ($dt as $tool) {
-
-		if (!isset($tool["input_files_combinations"])) {
-			$_SESSION['errorData']['Error'][] = "TOOL " . $tool['_id'] . " no internal comb";
-			next;
+	foreach ($tools as $tool) {
+		if (is_null($tool["input_files_combinations"])) {
+			getToolsFilteringLogger()->error("Tool " . $tool['_id'] . " no internal comb");
+			continue;
 		}
 
 		foreach ($tool["input_files_combinations"] as $combination) {
-
-			$array[$c]["id"] = $tool["_id"];
-			$array[$c]["operation"] = $combination["description"];
-			$array[$c]["content"] = [];
+			$array[$counter]["id"] = $tool["_id"];
+			$array[$counter]["operation"] = $combination["description"];
+			$array[$counter]["content"] = [];
 
 			foreach ($tool["input_files"] as $inputf) {
-
 				if (in_array($inputf["name"], $combination["input_files"])) {
 					$a = [];
 					$a["description"] = $inputf["description"];
 
-					if ($inputf["allow_multiple"] === true) $a["description"] .= " <span title='Multiple files of this type accepted' style='color:#6d91b5;font-size:0.9em;'>(multiple)</span>";
+					if ($inputf["allow_multiple"] === true) {
+						$a["description"] .= " <span title='Multiple files of this type accepted' style='color:#6d91b5;font-size:0.9em;'>(multiple)</span>";
+					}
 
-					if ($inputf["required"] === true) $a["description"] .= " <span title='Mandatory file' style='color:#6d91b5;font-size:0.9em;'>(mandatory)</span>";
-					else $a["description"] .= " <span title='Optional file' style='color:#6d91b5;font-size:0.9em;'>(optional)</span>";
+					if ($inputf["required"] === true) {
+						$a["description"] .= " <span title='Mandatory file' style='color:#6d91b5;font-size:0.9em;'>(mandatory)</span>";
+					} else {
+						$a["description"] .= " <span title='Optional file' style='color:#6d91b5;font-size:0.9em;'>(optional)</span>";
+					}
 
-					$a["format"] = $inputf["file_type"];
-
+					$a["format"] = $inputf["format"];
 					$b = [];
 					foreach ($inputf["data_type"] as $dt) {
-
 						$b[] = getDataTypeName($dt);
-						//$n  = iterator_to_array($n, true);
-						//$b[] = $n[$dt]["name"];
-
 					}
 
 					$a["data_type"] = $b;
-
-					$array[$c]["content"][] = $a;
+					$array[$counter]["content"][] = $a;
 				}
 			}
 
-			$c++;
+			$counter++;
 		}
 	}
 

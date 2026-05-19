@@ -1,6 +1,6 @@
-<?php 
+<?php
 
-require __DIR__."/../../config/bootstrap.php";
+require __DIR__ . "/../../config/bootstrap.php";
 
 redirectOutside();
 
@@ -13,17 +13,11 @@ $file_selected = json_decode($_REQUEST["file_selected"]);
 
 $files_list = getGSFiles_filteredBy(["data_type" => ['$in' => $dt_list], "format" => ['$in' => $ft_list], "visible" => true]);
 
-//$files_list = getFilesFromDT($dt_list);
-
 $list = [];
 $file_arr = [];
 $project_arr = [];
 $id_arr = [];
 $execution_arr = [];
-
-//if($from == "workspace") {
-
-//var_dump($files_list);
 
 foreach ($files_list as $file) {
 	$path = getAttr_fromGSFileId($file["_id"], 'path');
@@ -36,29 +30,29 @@ foreach ($files_list as $file) {
 	$fileFeatures["description"] = $file["description"];
 	$dt = $GLOBALS['dataTypesCol']->findOne(array('_id' => $file["data_type"]));
 	$fileFeatures["data_type"] = $dt['name'];
-    
-	$proj_code = $pathSplit[1];
-    $project   = getProject($proj_code);
 
-    if (isset($project['name'])){
-    	$fileFeatures["project_name"]  = $project['name'];
-    }else{
-    	$fileFeatures["project_name"]  = "Foo project";
-    }
+	$proj_code = $pathSplit[1];
+	$project   = getProject($proj_code);
+
+	if (isset($project['name'])) {
+		$fileFeatures["project_name"]  = $project['name'];
+	} else {
+		$fileFeatures["project_name"]  = "Foo project";
+	}
 
 	$list[] = $fileFeatures;
-	// Alejandro: Select All fn -> Create individual lists.
-	$file_arr[] = $fileFeatures["file"];	
+	// Select All fn -> Create individual lists.
+	$file_arr[] = $fileFeatures["file"];
 	$project_arr[] = $fileFeatures["project_name"];
 	$id_arr[] = $fileFeatures["id"];
 	$execution_arr[] = $fileFeatures["execution"];
 }
 
-// Alejandro: Select All fn -> Implode for creating a unique string from an array.
-$files = implode(" ",$file_arr);
-$projects = implode(" ",$project_arr);
-$ids = implode(" ",$id_arr);
-$executions = implode(" ",$execution_arr);
+// Select All fn -> Implode for creating a unique string from an array.
+$files = implode(" ", $file_arr);
+$projects = implode(" ", $project_arr);
+$ids = implode(" ", $id_arr);
+$executions = implode(" ", $execution_arr);
 
 $count1 = 0;
 $count2 = 0;
@@ -66,7 +60,7 @@ $init_all = "";
 $count1 = count($file_arr);
 $count2 = count($file_selected);
 
-if($count2 == $count1){
+if ($count2 == $count1) {
 	$init_all = "checked";
 }
 
@@ -74,120 +68,119 @@ if($count2 == $count1){
 
 $html = '<table id="workspace_st2" class="display" cellspacing="0" width="100%">';
 
-	$html .= '<thead>';
-		$html .= '<tr id="headerSearch">';
-			$html .= '<th style="background-color: #eee;padding:3px;"></th>';
-			$html .= '<th style="background-color: #eee;padding:3px;" class="inputSearch">Files</th>';
-			$html .= '<th style="background-color: #eee;padding:3px;" class="selector">Project</th>';
-			$html .= '<th style="background-color: #eee;padding:3px;" class="selector">Execution</th>';
-		$html .= '</tr>';
-    $html .= '<tr id="heading">';
-			
-	  // Alejandro: Select All fn -> Adding HTML and event listener call (onclick="changeAllCheckbox")
-	  // ORIGINAL -> $html .= '<th></th>';
-	  $html .= '<th style="padding-left: 15px;"> 
+$html .= '<thead>';
+$html .= '<tr id="headerSearch">';
+$html .= '<th style="background-color: #eee;padding:3px;"></th>';
+$html .= '<th style="background-color: #eee;padding:3px;" class="inputSearch">Files</th>';
+$html .= '<th style="background-color: #eee;padding:3px;" class="selector">Project</th>';
+$html .= '<th style="background-color: #eee;padding:3px;" class="selector">Execution</th>';
+$html .= '</tr>';
+$html .= '<tr id="heading">';
+
+// Select All fn -> Adding HTML and event listener call (onclick="changeAllCheckbox")
+// ORIGINAL -> $html .= '<th></th>';
+$html .= '<th style="padding-left: 15px;"> 
 	  <label class="mt-checkbox mt-checkbox-outline" style="margin-bottom: 0px; font-weight: bold">
 		  All
-		  <input type="checkbox" class="checkboxes" '.$init_all.' onclick="changeAllCheckbox(this, \''.$files.'\', \''.$ids.'\', \''.$projects.'\', \''.$executions.'\' )" />
+		  <input type="checkbox" class="checkboxes" ' . $init_all . ' onclick="changeAllCheckbox(this, \'' . $files . '\', \'' . $ids . '\', \'' . $projects . '\', \'' . $executions . '\' )" />
 		  <span></span>
 	  </label>
 	  </th>';
 
-      $html .= '<th>File</th>';
-      $html .= '<th>Project</th>';
-      $html .= '<th>Execution</th>';
-		$html .= '</tr>';
-  $html .= '</thead>';
+$html .= '<th>File</th>';
+$html .= '<th>Project</th>';
+$html .= '<th>Execution</th>';
+$html .= '</tr>';
+$html .= '</thead>';
 
-	
-	$html .= '<tbody>';
 
-	$selectedFiles = [];
+$html .= '<tbody>';
 
-		foreach($list as $file) { 
+$selectedFiles = [];
 
-			$tr_class = "";
-			$file_sel = "";
-			
-			if(in_array($file["id"], $file_selected)) {
+foreach ($list as $file) {
 
-				$tr_class = "input_highlighted";
-				$file_sel = "checked";
+	$tr_class = "";
+	$file_sel = "";
 
-				$a = [];
-				$a["filename"] = $file["file"];
-				$a["fileID"] = $file["id"];
-				$a["filePath"] = $file["project_name"]. ' / '.$file["execution"];
+	if (in_array($file["id"], $file_selected)) {
 
-				$selectedFiles[] = $a;
+		$tr_class = "input_highlighted";
+		$file_sel = "checked";
 
-			} 
+		$a = [];
+		$a["filename"] = $file["file"];
+		$a["fileID"] = $file["id"];
+		$a["filePath"] = $file["project_name"] . ' / ' . $file["execution"];
 
-			$html .= '<tr class="row-clickable '.$tr_class.'">';
-			if($multiple) { 
-				$html .= '<td>';
-				$html .= '<label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">';
-					$html .= '<input type="checkbox" class="checkboxes" '.$file_sel.' value="false" onchange="changeCheckbox(this, \''.$file["file"].'\', \''.$file["id"].'\', \''.$file['project_name'].' / '.$file["execution"].' /\')" />';
-					$html .= '<span></span>';
-				$html .= '</label>';
-				$html .= '</td>';
-			} else { 
-				$html .= '<td>';
-				$html .= '<label class="mt-radio mt-radio-outline">';
-					$html .= '<input type="radio" name="filesRadios" '.$file_sel.' value="'.$file["id"].'" onchange="changeRadio(\''.$file["file"].'\', \''.$file["id"].'\', \''.$file['project_name'].' / '.$file["execution"].' /\')" />';
-					$html .= '<span></span>';
-				$html .= '</label>';
-				$html .= '</td>';
-			}
-			$html .= '<td>'.$file["file"].' <a href="javascript:;" onmouseover="javascript:;" class="tooltips" data-trigger="hover" data-container="body" 
-																					data-html="true" data-placement="right" data-original-title="<p align=\'left\' style=\'margin:0\'><strong>'.$file["data_type"].'</strong><br>'.$file["description"].'</p>"><i class="fa fa-info-circle"></i></a>';
-			$html .= '<td>'.$file['project_name'].'</td>';
-			$html .= '<td>'.$file["execution"].'</td>';
-			$html .= '</tr>';
+		$selectedFiles[] = $a;
+	}
 
-		} 
+	$html .= '<tr class="row-clickable ' . $tr_class . '">';
+	if ($multiple) {
+		$html .= '<td>';
+		$html .= '<label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">';
+		$html .= '<input type="checkbox" class="checkboxes" ' . $file_sel . ' value="false" onchange="changeCheckbox(this, \'' . $file["file"] . '\', \'' . $file["id"] . '\', \'' . $file['project_name'] . ' / ' . $file["execution"] . ' /\')" />';
+		$html .= '<span></span>';
+		$html .= '</label>';
+		$html .= '</td>';
+	} else {
+		$html .= '<td>';
+		$html .= '<label class="mt-radio mt-radio-outline">';
+		$html .= '<input type="radio" name="filesRadios" ' . $file_sel . ' value="' . $file["id"] . '" onchange="changeRadio(\'' . $file["file"] . '\', \'' . $file["id"] . '\', \'' . $file['project_name'] . ' / ' . $file["execution"] . ' /\')" />';
+		$html .= '<span></span>';
+		$html .= '</label>';
+		$html .= '</td>';
+	}
+	$html .= '<td>' . $file["file"] . ' <a href="javascript:;" onmouseover="javascript:;" class="tooltips" data-trigger="hover" data-container="body" 
+																					data-html="true" data-placement="right" data-original-title="<p align=\'left\' style=\'margin:0\'><strong>' . $file["data_type"] . '</strong><br>' . $file["description"] . '</p>"><i class="fa fa-info-circle"></i></a>';
+	$html .= '<td>' . $file['project_name'] . '</td>';
+	$html .= '<td>' . $file["execution"] . '</td>';
+	$html .= '</tr>';
+}
 
-	$html .= '</tbody>';
-	
-	
+$html .= '</tbody>';
+
+
 $html .= '</table>';
 
 // TOOL HELP
 
 $thelp = '<table class="table">';
-	$thelp .= '<thead>';
-		$thelp .= '<tr>';
-			$thelp .= '<th>Operations</th>';
-			$thelp .= '<th>File(s) required</th>';
-			$thelp .= '<th>File format</th>';
-			$thelp .= '<th>File type</th>';
+$thelp .= '<thead>';
+$thelp .= '<tr>';
+$thelp .= '<th>Operations</th>';
+$thelp .= '<th>File(s) required</th>';
+$thelp .= '<th>File format</th>';
+$thelp .= '<th>File type</th>';
+$thelp .= '</tr>';
+$thelp .= '</thead>';
+$thelp .= '<tbody>';
+
+$count = 0;
+foreach ($toolsHelp as $th) {
+
+	$cc = 1;
+	foreach ($th["content"] as $content) {
+		if ($cc == 1) {
+			$trclass = "first-tr";
+		} else {
+			$trclass = "";
+		}
+		$thelp .= '<tr class="' . $trclass . '">';
+		if ($cc == 1) {
+			$thelp .= '<td rowspan="' . sizeof($th["content"]) . '">' . $th["operation"] . '</td>';
+		}
+		$thelp .= '<td>' . $content["description"] . '</td>';
+		$thelp .= '<td>' . implode("<br>", $content["format"]) . '</td>';
+		$thelp .= '<td>' . implode("<br>", $content["data_type"]) . '</td>';
 		$thelp .= '</tr>';
-	$thelp .= '</thead>';
-	$thelp .= '<tbody>';
-					
-					$count = 0;
-					foreach($toolsHelp as $th) {
-						
-							$cc = 1;
-							foreach($th["content"] as $content) { 
-							if($cc == 1) { $trclass = "first-tr"; }else{ $trclass = ""; } 
-							$thelp .= '<tr class="'.$trclass.'">';
-								if($cc == 1) { 
-								$thelp .= '<td rowspan="'.sizeof($th["content"]).'">'.$th["operation"].'</td>';
-								}
-								$thelp .= '<td>'.$content["description"].'</td>';
-								$thelp .= '<td>'.implode("<br>", $content["format"]).'</td>';
-								$thelp .= '<td>'.implode("<br>", $content["data_type"]).'</td>';
-							$thelp .= '</tr>';
-							
-							$cc ++;
-							}
-							
-																
-					}
 
-				$thelp .= '</tbody>';
-			$thelp .= '</table>';
+		$cc++;
+	}
+}
 
-echo '{"table":'.json_encode($html).', "selectedFiles":'.json_encode($selectedFiles).', "array":'.json_encode($out).', "help": '.json_encode($thelp).'}';
+$thelp .= '</tbody>';
+$thelp .= '</table>';
 
+echo '{"table":' . json_encode($html) . ', "selectedFiles":' . json_encode($selectedFiles) . ', "help": ' . json_encode($thelp) . '}';

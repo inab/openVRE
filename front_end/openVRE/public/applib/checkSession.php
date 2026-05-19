@@ -4,7 +4,7 @@
 require __DIR__."/../../config/bootstrap.php";
 
 // resume session without restarting timeout
-if(!isset($_SESSION))
+if(is_null($_SESSION))
 	session_start();
 
 // timeout in seconds for the ending of sessions

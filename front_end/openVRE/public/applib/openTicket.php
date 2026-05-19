@@ -41,7 +41,7 @@ $messageUser = '
 	Request type: '.$req.$tool_name.'<br>
 	Request subject: '.$_REQUEST["Subject"].'<br>
 	Request message: '.$_REQUEST["Message"].'<br><br>
-	MuG VRE Technical Team';
+	OpenVRE Technical Team';
 
 if(sendEmail($GLOBALS['ADMINMAIL'], "[".$ticketnumber."]: ".$req." - ".$_REQUEST["Subject"], $message, $_REQUEST["Email"], $toolContact)) {
 

@@ -21,7 +21,7 @@
   "infrastructure": {
     "memory": 4,
     "cpus": 1,
-    "container_image": "vre_mock_tool:latest",
+    "container_image": "mock_tool:latest",
     "executable": "/home/vre_template_tool/VRE_RUNNER",
     "clouds": {
       "local": {
@@ -38,7 +38,7 @@
       "data_type": [
         "id_list"
       ],
-      "file_type": [
+      "format": [
         "TXT"
       ],
       "description": "Select file(s)",
@@ -58,14 +58,14 @@
       "required": true,
       "allow_multiple": true,
       "file": {
-        "file_type": "TXT",
+        "format": "TXT",
         "data_type": "sample_information_file",
         "meta_data": {
           "visible": true,
           "tool": "mock_tool",
           "description": "Demo TXT output file."
         },
-        "file_path": "results_file.txt"
+        "path": "results_file.txt"
       }
     }
   ],

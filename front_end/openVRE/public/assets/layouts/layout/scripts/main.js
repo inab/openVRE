@@ -29,7 +29,7 @@ function checkSessionState() {
 			if(!obj.hasSession) {
 				$('#session-expire-top').hide();
 				$('#modalSessionExpired').modal({ show: 'true', backdrop: 'static', keyboard: false});
-				$('#modalSessionExpired .modal-body #session-text').html('Your session has expired after ' + obj.duration + ' of inactivity, please log in again or keep using the MuG VRE as a non-registered user.');
+				$('#modalSessionExpired .modal-body #session-text').html('Your session has expired after ' + obj.duration + ' of inactivity, please log in again or keep using the OpenVRE as a non-registered user.');
 
 			}
 			

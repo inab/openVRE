@@ -1,5 +1,11 @@
 <?php
 
+namespace OpenVRE;
+
+use Monolog\Logger;
+use UnexpectedValueException;
+
+
 class User
 {
     public $_id;
@@ -17,15 +23,19 @@ class User
     public $AuthProvider;
     public $id; // TODO: diff with _id?
     public $activeProject;
+    public Logger $logger;
 
-    public function __construct(string $email, string $secretsId, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject, ?string $jwt)
+    public function __construct(string $email, string $secretsId, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject)
     {
+        $this->logger = LoggerFactory::getLogger('User');
         if ($type != UserType::Guest->value && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return 0;
+            $this->logger->error("Invalid email address: $email");
+            throw new UnexpectedValueException("Invalid email address: $email");
         }
 
-        if (!isset($_SESSION['userToken']) && $type != UserType::Guest->value) {
-            return 0;
+        if ($type != UserType::Guest->value && is_null($_SESSION['userToken'])) {
+            $this->logger->error("User not logged in");
+            throw new UnexpectedValueException("User not logged in");
         }
 
         $this->Type = $type ?? UserType::Registered->value; // TODO: check if this is ok
@@ -43,7 +53,7 @@ class User
             ? uniqid($GLOBALS['AppPrefix'] . "ANON")
             : uniqid($GLOBALS['AppPrefix'] . "USER");
         $this->activeProject = $this->activeProject ?: createLabel_proj();
-        $this->Status = userStatus::Active->value;
+        $this->Status = UserStatus::Active->value;
         $this->lastLogin = moment();
         $this->registrationDate = $this->registrationDate ?: moment();
         $this->diskQuota  = $this->diskQuota || $this->Type == UserType::Guest->value // TODO: check if this is ok
@@ -54,11 +64,7 @@ class User
         $this->Name    = ucfirst($this->Name);
 
         $_SESSION['userVaultInfo'] = array(
-            "jwt"          => $jwt ??  "",
-            "vaultKey"     => null,
-            "secretPath"   => $GLOBALS['secretPath'] ?? '',
-            "vaultRolename" => $GLOBALS['vaultRolename'] ?? '',
-            "vaultUrl"     => $GLOBALS['vaultUrl'] ?? ''
+            "vaultKey"     => null
         );
     }
 
@@ -211,5 +217,12 @@ class User
     public function setRegistrationDate(string $registrationDate): void
     {
         $this->registrationDate = $registrationDate;
+    }
+
+    public function toDocument(): array
+    {
+        $data = get_object_vars($this);
+        unset($data['logger']);
+        return $data;
     }
 }

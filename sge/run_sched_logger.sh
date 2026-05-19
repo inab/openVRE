@@ -7,12 +7,9 @@ while true; do
 
     if [ $? -eq 0 ]; then
         log_output="$log_output
-$(echo "$qstat_output" | grep -e 'job_number' -e 'scheduling info')"
-    else
-        log_output="$log_output
-No jobs running"
+        $(echo "$qstat_output" | grep -e 'job_number' -e 'scheduling info')"
+        printf "%s\n" "$log_output"
     fi
 
-    printf "%s\n" "$log_output"
     sleep 5
 done

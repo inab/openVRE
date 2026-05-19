@@ -1,21 +1,30 @@
 <?php
 require __DIR__ . "/../config/bootstrap.php";
 
+
+
 // Check if PHP session exists
-$r = checkLoggedIn();
+if (checkLoggedIn()) {
+    redirect($GLOBALS['BASEURL'] . "home/redirect.php");
+}
+
 
 // Recover guest user
 if (isset($_REQUEST['id']) && $_REQUEST['id']) {
-    if (!getUserById($_REQUEST['id'])) {
+    if (is_null(getUserById($_REQUEST['id']))) {
         unset($_REQUEST['id']);
+        createUserAnonymous(null);
     }
 
-    $r = loadUser($_REQUEST['id'], false);
+    if (isset($_REQUEST['from']) && $_REQUEST['from']) {
+        redirect("../workspace/?from=" . $_REQUEST['from']);
+    }
 } else {
     // Load WS with sample data, if tool requested
+    $sampleData = "";
     if (isset($_REQUEST['from']) && $_REQUEST['from']) {
         $tool = getTool_fromId($_REQUEST['from'], 1);
-        if (!isset($tool['_id'])) {
+        if (is_null($tool)) {
             $_SESSION['userData']['Warning'][] = "Cannot load '" . $_REQUEST['from'] . "'. Tool not found";
             redirect("../home/redirect.php");
         }
@@ -30,15 +39,13 @@ if (isset($_REQUEST['id']) && $_REQUEST['id']) {
     }
 
     // Get access creating an a anonymous guest account
-    $r = createUserAnonymous($sampleData);
-    if (!$r) {
-        exit('Login error: cannot create anonymous VRE user');
-    }
+    createUserAnonymous($sampleData);
 
     // Redirect to WS with a welcome modal
     if (isset($_REQUEST['from']) && $_REQUEST['from']) {
         redirect("../workspace/?from=" . $_REQUEST['from']);
     }
 }
+
 
 redirect($GLOBALS['BASEURL'] . "home/redirect.php");

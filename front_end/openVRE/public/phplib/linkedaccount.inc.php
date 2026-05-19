@@ -1,5 +1,22 @@
 <?php
-use OpenVRE\SSH\VaultClient;
+
+use OpenVRE\LoggerFactory;
+use OpenVRE\Site;
+use OpenVRE\VaultClientFactory;
+
+
+function getLinkedAccountLogger()
+{
+	static $logger = null;
+
+	if ($logger === null) {
+		$logger = LoggerFactory::getLogger('Linked account interface');
+	}
+
+	return $logger;
+}
+
+
 function addUserLinkedAccount($accountType, $action, $userId, $site_id, $postData)
 {
 	switch ($accountType) {
@@ -24,36 +41,43 @@ function addUserLinkedAccount($accountType, $action, $userId, $site_id, $postDat
 			if (isset($_POST["submitOption"])) {
 				$submitOption = $_POST["submitOption"];
 				if ($submitOption === "clearAccount") {
-					handleObjectStorageAccount("delete", $userId, $postData);
+					handleObjectStorageAccount("delete", $userId, $site_id, $postData);
 					break;
 				} elseif ($submitOption === "updateAccount") {
-					handleObjectStorageAccount("update", $userId, $postData);
+					handleObjectStorageAccount("update", $userId, $site_id, $postData);
 					break;
 				} else {
-					handleObjectStorageAccount($action, $userId, $postData);
+					handleObjectStorageAccount($action, $userId, $site_id, $postData);
 					break;
 				}
 			} else {
-				handleObjectStorageAccount($action, $userId, $postData);
+				handleObjectStorageAccount($action, $userId, $site_id, $postData);
 				break;
 			}
-		case "ega":
-			if (isset($_POST["submitOption"])) {
-				$submitOption = $_POST["submitOption"];
-				if ($submitOption === "clearAccount") {
-					handleEgaAccount("delete", $userId, $postData);
-					break;
-				} elseif ($submitOption === "updateAccount") {
-					handleEgaAccount("update", $userId, $postData);
-					break;
+		case "EGA":
+			try {
+				if (isset($_POST["submitOption"])) {
+					$submitOption = $_POST["submitOption"];
+					if ($submitOption === "clearAccount") {
+						handleEgaAccount("delete", $userId, $postData);
+						break;
+					} elseif ($submitOption === "updateAccount") {
+						handleEgaAccount("update", $userId, $postData);
+						break;
+					} else {
+						handleEgaAccount($action, $userId, $postData);
+						break;
+					}
 				} else {
 					handleEgaAccount($action, $userId, $postData);
 					break;
 				}
-			} else {
-				handleEgaAccount($action, $userId, $postData);
-				break;
+			} catch (Exception $e) {
+				$_SESSION['errorData']['Error'][] = $e->getMessage();
+				redirect($_SERVER['HTTP_REFERER']);
 			}
+
+			break;
 		default:
 			$_SESSION['errorData']['Error'][] = "Account of type '$accountType' is not yet supported.";
 			redirect($_SERVER['HTTP_REFERER']);
@@ -67,7 +91,7 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 	if ($action === "new") {
 		// Check if the credentials are already saved
 
-		if (isset($postData['private_key'], $postData['public_key'])) {
+		if (isset($postData['private_key'])) {
 			// If credentials are provided, use them directly
 			if (isset($_SESSION['User']['credentials']['timestamp'])) {
 				$savedTime = $_SESSION['User']['credentials']['timestamp'];
@@ -77,20 +101,15 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 				// Check if the timestamp is more than 2 hours old (validity check)
 				if (($currentTime - $savedTime) > 7200) {
 					$_SESSION['errorData']['Warning'][] = "Credentials were saved more than 2 hours ago. Please update them.";
-					$accessToken = $_SESSION['userToken']['access_token'];
 				} else {
 					$_SESSION['errorData']['Info'][] = "Credentials are already saved and still valid.";
-					$accessToken = $_SESSION['userToken']['access_token'];
 					return;
 				}
 			}
 		} elseif (isset($postData["save_credential"]) && $postData["save_credential"] == "true") {
-
-			$accessToken = $_SESSION['userToken']['access_token'];
 			$data['data']['SSH'] = [];
 			$data['data']['SSH']['private_key'] = $postData['private_key'];
-			$data['data']['SSH']['public_key'] = $postData['public_key'];
-			$data['data']['SSH']['user_key'] = $postData['user_key'];
+			$data['data']['SSH']['username'] = $postData['username'];
 			$data['data']['SSH']['_id'] = $userId;
 			$_SESSION['User']['credentials'] = [
 				'timestamp' => time()  // Only store the timestamp
@@ -104,13 +123,10 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 	} elseif ($action === "update") {
 		// Add logic for handling MN account and uploading credentials to Vault for "update" action
 
-		if (!empty($postData['private_key']) && !empty($postData['public_key'])) {
-			$accessToken = $_SESSION['userToken']['access_token'];
-
+		if (!empty($postData['private_key'])) {
 			$data['data']['SSH'] = [];
 			$data['data']['SSH']['private_key'] = $postData['private_key'];
-			$data['data']['SSH']['public_key'] = $postData['public_key'];
-			$data['data']['SSH']['user_key'] = $postData['user_key'];
+			$data['data']['SSH']['username'] = $postData['username'];
 			$data['data']['SSH']['_id'] = $userId;
 			$_SESSION['User']['credentials'] = [
 				'timestamp' => time()  // Only store the timestamp
@@ -124,15 +140,13 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 	} elseif ($action === "delete") {
 		// Reset data for "delete" action
 		$data = [];
-		if (isset($postData['private_key'], $postData['public_key'])) {
+		if (isset($postData['private_key'])) {
 			$postData['private_key'] = null;
-			$postData['public_key'] = null;
-			$postData['user_key'] = null;
+			$postData['username'] = null;
 		}
 		$postData['timestamp'] = null;
 		$userId = null;
 
-		#var_dump($postData);
 		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
 
 		if (isset($site_id)) {
@@ -155,60 +169,40 @@ function handleSSHAccount($action, $userId, $site_id, $postData)
 		handleInvalidAction();
 	}
 
-	if (empty($postData['user_key'])) {
-		error_log("Error: 'username' is missing in postData.");
-		throw new Exception("Username is required.");
-		exit;
+	if (empty($postData['username'])) {
+		getLinkedAccountLogger()->error("Error: 'username' is missing in postData.");
+		throw new UnexpectedValueException("Username is required.");
 	}
 
-	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
-	$vaultClient = new VaultClient(
-		$GLOBALS['vaultUrl'],
-		$accessToken,
-		$_SESSION['userVaultInfo']['vaultRolename'],
-		$postData['username']
-	);
-	//var_dump($data);
-	$key = $vaultClient->uploadKeystoVault($data);
-	$_SESSION['userVaultInfo']['vaultKey'] = $key;
-	$tokenTime = $vaultClient->getTokenExpirationTime($GLOBALS['vaultUrl'], $key);
-	//echo ("TOKEN TIME" . $tokenTime);
-	if ($tokenTime !== false) {
-		$_SESSION['userVaultInfo']['expires_in'] = $tokenTime;
+	$postData['username'] = $postData['username'] . '_' . $site_id;
+	$privateKey = $data['data']['SSH']['private_key'];
+
+	if (!validateOpenSSHPrivateKey($privateKey)) {
+		getLinkedAccountLogger()->error("Invalid SSH private key format.");
+		throw new UnexpectedValueException("Invalid SSH private key format.");
 	}
+
+	$vaultClient = VaultClientFactory::create();
+	$vaultClient->uploadFileToVault(Site::SSH, $data);
 	// Update user data with vault key
-	$_SESSION['userVaultInfo']['vaultKey'] = $key;
 	updateUser($_SESSION['User']);
-	if (!$key) {
-		$_SESSION['errorData']['Error'][] = "Failed to link SSH account";
-		$_SESSION['formData'] = $postData;
-		redirect($_SERVER['HTTP_REFERER']);
-	}
 
 	$_SESSION['errorData']['Info'][] = "SSH account successfully linked.";
 	redirect($_SERVER['HTTP_REFERER']);
 }
 
 
-
-
-function handleObjectStorageAccount($action, $userId, $postData)
+function handleObjectStorageAccount($action, $userId, $site_id, $postData)
 {
 	$data = [];
-	echo $action;
-	var_dump($postData);
 	if ($action === "new") {
-		//$data = [];	
 		// Check if the credentials are already saved
-
 		if (isset($postData['app_id'], $postData['app_secret'])) {
 			// If credentials are provided, use them directly
-			$accessToken = $_SESSION['userToken']['access_token'];
 			$_SESSION['errorData']['Info'][] = "Credentials are already saved, update the credentials if needed.";
 		} elseif (isset($postData['save_credential']) && $postData['save_credential'] == 'true') {
 
 			// Add logic for handling MN account and uploading credentials to Vault
-			$accessToken = $_SESSION['userToken']['access_token'];
 			// You can customize this part based on how you obtain Swift credentials
 			$data['data']['Swift'] = [];
 			$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
@@ -222,11 +216,7 @@ function handleObjectStorageAccount($action, $userId, $postData)
 		}
 	} elseif ($action === "update") {
 		// Add logic for handling MN account and uploading credentials to Vault for "update" action
-
 		if (!empty($postData['app_id']) && !empty($postData['app_secret'])) {
-
-			$accessToken = $_SESSION['userToken']['access_token'];
-
 			$data['data']['Swift'] = [];
 			$data['data']['Swift']['app_id'] = $postData['app_id']; // Modify this
 			$data['data']['Swift']['app_secret'] = $postData['app_secret']; // Modify this
@@ -236,7 +226,6 @@ function handleObjectStorageAccount($action, $userId, $postData)
 			$data['data']['Swift']['projectDomainId'] = $postData['projectDomainId'];
 			$data['data']['Swift']['user_key'] = $postData['user_key'];
 			$data['data']['Swift']['_id'] = $userId;
-			#$_SESSION['errorData']['Info'][] = "Credentials updated!";
 		} else {
 			// Handle the case where app_id or app_secret is empty
 			$_SESSION['errorData']['Error'][] = "Please provide both app_id and app_secret.";
@@ -256,15 +245,14 @@ function handleObjectStorageAccount($action, $userId, $postData)
 			$postData['user_key'] = null;
 			$postData['_id'] = null;
 		}
+
 		$postData['timestamp'] = null;
 		$userId = null;
-
-		#var_dump($postData);
-		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
+		getLinkedAccountLogger()->info("Credentials for user erased.");
 
 		if (isset($site_id)) {
 			$updateResult = $GLOBALS['sitesCol']->updateOne(
-				['_id' => $site_id],  // Match document by siteId    
+				['_id' => $site_id],  // Match document by siteId
 				['$set' => [  // Use the $unset operator to remove fields
 					'access_credentials.app_id' => null,
 					'access_credentials.app_secret' => null,
@@ -283,43 +271,28 @@ function handleObjectStorageAccount($action, $userId, $postData)
 				$_SESSION['errorData']['Error'][] = "Failed to remove credentials from the database.";
 			}
 		}
+
 		redirect($_SERVER['HTTP_REFERER']);
-
-
-		$_SESSION['errorData']['Info'][] = "Credentials for user erased, please provide new ones.";
 	} else {
 		handleInvalidAction();
 	}
 
 	if (empty($postData['user_key'])) {
-		error_log("Error: 'username' is missing in postData.");
-		throw new Exception("Username is required.");
-		exit;
+		getLinkedAccountLogger()->error("Error: 'username' is missing in postData.");
+		throw new UnexpectedValueException("Username is required.");
 	}
+
 	$postData['user_key'] = $postData['user_key'] . '_' . $site_id;
+	$vaultClient = VaultClientFactory::create();
 
-	$vaultClient = new VaultClient(
-		$GLOBALS['vaultUrl'],
-		$accessToken,
-		$_SESSION['userVaultInfo']['vaultRolename'],
-		$postData['user_key']
-	);
-	#echo 'Vault';
-	#var_dump($vaultClient);
-	#var_dump($data);
-	$key = $vaultClient->uploadKeystoVault($data);
-	// Update user data with vault key
-	$_SESSION['userVaultInfo']['vaultKey'] = $key;
+	$vaultClient->uploadFileToVault(Site::Swift, $data);
+
 	updateUser($_SESSION['User']);
-	if (!$key) {
-		$_SESSION['errorData']['Error'][] = "Failed to link Swift account";
-		$_SESSION['formData'] = $postData;
-		redirect($_SERVER['HTTP_REFERER']);
-	}
-
 	$_SESSION['errorData']['Info'][] = "Swift account successfully linked.";
+	getLinkedAccountLogger()->info("Swift account successfully linked.");
 	redirect($_SERVER['HTTP_REFERER']);
 }
+
 
 function handleEgaAccount($action, $userId, $postData)
 {
@@ -328,9 +301,8 @@ function handleEgaAccount($action, $userId, $postData)
 			$egaAuthToken = getEgaAuthToken($postData['username'], $postData['password']);
 			$_SESSION['User']['EGA']['token'] = $egaAuthToken;
 		} catch (Exception $e) {
-			error_log("Could not connect to EGA: " . $e->getMessage());
-			$_SESSION['errorData']['Error'][] = "Could not connect to EGA. Please check your credentials.";
-			redirect($_SERVER['HTTP_REFERER']);
+			getLinkedAccountLogger()->error("Could not connect to EGA: " . $e->getMessage());
+			throw new UnexpectedValueException("Could not connect to EGA. Check your credentials and try again.");
 		}
 	}
 
@@ -353,24 +325,11 @@ function handleEgaAccount($action, $userId, $postData)
 		handleInvalidAction();
 	}
 
-	$accessToken = json_decode($_SESSION['userVaultInfo']['jwt'], true)["access_token"];
-	$vaultClient = new VaultClient(
-		$GLOBALS['vaultUrl'],
-		$accessToken,
-		$_SESSION['userVaultInfo']['vaultRolename'],
-		$postData['username']
-	);
-
-	$key = $vaultClient->uploadKeystoVault($data);
-	$_SESSION['userVaultInfo']['vaultKey'] = $key;
-	if (!$key) {
-		$_SESSION['errorData']['Info'][] = "";
-		$_SESSION['errorData']['Error'][] = "Failed to link EGA account";
-		error_log("Failed to link EGA account");
-		redirect($_SERVER['HTTP_REFERER']);
-	}
+	$vaultClient = VaultClientFactory::create();
+	$vaultClient->uploadFileToVault(Site::EGA, $data);
 
 	$_SESSION['errorData']['Info'][] = "EGA account successfully linked.";
+	getLinkedAccountLogger()->info("EGA account successfully linked.");
 	redirect($_SERVER['HTTP_REFERER']);
 }
 

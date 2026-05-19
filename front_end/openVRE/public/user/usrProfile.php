@@ -144,7 +144,7 @@ redirectOutside();
                                                 <!-- PERSONAL INFO TAB -->
                                                 <div class="tab-pane active" id="tab_1_1">
 
-                                                    <?php if (!isset($_SESSION['lastUserLogin'])) { ?>
+                                                    <?php if (is_null($_SESSION['lastUserLogin'])) { ?>
                                                         <p>As you have signed up the VRE from
                                                             <?php echo $_SESSION['User']['AuthProvider']; ?>, you should
                                                             complete some fields of your profile in this form.</p>
@@ -159,7 +159,7 @@ redirectOutside();
                                                     <form role="form" action="javascript:;" id="form-change-profile">
                                                         <input type="hidden" id="base-url"
                                                             value="<?php echo $GLOBALS['BASEURL']; ?>" />
-                                                        <?php if (!isset($_SESSION['lastUserLogin'])) { ?>
+                                                        <?php if (is_null($_SESSION['lastUserLogin'])) { ?>
                                                             <input type="hidden" id="is-first-time" value="1" />
                                                         <?php } ?>
                                                         <div class="form-group">
@@ -186,7 +186,7 @@ redirectOutside();
                                                                 value="<?php echo $_SESSION['User']['Inst']; ?>"
                                                                 class="form-control" />
                                                         </div>
-                                                        <?php if (!allowedRoles($_SESSION['User']['Type'], $GLOBALS['TOOLDEV']) && (checkTermsOfUse())) { ?>
+                                                        <?php if (!in_array($_SESSION['User']['Type'], $GLOBALS['TOOLDEV']) && (checkTermsOfUse())) { ?>
                                                             <div class="form-group margin-top-30">
                                                                 <label class="control-label">You are a standard user. Do you
                                                                     want to bring your own tool?
@@ -339,7 +339,7 @@ redirectOutside();
                                                                 data-original-title="<p align='left' style='margin:0'>Bearer token used to authenticate your access to any platform service.</p>"></i></label>
                                                         <div class="input-group">
                                                             <input id="mt-target-1" type="text" class="form-control"
-                                                                value="<?php echo $_SESSION['userToken']['access_token']; ?>"
+                                                                value="<?php echo $_SESSION['userToken']->getToken(); ?>"
                                                                 readonly style="background:#fff;">
                                                             <span class="input-group-btn">
                                                                 <button class="btn green mt-clipboard"
@@ -351,14 +351,14 @@ redirectOutside();
                                                         </div>
                                                     </div>
                                                     <input id="exp-token" type="hidden"
-                                                        value="<?php echo $_SESSION['userToken']['expires']; ?>">
+                                                        value="<?php echo $_SESSION['userToken']->getExpires(); ?>">
                                                     <input id="curr-time" type="hidden" value="<?php echo time(); ?>">
                                                     <?php
-                                                    $ed = date('h:i:s A (jS \of F Y)', $_SESSION['userToken']['expires']);
+                                                    $ed = date('h:i:s A (jS \of F Y)', $_SESSION['userToken']->getExpires());
                                                     /*$edd = date('h:i:s A (jS \of F Y)');
                                                            print ">>>>>>>>> INI : $edd <br/>";
                             print ">>>>>>>>> EXP : $ed <br/>";*/
-                                                    $expiresIn = $_SESSION['userToken']['expires'] - time();
+                                                    $expiresIn = $_SESSION['userToken']->getExpires() - time();
                                                     if ($expiresIn > 0)
                                                         $expDate = "Token will expire in " . intval($expiresIn / 60) . " minutes, at $ed";
                                                     else
@@ -390,7 +390,7 @@ redirectOutside();
                                                                 data-original-title="<p align='left' style='margin:0'>Token used to refresh an expired access token. It is revoked when used, so access tokens are issued together with a new refresh token</p>"></i></label>
                                                         <div class="input-group">
                                                             <input id="mt-target-2" type="text" class="form-control"
-                                                                value="<?php echo $_SESSION['userToken']['refresh_token']; ?>"
+                                                                value="<?php echo $_SESSION['userToken']->getRefreshToken(); ?>"
                                                                 readonly style="background:#fff;">
                                                             <span class="input-group-btn">
                                                                 <button class="btn green mt-clipboard"
@@ -402,15 +402,8 @@ redirectOutside();
                                                         </div>
                                                     </div>
                                                     <input id="exp-refrtoken" type="hidden"
-                                                        value="<?php echo $_SESSION['userToken']['expires'] + $_SESSION['userToken']['refresh_expires_in']; ?>">
+                                                        value="<?php echo $_SESSION['userToken']->getExpires() + $_SESSION['userToken']->getValues()['refresh_expires_in']; ?>">
                                                     <?php
-                                                    /*$expiresDate = $_SESSION['userToken']['expires'] + $_SESSION['userToken']['refresh_expires_in'];
-                                                                                                 $ed = date('h:i:s A (jS \of F Y)',$expiresDate);
-                                                                                                    $expiresIn = $expiresDate - time();
-                                                                                                    if ($expiresIn > 0 )
-                                                                                                            $expDate = "Token will expire in ". intval($expiresIn/60) ." minutes, at $ed";
-                                                                                                    else
-                                                                                                            $expDate = "This Token is expired...  It needs a new login!";*/
                                                     ?>
                                                     <div class="form-group">
                                                         <label class="control-label">Expiration date <i
@@ -429,42 +422,6 @@ redirectOutside();
                                                                 data-original-title="<p align='left' style='margin:0'>Information returned by Oauth2 provider when the user token is beared</p>"></i></label>
                                                         <br />
                                                         <pre><?php echo json_encode($_SESSION['tokenInfo'], JSON_PRETTY_PRINT); ?></pre>
-                                                    </div>
-
-
-                                                    <div class="form-group mt-clipboard-container">
-                                                        <input id="vault-exp-token" type="hidden"
-                                                            value="<?php echo $_SESSION['userVaultInfo']['expires_in']; ?>">
-                                                        <input id="curr-time" type="hidden"
-                                                            value="<?php echo time(); ?>">
-                                                        <?php
-                                                        //$ed = date('h:i:s A (jS \of F Y)', $_SESSION['userVaultInfo']['expires_in']);
-                                                        $expirationTimestamp = intval($_SESSION['userVaultInfo']['expires_in']);
-                                                        $ed = gmdate('h:i:s A (jS \of F Y)', $expirationTimestamp);
-                                                        $expiresIn = $expirationTimestamp - time();
-                                                        if ($expiresIn > 0)
-                                                            $vexpDate = "Token will expire in " . intval($expiresIn / 60) . " minutes, at $ed";
-                                                        else
-                                                            $vexpDate = "This Token is expired...  It needs a refresh!";
-                                                        ?>
-
-                                                        <div class="form-group">
-                                                            <label class="control-label">Expiration Vault date <i
-                                                                    class="icon-question tooltips" data-container="body"
-                                                                    data-html="true" data-placement="right"
-                                                                    data-original-title="<p align='left' style='margin:0'>Vault token expiration time. Its lifespan is short, so VRE refreshs it just before accessing the requested resource, if needed.</p>"></i></label>
-                                                            <div class="input-group">
-                                                                <input id="token-exp-date" type="text"
-                                                                    value="<?php echo $vexpDate; ?>"
-                                                                    class="form-control" readonly
-                                                                    style="background:#fff;" />
-                                                                <span class="input-group-btn">
-                                                                    <a href="applib/refreshVaultToken.php"
-                                                                        class="btn green button"><i
-                                                                            class="fa fa-refresh"></i> Renew token</a>
-                                                                </span>
-                                                            </div>
-                                                        </div>
                                                     </div>
 
                                                     <br />
@@ -492,7 +449,6 @@ redirectOutside();
                                                             <div class="row" style="margin-left:30px;">
                                                                 <?php echo generateSSHButtons(); ?>
                                                             </div>
-
                                                         <?php } else {
                                                         ?>
                                                             <div class="form-group">
@@ -520,7 +476,7 @@ redirectOutside();
                                                                     class="fa fa-eye font-green"
                                                                     style="margin:10px; font-size:18px"></i>
                                                                 <br />
-                                                                <div style="height:150px;display:none;" id="ssh_">
+                                                                <div style="height:150px;display:none;" id="ssh_priv_key">
                                                                     <pre><?php echo $_SESSION['User']['linked_accounts']['SSH']['hpc_priv_key'] ?></pre>
                                                                 </div>
                                                             </div>
@@ -560,7 +516,7 @@ redirectOutside();
                                                         </p>
                                                         <div class="row" style="margin-left:30px;">
                                                             <div class="col-md-6">
-                                                                <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=ega&action=new"
+                                                                <a href="<?php echo $GLOBALS['BASEURL']; ?>user/linkedAccount.php?account=EGA&action=new"
                                                                     class="btn green"><i class="fa fa-plus"></i> &nbsp; Link
                                                                     your account</a>
                                                             </div>
@@ -571,7 +527,7 @@ redirectOutside();
                                                 <hr>
                                                 <!-- START opnestack ACCOUnt -->
 
-                                                <div style="padding-top: 15px; padding-left: 15px;border-left: 2px solid lightgray;">
+                                                <div hidden style="padding-top: 15px; padding-left: 15px;border-left: 2px solid lightgray;">
                                                     <?php
                                                     if (! isset($_SESSION['User']['linked_accounts']['openstack'])) { ?>
                                                         <p>

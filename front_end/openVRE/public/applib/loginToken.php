@@ -2,17 +2,31 @@
 
 require __DIR__ . "/../../config/bootstrap.php";
 
-use MuG_Oauth2Provider\MuG_Oauth2Provider;
+use OpenVRE\LoggerFactory;
+use OpenVRE\Oauth2Provider;
+
+
+function getLoginLogger()
+{
+    static $logger = null;
+
+    if ($logger === null) {
+        $logger = LoggerFactory::getLogger('Login interface');
+    }
+
+    return $logger;
+}
 
 
 // Setting auth server
-$provider = new MuG_Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . "applib/loginToken.php"]);
+$provider = new Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . "applib/loginToken.php"]);
 
 // Get auth code. Redirect user to the authorization URL
 if (!isset($_GET['code'])) {
 
     // Fetch the authorization URL from the provider; returns urlAuthorize and generates state
     $authorizationUrl = $provider->getAuthorizationUrl();
+    getLoginLogger()->info("Redirect user to the authorization URL: " . $authorizationUrl);
 
     header('Location: ' . $authorizationUrl);
     exit;
@@ -23,30 +37,30 @@ if (!isset($_GET['code'])) {
     if (isset($_SESSION['oauth2state'])) {
         unset($_SESSION['oauth2state']);
     }
+
     exit('Login error: invalid state. Start login process again, please.');
 } else {
 
-
     // Get an access token using the authorization code grant.
     try {
-        $accessTokenO = $provider->getAccessToken('authorization_code', ['code' => $_GET['code']]);
-        $jwt          = json_encode($accessTokenO);
-        $accessToken  = json_decode($jwt, true);
-
+        $accessToken = $provider->getAccessToken('authorization_code', ['code' => $_GET['code']]);
+        getLoginLogger()->info("Successfully obtained user access token from authorization code.");
     } catch (\Exception $e) {  # (IdentityProviderException $e)
         exit("Internal login service error: cannot obtain user access token from authorization code: " . $e->getMessage());
     }
 
     // Look up user name and other metadata
     try {
-        $resourceOwnerO = $provider->getResourceOwner($accessTokenO);
-        $resourceOwner  = array_map('trim', $resourceOwnerO->toArray());
+        $resourceOwner = $provider->getResourceOwner($accessToken);
+        $userInfo  = array_map('trim', $resourceOwner->toArray());
+        getLoginLogger()->info("Successfully obtained resource owner from user access token from authorization code.");
+        getLoginLogger()->info(json_encode($userInfo));
     } catch (\Exception $e) {
         exit("Internal login service error: cannot obtain resource owner from user access token from authorization code: " . $e->getMessage());
     }
 
     // Check received token claims
-    if (!isset($resourceOwner['email'])) {
+    if (is_null($userInfo['email'])) {
         $_SESSION['errorData']['Error'][] = "User is authentified, but the claims on the received OIDC token are not correct. At least 'email' attribute is expected.";
         redirect("../home/redirect.php");
     }
@@ -62,8 +76,8 @@ if (!isset($_GET['code'])) {
     }
 
     $_SESSION['allowedDatasetIds'] = [];
-    if (isset($resourceOwner['ga4gh_passport_v1'])) {
-        $gh4ghPassport = $resourceOwner['ga4gh_passport_v1'];
+    if (isset($userInfo['ga4gh_passport_v1'])) {
+        $gh4ghPassport = $userInfo['ga4gh_passport_v1'];
 
         foreach ($gh4ghPassport as $gh4ghVisaJwt) {
             $gh4ghVisaTokenParts = explode(".", $gh4ghVisaJwt);
@@ -76,24 +90,25 @@ if (!isset($_GET['code'])) {
                 array_push($_SESSION['allowedDatasetIds'], $gh4ghJwtPayload->ga4gh_visa_v1->value);
             }
         }
+
+        getLoginLogger()->info("GA4GH passport obtained from user access token and included into user session info.");
     }
 
     // Check if user exists.
-    $u = getUserById(sanitizeString($resourceOwner['email']));
+    $user = getUserById(sanitizeString($userInfo['email']));
 
-    // If new user, create or import from anon 
-    if (!isset($u) || !$u) {
-        // create new user
-        $r = createUserFromToken($resourceOwner['email'], $accessToken, $jwt, $resourceOwner, false);
-        if (!$r)
-            exit('Login error: cannot create local VRE user');
-        $u = getUserById(sanitizeString($resourceOwner['email']));
-        if (!isset($u))
-            exit('Login error: failed to create local VRE user');
+    // If new user, create or import from anon
+    if (is_null($user)) {
+        try {
+            $user = createUserFromToken($userInfo['email'], $accessToken, $userInfo, false);
+            getLoginLogger()->info("Created new user from user access token.");
+        } catch (\Exception $e) {
+            exit('Login error: failed to create local VRE user: ' . $e->getMessage());
+        }
     }
 
-    // load user
-    $user = loadUserWithToken($resourceOwner, $accessToken, $jwt);
+    $user = loadUserWithToken($user, $userInfo, $accessToken);
+    getLoginLogger()->info("Loaded existing user from access token.");
 
     if ($user) {
         redirect("../home/redirect.php");

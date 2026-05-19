@@ -34,7 +34,6 @@ function showForm(fn){
             editor.getEditor("root.project").setValue(fileInfo['project']);
             editor.getEditor("root.format").setValue(fileInfo['format']);
             editor.getEditor("root.description").setValue(fileInfo['description']);                    
-            editor.getEditor("root.sources").setValue(fileInfo['sources']);                    
             editor.getEditor("root.type").setValue(fileInfo['type']);                    
             editor.getEditor("root.validated").setValue(fileInfo['validated']);                    
             editor.getEditor("root.data_type").setValue(fileInfo['data_type']);                    

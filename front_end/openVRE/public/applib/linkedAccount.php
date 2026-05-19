@@ -8,7 +8,7 @@ redirectOutside();
 if(!$_REQUEST){
 	redirect($GLOBALS['URL']);
 
-}elseif (!isset($_REQUEST['account'])) {
+}elseif (is_null($_REQUEST['account'])) {
 	redirect($_SERVER['HTTP_REFERER']);
 }
 

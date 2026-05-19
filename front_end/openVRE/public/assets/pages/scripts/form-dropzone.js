@@ -7,8 +7,6 @@ var FormDropzone = function () {
     return {
       //main function to initiate the module
       init: function () {  
-				var count_added = 0;
-				var count_uploaded = 0;
 				Dropzone.options.myDropzone = {
 					dictDefaultMessage: "Drop files here or click to upload",
 					dictResponseError: "Error message",
@@ -22,14 +20,6 @@ var FormDropzone = function () {
 							if((queryArray.indexOf(d) == -1) && (d != '0'))	queryArray.push(d);
 								
 							if (this.getUploadingFiles().length === 0 && this.getQueuedFiles().length === 0) {
-								
-								//TODO No se com ferho
-								//if(response == '0'){
-								//	print nicely $_SESSION['errorData'];
-								//}else{
-								//	location.href="uploadForm2.php?fn[]="+responsefile1+"&fn[]"+responsefile2
-								//}
-								//queryArray.pop();
 								if(queryArray.length > 0) {
 									queryString = '?fn[]=' + queryArray.join('&fn[]=');
 									location.href= baseURL + "getdata/uploadForm2.php" + queryString;
@@ -38,7 +28,6 @@ var FormDropzone = function () {
 									$('.alert-error-uploading').show();
 									location.href= baseURL + "getdata/uploadForm.php";
 								}
-								//console.log("uploadForm2.php" + queryString);
 							}
 						});
 					}

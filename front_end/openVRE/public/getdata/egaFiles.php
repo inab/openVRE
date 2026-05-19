@@ -67,7 +67,7 @@
                 <!-- Pagination -->
                 <div class="pagination">
                     <?php if ($currentPage > 1): ?>
-                        <a href="/ega?page=<?php echo $currentPage - 1; ?>">&laquo; Previous</a>
+                        <a href="/EGA?page=<?php echo $currentPage - 1; ?>">&laquo; Previous</a>
                     <?php endif; ?>
 
                     <?php
@@ -75,12 +75,12 @@
                     $end_page = min($total_pages, $currentPage + 9);
 
                     for ($i = $start_page; $i <= $end_page; $i++): ?>
-                        <a href="/ega?page=<?php echo $i; ?>"
+                        <a href="/EGA?page=<?php echo $i; ?>"
                             class="<?php echo $i == $currentPage ? 'active' : ''; ?>"><?php echo $i; ?></a>
                     <?php endfor; ?>
 
                     <?php if ($currentPage < $total_pages): ?>
-                        <a href="/ega?page=<?php echo $currentPage + 1; ?>">Next &raquo;</a>
+                        <a href="/EGA?page=<?php echo $currentPage + 1; ?>">Next &raquo;</a>
                     <?php endif; ?>
                 </div>
             </div>
@@ -210,7 +210,7 @@
     });
 
     function addFilesToWorkspace(datasetIds, fileIds, displayNames, fileSizes) {
-        fetch(`applib/getData.php?uploadType=ega&datasetIds=${datasetIds}&fileIds=${fileIds}&displayNames=${displayNames}&fileSizes=${fileSizes}`).then(response => {
+        fetch(`applib/getData.php?uploadType=EGA&datasetIds=${datasetIds}&fileIds=${fileIds}&displayNames=${displayNames}&fileSizes=${fileSizes}`).then(response => {
             console.log('Response:', response);
             if (!response.ok) {
                 throw new Error('Network response was not ok');

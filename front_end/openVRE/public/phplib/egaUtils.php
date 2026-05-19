@@ -19,8 +19,6 @@ function getEgaAuthToken($egaUsername, $egaPassword)
         throw new Exception('cURL error: ' . curl_error($ch));
     }
 
-    curl_close($ch);
-    
     $tokenDataArray = json_decode($jsonData, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
         throw new Exception('Error decoding JSON data: ' . json_last_error_msg());

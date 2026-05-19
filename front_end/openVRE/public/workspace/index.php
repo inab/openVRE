@@ -2,9 +2,7 @@
 
 require __DIR__ . "/../../config/bootstrap.php";
 
-//var_dump($_SESSION["bho"]);
-
-//var_dump($_SESSION['User']['vaultClient']);
+use OpenVRE\UserType;
 
 
 redirectOutside();
@@ -16,7 +14,7 @@ require "../htmlib/header.inc.php";
 // Merge pending files and retrieved data compute data disk space
 
 $usedDisk = getUsedDiskSpace();
-$diskLimit = $_SESSION['User']['diskQuota']; // getDiskLimit();
+$diskLimit = $_SESSION['User']['diskQuota'];
 $usedDiskPerc = sprintf('%f', ($usedDisk / $diskLimit) * 100);
 $usedDiskPerc = number_format($usedDiskPerc, 1, '.', '');
 
@@ -34,12 +32,10 @@ $dtlist = ((isset($_REQUEST["tool"]) && $_REQUEST["tool"] != "") ? getAvailableD
 $projects = getProjects_byOwner();
 
 //update files workspace content (job and files)
-$allFiles = getFilesToDisplay(array('_id' => $_SESSION['User']['dataDir']), null);
+$allFiles = getFilesToDisplay(array('_id' => $_SESSION['User']['dataDir']));
 
 $files = (isset($dtlist['list']) ? filterFiles_by_dataType($allFiles, $dtlist["list"]) : $allFiles);
 $files = addTreeTableNodesToFiles($files);
-
-$proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 
 ?>
 
@@ -143,7 +139,7 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 
 						if ($_SESSION['User']['Type'] == UserType::Guest->value) {
 
-							?>
+						?>
 
 							<div class="profile-content">
 								<div class="row">
@@ -190,7 +186,7 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 								</div>
 							</div>
 
-							<?php
+						<?php
 
 						}
 
@@ -232,7 +228,7 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 												<option value="">Filter files by tool</option>
 												<?php foreach ($toolsList as $tl) { ?>
 													<option value="<?php echo $tl["_id"]; ?>" <?php if (isset($_REQUEST["tool"]) && $_REQUEST["tool"] == $tl["_id"])
-														   echo 'selected'; ?>><?php echo $tl["name"]; ?></option>
+																									echo 'selected'; ?>><?php echo $tl["name"]; ?></option>
 												<?php } ?>
 											</select>
 										</div>
@@ -258,7 +254,7 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 											}
 
 											// print FILES in TABLE
-											
+
 											print printTable($files);
 											?>
 
@@ -351,7 +347,6 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 				<?php
 				$toolsHelp = getTools_Help();
 				$toolsList = getTools_List();
-				//var_dump($toolsHelp);
 				sort($toolsList);
 				?>
 
@@ -368,17 +363,17 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 									if (isset($_REQUEST["tool"]) && $_REQUEST["tool"] != "") {
 										$expcol = "collapse";
 										$portlet = "";
-										?>
+									?>
 
 										<small>Below users can find all the possible data type combinations for the
 											selected
 											tool</small>
 
-										<?php
+									<?php
 									} else {
 										$expcol = "expand";
 										$portlet = "portlet-collapsed";
-										?>
+									?>
 
 										<small style="font-size:75%;">Below users can find all the possible data type
 											combinations for each tool (click expand button)</small>
@@ -410,7 +405,7 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 										foreach ($toolsList as $tl) {
 
 											if ($tl["_id"] == $_REQUEST["tool"]) {
-												?>
+										?>
 												<div class="panel panel-default">
 													<div class="panel-heading">
 														<h4 class="panel-title">
@@ -457,11 +452,11 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 																					<td><?php echo implode("<br>", $content["data_type"]); ?>
 																					</td>
 																				</tr>
-																				<?php
+																			<?php
 																				$cc++;
 																			} ?>
 
-																			<?php
+																	<?php
 																		}
 																	}
 
@@ -471,7 +466,7 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 														</div>
 													</div>
 												</div>
-												<?php
+										<?php
 											}
 											$c++;
 										}
@@ -484,7 +479,7 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 										<?php
 										$c = 0;
 										foreach ($toolsList as $tl) {
-											?>
+										?>
 											<div class="panel panel-default">
 												<div class="panel-heading">
 													<h4 class="panel-title">
@@ -532,11 +527,11 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 																				<td><?php echo implode("<br>", $content["data_type"]); ?>
 																				</td>
 																			</tr>
-																			<?php
+																		<?php
 																			$cc++;
 																		} ?>
 
-																		<?php
+																<?php
 																	}
 																}
 
@@ -546,7 +541,7 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 													</div>
 												</div>
 											</div>
-											<?php
+										<?php
 											$c++;
 										}
 										?>
@@ -606,7 +601,7 @@ $proj_name_active = getAttr_fromGSFileId($_SESSION['User']['dataDir'], "name");
 									</div>
 
 									<div id="extra-space-home">
-										<?php if (allowedRoles($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
+										<?php if (in_array($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
 											Do you need extra disk space? Click the button below to contact us!
 											<br><br>
 											<a href="<?php echo $GLOBALS['BASEURL']; ?>helpdesk/?sel=space"
@@ -700,8 +695,6 @@ If you want to <strong>re-use your session</strong>, make sure you save the <str
 					</div>
 					<div class="modal-body">
 						<div id="container-tad" style="width: 100%;height: 500px;">
-							<!-- <tadkit-viewer id="viewer" color="93AEBF" previews='[{"file_type": "tad","file_url": "visualizers/tadkit/tadkit-viewer/samples/tk-example-dataset-2K.json"}]'></tadkit-viewer>
--->
 						</div>
 					</div>
 					<div class="modal-footer">
