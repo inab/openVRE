@@ -1,5 +1,10 @@
 <?php
 
+namespace OpenVRE;
+
+use Monolog\Logger;
+use UnexpectedValueException;
+
 /**
  * ProcessK8s — Kubernetes Job manager for OpenVRE tool execution.
  *
@@ -90,6 +95,8 @@ class ProcessK8s
         "NotFound"  => "FINISHING",
     );
 
+    private Logger $logger;
+
     // ---------------------------------------------------------------
     // Constructor
     // ---------------------------------------------------------------
@@ -108,6 +115,8 @@ class ProcessK8s
      */
     public function __construct($cl = false, $workDir = "", $queue = "", $jobname = "", $cpu = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log", $jobOptions = array())
     {
+        $this->logger = LoggerFactory::getLogger("Process K8s interface");
+
         // Read all configuration from environment variables (set via ConfigMap/Secret).
         $this->namespace = getenv("OPENVRE_K8S_NAMESPACE") ?: "bsctre-v2";
         $this->jobImage = getenv("OPENVRE_K8S_JOB_IMAGE") ?: "";
@@ -303,7 +312,7 @@ class ProcessK8s
 
         // Submit Job via the scheduler service.
         $this->fullcommand = "POST " . $this->schedulerUrl . "/jobs";
-        logger("K8s job submission via scheduler '" . $this->fullcommand . "'");
+        $this->logger->debug("K8s job submission via scheduler '" . $this->fullcommand . "'");
         $response = $this->schedulerRequest("POST", "/jobs", array(
             "namespace" => $this->namespace,
             "manifest" => $yaml
@@ -313,14 +322,14 @@ class ProcessK8s
         if ($response["ok"] !== true) {
             $this->stderr = $response["error"];
             $this->stdout = "";
-            $msg = "K8s job submission failed: " . trim($this->stderr);
-            logger($msg);
-            $_SESSION['errorData']['Error'][] = $msg;
             $this->pid = "";
+            $msg = "K8s job submission failed: " . trim($this->stderr);
+            $this->logger->error($msg);
+            throw new UnexpectedValueException($msg);
         } else {
             $this->stdout = isset($response["data"]["stdout"]) ? (string)$response["data"]["stdout"] : "";
             $this->stderr = isset($response["data"]["stderr"]) ? (string)$response["data"]["stderr"] : "";
-            logger("K8s job submitted: " . $this->pid . ". Output: " . trim($this->stdout));
+            $this->logger->debug("K8s job submitted: " . $this->pid . ". Output: " . trim($this->stdout));
         }
     }
 

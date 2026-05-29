@@ -1445,7 +1445,6 @@ EOF;
 			case "ega_demo":
 			case "docker_SGE":
 			case "kubernetes_native":
-				return $this->enqueue($tool);
 			case "Slurm_Singularity":
 				return $this->enqueue($tool);
 			default:

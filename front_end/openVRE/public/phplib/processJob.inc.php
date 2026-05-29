@@ -2,6 +2,7 @@
 
 use OpenVRE\LoggerFactory;
 use OpenVRE\NotFoundException;
+use OpenVRE\ProcessK8s;
 use OpenVRE\ProcessSGE;
 use OpenVRE\ProcessSlurm;
 
