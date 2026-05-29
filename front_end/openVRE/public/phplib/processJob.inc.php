@@ -18,7 +18,7 @@ function getJobProcessLogger()
 }
 
 
-function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log", $jobManager = "docker_SGE")
+function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log", $jobManager = "docker_SGE", $toolId = "", $jobOptions = array())
 {
     getJobProcessLogger()->info("Start job submission via SGE");
 
@@ -55,6 +55,23 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
             getJobProcessLogger()->info("Submitting job via Slurm_Singularity to $remote_system. Parameters: shFile=$shFile, workDir=$workDir, logFile=$logFile, errFile=$errFile");
             $process = new ProcessSlurm($shFile, $workDir, $logFile, $errFile, $remote_system);
             break;
+        case "kubernetes_native":
+            $schedUrl = getenv("OPENVRE_K8S_SCHEDULER_URL") ?: "";
+            $schedHost = $schedUrl !== ""
+                ? (string)(parse_url($schedUrl, PHP_URL_HOST) ?: "(parse_failed)")
+                : "(not_set)";
+            $k8sNs = getenv("OPENVRE_K8S_NAMESPACE") ?: "(env_unset)";
+            $jobOptKeys = is_array($jobOptions) && count($jobOptions)
+                ? implode(",", array_keys($jobOptions))
+                : "(none)";
+            error_log(
+                "DEBUG: Submitting job via kubernetes_native. Parameters: shFile=$shFile, workDir=$workDir, queue=$queue, "
+                    . "jobname=$jobname, cpus=$cpus, mem=$mem, logFile=$logFile, errFile=$errFile, "
+                    . "namespace=$k8sNs, scheduler_host=$schedHost, jobOptions_keys=$jobOptKeys"
+            );
+            require_once __DIR__ . "/classes/ProcessK8s.php";
+            $process = new ProcessK8s($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile, $jobOptions);
+            break;
         default:
             $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
             break;
@@ -82,15 +99,26 @@ function getRunningJobInfo($pid, $launcherType = null)
 
     if (is_null($launcherType) && is_numeric($pid)) {
         $launcherType = "SGE";
+    } elseif (strpos((string)$pid, "-") !== false) {
+        $launcherType = "kubernetes_native";
     }
 
-    if (!in_array($launcherType, array("SGE", "docker_SGE", "Slurm_Singularity"))) {
+    if ($launcherType == "SGE" || $launcherType == "docker_SGE") {
+        $process = new ProcessSGE();
+        $job = $process->getRunningJobInfo($pid);
+    } elseif ($launcherType == "kubernetes_native") {
+        require_once __DIR__ . "/classes/ProcessK8s.php";
+        $process = new ProcessK8s();
+        $job = $process->getRunningJobInfo($pid);
+    } elseif ($launcherType == "Slurm_Singularity") {
+        $process = new ProcessSlurm();
+        $job = $process->getRunningJobInfo($pid);
+    } else {
         getJobProcessLogger()->error("Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.");
         throw new UnexpectedValueException("Cannot monitor job '$pid' of type '$launcherType'. Launcher not implemented.");
     }
 
-    $process = new ProcessSGE();
-    return $process->getRunningJobInfo($pid);
+    return $job;
 }
 
 
@@ -190,6 +218,8 @@ function delJob($pid, $launcherType = null, $login = null)
     // guess launcher
     if (!$launcherType && is_numeric($pid)) {
         $launcherType = "docker_SGE";
+    } elseif (strpos((string)$pid, "-") !== false) {
+        $launcherType = "kubernetes_native";
     }
 
     // cancel job
@@ -197,6 +227,15 @@ function delJob($pid, $launcherType = null, $login = null)
     if ($launcherType == "SGE" || $launcherType == "docker_SGE") {
         $processSGE = new ProcessSGE();
         list($r_sge, $msg_sge) = $processSGE->stop($pid);
+    } elseif ($launcherType == "kubernetes_native") {
+        getJobProcessLogger()->debug("delJob kubernetes_native pid=$pid calling ProcessK8s::stop");
+        require_once __DIR__ . "/classes/ProcessK8s.php";
+        $processK8s = new ProcessK8s();
+        list($r_sge, $msg_sge) = $processK8s->stop($pid);
+        getJobProcessLogger()->debug(
+            "delJob kubernetes_native pid=$pid stop_ok=" . ($r_sge ? "1" : "0")
+                . " msg=" . $msg_sge
+        );
     } else {
         getJobProcessLogger()->error("Cannot delete job of type '$launcherType' [id = $pid]. Launcher not implemented.");
         throw new UnexpectedValueException("Cannot delete job of type '$launcherType' [id = $pid]. Launcher not implemented.");

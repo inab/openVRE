@@ -15,3 +15,7 @@ volumes/
 *.key
 *.pem
 .jwks
+
+# Python
+__pycache__/
+*.pyc

@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y libmcrypt-dev \
     && docker-php-ext-install gd 
 
 RUN apt-get update && apt-get install -y gnupg curl
-RUN curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc |gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor
+RUN curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor
 RUN echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] http://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list
 RUN apt-get update
 RUN apt-get install -y mongodb-org
@@ -39,9 +39,7 @@ WORKDIR /var/www/html
 ADD openVRE /var/www/html/openVRE
 RUN cd openVRE
 WORKDIR /var/www/html/openVRE
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN composer self-update
-RUN composer update --ignore-platform-req=ext-mongodb --ignore-platform-req=ext-mongodb
+# Dependencies are pre-seeded in ./openVRE/vendor for offline/reproducible builds.
 RUN mkdir logs
 RUN touch logs/application.log
 RUN chmod -R 777 logs/application.log
