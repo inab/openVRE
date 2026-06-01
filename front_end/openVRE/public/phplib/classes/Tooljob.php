@@ -851,7 +851,7 @@ class Tooljob
 				$entry['file_path'] = null;
 				$entry['meta_data']['remote_paths'] = [[
 					"remote_path" => preg_replace('#/+#', '/', $remoteOutputPath),
-					"location"    => "marenostrum"
+					"location"    => "MareNostrum"
 				]];
 
 				$this->logger->debug("Remote output path set to: " . $entry['meta_data']['remote_paths'][0]['remote_path']);

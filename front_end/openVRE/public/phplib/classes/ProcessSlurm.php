@@ -43,7 +43,7 @@ class ProcessSlurm
     ];
     private Logger $logger;
 
-    public function __construct($shFile = "", $workDir = "", $logFile = "job_output.log", $errFile = "job_error.log", $remote_system = "marenostrum")
+    public function __construct($shFile = "", $workDir = "", $logFile = "job_output.log", $errFile = "job_error.log", $remote_system = "MareNostrum")
     {
         $this->logger = LoggerFactory::getLogger("Tool job");
 

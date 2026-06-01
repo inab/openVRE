@@ -16,7 +16,7 @@ $execution = $_REQUEST['execution'] ?? [];
 $arguments_exec = $_REQUEST['arguments_exec'] ?? [];
 
 // Only sync if the site requires it
-if (!in_array('marenostrum', $siteList)) {
+if (!in_array('MareNostrum', $siteList)) {
     echo json_encode(['status' => 'error', 'message' => 'Selected site does not require syncing']);
     exit;
 }

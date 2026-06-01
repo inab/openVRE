@@ -798,7 +798,7 @@ function formatData($data)
 	}
 	//remote_path && location
 	$locationMap = [
-		'marenostrum' => 'MN',
+		'MareNostrum' => 'MN',
 		'mn4'         => 'MN',
 	];
 
