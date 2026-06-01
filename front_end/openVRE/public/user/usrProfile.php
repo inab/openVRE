@@ -430,7 +430,7 @@ redirectOutside();
                                                         class="caption-subject font-blue-madison bold uppercase">Linked
                                                         Accounts</span>
 
-                                                    <!-- HPC ACCOUNT -->
+                                                    <!-- HPC ACCOUNT 
                                                     <hr>
                                                     <img src="https://cdn-icons-png.flaticon.com/512/5225/5225347.png" /
                                                         style="float: right; height: 50px; margin: 0 50px;">
@@ -498,7 +498,7 @@ redirectOutside();
                                                             </div>
                                                     </div>
                                                 <?php } ?>
-                                                </div>
+                                                </div> -->
                                                 <!-- END MN ACCOUNT -->
                                                 <hr>
                                                 <!-- EGA ACCOUNT -->
