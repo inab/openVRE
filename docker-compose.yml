@@ -42,21 +42,6 @@ services:
         ipv4_address: 172.21.0.18
     restart: on-failure:2
 
-  postgres:
-    container_name: postgres
-    image: postgres:17.3
-    profiles: ["local_auth"]
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - keycloak_data:/var/lib/postgresql/data
-    networks:
-      net_vre:
-        ipv4_address: 172.21.0.13
-    restart: on-failure:2
-
   keycloak:
     container_name: keycloak
     hostname: keycloak
