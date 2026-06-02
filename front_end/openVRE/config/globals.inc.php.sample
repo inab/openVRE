@@ -11,7 +11,6 @@ $GLOBALS['AppPrefix'] = "PROJECT"; // project url acronym
 $GLOBALS['NAME']      = "PROJECT_NAME"; // project name
 $GLOBALS['SITETITLE'] = "PROJECT_TITLE | Virtual Research Environment"; // site title
 $GLOBALS['TIMEOUT']   = 3600; // session and cookies timeout
-$GLOBALS['host_path'] = "/home/openVRE-core-dev";
 
 // Email
 $GLOBALS['FROMNAME']  = "VRE"; // 'From' for VRE tickets and notifications
@@ -85,7 +84,7 @@ $GLOBALS['EGA_METADATA_API'] = 'https://metadata.ega-archive.org';
 
 
 // Default names and local path for VRE
-$GLOBALS['URL']       = "http://" . getenv('SERVER_DOMAIN') . ":" . getenv('SERVER_PORT') . $GLOBALS['BASEURL']; // full VRE URL
+$GLOBALS['URL']       = "https://" . getenv('SERVER_DOMAIN') . $GLOBALS['BASEURL']; // full VRE URL
 $GLOBALS['URL_login'] = $GLOBALS['URL']."login.php"; // Default for auth server login
 $GLOBALS['htmlPath']  = $GLOBALS['root']. "/public/"; // Default path for public folder
 $GLOBALS['htmlib']    = $GLOBALS['htmlPath']."htmlib"; // Default path for html templates
@@ -155,8 +154,8 @@ $GLOBALS['clouds'] = Array(
                         "pubDir_fs"         => "/NFS/export/path/public/",   // export path for NFS server
                         "dataDir_virtual"   => $GLOBALS['dataDir'],
                         "pubDir_virtual"    => $GLOBALS['pubDir'],
-                        "dataDir_host"    => $GLOBALS["host_path"].$GLOBALS['dataDir'],
-                        "pubDir_host"    => $GLOBALS["host_path"].$GLOBALS['pubDir'],
+                        "dataDir_host"    => getenv('FRONTEND_HOST_PATH').$GLOBALS['dataDir'],
+                        "pubDir_host"    => getenv('FRONTEND_HOST_PATH').$GLOBALS['pubDir'],
                         "imageTypes"        => array(),                      // list of cloud OCCI templates indexed by RAM (GB)
                         "auth"              => array("required" => False)
                 )
