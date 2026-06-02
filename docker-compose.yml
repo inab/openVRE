@@ -145,7 +145,7 @@ networks:
     name: ${NETWORK_NAME}
     # Use this driver_opts on openStack cloud
     # driver_opts:
-    #  com.docker.network.driver.mtu: 1440 or 1442 (to be checked)
+    #  com.docker.network.driver.mtu: 1440 or 1442 (to be checked at OpenStack configuration)
     ipam:
       config:
         - subnet: 172.21.0.0/24
