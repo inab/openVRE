@@ -120,7 +120,7 @@ $files = addTreeTableNodesToFiles($files);
 
 					<div class="row">
 						<div class="col-md-12" style="margin-bottom:30px;">
-							<?php require "../tools/" . $_REQUEST["from"] . "/assets/ws/btn-modal.php"; ?>
+							<?php require "../tools/front/" . $_REQUEST["from"] . "/assets/ws/btn-modal.php"; ?>
 						</div>
 					</div>
 
@@ -890,7 +890,7 @@ If you want to <strong>re-use your session</strong>, make sure you save the <str
 
 		if (isset($_REQUEST["from"]) && $_REQUEST["from"]) {
 
-			require "../tools/" . $_REQUEST["from"] . "/assets/ws/modal.php";
+			require "../tools/front/" . $_REQUEST["from"] . "/assets/ws/modal.php";
 		}
 
 

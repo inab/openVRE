@@ -872,7 +872,7 @@ function formatData($data)
 		$data['tools_list'] = '<ul class="dropdown-menu pull-right" role="menu">';
 		if (sizeof($tList) > 0) {
 			foreach ($tList as $t) {
-				$data['tools_list'] .= '<li><a href="tools/' . $t[0] . '/input.php?fn[]=' . $data['_id_URL'] . '" class="' . $t[0] . '">' . file_get_contents('../tools/' . $t[0] . '/assets/ws/icon.php') . ' ' . $t[1] . '</a></li>';
+				$data['tools_list'] .= '<li><a href="tools/front/' . $t[0] . '/input.php?fn[]=' . $data['_id_URL'] . '" class="' . $t[0] . '">' . file_get_contents('..tools/front/' . $t[0] . '/assets/ws/icon.php') . ' ' . $t[1] . '</a></li>';
 			}
 			$data['tools_button'] = 'block';
 		} else {
@@ -1019,7 +1019,7 @@ function formatData($data)
 	if (isset($data['input_files']) && isset($data['tool'])) {
 		$tool = $GLOBALS['toolsCol']->findOne(array('_id' => $data['tool']));
 		if (!empty($tool)) {
-			$formPath  = "tools/" . $data['tool'] . "/input.php";
+			$formPath  = "tools/front/" . $data['tool'] . "/input.php";
 			$data['rerunLink'] = "<li><a href=\"$formPath?rerunDir=" . $data['_id_URL'] . "\"><i class=\"fa fa-share\"></i> Rerun Project</a></li>";
 		}
 	}

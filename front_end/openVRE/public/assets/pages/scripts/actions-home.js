@@ -368,7 +368,7 @@ runTool = function (tool) {
 		}
 	}
 	query = query.slice(0, -1);
-	location.href = baseURL + "tools/" + tool + "/input.php?" + query;
+	location.href = baseURL + "tools/front/" + tool + "/input.php?" + query;
 }
 
 runVisualizer = function (tool, user) {

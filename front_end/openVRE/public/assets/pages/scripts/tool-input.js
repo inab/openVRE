@@ -165,7 +165,7 @@ var createModal = function() {
 					obj.help +
 	                                '</div>'+
 	                                '<li style="list-style-type: none">Edit your file\'s metadata finding your file in the <span class="btn green btn-xs"><i class="fa fa-desktop"></i> User workspace</span>, and selecting from there the file\'s toolkit: <button class="btn btn-xs blue-madison dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true"><i class="fa fa-cogs"></i><i class="fa fa-angle-down"></i></button><i class="fa fa-caret-right"></i><span class="btn blue-madison btn-xs"><i class="fa fa-pencil"></i>Edit Metadata</span> </li> ' +
-	                                '<li style="list-style-type: none; margin-top:18px;"><a target="_blank" href="' + baseURL + 'tools/' + $("input[name=tool]").val() + '/help/inputs.php" style="margin-top:-3px;">Go to the extended tool\'s help</a></li>' +
+	                                '<li style="list-style-type: none; margin-top:18px;"><a target="_blank" href="' + baseURL + 'tools/front/' + $("input[name=tool]").val() + '/help/inputs.php" style="margin-top:-3px;">Go to the extended tool\'s help</a></li>' +
 	                                '</ul>' +
 					'</div>'
 				);

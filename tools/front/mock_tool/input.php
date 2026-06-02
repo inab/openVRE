@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__."/../../../config/bootstrap.php";
+require __DIR__."/../../../../config/bootstrap.php";
 redirectOutside();
 
 InputTool_checkRequest($_REQUEST);
@@ -17,13 +17,13 @@ $tool = getTool_fromId($toolId, 1);
 $sites = getSites_Info($toolId);
 ?>
 
-<?php require "../../htmlib/header.inc.php"; ?>
+<?php require "../../../htmlib/header.inc.php"; ?>
  
 <body class="page-header-fixed page-sidebar-closed-hide-logo page-content-white page-container-bg-solid page-sidebar-fixed">
   <div class="page-wrapper">
 
-  <?php require "../../htmlib/top.inc.php"; ?>
-  <?php require "../../htmlib/menu.inc.php"; ?>
+  <?php require "../../../htmlib/top.inc.php"; ?>
+  <?php require "../../../htmlib/menu.inc.php"; ?>
 
     <!-- BEGIN CONTENT -->
     <div class="page-content-wrapper">
@@ -298,7 +298,7 @@ $sites = getSites_Info($toolId);
 
 <?php 
 
-require "../../htmlib/footer.inc.php"; 
-require "../../htmlib/js.inc.php";
+require "../../../htmlib/footer.inc.php"; 
+require "../../../htmlib/js.inc.php";
 
 ?>
