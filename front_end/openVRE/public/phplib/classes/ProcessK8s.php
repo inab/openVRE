@@ -1,5 +1,9 @@
 <?php
 
+namespace OpenVRE;
+
+use Monolog\Logger;
+
 /**
  * ProcessK8s — Kubernetes Job manager for OpenVRE tool execution.
 
@@ -19,6 +23,7 @@
  */
 class ProcessK8s
 {
+    private Logger $logger;
 
     /** Kubernetes Job name, also used as the OpenVRE "pid" */
     private string $pid = "";
@@ -94,6 +99,8 @@ class ProcessK8s
      */
     public function __construct(false|string $cl = false, string $workDir = "", string $jobname = "", int $cpu = 1, int $mem = 0, array $jobOptions = [])
     {
+        $this->logger = LoggerFactory::getLogger("K8s interface");
+
         $this->namespace = $this->env("OPENVRE_K8S_NAMESPACE");
         $this->jobImage = $this->env("OPENVRE_K8S_JOB_IMAGE");
         $this->sharedPvc = $this->env("OPENVRE_K8S_SHARED_PVC");
@@ -176,7 +183,7 @@ class ProcessK8s
 
         // Submit Job via the scheduler service.
         $this->fullcommand = "POST " . $this->schedulerUrl . "/jobs";
-        logger("K8s job submission via scheduler '" . $this->fullcommand . "'");
+        $this->logger->info("K8s job submission via scheduler '" . $this->fullcommand . "'");
         $response = $this->schedulerRequest("POST", "/jobs", array(
             "namespace" => $this->namespace,
             "manifest" => $yaml
@@ -187,13 +194,13 @@ class ProcessK8s
             $this->stderr = $response["error"];
             $this->stdout = "";
             $msg = "K8s job submission failed: " . trim($this->stderr);
-            logger($msg);
+            $this->logger->error($msg);
             $_SESSION['errorData']['Error'][] = $msg;
             $this->pid = "";
         } else {
             $this->stdout = isset($response["data"]["stdout"]) ? (string)$response["data"]["stdout"] : "";
             $this->stderr = isset($response["data"]["stderr"]) ? (string)$response["data"]["stderr"] : "";
-            logger("K8s job submitted: " . $this->pid . ". Output: " . trim($this->stdout));
+            $this->logger->info("K8s job submitted: " . $this->pid . ". Output: " . trim($this->stdout));
         }
     }
 
@@ -240,7 +247,6 @@ class ProcessK8s
                                 ),
                                 "volumeMounts" => array(
                                     array("name" => "shared-data", "mountPath" => $GLOBALS['shared']),
-                                    array("name" => "tools", "mountPath" => "/var/www/html/openVRE/public/tools")
                                 )
                             )
                         ),
