@@ -70,7 +70,6 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
                 . "jobname=$jobname, cpus=$cpus, mem=$mem, "
                 . "namespace=$k8sNs, scheduler_host=$schedHost, jobOptions_keys=$jobOptKeys"
             );
-            require_once __DIR__ . "/classes/ProcessK8s.php";
             $process = new ProcessK8s($shFile,$workDir,$jobname,(int)$cpus,(int)$mem,is_array($jobOptions) ? $jobOptions : []);
             break;
         default:
@@ -108,7 +107,6 @@ function getRunningJobInfo($pid, $launcherType = null)
         $process = new ProcessSGE();
         $job = $process->getRunningJobInfo($pid);
     } elseif ($launcherType == "kubernetes_native") {
-        require_once __DIR__ . "/classes/ProcessK8s.php";
         $process = new ProcessK8s();
         $job = $process->getRunningJobInfo($pid);
     } elseif ($launcherType == "Slurm_Singularity") {
@@ -230,7 +228,6 @@ function delJob($pid, $launcherType = null, $login = null)
         list($r_sge, $msg_sge) = $processSGE->stop($pid);
     } elseif ($launcherType == "kubernetes_native") {
         getJobProcessLogger()->debug("delJob kubernetes_native pid=$pid calling ProcessK8s::stop");
-        require_once __DIR__ . "/classes/ProcessK8s.php";
         $processK8s = new ProcessK8s();
         list($r_sge, $msg_sge) = $processK8s->stop($pid);
         getJobProcessLogger()->debug(
