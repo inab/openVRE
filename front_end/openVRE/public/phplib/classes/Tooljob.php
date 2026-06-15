@@ -1210,10 +1210,6 @@ EOF;
 				" --out_metadata "   . $this->stageout_file_virtual .
 				" --log_file "       . $this->log_file_virtual;
 
-			if (isset($this->launcher) && $this->launcher === "kubernetes_native") {
-				return $cmd_vre;
-			}
-
 
 			$cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d" .
 				" " . $cmd_envs .

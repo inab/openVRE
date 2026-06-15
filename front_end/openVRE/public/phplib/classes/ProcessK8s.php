@@ -1,147 +1,123 @@
 <?php
 
-namespace OpenVRE;
-
-use Monolog\Logger;
-use UnexpectedValueException;
-
 /**
  * ProcessK8s — Kubernetes Job manager for OpenVRE tool execution.
+
  *
- * This class is responsible for the full lifecycle of Kubernetes Jobs that run
- * OpenVRE tools: creation, status polling, and deletion/cancellation.
  *
- * All communication with Kubernetes goes through the scheduler — a dedicated
- * HTTP microservice deployed as a separate pod that holds the Kubernetes
- * service-account credentials. The frontend pod itself does NOT need a mounted
- * service-account token or direct K8s API access, which improves security by
- * limiting the blast radius of a frontend compromise.
- *
- * Environment variables consumed (all optional, with defaults):
- *   OPENVRE_K8S_NAMESPACE       — target namespace for Jobs (default: "bsctre-v2")
- *   OPENVRE_K8S_JOB_IMAGE       — fallback container image for the Job pod
+ * Environment variables consumed (required — set defaults in deployment env / .env):
+ *   OPENVRE_K8S_NAMESPACE       — target namespace for Jobs
+ *   OPENVRE_K8S_JOB_IMAGE       — fallback container image for the Job pod (may be empty if set per-tool)
  *   OPENVRE_K8S_SHARED_PVC      — PVC name for /shared_data volume
  *   OPENVRE_K8S_TOOLS_PVC       — PVC name for /var/www/html/openVRE/public/tools volume
- *   OPENVRE_K8S_SCHEDULER_URL   — base URL of the scheduler service (REQUIRED)
- *   OPENVRE_K8S_SCHEDULER_TOKEN — Bearer token for scheduler authentication
- *   OPENVRE_K8S_RUN_AS_UID      — UID the Job pod runs as (default: 1000)
- *   OPENVRE_K8S_RUN_AS_GID      — GID / fsGroup for the Job pod (default: 1000)
- *   OPENVRE_K8S_JOB_TTL         — seconds to keep a finished Job before auto-deletion (default: 120)
- *   OPENVRE_K8S_JOB_DEADLINE    — max seconds a Job is allowed to run before being killed (default: 86400 = 24h)
+ *   OPENVRE_K8S_SCHEDULER_URL   — base URL of the scheduler service
+ *   OPENVRE_K8S_SCHEDULER_TOKEN — Bearer token for scheduler authentication (may be empty)
+ *   OPENVRE_K8S_RUN_AS_UID      — UID the Job pod runs as
+ *   OPENVRE_K8S_RUN_AS_GID      — GID / fsGroup for the Job pod
+ *   OPENVRE_K8S_JOB_TTL         — seconds to keep a finished Job before auto-deletion
+ *   OPENVRE_K8S_JOB_DEADLINE    — max seconds a Job is allowed to run before being killed
  */
 class ProcessK8s
 {
-    // ---------------------------------------------------------------
-    // Instance properties
-    // ---------------------------------------------------------------
 
-    /** @var string  Kubernetes Job name, also used as the OpenVRE "pid" */
-    private $pid = "";
+    /** Kubernetes Job name, also used as the OpenVRE "pid" */
+    private string $pid = "";
 
-    /** @var string  Path to the submission script inside the Job pod */
-    private $command = "";
+    /** Path to the submission script inside the Job pod */
+    private string $command = "";
 
-    /** @var string  Working directory inside the Job pod */
-    private $workDir = "";
+    /** Working directory inside the Job pod */
+    private string $workDir = "";
 
-    /** @var string  Human-readable job identifier (used to derive the K8s name) */
-    private $jobname = "";
+    /** Human-readable job identifier (used to derive the K8s name) */
+    private string $jobname = "";
 
-    /** @var string  Full API URL used for submission (for logging/debugging) */
-    private $fullcommand = "";
+    /** Full API URL used for submission (for logging/debugging) */
+    private string $fullcommand = "";
 
-    /** @var string  Captured stdout from the submission response */
-    private $stdout = "";
+    /** Captured stdout from the submission response */
+    private string $stdout = "";
 
-    /** @var string  Captured stderr / error message from submission */
-    private $stderr = "";
+    /** Captured stderr / error message from submission */
+    private string $stderr = "";
 
-    /** @var string  Kubernetes namespace where Jobs are created */
-    private $namespace = "bsctre-v2";
+    /** Kubernetes namespace where Jobs are created */
+    private string $namespace;
 
-    /** @var string  Container image used for the Job pod */
-    private $jobImage = "";
+    /** Container image used for the Job pod */
+    private string $jobImage;
 
-    /** @var string  PVC name mounted at /shared_data (shared between frontend, sge, and jobs) */
-    private $sharedPvc = "dashboard-frontend-sgecore-shareddata";
+    /** PVC name mounted at /shared_data (shared between frontend, sge, and jobs) */
+    private string $sharedPvc;
 
-    /** @var string  PVC name mounted at the tools directory inside the Job pod */
-    private $toolsPvc = "dashboard-frontend-tools";
+    /** PVC name mounted at the tools directory inside the Job pod */
+    private string $toolsPvc;
 
-    /** @var string  Base URL of the scheduler HTTP service (REQUIRED) */
-    private $schedulerUrl = "";
+    /** Base URL of the scheduler HTTP service */
+    private string $schedulerUrl;
 
-    /** @var string  Bearer token sent to the scheduler for authentication */
-    private $schedulerToken = "";
+    /** Bearer token sent to the scheduler for authentication */
+    private string $schedulerToken;
 
-    /** @var int  UID the Job pod container runs as */
-    private $runAsUid = 1000;
+    /** UID the Job pod container runs as */
+    private int $runAsUid;
 
-    /** @var int  GID / fsGroup for the Job pod */
-    private $runAsGid = 1000;
+    /** GID / fsGroup for the Job pod */
+    private int $runAsGid;
 
-    /** @var array  Additional environment variables to inject into the Job pod (from tool Mongo definition) */
-    private $jobEnv = array();
+    /** Seconds to keep a finished Job before auto-deletion */
+    private int $jobTtl;
 
-    /**
-     * Maps Kubernetes Job condition strings to OpenVRE's internal state labels
-     * used by the workspace polling / UI display logic.
-     */
-    private $jobState = array(
+    /** Max seconds a Job is allowed to run before being killed */
+    private int $jobDeadline;
+
+    /** Additional environment variables to inject into the Job pod (from tool Mongo definition) */
+    private array $jobEnv = [];
+
+    /** Maps Kubernetes Job condition strings to OpenVRE internal state labels */
+    private array $jobState = [
         "Running"   => "RUNNING",
         "Pending"   => "PENDING",
         "Succeeded" => "FINISHING",
         "Failed"    => "ERROR",
         "NotFound"  => "FINISHING",
-    );
-
-    private Logger $logger;
+    ];
 
     // ---------------------------------------------------------------
     // Constructor
     // ---------------------------------------------------------------
 
     /**
-     * @param string|false $cl         Path to submission script (false = status-only instance)
-     * @param string       $workDir    Working directory path inside the pod
-     * @param string       $queue      Queue name (unused for K8s, kept for interface compatibility with ProcessSGE)
-     * @param string       $jobname    Human-readable job name
-     * @param int          $cpu        CPU cores requested/limited
-     * @param int          $mem        Memory in GB (0 = default 4Gi)
-     * @param string       $logFile    Stdout log filename (unused for K8s, kept for interface compatibility)
-     * @param string       $errFile    Stderr log filename (unused for K8s, kept for interface compatibility)
-     * @param array        $jobOptions Options from Tooljob: "image" overrides container image,
-     *                                 "env" provides extra environment variables for the pod
+     * When $cl is a script path, builds and submits a Kubernetes Job immediately.
+     * When $cl is false, creates a status-only instance (getRunningJobInfo, status, stop).
+     *
      */
-    public function __construct($cl = false, $workDir = "", $queue = "", $jobname = "", $cpu = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log", $jobOptions = array())
+    public function __construct(false|string $cl = false, string $workDir = "", string $jobname = "", int $cpu = 1, int $mem = 0, array $jobOptions = [])
     {
-        $this->logger = LoggerFactory::getLogger("Process K8s interface");
-
-        // Read all configuration from environment variables (set via ConfigMap/Secret).
-        $this->namespace = getenv("OPENVRE_K8S_NAMESPACE") ?: "bsctre-v2";
-        $this->jobImage = getenv("OPENVRE_K8S_JOB_IMAGE") ?: "";
-        $this->sharedPvc = getenv("OPENVRE_K8S_SHARED_PVC") ?: "dashboard-frontend-sgecore-shareddata";
-        $this->toolsPvc = getenv("OPENVRE_K8S_TOOLS_PVC") ?: "dashboard-frontend-tools";
-        $this->schedulerUrl = rtrim(getenv("OPENVRE_K8S_SCHEDULER_URL") ?: "", "/");
-        $this->schedulerToken = getenv("OPENVRE_K8S_SCHEDULER_TOKEN") ?: "";
-        $this->runAsUid = (int)(getenv("OPENVRE_K8S_RUN_AS_UID") ?: 1000);
-        $this->runAsGid = (int)(getenv("OPENVRE_K8S_RUN_AS_GID") ?: 1000);
+        $this->namespace = $this->env("OPENVRE_K8S_NAMESPACE");
+        $this->jobImage = $this->env("OPENVRE_K8S_JOB_IMAGE");
+        $this->sharedPvc = $this->env("OPENVRE_K8S_SHARED_PVC");
+        $this->toolsPvc = $this->env("OPENVRE_K8S_TOOLS_PVC");
+        $this->schedulerUrl = rtrim($this->env("OPENVRE_K8S_SCHEDULER_URL"), "/");
+        $this->schedulerToken = $this->env("OPENVRE_K8S_SCHEDULER_TOKEN");
+        $this->runAsUid = (int)$this->env("OPENVRE_K8S_RUN_AS_UID");
+        $this->runAsGid = (int)$this->env("OPENVRE_K8S_RUN_AS_GID");
+        $this->jobTtl = (int)$this->env("OPENVRE_K8S_JOB_TTL");
+        $this->jobDeadline = (int)$this->env("OPENVRE_K8S_JOB_DEADLINE");
 
         // Allow per-tool overrides: the tool's Mongo document can specify a custom
         // container image and extra environment variables via $jobOptions.
-        if (is_array($jobOptions)) {
-            if (!empty($jobOptions["image"])) {
-                $this->jobImage = (string)$jobOptions["image"];
-            }
-            if (!empty($jobOptions["env"]) && is_array($jobOptions["env"])) {
-                $this->jobEnv = $jobOptions["env"];
-            }
+        if (!empty($jobOptions["image"])) {
+            $this->jobImage = $jobOptions["image"];
+        }
+        if (!empty($jobOptions["env"]) && is_array($jobOptions["env"])) {
+            $this->jobEnv = $jobOptions["env"];
         }
 
         // If a submission script path was provided, immediately create and submit
         // the Kubernetes Job. When $cl is false, this instance is used only for
         // status queries (getRunningJobInfo, status, stop).
-        if ($cl !== false) {
+        if ($cl) {
             $this->workDir = $workDir;
             $this->command = $cl;
             $this->jobname = $jobname ? $jobname : basename($cl);
@@ -149,16 +125,18 @@ class ProcessK8s
         }
     }
 
-    // ---------------------------------------------------------------
-    // Job name generation
-    // ---------------------------------------------------------------
 
-    /**
-     * Converts a human-readable job name into a Kubernetes-safe DNS name.
-     * Kubernetes Job names must be lowercase, alphanumeric + hyphens, max 63 chars.
-     * Appends a random 8-char suffix to guarantee uniqueness across runs.
-     */
-    private function sanitizeName($name)
+
+    private function env(string $name): string
+    {
+        $value = getenv($name);
+        if ($value === false) {
+            throw new \RuntimeException("Environment variable {$name} is not set");
+        }
+        return $value;
+    }
+
+    private function sanitizeName(string $name): string
     {
         $name = strtolower($name);
         $name = preg_replace('/[^a-z0-9-]+/', '-', $name);
@@ -173,17 +151,9 @@ class ProcessK8s
         return $name . "-" . substr(md5(uniqid("", true)), 0, 8);
     }
 
-    // ---------------------------------------------------------------
-    // Job creation and submission
-    // ---------------------------------------------------------------
 
-    /**
-     * Builds a Kubernetes Job manifest and submits it to the scheduler.
-     *
-     * @param int $cpu  Number of CPU cores (request and limit)
-     * @param int $mem  Memory in GB (0 = default 4Gi)
-     */
-    private function runCom($cpu, $mem)
+    /** Builds a Kubernetes Job manifest and submits it to the scheduler. */
+    private function runCom(int $cpu, int $mem): void
     {
         // Abort if no container image is configured — there's nothing to run.
         if ($this->jobImage === "") {
@@ -192,7 +162,6 @@ class ProcessK8s
             return;
         }
 
-        // Abort if scheduler URL is not configured — we cannot submit jobs.
         if ($this->schedulerUrl === "") {
             $this->stderr = "OPENVRE_K8S_SCHEDULER_URL is not set";
             $_SESSION['errorData']['Error'][] = $this->stderr;
@@ -203,14 +172,38 @@ class ProcessK8s
         $jobName = $this->sanitizeName($this->jobname);
         $this->pid = $jobName;
 
-        $scriptPath = $this->command;
-        $workDir = $this->workDir;
-        $cpuRequest = max(1, (int)$cpu);
-        $cpuLimit = max(1, (int)$cpu);
-        $memLimit = ((int)$mem > 0 ? ((int)$mem . "Gi") : "4Gi");
+        $yaml = $this->arrayToYaml($this->buildJobManifest($jobName, $cpu, $mem));
 
-        // Build the full Kubernetes Job manifest as a PHP associative array.
-        // This will be serialized to YAML before submission to the scheduler.
+        // Submit Job via the scheduler service.
+        $this->fullcommand = "POST " . $this->schedulerUrl . "/jobs";
+        logger("K8s job submission via scheduler '" . $this->fullcommand . "'");
+        $response = $this->schedulerRequest("POST", "/jobs", array(
+            "namespace" => $this->namespace,
+            "manifest" => $yaml
+        ));
+
+        // Handle submission result.
+        if ($response["ok"] !== true) {
+            $this->stderr = $response["error"];
+            $this->stdout = "";
+            $msg = "K8s job submission failed: " . trim($this->stderr);
+            logger($msg);
+            $_SESSION['errorData']['Error'][] = $msg;
+            $this->pid = "";
+        } else {
+            $this->stdout = isset($response["data"]["stdout"]) ? (string)$response["data"]["stdout"] : "";
+            $this->stderr = isset($response["data"]["stderr"]) ? (string)$response["data"]["stderr"] : "";
+            logger("K8s job submitted: " . $this->pid . ". Output: " . trim($this->stdout));
+        }
+    }
+
+
+    private function buildJobManifest(string $jobName, int $cpu, int $mem): array
+    {
+        $cpuRequest = max(1, $cpu);
+        $cpuLimit = max(1, $cpu);
+        $memLimit = ($mem > 0 ? ($mem . "Gi") : "4Gi");
+
         $manifest = array(
             "apiVersion" => "batch/v1",
             "kind" => "Job",
@@ -223,61 +216,39 @@ class ProcessK8s
                 )
             ),
             "spec" => array(
-                // Auto-delete the Job object N seconds after it finishes (success or failure).
-                "ttlSecondsAfterFinished" => (int)(getenv("OPENVRE_K8S_JOB_TTL") ?: 120),
-
-                // Kill the Job if it runs longer than this (prevents stuck/hung jobs).
-                "activeDeadlineSeconds"  => (int)(getenv("OPENVRE_K8S_JOB_DEADLINE") ?: 86400),
-
-                // Do not retry on failure — mark as Failed immediately.
+                "ttlSecondsAfterFinished" => $this->jobTtl,
+                "activeDeadlineSeconds" => $this->jobDeadline,
                 "backoffLimit" => 0,
-
                 "template" => array(
                     "spec" => array(
-                        // Pod should not restart — one attempt only.
                         "restartPolicy" => "Never",
-
                         "containers" => array(
                             array(
                                 "name" => "tool-runner",
                                 "image" => $this->jobImage,
-
-                                // The pod runs the submission script (generated by Tooljob)
-                                // from the working directory. Both are passed as env vars.
                                 "command" => array("bash", "-lc", "cd \"\$OPENVRE_WORKDIR\" && bash \"\$OPENVRE_SUBMIT_SCRIPT\""),
-
                                 "env" => array(
-                                    array("name" => "OPENVRE_WORKDIR", "value" => $workDir),
-                                    array("name" => "OPENVRE_SUBMIT_SCRIPT", "value" => $scriptPath),
+                                    array("name" => "OPENVRE_WORKDIR", "value" => $this->workDir),
+                                    array("name" => "OPENVRE_SUBMIT_SCRIPT", "value" => $this->command),
                                 ),
-
                                 "resources" => array(
                                     "requests" => array("cpu" => (string)$cpuRequest),
                                     "limits" => array("cpu" => (string)$cpuLimit, "memory" => $memLimit)
                                 ),
-
                                 "securityContext" => array(
                                     "allowPrivilegeEscalation" => false,
                                 ),
-
-                                // Mount shared storage so the Job can read inputs and write outputs
-                                // to the same PVCs used by the frontend and SGE pods.
                                 "volumeMounts" => array(
-                                    array("name" => "shared-data", "mountPath" => "/shared_data"),
+                                    array("name" => "shared-data", "mountPath" => $GLOBALS['shared']),
                                     array("name" => "tools", "mountPath" => "/var/www/html/openVRE/public/tools")
                                 )
                             )
                         ),
-
-                        // Run the container as a non-root user with a fixed UID/GID
-                        // to match file ownership on the shared PVCs.
                         "securityContext" => array(
                             "runAsUser" => max(1, $this->runAsUid),
                             "runAsGroup" => max(1, $this->runAsGid),
                             "fsGroup" => max(1, $this->runAsGid)
                         ),
-
-                        // Attach the two shared PVCs as volumes.
                         "volumes" => array(
                             array("name" => "shared-data", "persistentVolumeClaim" => array("claimName" => $this->sharedPvc)),
                             array("name" => "tools", "persistentVolumeClaim" => array("claimName" => $this->toolsPvc))
@@ -287,66 +258,24 @@ class ProcessK8s
             )
         );
 
-        // Inject tool-specific environment variables (e.g. FEM_ACCESS_TOKEN, FEM_API_PREFIX)
-        // from the tool's Mongo definition into the Job pod's container env list.
         if (!empty($this->jobEnv)) {
             $envList =& $manifest["spec"]["template"]["spec"]["containers"][0]["env"];
-            if (is_array($envList)) {
-                foreach ($this->jobEnv as $k => $v) {
-                    if (!is_string($k) || $k === "") {
-                        continue;
-                    }
-                    if ($v === null || $v === "") {
-                        continue;
-                    }
-                    $envList[] = array(
-                        "name" => (string)$k,
-                        "value" => (string)$v
-                    );
+            foreach ($this->jobEnv as $envName => $envValue) {
+                if (empty($envName) || empty($envValue)) {
+                    continue;
                 }
+                $envList[] = array(
+                    "name" => (string)$envName,
+                    "value" => (string)$envValue
+                );
             }
         }
 
-        // Serialize the manifest array to YAML for submission to the scheduler.
-        $yaml = $this->arrayToYaml($manifest);
-
-        // Submit Job via the scheduler service.
-        $this->fullcommand = "POST " . $this->schedulerUrl . "/jobs";
-        $this->logger->debug("K8s job submission via scheduler '" . $this->fullcommand . "'");
-        $response = $this->schedulerRequest("POST", "/jobs", array(
-            "namespace" => $this->namespace,
-            "manifest" => $yaml
-        ));
-
-        // Handle submission result.
-        if ($response["ok"] !== true) {
-            $this->stderr = $response["error"];
-            $this->stdout = "";
-            $this->pid = "";
-            $msg = "K8s job submission failed: " . trim($this->stderr);
-            $this->logger->error($msg);
-            throw new UnexpectedValueException($msg);
-        } else {
-            $this->stdout = isset($response["data"]["stdout"]) ? (string)$response["data"]["stdout"] : "";
-            $this->stderr = isset($response["data"]["stderr"]) ? (string)$response["data"]["stderr"] : "";
-            $this->logger->debug("K8s job submitted: " . $this->pid . ". Output: " . trim($this->stdout));
-        }
+        return $manifest;
     }
 
-    // ---------------------------------------------------------------
-    // HTTP client: scheduler service
-    // ---------------------------------------------------------------
 
-    /**
-     * Sends an HTTP request to the scheduler service.
-     * This is the sole communication channel with Kubernetes.
-     *
-     * @param string     $method   HTTP method (GET, POST, DELETE)
-     * @param string     $path     API path (e.g. "/jobs", "/jobs/{name}")
-     * @param array|null $payload  JSON-serializable body (for POST)
-     * @return array     ["ok" => bool, "error" => string, "data" => array]
-     */
-    private function schedulerRequest($method, $path, $payload = null)
+    private function schedulerRequest(string $method, string $path, ?array $payload = null): array
     {
         if ($this->schedulerUrl === "") {
             return array("ok" => false, "error" => "OPENVRE_K8S_SCHEDULER_URL is not set");
@@ -398,16 +327,8 @@ class ProcessK8s
         return array("ok" => true, "data" => $json);
     }
 
-    // ---------------------------------------------------------------
-    // YAML serializer (PHP array -> YAML string)
-    // ---------------------------------------------------------------
-
-    /**
-     * Converts a nested PHP associative array into a YAML string.
-     * Used to serialize the Job manifest before sending it to the scheduler.
-     * This avoids requiring the Symfony YAML or ext-yaml extension.
-     */
-    private function arrayToYaml($data, $indent = 0)
+    /** Serializes the Job manifest array to YAML before sending it to the scheduler. */
+    private function arrayToYaml(array $data, int $indent = 0): string
     {
         $yaml = "";
         $spaces = str_repeat("  ", $indent);
@@ -433,18 +354,14 @@ class ProcessK8s
                     }
                 }
             } else {
-                // Scalar value.
                 $yaml .= $spaces . $key . ": " . $this->yamlScalar($value) . "\n";
             }
         }
         return $yaml;
     }
 
-    /**
-     * Formats a single scalar value for YAML output.
-     * Booleans become true/false, numbers stay numeric, strings are double-quoted.
-     */
-    private function yamlScalar($value)
+
+    private function yamlScalar(mixed $value): string
     {
         if (is_bool($value)) return $value ? "true" : "false";
         if (is_numeric($value)) return (string)$value;
@@ -452,22 +369,8 @@ class ProcessK8s
         return '"' . $escaped . '"';
     }
 
-    // ---------------------------------------------------------------
-    // Job status and lifecycle queries
-    // ---------------------------------------------------------------
 
-    /**
-     * Retrieves the current state of a running Kubernetes Job by its name (pid).
-     *
-     * Called by OpenVRE's workspace polling loop to determine whether a tool
-     * execution is still in progress. Returns an array with "pid", "state",
-     * and "job_name" if the job is still active, or an empty array if the
-     * job is finished/deleted (which tells OpenVRE to finalize outputs).
-     *
-     * @param  string $pid  Kubernetes Job name
-     * @return array        Job info array, or empty if job is done/not found
-     */
-    public function getRunningJobInfo($pid)
+    public function getRunningJobInfo(string $pid): array
     {
         $job = array();
         if (!$pid) return $job;
@@ -513,9 +416,6 @@ class ProcessK8s
         return $job;
     }
 
-    // ---------------------------------------------------------------
-    // Simple accessors (ProcessSGE interface compatibility)
-    // ---------------------------------------------------------------
 
     /** Returns the full API URL used for the last submission (for debug logging). */
     public function getFullCommand()
@@ -523,13 +423,11 @@ class ProcessK8s
         return $this->fullcommand;
     }
 
-    /** Returns the Kubernetes Job name (used as OpenVRE's "pid"). */
     public function getPid()
     {
         return $this->pid;
     }
 
-    /** Returns a combined error string if submission failed, or null on success. */
     public function getErr()
     {
         if ($this->stderr) {
@@ -538,16 +436,11 @@ class ProcessK8s
         return null;
     }
 
-    /**
-     * Checks whether the Job associated with this instance is still active.
-     * Returns true if the Job exists and is running/pending, false otherwise.
-     * Used by OpenVRE to decide whether to keep polling.
-     */
+
     public function status()
     {
         if (!$this->pid) return false;
 
-        // Query job status via the scheduler.
         $response = $this->schedulerRequest("GET", "/jobs/" . rawurlencode($this->pid) . "?namespace=" . rawurlencode($this->namespace));
 
         if ($response["ok"] !== true) {
@@ -574,19 +467,8 @@ class ProcessK8s
         return true;
     }
 
-    // ---------------------------------------------------------------
-    // Job cancellation / deletion
-    // ---------------------------------------------------------------
 
-    /**
-     * Deletes a Kubernetes Job (and its pod) by name via the scheduler.
-     * The scheduler uses "Background" propagation policy so the API call
-     * returns immediately and Kubernetes garbage-collects the pod asynchronously.
-     *
-     * @param  string|null $pid  Kubernetes Job name to delete
-     * @return array       [bool success, string message]
-     */
-    public function stop($pid = null)
+    public function stop(?string $pid = null): array
     {
         if (!$pid) {
             return array(false, "No job id '$pid' given");

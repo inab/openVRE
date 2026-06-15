@@ -66,12 +66,12 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
                 ? implode(",", array_keys($jobOptions))
                 : "(none)";
             error_log(
-                "DEBUG: Submitting job via kubernetes_native. Parameters: shFile=$shFile, workDir=$workDir, queue=$queue, "
-                    . "jobname=$jobname, cpus=$cpus, mem=$mem, logFile=$logFile, errFile=$errFile, "
-                    . "namespace=$k8sNs, scheduler_host=$schedHost, jobOptions_keys=$jobOptKeys"
+                "DEBUG: Submitting job via kubernetes_native. Parameters: shFile=$shFile, workDir=$workDir, "
+                . "jobname=$jobname, cpus=$cpus, mem=$mem, "
+                . "namespace=$k8sNs, scheduler_host=$schedHost, jobOptions_keys=$jobOptKeys"
             );
             require_once __DIR__ . "/classes/ProcessK8s.php";
-            $process = new ProcessK8s($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile, $jobOptions);
+            $process = new ProcessK8s($shFile,$workDir,$jobname,(int)$cpus,(int)$mem,is_array($jobOptions) ? $jobOptions : []);
             break;
         default:
             $process = new ProcessSGE($shFile, $workDir, $queue, $jobname, $cpus, $mem, $logFile, $errFile);
