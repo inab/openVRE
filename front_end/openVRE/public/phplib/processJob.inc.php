@@ -65,8 +65,8 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
             $jobOptKeys = is_array($jobOptions) && count($jobOptions)
                 ? implode(",", array_keys($jobOptions))
                 : "(none)";
-            error_log(
-                "DEBUG: Submitting job via kubernetes_native. Parameters: shFile=$shFile, workDir=$workDir, "
+            getJobProcessLogger()->info(
+                "Submitting job via kubernetes_native. Parameters: shFile=$shFile, workDir=$workDir, "
                 . "jobname=$jobname, cpus=$cpus, mem=$mem, "
                 . "namespace=$k8sNs, scheduler_host=$schedHost, jobOptions_keys=$jobOptKeys"
             );
