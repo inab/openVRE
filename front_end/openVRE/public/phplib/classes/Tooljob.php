@@ -106,6 +106,7 @@ class Tooljob
 		switch ($this->launcher) {
 			case "SGE":
 			case "docker_SGE":
+			case "kubernetes_native":
 				$this->root_dir_virtual = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'] . "/" . $_SESSION['User']['id'];
 				$this->root_dir_mug     = $GLOBALS['clouds'][$this->cloudName]['dataDir_virtual'];
 				$this->pub_dir_virtual  = $GLOBALS['clouds'][$this->cloudName]['pubDir_virtual'];
@@ -978,6 +979,7 @@ class Tooljob
 
 			switch ($this->launcher) {
 				case "SGE":
+				case "kubernetes_native":
 					$cmd  = $this->setBashCmd_SGE($tool);
 					$this->createSubmitFile_SGE($cmd);
 
@@ -1438,7 +1440,7 @@ EOF;
 			case "SGE":
 			case "ega_demo":
 			case "docker_SGE":
-				return $this->enqueue($tool);
+			case "kubernetes_native":
 			case "Slurm_Singularity":
 				return $this->enqueue($tool);
 			default:
@@ -1461,8 +1463,22 @@ EOF;
 		$cpus = $launcherInfo['cpus'] ?? $tool['infrastructure']['cpus'];
 		$queue = $launcherInfo['queue'] ?? $tool['infrastructure']['clouds'][$this->cloudName]['queue'];
 		$this->logger->info("Resolved Parameters: Queue=$queue, CPUs=$cpus, Memory=$memory");
+		$jobOptions = array();
+		if ($jobManager === "kubernetes_native") {
+			$jobOptions["image"] = $tool['infrastructure']['container_image'] ?? "";
+			if ($jobOptions["image"] === "") {
+				$_SESSION['errorData']['Error'][] = "Missing infrastructure.container_image for kubernetes_native launcher.";
+				return 0;
+			}
+			$jobOptions["env"] = array();
+			if (isset($tool['infrastructure']['container_env']) && is_array($tool['infrastructure']['container_env'])) {
+				foreach ($tool['infrastructure']['container_env'] as $env_key => $env_value) {
+					$jobOptions["env"][$env_key] = (string)$env_value;
+				}
+			}
+		}
 
-		$pid = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file, $jobManager);
+		$pid = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file, $jobManager, $this->toolId, $jobOptions);
 		$this->logger->info("Tool job submitted to SGE queue '$queue' (PID=$pid)");
 
 		$this->pid = $pid;

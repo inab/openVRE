@@ -1908,7 +1908,7 @@ function resolvePath_toLocalAbsolutePath($path, $job)
 	// path is an absolute path
 	if (preg_match('/^\//', $path)) {
 		if (preg_match('/^' . preg_quote($job['root_dir_virtual'], '/') . '/', $path)) {
-			if ($job['launcher'] == "SGE" || $job['launcher'] == "ega_demo" || $job['launcher'] == "docker_SGE") {
+			if ($job['launcher'] == "SGE" || $job['launcher'] == "ega_demo" || $job['launcher'] == "docker_SGE" || $job['launcher'] == "kubernetes_native") {
 				$rfn = str_replace($job['root_dir_mug'], $GLOBALS['dataDir'], $path);
 			}
 			// direct from path
@@ -1936,6 +1936,10 @@ function resolvePath_toLocalAbsolutePath($path, $job)
 		}
 	}
 	//clean slashes
+	if ($rfn === "") {
+		// Keep original absolute path instead of returning empty when launcher mapping is missing.
+		$rfn = $path;
+	}
 	$rfn = preg_replace('#/+#', '/', $rfn);
 
 	//return absolute path
