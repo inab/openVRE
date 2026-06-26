@@ -88,37 +88,6 @@ jQuery(document).ready(function() {
 		menu_toggler = true;
 	});
 
-	// LOGOUT
-	$('#logout-button').on('click', function() {
-
-		if($("#type-of-user").val() == 3) {
-			$('#modalLogoutGuest').modal({ show: 'true' });
-		} else {
-			App.blockUI({
-				boxed: true,
-				message: 'Logging out...'
-			});
-			// setTimeout(() => {
-				
-			$.ajax({
-				type: "POST",
-				url: baseURL + "applib/logoutToken.php",
-				data:"id=1",
-				success: function(data) {
-					d = data.replace(/(\r\n|\n|\r|\t)/gm,"");
-					if(d == '1'){
-						setTimeout(function(){ location.href = baseURL ; }, 1000);	
-					}else{
-						App.unblockUI();
-					}
-				}
-			});
-
-		// }, 500000);
-		}
-	
-	});
-
 
 	$('#modalLogoutGuest').on('click', '.btn-ok', function(e) {
 

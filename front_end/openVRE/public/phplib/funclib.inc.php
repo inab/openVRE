@@ -14,15 +14,16 @@ function moment()
 
 function redirectOutside()
 {
-	if (!checkLoggedIn()) {
-		//Get access creating an a anonymous guest account
-		createUserAnonymous(null);
-	} else {
+	if (checkLoggedIn()) {
 		loadUser($_SESSION['User']['_id'], false);
+	} else {
+		header("Location: /login.php");
 	}
-
-	if (!checkTermsOfUse() && pathinfo($_SERVER['PHP_SELF'])['filename'] != 'usrProfile') {
-		redirect($GLOBALS['BASEURL'] . "user/usrProfile.php");
+	
+	if (!checkTermsOfUse()) {
+		if (pathinfo($_SERVER['PHP_SELF'])['filename'] != 'usrProfile') {
+			redirect($GLOBALS['BASEURL'] . "user/usrProfile.php");
+		}
 	}
 }
 

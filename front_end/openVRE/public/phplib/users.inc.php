@@ -47,8 +47,20 @@ function checkToolDev()
     return isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (in_array($user['Type'], $GLOBALS['TOOLDEV']) || in_array($user['Type'], $GLOBALS['ADMIN']));
 }
 
+
+function base64UrlDecode($input)
+{
+    $remainder = strlen($input) % 4;
+    if ($remainder) {
+        $padlen = 4 - $remainder;
+        $input .= str_repeat('=', $padlen);
+    }
+    return base64_decode(strtr($input, '-_', '+/'));
+}
+
+
 // create user - after being authentified by the Auth Server
-function createUserFromToken($login, $token, $userinfo = array(), $anonID = false)
+function createUserFromToken($login, $token, $userInfo = array(), $anonID = false)
 {
     if (!$anonID) {
         $userAttributes = array(
@@ -70,24 +82,39 @@ function createUserFromToken($login, $token, $userinfo = array(), $anonID = fals
     }
 
     $_SESSION['userToken'] = $token;
-    if (isset($userinfo) && $userinfo) {
-        if (isset($userinfo['family_name'])) {
-            $userAttributes['Surname'] = $userinfo['family_name'];
+    if (isset($userInfo) && $userInfo) {
+        if (isset($userInfo['family_name'])) {
+            $userAttributes['Surname'] = $userInfo['family_name'];
         }
 
-        if (isset($userinfo['given_name'])) {
-            $userAttributes['Name'] = $userinfo['given_name'];
+        if (isset($userInfo['given_name'])) {
+            $userAttributes['Name'] = $userInfo['given_name'];
         }
 
-        if (isset($userinfo['provider'])) {
-            $userAttributes['AuthProvider'] = $userinfo['provider'];
+        if (isset($userInfo['provider'])) {
+            $userAttributes['AuthProvider'] = $userInfo['provider'];
         }
 
-        if (isset($userinfo['sub'])) {
-            $userAttributes['secretsId'] = $userinfo['sub'];
+        if (isset($userInfo['sub'])) {
+            $userAttributes['secretsId'] = $userInfo['sub'];
         }
 
-        $_SESSION['tokenInfo'] = $userinfo;
+        $_SESSION['allowedDatasetIds'] = [];
+        if (isset($userInfo['ga4gh_passport_v1'])) {
+            $gh4ghPassport = $userInfo['ga4gh_passport_v1'];
+
+            foreach ($gh4ghPassport as $gh4ghVisaJwt) {
+                $gh4ghVisaTokenParts = explode(".", $gh4ghVisaJwt);
+                $gh4ghTokenPayload = base64UrlDecode($gh4ghVisaTokenParts[1]);
+                $gh4ghJwtPayload = json_decode($gh4ghTokenPayload);
+
+                if ($gh4ghJwtPayload->ga4gh_visa_v1->type == "ControlledAccessGrants") {
+                    array_push($_SESSION['allowedDatasetIds'], $gh4ghJwtPayload->ga4gh_visa_v1->value);
+                }
+            }
+        }
+
+        $_SESSION['tokenInfo'] = $userInfo;
     }
 
     $objUser = new User($userAttributes['Email'], $userAttributes['secretsId'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "");
@@ -289,7 +316,7 @@ function loadUser($login, $pass)
     return $user;
 }
 
-function loadUserWithToken($user, $userinfo, $token)
+function loadUserWithToken($user, $userInfo, $token)
 {
     if ($user['Status'] == UserStatus::Inactive->value) {
         getUsersLogger()->error("Requested user is inactive. Cannot load user.");
@@ -298,10 +325,25 @@ function loadUserWithToken($user, $userinfo, $token)
 
     $auxlastlog = $user['lastLogin'];
     $user['lastLogin'] = moment();
-    $user['secretsId'] = $userinfo['sub'];
+    $user['secretsId'] = $userInfo['sub'];
     $_SESSION['userToken'] = $token;
-    $_SESSION['tokenInfo'] = $userinfo;
-    
+    $_SESSION['tokenInfo'] = $userInfo;
+
+    $_SESSION['allowedDatasetIds'] = [];
+    if (isset($userInfo['ga4gh_passport_v1'])) {
+        $gh4ghPassport = $userInfo['ga4gh_passport_v1'];
+
+        foreach ($gh4ghPassport as $gh4ghVisaJwt) {
+            $gh4ghVisaTokenParts = explode(".", $gh4ghVisaJwt);
+            $gh4ghTokenPayload = base64UrlDecode($gh4ghVisaTokenParts[1]);
+            $gh4ghJwtPayload = json_decode($gh4ghTokenPayload);
+
+            if ($gh4ghJwtPayload->ga4gh_visa_v1->type == "ControlledAccessGrants") {
+                array_push($_SESSION['allowedDatasetIds'], $gh4ghJwtPayload->ga4gh_visa_v1->value);
+            }
+        }
+    }
+
     updateUser($user);
     setUser($user, $auxlastlog);
 

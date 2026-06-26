@@ -1,51 +1,6 @@
 <?php
 require __DIR__ . "/../config/bootstrap.php";
 
-
-
-// Check if PHP session exists
-if (checkLoggedIn()) {
-    redirect($GLOBALS['BASEURL'] . "home/redirect.php");
-}
-
-
-// Recover guest user
-if (isset($_REQUEST['id']) && $_REQUEST['id']) {
-    if (is_null(getUserById($_REQUEST['id']))) {
-        unset($_REQUEST['id']);
-        createUserAnonymous(null);
-    }
-
-    if (isset($_REQUEST['from']) && $_REQUEST['from']) {
-        redirect("../workspace/?from=" . $_REQUEST['from']);
-    }
-} else {
-    // Load WS with sample data, if tool requested
-    $sampleData = "";
-    if (isset($_REQUEST['from']) && $_REQUEST['from']) {
-        $tool = getTool_fromId($_REQUEST['from'], 1);
-        if (is_null($tool)) {
-            $_SESSION['userData']['Warning'][] = "Cannot load '" . $_REQUEST['from'] . "'. Tool not found";
-            redirect("../home/redirect.php");
-        }
-
-        if (isset($_REQUEST['sd'])) {
-            $sampleData = $_REQUEST['sd'];
-        } elseif (isset($tool['$sampleData'])) {
-            $sampleData = $tool['$sampleData'];
-        } else {
-            $sampleData = $tool['_id'];
-        }
-    }
-
-    // Get access creating an a anonymous guest account
-    createUserAnonymous($sampleData);
-
-    // Redirect to WS with a welcome modal
-    if (isset($_REQUEST['from']) && $_REQUEST['from']) {
-        redirect("../workspace/?from=" . $_REQUEST['from']);
-    }
-}
-
+redirectOutside();
 
 redirect($GLOBALS['BASEURL'] . "home/redirect.php");
