@@ -68,7 +68,7 @@ if (isset($_SERVER['OIDC_access_token'])) {
     }
     exit('Login error: invalid state. Start login process again, please.');
 } else {
-
+    $provider = new Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . "applib/loginToken.php"]);
     // Get an access token using the authorization code grant.
     try {
         $accessToken = $provider->getAccessToken('authorization_code', ['code' => $_GET['code']]);
