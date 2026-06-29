@@ -511,15 +511,22 @@ function sortFilesForTable($filesAll)
 
 	foreach ($filesAll as $id => $file) {
 		if (isset($file['_print_order'])) {
-			$withOrder[$file['_print_order']] = $id;
+			$withOrder[] = array('order' => $file['_print_order'], 'id' => $id);
 		} else {
 			$withoutOrder[$id] = $file;
 		}
 	}
 
-	ksort($withOrder);
+	usort($withOrder, function ($a, $b) {
+		if ($a['order'] !== $b['order']) {
+			return $a['order'] - $b['order'];
+		}
+		return strcmp($a['id'], $b['id']);
+	});
+
 	$sorted = array();
-	foreach ($withOrder as $id) {
+	foreach ($withOrder as $entry) {
+		$id = $entry['id'];
 		unset($filesAll[$id]['_print_order']);
 		$sorted[$id] = $filesAll[$id];
 	}
