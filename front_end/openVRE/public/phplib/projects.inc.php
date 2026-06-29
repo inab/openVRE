@@ -527,11 +527,27 @@ function sortFilesForTable($filesAll)
 	$sorted = array();
 	foreach ($withOrder as $entry) {
 		$id = $entry['id'];
+		$printOrd = $entry['order'];
+		$filesAll[$id]['tree_sort'] = str_pad((string)$printOrd, 6, '0', STR_PAD_LEFT);
 		unset($filesAll[$id]['_print_order']);
 		$sorted[$id] = $filesAll[$id];
 	}
 	foreach ($withoutOrder as $id => $file) {
 		$sorted[$id] = $file;
+	}
+
+	$treeIdToSort = array();
+	foreach ($sorted as $file) {
+		if (!empty($file['tree_id']) && !empty($file['tree_sort'])) {
+			$treeIdToSort[$file['tree_id']] = $file['tree_sort'];
+		}
+	}
+	foreach ($sorted as $id => $file) {
+		if (!empty($file['tree_id_parent'])) {
+			$sorted[$id]['parent_tree_sort'] = $treeIdToSort[$file['tree_id_parent']] ?? '000000';
+		} else {
+			$sorted[$id]['parent_tree_sort'] = '000000';
+		}
 	}
 
 	return $sorted;
@@ -1184,8 +1200,25 @@ function formatData($data)
 		$data['tree_depth'] = substr_count($data['tree_id'], '.');
 	}
 	if (empty($data['tree_id_parent'])) {
-		unset($data['tree_id_parent']);
+		$data['tree_id_parent'] = '';
 	}
+
+	if (empty($data['tree_sort'])) {
+		$data['tree_sort'] = '999999';
+	}
+	if (empty($data['parent_tree_sort'])) {
+		$data['parent_tree_sort'] = '000000';
+	}
+
+	$name = $data['longfilename'] ?? $data['filename'] ?? '';
+	$mtime = (int)($data['mtime_parent'] ?? 0);
+	$size = (int)($data['size_parent'] ?? 0);
+	$data['name_sort_key'] = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+	$data['format_sort_key'] = htmlspecialchars($data['format'] ?? '', ENT_QUOTES, 'UTF-8');
+	$data['data_type_sort_key'] = htmlspecialchars($data['file_data_type'] ?? '', ENT_QUOTES, 'UTF-8');
+	$data['execution_sort_key'] = htmlspecialchars($data['execution'] ?? $name, ENT_QUOTES, 'UTF-8');
+	$data['date_sort_key'] = str_pad((string)$mtime, 12, '0', STR_PAD_LEFT);
+	$data['size_sort_key'] = str_pad((string)$size, 12, '0', STR_PAD_LEFT);
 
 	return $data;
 }
