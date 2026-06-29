@@ -70,11 +70,21 @@ function getGSFilesFromDir($dataSelection = array(), $onlyVisible = 0)
 function collectGSFilesFromDirRecursive($dirId, &$files, $onlyVisible)
 {
 	$dirData = $GLOBALS['filesCol']->findOne(array('_id' => $dirId));
-	if (!isset($dirData['files']) || count($dirData['files']) == 0) {
+	if (!isset($dirData['files'])) {
 		return;
 	}
 
-	foreach ($dirData['files'] as $d) {
+	$childIds = $dirData['files'];
+	foreach ($GLOBALS['filesCol']->find(array('parentDir' => $dirId), array('projection' => array('_id' => 1))) as $doc) {
+		if (!in_array($doc['_id'], $childIds, true)) {
+			$childIds[] = $doc['_id'];
+		}
+	}
+	if (count($childIds) == 0) {
+		return;
+	}
+
+	foreach ($childIds as $d) {
 		$fData = $onlyVisible
 			? getGSFile_filteredBy($d, array('visible' => array('$ne' => false)))
 			: getGSFile_fromId($d);
@@ -89,7 +99,7 @@ function collectGSFilesFromDirRecursive($dirId, &$files, $onlyVisible)
 
 		$files[$fData['_id']] = $fData;
 
-		if (isset($fData['files']) && count($fData['files']) > 0) {
+		if (isset($fData['files'])) {
 			collectGSFilesFromDirRecursive($fData['_id'], $files, $onlyVisible);
 		}
 	}
@@ -602,7 +612,7 @@ function createGSDirBNS($dirPath, $asRoot = 0)
 		$parentPath = dirname($absoluteDirPath);
 		$parentDirId = getGSFileId_fromPath($parentPath, 1);
 		if (is_null($parentDirId)) {
-			createGSDirBNS($parentPath);
+			$parentDirId = createGSDirBNS($parentPath, $asRoot);
 		}
 	}
 
