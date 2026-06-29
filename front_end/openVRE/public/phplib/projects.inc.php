@@ -380,50 +380,134 @@ function filterFiles_by_dataType($filesAll, $filter_data_types = array())
 //add datatable tree nodes and hidden cols values
 function addTreeTableNodesToFiles($filesAll)
 {
-	$n = 1;
-	foreach ($filesAll as $r) {
-		// Add Tree Nodes
-		if (isset($r['files'])) {
-			if (isset($filesAll[$r['_id']]['tree_id']) && $filesAll[$r['_id']]['tree_id'])
+	$printOrder = array();
+	$rootData = getGSFile_fromId($_SESSION['User']['dataDir']);
+
+	if (isset($rootData['files'])) {
+		$n = 1;
+		foreach ($rootData['files'] as $childId) {
+			if (!isset($filesAll[$childId])) {
 				continue;
-			
-			$filesAll[$r['_id']]['tree_id']     = $n;
-			$filesAll[$r['_id']]['size']	= calcGSUsedSpaceDir($r['_id']);
-			$filesAll[$r['_id']]['size_parent'] = $filesAll[$r['_id']]['size'];
-			//$filesAll[$r['_id']]['mtime_parent'] = (isset($r['atime']) ? $r['atime']->toDateTime()->format('U') : $r['mtime']);
-			$filesAll[$r['_id']]['mtime_parent'] =
-				((isset($r['atime']) && ($t = $r['atime']->toDateTime()->getTimestamp()) > 0) 
-					? $t
-					: ((isset($r['mtime']) && $r['mtime'] > 0) 
-						? $r['mtime']
-						: (!empty($filesAll[$r['_id']]['mtime_parent'])
-							? $filesAll[$r['_id']]['mtime_parent']
-							: time())));	
-			if ($filesAll[$r['_id']]['mtime_parent'] == 0) {
-					$_SESSION['errorData']['Error'][] =
-						"MTIME_PARENT STILL ZERO for " . $r['_id'] .
-						" | atime=" . (isset($r['atime']) ? $r['atime']->toDateTime()->getTimestamp() : 'NULL') .
-						" | mtime=" . ($r['mtime'] ?? 'NULL') .
-						" | existing=" . ($filesAll[$r['_id']]['mtime_parent'] ?? 'NULL');
-				}			
-			$i = 1;
-			foreach ($r['files'] as $rr) {
-				$filesAll[$rr]['tree_id']       = "$n.$i";
-				$filesAll[$rr]['tree_id_parent'] = $n;
-				$filesAll[$rr]['size_parent']   = $filesAll[$r['_id']]['size_parent'];
-				$filesAll[$rr]['mtime_parent']  = $filesAll[$r['_id']]['mtime_parent'];
-				$i++;
 			}
+			assignTreeIdsRecursive($childId, (string)$n, null, $filesAll, $printOrder);
 			$n++;
-		} else {
-			if (isset($r['pending'])) {
-				$dir = $r['parentDir'];
+		}
+	}
+
+	foreach ($filesAll as $id => $r) {
+		if (!isset($r['tree_id']) && !isset($r['files']) && isset($r['pending'])) {
+			$dir = $r['parentDir'];
+			if (isset($filesAll[$dir])) {
 				$filesAll[$dir]['pending'] = "true";
 			}
 		}
 	}
 
+	$order = 0;
+	foreach ($printOrder as $id) {
+		if (isset($filesAll[$id])) {
+			$filesAll[$id]['_print_order'] = $order++;
+		}
+	}
+
 	return $filesAll;
+}
+
+function assignTreeIdsRecursive($nodeId, $treeId, $parentTreeId, &$filesAll, &$printOrder, $executionMeta = null)
+{
+	if (!isset($filesAll[$nodeId])) {
+		return;
+	}
+
+	$r = &$filesAll[$nodeId];
+
+	if (isset($r['tree_id']) && $r['tree_id']) {
+		return;
+	}
+
+	$r['tree_id'] = $treeId;
+	if ($parentTreeId !== null && $parentTreeId !== '') {
+		$r['tree_id_parent'] = $parentTreeId;
+	}
+
+	if (isset($r['files'])) {
+		$r['size'] = calcGSUsedSpaceDir($nodeId);
+
+		if ($executionMeta === null) {
+			$r['size_parent'] = $r['size'];
+			if (isset($r['atime']) && ($t = $r['atime']->toDateTime()->getTimestamp()) > 0) {
+				$r['mtime_parent'] = $t;
+			} elseif (isset($r['mtime']) && $r['mtime'] > 0) {
+				$r['mtime_parent'] = is_object($r['mtime'])
+					? $r['mtime']->toDateTime()->getTimestamp()
+					: $r['mtime'];
+			} elseif (!empty($r['mtime_parent'])) {
+				// keep existing
+			} else {
+				$r['mtime_parent'] = time();
+			}
+			if ($r['mtime_parent'] == 0) {
+				$_SESSION['errorData']['Error'][] =
+					"MTIME_PARENT STILL ZERO for " . $nodeId .
+					" | atime=" . (isset($r['atime']) ? $r['atime']->toDateTime()->getTimestamp() : 'NULL') .
+					" | mtime=" . ($r['mtime'] ?? 'NULL') .
+					" | existing=" . ($r['mtime_parent'] ?? 'NULL');
+			}
+			$executionMeta = array(
+				'size_parent'  => $r['size_parent'],
+				'mtime_parent' => $r['mtime_parent'],
+			);
+		}
+
+		$printOrder[] = $nodeId;
+
+		$i = 1;
+		foreach ($r['files'] as $childId) {
+			if (!isset($filesAll[$childId])) {
+				continue;
+			}
+			assignTreeIdsRecursive($childId, $treeId . '.' . $i, $treeId, $filesAll, $printOrder, $executionMeta);
+			$i++;
+		}
+	} else {
+		if ($executionMeta !== null) {
+			$r['size_parent']  = $executionMeta['size_parent'];
+			$r['mtime_parent'] = $executionMeta['mtime_parent'];
+		}
+		if (isset($r['pending'])) {
+			$dir = $r['parentDir'];
+			if (isset($filesAll[$dir])) {
+				$filesAll[$dir]['pending'] = "true";
+			}
+		}
+		$printOrder[] = $nodeId;
+	}
+}
+
+function sortFilesForTable($filesAll)
+{
+	$withOrder = array();
+	$withoutOrder = array();
+
+	foreach ($filesAll as $id => $file) {
+		if (isset($file['_print_order'])) {
+			$withOrder[$file['_print_order']] = $id;
+		} else {
+			$withoutOrder[$id] = $file;
+		}
+	}
+
+	ksort($withOrder);
+	$sorted = array();
+	foreach ($withOrder as $id) {
+		unset($filesAll[$id]['_print_order']);
+		$sorted[$id] = $filesAll[$id];
+	}
+	foreach ($withoutOrder as $id => $file) {
+		$sorted[$id] = $file;
+	}
+
+	return $sorted;
 }
 
 function printTable($filesAll = array())
@@ -1065,6 +1149,14 @@ function formatData($data)
 		$data['compressionLink'] = "<li><a  href=\"workspace/workspace.php?op=$func&fn=" . $data['_id_URL'] . "\" class=\"enabled\"><i class=\"$img\"></i> $linkTxt</a></li>";
 		//$data['compressionLink'] = "<li><a  href=\"javascript:;\" class=\"disabled\"><i class=\"$img\"></i> $linkTxt</a></li>";
 	}
+
+	if (isset($data['tree_id'])) {
+		$data['tree_depth'] = substr_count($data['tree_id'], '.');
+	}
+	if (empty($data['tree_id_parent'])) {
+		unset($data['tree_id_parent']);
+	}
+
 	return $data;
 }
 

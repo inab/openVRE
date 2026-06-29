@@ -35,7 +35,7 @@ $projects = getProjects_byOwner();
 $allFiles = getFilesToDisplay(array('_id' => $_SESSION['User']['dataDir']));
 
 $files = (isset($dtlist['list']) ? filterFiles_by_dataType($allFiles, $dtlist["list"]) : $allFiles);
-$files = addTreeTableNodesToFiles($files);
+$files = sortFilesForTable(addTreeTableNodesToFiles($files));
 
 ?>
 
