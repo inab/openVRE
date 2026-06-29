@@ -6,7 +6,7 @@
 		 <span style="display:none;"></span>
 	 </label>
 </td>
-<td>
+<td data-order="##name_sort_key##">
 	<span class="truncate" style="padding-left: ##tree_depth##0px;" title="##filename##">##filename##</span>
 	<!--  span style="font-weight:bold;" search="yes"   type="execution" -->
 	<!--<span class="expand_info" onclick="expandInfo(this)"></span>-->
@@ -22,9 +22,9 @@
 </td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
-<td title="##filename##"><span class="truncate">##filename##</span></td>
-<td title="##mtime##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
-<td>##size##</td>
+<td title="##filename##" data-order="##execution_sort_key##"><span class="truncate">##filename##</span></td>
+<td title="##mtime##" data-order="##date_sort_key##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
+<td data-order="##size_sort_key##">##size##</td>
 <td>
 	<div class="btn-group" style="float:left; position:absolute; margin-top:-10px!important;">
 		<button class="btn btn-xs blue-madison dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
@@ -38,8 +38,8 @@
 		</ul>
 	</div>
 </td>
-<td>-1000</td>
-<td>##mtime_parent##</td>
+<td>##tree_sort##</td>
+<td>##parent_tree_sort##</td>
 <td>##size_parent##</td>
 </tr>
 
