@@ -89,6 +89,10 @@ function collectGSFilesFromDirRecursive($dirId, &$files, $onlyVisible)
 			? getGSFile_filteredBy($d, array('visible' => array('$ne' => false)))
 			: getGSFile_fromId($d);
 
+		if (!$fData || !isset($fData['_id'])) {
+			continue;
+		}
+
 		if ($fData['path'] == $_SESSION['User']['id']) { // home file
 			continue;
 		}
