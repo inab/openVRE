@@ -61,7 +61,19 @@ function getGSFilesFromDir($dataSelection = array(), $onlyVisible = 0)
 		return [];
 	}
 
-	// retrieve File Data and Metada for each file in directory
+    // retrieve File Data and Metadata for each file in directory recursively
+	collectGSFilesFromDirRecursive($dirData['_id'], $files, $onlyVisible);
+
+	return $files;
+}
+
+function collectGSFilesFromDirRecursive($dirId, &$files, $onlyVisible)
+{
+	$dirData = $GLOBALS['filesCol']->findOne(array('_id' => $dirId));
+	if (!isset($dirData['files']) || count($dirData['files']) == 0) {
+		return;
+	}
+
 	foreach ($dirData['files'] as $d) {
 		$fData = $onlyVisible
 			? getGSFile_filteredBy($d, array('visible' => array('$ne' => false)))
@@ -71,25 +83,16 @@ function getGSFilesFromDir($dataSelection = array(), $onlyVisible = 0)
 			continue;
 		}
 
-		$fData['mtime'] = $fData['mtime']->toDateTime()->format('U'); # UTC DateTime to seconds
+		if (is_object($fData['mtime'])) {
+			$fData['mtime'] = $fData['mtime']->toDateTime()->format('U'); # UTC DateTime to seconds
+		}
 
 		$files[$fData['_id']] = $fData;
+
 		if (isset($fData['files']) && count($fData['files']) > 0) {
-			foreach ($fData['files'] as $dd) {
-				$ffData = $onlyVisible
-					? getGSFile_filteredBy($dd, array('visible' => array('$ne' => false)))
-					: getGSFile_fromId($dd);
-
-				if (is_object($ffData['mtime'])) {
-					$ffData['mtime'] = $ffData['mtime']->toDateTime()->format('U');
-				}
-
-				$files[$ffData['_id']] = $ffData;
-			}
+			collectGSFilesFromDirRecursive($fData['_id'], $files, $onlyVisible);
 		}
 	}
-
-	return $files;
 }
 
 function isFilePresentFromPath($filePath, $asRoot = 0)
@@ -919,7 +922,11 @@ function calcGSUsedSpaceDir($fn)
 	$files = $GLOBALS['filesCol']->find(array('parentDir' => $fn))->toArray();
 	$size = 0;
 	foreach ($files as $f) {
-		$size += $f['size'];
+		if (isset($f['files']) && count($f['files']) > 0) {
+			$size += calcGSUsedSpaceDir($f['_id']);
+		} else {
+			$size += $f['size'];
+		}
 	}
 	return $size;
 }
