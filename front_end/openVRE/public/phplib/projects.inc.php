@@ -1001,8 +1001,13 @@ function formatData($data)
 		$tList = getToolsByDT($data['data_type'], 1);
 		$data['tools_list'] = '<ul class="dropdown-menu pull-right" role="menu">';
 		if (sizeof($tList) > 0) {
+			$toolsFrontDir = __DIR__ . '/../tools/front/';
+			$defaultIconPath = $toolsFrontDir . 'tool_skeleton/assets/ws/icon.php';
+			$defaultIcon = is_file($defaultIconPath) ? file_get_contents($defaultIconPath) : '';
 			foreach ($tList as $t) {
-				$data['tools_list'] .= '<li><a href="tools/front/' . $t[0] . '/input.php?fn[]=' . $data['_id_URL'] . '" class="' . $t[0] . '">' . file_get_contents('..tools/front/' . $t[0] . '/assets/ws/icon.php') . ' ' . $t[1] . '</a></li>';
+				$iconPath = $toolsFrontDir . $t[0] . '/assets/ws/icon.php';
+				$icon = is_file($iconPath) ? file_get_contents($iconPath) : $defaultIcon;
+				$data['tools_list'] .= '<li><a href="tools/front/' . $t[0] . '/input.php?fn[]=' . $data['_id_URL'] . '" class="' . $t[0] . '">' . $icon . ' ' . $t[1] . '</a></li>';
 			}
 			$data['tools_button'] = 'block';
 		} else {
