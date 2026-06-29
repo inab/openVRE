@@ -1,4 +1,4 @@
-<tr data-tt-id="##tree_id##">
+<tr data-tt-id="##tree_id##" %%tree_depth% data-tt-parent-id="##tree_id_parent##" %%>
 	<td>
 		<label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
 			<input type="checkbox" class="checkboxes foldercheck" value="1" name="directory" id="##filename##" disabled
@@ -7,7 +7,7 @@
 		</label>
 	</td>
 	<td>
-		<span class="truncate" title="##filename##">##filename##</span>
+		<span class="truncate" style="padding-left: ##tree_depth##0px;" title="##filename##">##filename##</span>
 		<!--  span style="font-weight:bold;" search="yes"   type="execution" -->
 		<!--<span class="expand_info" onclick="expandInfo(this)"></span>-->
 		<div class="extra_info">
