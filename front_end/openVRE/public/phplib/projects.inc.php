@@ -398,7 +398,7 @@ function getTreeChildrenOrdered($parentId, $filesAll, $parentDoc = null)
 		});
 	}
 
-	return $children;
+	return array_values(array_unique($children));
 }
 
 //add datatable tree nodes and hidden cols values
@@ -424,7 +424,7 @@ function addTreeTableNodesToFiles($filesAll)
 	}
 
 	$order = 0;
-	foreach ($printOrder as $id) {
+	foreach (array_unique($printOrder) as $id) {
 		if (isset($filesAll[$id])) {
 			$filesAll[$id]['_print_order'] = $order++;
 		}
@@ -483,6 +483,9 @@ function assignTreeIdsRecursive($nodeId, $treeId, $parentTreeId, &$filesAll, &$p
 
 		$i = 1;
 		foreach (getTreeChildrenOrdered($nodeId, $filesAll, $r) as $childId) {
+			if (!isset($filesAll[$childId]) || !empty($filesAll[$childId]['tree_id'])) {
+				continue;
+			}
 			assignTreeIdsRecursive($childId, $treeId . '.' . $i, $treeId, $filesAll, $printOrder, $executionMeta);
 			$i++;
 		}
@@ -541,6 +544,9 @@ function printTable($filesAll = array())
 		<tbody><?php
 
 				foreach ($filesAll as $r) {
+					if (!isset($r['tree_id']) && !isset($r['pending'])) {
+						continue;
+					}
 					// is dir
 					if (isset($r['files'])) {
 						if (preg_match('/\/\./', $r['_id'])) {
