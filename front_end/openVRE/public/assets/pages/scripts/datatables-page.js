@@ -644,7 +644,7 @@ $(document).ready(function() {
       '</div>'+
 	  '<div class="col2">'+
 		'<div class="label label-sm label-danger" style="float: right;padding:0">'+
-            '<a href="javascript:removeFromToolsList(\'tool-' + id  + '\', ' + id_or  + ');" title="Clear file from list" class="btn btn-icon-only red" style="width: 25px;height: 25px;padding-top: 1px;"><i class="fa fa-times-circle"></i></a>'+
+            '<a href="javascript:removeFromToolsList(\'tool-' + id  + '\', \'' + id_or  + '\');" title="Clear file from list" class="btn btn-icon-only red" style="width: 25px;height: 25px;padding-top: 1px;"><i class="fa fa-times-circle"></i></a>'+
         '</div>'+
       '</div>'+
 	  '</li>');
