@@ -367,7 +367,14 @@ $(document).ready(function() {
    ],
    "createdRow": function( row, data, dataIndex ) {
 			var $row = $(row);
+			var treeId = $row.attr('data-tt-id');
 			if($(row).data('tt-parent-id') === undefined) {
+				var depth = treeDepthFromId(treeId);
+				$row.attr('data-tree-depth', depth);
+				if (depth > 0 && !$row.find('input.foldercheck').length) {
+					$('td:nth-child(2)', row).css('padding-left', (depth * 10) + 'px');
+				}
+			}
 
 		 if($row.find('input.foldercheck').length) {
 				$(row).css('font-weight', 'bold');
@@ -408,6 +415,10 @@ $(document).ready(function() {
    "drawCallback": function () {
 		if (activeSortCol !== null && !treeSortApplying) {
 			applyTreeSiblingSort(activeSortCol, activeSortDir);
+		}
+		syncTreeRowIndent();
+		if ($('#workspace tbody tr.folder-off').length) {
+			hideCollapsedFolderDescendants();
 		}
    },
   }).on('stateSaveParams.dt', function (e, settings, data) {
@@ -851,49 +862,6 @@ $(document).ready(function() {
   table.columns().search('');
   table.search('').draw(false);
 
-  // COLLAPSE FOLDER -- version 1: by default, only collapse on click
-  $('.collapse-folder', table.rows().nodes()).on( 'click', function () {
-
-    var tr = $(this).parent().parent();
-    var td = $(this).parent();
-    var trID = tr.data("tt-id").toString();
-
-    if($(tr).hasClass("folder-off")) {
-      $(tr).removeClass("folder-off");
-      var folderAction = "visible";
-      //open
-      if($(td).hasClass('highlighted_folder')) {
-        $(this).html('<i class="fa fa-folder-open fa-stack-1x font-blue-oleo" style="left:-5px;top: -9px;"></i>' +
-        '<i class="fa fa-folder-open-o font-green" style="position: absolute;left: 4px;top: -9px;"></i>');
-      } else {
-        $(this).removeClass('fa-folder');
-        $(this).addClass('fa-folder-open');
-      }
-    } else {
-      //collapse
-      $(tr).addClass("folder-off");
-      var folderAction = "hidden";
-      if($(td).hasClass('highlighted_folder')) {
-        $(this).html('<i class="fa fa-folder fa-stack-1x font-blue-oleo" style="left:-5px;top: -9px;"></i>' +
-        '<i class="fa fa-folder-o font-green" style="position: absolute;left: 4px;top: -9px;"></i>');
-      } else {
-        $(this).addClass('fa-folder');
-        $(this).removeClass('fa-folder-open');
-      }
-    }
-
-    $(table.rows().nodes()).each(function() {
-      var id = $(this).data("tt-id").toString();
-      var l1 = id.split(".");
-      if(l1.length == 2  && l1[0] == trID) {
-        if(folderAction == "hidden") $(this).hide();
-        else $(this).show();
-      }
-    });
-
-  } );
-  
-
   // REFRESH TABLE
   $('a.clearState').on( 'click', function () {
 		table.state.clear();
@@ -942,11 +910,24 @@ $(document).ready(function() {
     }
 
     $(table.rows().nodes()).each(function() {
-      var id = $(this).data("tt-id").toString();
-      var l1 = id.split(".");
-      if(l1.length == 2  && l1[0] == trID) {
-        if(folderAction == "hidden") $(this).hide();
-        else $(this).show();
+      var $r = $(this);
+      var id = $r.data("tt-id");
+      if (!id) return;
+      id = id.toString();
+      if (folderAction == "hidden") {
+        if (isTreeDescendant(id, trID)) $r.hide();
+      } else {
+        if ($r.data("tt-parent-id") && $r.data("tt-parent-id").toString() == trID) {
+          $r.show();
+          if ($r.hasClass("folder-off")) {
+            $(table.rows().nodes()).each(function() {
+              var childId = $(this).data("tt-id");
+              if (childId && isTreeDescendant(childId.toString(), $r.data("tt-id").toString())) {
+                $(this).hide();
+              }
+            });
+          }
+        }
       }
     });
 
