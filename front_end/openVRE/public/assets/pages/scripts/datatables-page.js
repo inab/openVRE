@@ -562,17 +562,6 @@ $(document).ready(function() {
   };
 
   var allFolderChecked = [];
-  // select all files of a folder 
-  $('input[type=checkbox].foldercheck', table.rows().nodes()).change(function() {
-		var folderId = $(this).parent().parent().parent().attr('data-tt-id');
-    var checked = $(this).is(":checked");
-		$('input[type=checkbox]', table.rows().nodes()).each(function() {
-			if ($(this).parent().parent().parent().attr('data-tt-parent-id') == folderId
-					 && ($(this).parent().parent().parent().attr('data-tt-parent-id') !== undefined)) $(this).prop('checked', checked);
-		});
-		if(checked) allFolderChecked.push(folderId);
-		else allFolderChecked.remove(folderId);
-  }); 
 
   // SELECT MULTIPLE FILES
   allFolders = {};
@@ -688,107 +677,79 @@ $(document).ready(function() {
 
   // actions associated with the checkBoxes (add / remove file to the portlet and disable folder checkbox)
   changeCheckbox = function(op) {
-	// draw on Tools list
-	var row = $(op).parent().parent().parent();
+	var row = $(op).closest('tr');
 	var checked = $(op).is(":checked");
-	var flname = '';
-	var fdname = '';
-	var metadata = '';
-	for(i in allFiles){
-		if((allFiles[i].rowId) == row.data('tt-id')) {
-			flname = allFiles[i].fileName;
-			fdname = allFiles[i].folderName;
-			metadata = allFiles[i].metadata;
-			if(checked) allFiles[i].checked = true;
-			else allFiles[i].checked = false;
-			break;
-		}
-	}
+	var record = getFileRecord(row);
+	if (!record) return;
+	record.checked = checked;
 	drawToolsMenu(checked);
-	drawToolsList(checked, row.data('tt-id').toString().replace('.', ''), flname, fdname, row.data('tt-id').toString(), metadata);
-	
-	// disable folder check if I'm disabling the last one on the folder
-	var folderId = $(op).parent().parent().parent().attr('data-tt-parent-id');
-	var fcheck = true;
-	$('input[type=checkbox]', table.rows().nodes()).each(function() { 
-		if ($(this).parent().parent().parent().attr('data-tt-parent-id') == folderId) {
-			if($(this).is(":checked")) {
-				fcheck = true;
-				return false;
-			}else{ 
-				fcheck = false;
+	drawToolsList(checked, 
+    treeIdToCssClass(record.rowId), 
+    record.fileName, 
+    record.folderName, 
+    record.rowId, 
+    record.metadata,
+    record.fileId
+  );
+
+	if (!checked) {
+		var treeId = getTreeRowId(row);
+		while (treeId && treeId.indexOf('.') !== -1) {
+			treeId = treeId.substring(0, treeId.lastIndexOf('.'));
+			if (!hasCheckedDescendantFiles(treeId)) {
+				$('tr[data-tt-id="' + treeId + '"] input.foldercheck:not(:disabled)').prop('checked', false);
 			}
 		}
-	});
-	//console.log(fcheck);
-	if(!fcheck) $('tr[data-tt-id=' + folderId + '] input[type=checkbox].foldercheck').prop('checked', false);
-	
+	}
+
 	if(checked) toastModal("The file selected has been added to the Manage Files box below the workspace table.");
 
   }
 
-  /*$('input[type=checkbox]', table.rows().nodes()).not('.foldercheck').change(function() {
-	var row = $(this).parent().parent().parent();
-	var checked = $(this).is(":checked");
-	var flname = '';
-	var fdname = '';
-	for(i in allFiles){
-		if((allFiles[i].rowId) == row.data('tt-id')) {
-			flname = allFiles[i].fileName;
-			fdname = allFiles[i].folderName;
-			if(checked) allFiles[i].checked = true;
-			else allFiles[i].checked = false;
-			break;
-		}
-	}
-	drawToolsMenu(checked);
-	drawToolsList(checked, row.data('tt-id').toString().replace('.', ''), flname, fdname, row.data('tt-id').toString());
-	//console.log(JSON.stringify(allFiles));
-  });*/
-
-  // add / remove all the files from a folder to the portlet
-  $('input[type=checkbox].foldercheck', table.rows().nodes()).change(function() {
-		var row = $(this).parent().parent().parent();
+  // add / remove all descendant files from a folder to the portlet (recursive)
+  $('#workspace tbody').on('change', 'input.foldercheck:not(:disabled)', function() {
+		var folderTreeId = getTreeRowId($(this).closest('tr'));
 		var checked = $(this).is(":checked");
-		for(i in allFiles){
-			if((allFiles[i].folderId) == row.data('tt-id')) {
-				if(checked) {
-					if(allFiles[i].fileId !== undefined) {
-						if(!allFiles[i].checked) drawToolsList(checked, allFiles[i].rowId.toString().replace('.', ''), allFiles[i].fileName, allFiles[i].folderName, allFiles[i].rowId.toString(), allFiles[i].metadata);
-						allFiles[i].checked = true;
-					}
-				}else{ 
-					allFiles[i].checked = false;
-					drawToolsList(checked, allFiles[i].rowId.toString().replace('.', ''), allFiles[i].fileName, allFiles[i].folderName, allFiles[i].rowId.toString(), allFiles[i].metadata);
-				}
-			}
-		}
-		drawToolsMenu(checked);
-		//console.log(JSON.stringify(allFiles));
 
-		if(checked) toastModal("All the files of the selected folder have been added to the Manage Files box below the workspace table.");
+		$(table.rows().nodes()).each(function() {
+			var $r = $(this), rowId = getTreeRowId($r);
+			if (!rowId || rowId === folderTreeId || !isTreeDescendant(rowId, folderTreeId)) return;
+			$('input[type=checkbox]:not(:disabled)', $r).prop('checked', checked);
+			var record = getFileRecord($r);
+			if (!record) return;
+			if (!checked || !record.checked) {
+				drawToolsList(checked, 
+          treeIdToCssClass(record.rowId), 
+          record.fileName, 
+          record.folderName, 
+          record.rowId, 
+          record.metadata,
+          record.fileId
+        );
+			}
+			record.checked = checked;
+		});
+
+		if (checked) allFolderChecked.push(folderTreeId);
+		else allFolderChecked.remove(folderTreeId);
+
+		drawToolsMenu(checked);
+
+		if (checked) toastModal("All the files of the selected folder have been added to the Manage Files box below the workspace table.");
 
   });
 
   // add / remove all the files of the table to the portlet
   $('input.group-checkable').change(function() {
 	var checked = $(this).is(":checked");
-	for(i in allFiles){
-		if(allFiles[i].rowId) {
-			if(checked) {
-				console.log(allFiles[i])
-				if((allFiles[i].fileId === undefined) || (allFiles[i].folderId === undefined) || (allFiles[i].fileName === undefined)){
-				}else{
-					if(!allFiles[i].checked) drawToolsList(checked, allFiles[i].rowId.toString().replace('.', ''), allFiles[i].fileName, allFiles[i].folderName, allFiles[i].rowId.toString(), allFiles[i].metadata);
-					allFiles[i].checked = true;
-				}
-			}else{ 
-				allFiles[i].checked = false;
-				drawToolsList(checked, allFiles[i].rowId.toString().replace('.', ''), allFiles[i].fileName, allFiles[i].folderName, allFiles[i].rowId.toString(), allFiles[i].metadata);
-			}
-		}
-	}
-	drawToolsMenu(checked);
+    for (i in allFiles) {
+      var file = allFiles[i];
+      if (!file.fileName || !file.fileId || file.fileId === '1') continue;
+      if (checked && file.checked) continue;
+      file.checked = checked;
+      drawToolsList(checked, treeIdToCssClass(file.rowId), file.fileName, file.folderName, file.rowId, file.metadata, file.fileId);
+    }
+	  drawToolsMenu(checked);
   });
 
   // FILTRES
@@ -956,12 +917,10 @@ loadProjectWS = function(id) {
 // this function is outside $ because is called from a function on the dataTables.treeTable.js library (line 137)
 checkCheckboxes = function(idNode){
 	for(i in allFiles){
-		if((allFiles[i].folderId) == idNode) {
-			if(allFiles[i].checked) {
-				$('input[type=checkbox]', table.rows().nodes()).each(function() {
-					if ($(this).parent().parent().parent().attr('data-tt-id') == allFiles[i].rowId) $(this).prop('checked', true);  
-				});
-			}
+		if(allFiles[i].checked && allFiles[i].fileName && isTreeDescendant(allFiles[i].rowId, idNode)) {
+			$('input[type=checkbox]', table.rows().nodes()).each(function() {
+				if (getTreeRowId($(this).closest('tr')) == allFiles[i].rowId) $(this).prop('checked', true);
+			});
 		}
 	}
 }
