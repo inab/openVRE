@@ -307,20 +307,24 @@ function getFileRecord($row) {
   return record;
 }
 
-
+$(document).ready(function() {
 
   // VARIABLES 'GLOBALS' PER stateSave
   var col1SearchValue = '';
   var col2SearchValue = '';
   var col3SearchValue = '';
 
-  // CONFIGURACIÓ DATATABLES
+  // BOTONS D'ORDENACIÓ DE COLUMNES (defined before DataTable for stateLoaded)
+  var cols = {1:'asc', 2:'asc', 3:'asc', 4:'asc', 5:'asc', 6:'asc'};
+  var btnCol = {1:1, 2:2, 3:3, 4:4, 6:5, 7:6};
+
   table = $('#workspace').DataTable({
   //pagingType: "full_numbers",
 	pageLength: 20,
 	lengthMenu: [[20,50,-1],[20,50,"All"]],
 	orderCellsTop: true,
-	ordering: true,
+	// Tree table: column sort reorders siblings in the DOM only (see applyTreeSiblingSort)
+	ordering: false,
 	language: {
         emptyTable: 'No files found for the selected tool <i class="icon-question tooltips" data-container="body" data-html="true" data-placement="right" data-original-title="<p align=\'left\' style=\'margin:3px;\'>Please go to the <em>Get Data</em> section to load tool input files.</p><p align=\'left\' style=\'margin:3px;\'>More information on what this tool expects below on the <em>Tools\' Help</em> box, or in the main <em>Help</em> section</p>"></i>'
 	},
@@ -330,42 +334,42 @@ function getFileRecord($row) {
 	responsive:true,
 	stateSave: true,
 	stateLoaded: function (settings, data) {
-		//console.log(data.start);
-	  if(data.columns[1].search.search != '') {
-		col1SearchValue = (data.columns[1].search.search);
-	  }
-	  if(data.columns[2].search.search != '') {
-		col2SearchValue = (data.columns[2].search.search.slice(1,-1));
-	  }
-	  if(data.columns[3].search.search != '') {
-		col3SearchValue = (data.columns[3].search.search.slice(1,-1));
-	  }
+		// Tree view overrides (disabled — restore pagination behaviour):
+		// data.order = [];
+		// data.start = 0;
+		// data.length = -1;
+		// col1SearchValue = '';
+		// col2SearchValue = '';
+		// col3SearchValue = '';
+		// activeSortCol = null;
+		// activeSortDir = 'asc';
+		// for (var c in cols) {
+		// 	cols[c] = 'asc';
+		// }
+		// if (data.columns) {
+		// 	for (var i = 0; i < data.columns.length; i++) {
+		// 		data.columns[i].search.search = '';
+		// 	}
+		// }
+		if(data.columns[1].search.search != '') {
+			col1SearchValue = (data.columns[1].search.search);
+		}
+		if(data.columns[2].search.search != '') {
+			col2SearchValue = (data.columns[2].search.search.slice(1,-1));
+		}
+		if(data.columns[3].search.search != '') {
+			col3SearchValue = (data.columns[3].search.search.slice(1,-1));
+		}
 	},
 	select: true,
 	columnDefs: [
-	  // columnes d'informació
-	  { targets: [0], orderable: false },
-	  { targets: [1], orderData: [ 4, 8, 1 ], orderable: false },
-	  { targets: [2], orderData: [ 4, 8, 2 ], orderable: false },
-	  { targets: [3], orderData: [ 4, 8, 3 ], orderable: false },
-	  { targets: [4], orderData: [ 4, 8, 1 ], orderable: false },
-	  { targets: [5], orderData: [ 4, 8, 9 ], orderable: false },
-	  //{ targets: [5], orderData: [ 4, 8, 5 ], orderable: false },
-	  //{ type: 'file-size', targets: 6, orderData: [ 10, 8, 6 ], orderable: false },
-		{ type: 'file-size', targets: 6, orderData: [ 4, 8, 6 ], orderable: false },
-	  //{ targets: [6], orderable: false },
-	  
-	  { targets: [7], orderable: false },
-	  // columnes auxiliars d'ordenació (invisibles)
-	  { targets: [8], orderable: false, visible: false },
-	  { targets: [9], orderable: false, visible: false },
-	  { targets: [10], orderable: false, visible: false }
+	  { targets: [8, 9, 10], visible: false }
    ],
    "createdRow": function( row, data, dataIndex ) {
-			
-		 if($(row).data('tt-parent-id') === undefined) {
+			var $row = $(row);
+			if($(row).data('tt-parent-id') === undefined) {
 
-		 if($(row).data('tt-parent-id') === undefined) {
+		 if($row.find('input.foldercheck').length) {
 				$(row).css('font-weight', 'bold');
 				$(row).css('color', '#337ab7');
 				if($('td:first-child', row).hasClass('highlighted_folder')) {
@@ -491,6 +495,9 @@ function getFileRecord($row) {
   jQuery.fn.dataTable.ext.type.order['file-size-pre'] = function ( data ) {
 
 	  var matches = data.match( /^(\d+(?:\.\d+)?)\s*([a-z]+)/i );
+	  if (!matches) {
+		  return 0;
+	  }
 	  var multipliers = {
 		  b: 1,
 		  k: 1000,
@@ -517,63 +524,6 @@ function getFileRecord($row) {
 	folders.prevObject.each(function(index){
 		if($(this).attr('data-tt-id').indexOf('.') == -1) foldersIndex.push($(this).attr('data-tt-id'));	
 	});
-
-  // BOTONS D'ORDENACIÓ DE COLUMNES array(File,Format,Proj,Date,Size,Data type)
-  var cols = new Array('asc','asc','asc','asc','asc', 'asc', 'asc');
- /* $('.mock_button').click(function(){
-		i = $(this).attr("id").substring(11, 13);
-  	//folders.prevObject.each(function(index){
-		$.each(foldersIndex, function(index, value) {
-			//if(!$(this).data('tt-parent-id')) folderId = $(this).attr('data-tt-id');
-			//folderId = $(this).attr('data-tt-id');
-
-			//if($(this).attr('data-tt-id').indexOf('.') == -1) folderId = $(this).attr('data-tt-id');
-
-			//console.log(folderId);
-
-			//console.log($(this).data('tt-parent-id'));
-			//
-			folderId = value;
-
-			if(cols[i] == 'asc'){
-				console.log(table.cell({ row: (folderId - 1), column: 8 }).data());
-
-		  	table.cell({ row: (folderId - 1), column: 8 }).data('1000').draw();
-		  	//console.log(table.cell({ row: (folderId - 1), column: 8 }).data());
-		  	//console.log(folderId + " changed to 1000");
-			}else{
-		  	table.cell({ row: (folderId - 1), column: 8 }).data('-1000').draw();
-		  	//console.log(folderId + " changed to -1000");
-			}
-	  });
-	  cols[i] = (cols[i] =='asc' ? 'desc': 'asc');
-	  table.order(i,cols[i]).draw();
-				
-  });*/
-
-	$('.mock_button').click(function(){
-		i = $(this).attr("id").substring(11, 13);
-  	folders.prevObject.each(function(index){
-			if(cols[i] == 'asc'){
-				//console.log(table.cell({ row: index, column: 8 }).data());
-				if(table.cell({ row: index, column: 8 }).data() == '-1000')
-					table.cell({ row: index, column: 8 }).data('1000').draw();
-
-		  	//table.cell({ row: (folderId - 1), column: 8 }).data('1000').draw();
-		  	//console.log(table.cell({ row: (folderId - 1), column: 8 }).data());
-		  	//console.log(folderId + " changed to 1000");
-			}else{
-				if(table.cell({ row: index, column: 8 }).data() == '1000')
-					table.cell({ row: index, column: 8 }).data('-1000').draw();
-
-		  	//table.cell({ row: (folderId - 1), column: 8 }).data('-1000').draw();
-		  	//console.log(folderId + " changed to -1000");
-			}
-	  });
-	  cols[i] = (cols[i] =='asc' ? 'desc': 'asc');
-	  table.order(i,cols[i]).draw();
-				
-  });
 
   // BOTONS DE + INFO
   expandInfo = function(op){
@@ -896,6 +846,10 @@ function getFileRecord($row) {
 					.draw();
 			}
 	} );
+
+  // Clear any column filters restored from saved state (e.g. Execution=uploads hides run folders)
+  table.columns().search('');
+  table.search('').draw(false);
 
   // COLLAPSE FOLDER -- version 1: by default, only collapse on click
   $('.collapse-folder', table.rows().nodes()).on( 'click', function () {
