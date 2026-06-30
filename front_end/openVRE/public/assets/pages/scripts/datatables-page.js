@@ -575,43 +575,28 @@ $(document).ready(function() {
   }); 
 
   // SELECT MULTIPLE FILES
-  // array with the names of the folders
-  var allFolders = [];
-  /*folders.prevObject.each(function(index){
-  	//console.log($(this));
-  	var jqTds = $('>td', $(this));
-		allFolders[$(this).attr('data-tt-id')] = jqTds[1].innerText.split('\n')[0];
-		//console.log(jqTds[1].innerText.split('\n')[0]);
-  });*/
-
-	function noEmpty(value) {
-		  return value != "";
-	}
+  allFolders = {};
 
   // JSON with the data of the files
-  var files = $('tr', table.rows().nodes());
-  files.prevObject.each(function(index) {
-  	//console.log(table.cells({ row: index, column: 9 }).data()[0]);
-  	//
-  	//
-	var jqTds = $('>td', $(this));
-	var namesTds = $('td:nth-child(2) .enabled', $(this));
-	var metadata = '';
+  $(table.rows().nodes()).each(function() {
+	var $row = $(this);
+	var jqTds = $('>td', $row);
 
-	if($(this).context.innerHTML.indexOf('fa-folder') != -1) { 
-		var foldername = jqTds[1].innerText;
-		if(foldername.indexOf('0uploads') != -1) foldername = 'uploads';
-
-		allFolders[$(this).attr('data-tt-id')] = foldername.replace(/(\n\t|\n|\t)/gm,"*").split("*").filter(noEmpty)[0];
-		//console.log(jqTds[1].innerText.replace(/(\n\t|\n|\t)/gm,"*").split("*").filter(noEmpty)[0]);
+	if ($row.find('input.foldercheck').length) {
+		allFolders[getTreeRowId($row)] = parseFolderLabel(jqTds[1].innerText);
+		return;
 	}
 
-	if(jqTds[1].innerHTML.indexOf('extra_info') != -1){
-		metadata = jqTds[1].innerHTML.substring(jqTds[1].innerHTML.lastIndexOf('<table>') + 7, jqTds[1].innerHTML.lastIndexOf('</table>'));
+	var record = fileRecordFromRow($row);
+	if (!record) return;
+
+	if (jqTds[1].innerHTML.indexOf('extra_info') != -1) {
+		record.metadata = jqTds[1].innerHTML.substring(
+			jqTds[1].innerHTML.lastIndexOf('<table>') + 7,
+			jqTds[1].innerHTML.lastIndexOf('</table>')
+		).replace(/(\n\t|\n|\t)/gm, '');
 	}
-	metadata = metadata.replace(/(\n\t|\n|\t)/gm,"");
-	if(namesTds[0] != undefined) var nameFile = namesTds[0].innerText;
-	if((!$(this).hasClass('branch')) && (jqTds[0].innerHTML != '<span class="indenter" style="padding-left: 0px;"></span>')) allFiles.push({'folderId':$(this).attr('data-tt-parent-id'), 'folderName':allFolders[$(this).attr('data-tt-parent-id')],'fileName':nameFile, 'fileId':$('>td input', $(this)).val(), 'rowId':$(this).attr('data-tt-id'), 'checked':false, 'metadata':metadata});
+	allFiles.push(record);
   });
   //******************************************
   // console.log(JSON.stringify(allFiles));
@@ -644,10 +629,10 @@ $(document).ready(function() {
   }
 
   // add / remove file to the run tools portlet
-  drawToolsList = function(ch, id, fl, fd, id_or, meta){
+  drawToolsList = function(ch, id, fl, fd, id_or, meta, fileId){
 	if(ch){
 	  var str_meta = '';
-		meta = meta.replace(/"/g, "\'");
+		meta = (meta || '').replace(/"/g, "\'");
 
 	  if(meta != ''){
 		str_meta = 	' <a href="javascript:;" onmouseover="javascript:;" class="popovers" data-trigger="hover" data-container="body" data-content="<table>' + meta  + '</table>" data-original-title="Metadata">' + 
@@ -663,7 +648,7 @@ $(document).ready(function() {
                 '</div>'+
             '</div>'+
             '<div class="cont-col2">'+
-                '<div class="desc"><span class="text-info" style="font-weight:bold;">' + fd  + ' /</span> ' + fl + str_meta +
+                '<div class="desc">' + (fd ? '<span class="text-info" style="font-weight:bold;">' + fd + ' /</span> ' : '') + fl + str_meta +
 				'</div>'+
             '</div>'+
         '</div>'+
