@@ -385,24 +385,34 @@ function filterFiles_by_dataType($filesAll, $filter_data_types = array())
 }
 
 
+function normalizeGsId($id)
+{
+	if ($id instanceof \MongoDB\BSON\ObjectId) {
+		return (string) $id;
+	}
+	return $id;
+}
+
+
 function getTreeChildrenOrdered($parentId, $filesAll, $parentDoc = null)
 {
+	$parentId = normalizeGsId($parentId);
 	$children = array();
 	foreach ($filesAll as $id => $file) {
-		if (isset($file['parentDir']) && $file['parentDir'] === $parentId) {
+		if (isset($file['parentDir']) && normalizeGsId($file['parentDir']) === $parentId) {
 			$children[] = $id;
 		}
 	}
 
 	if ($parentDoc && isset($parentDoc['files']) && count($parentDoc['files'])) {
-		$order = array_flip($parentDoc['files']);
+		$order = array_flip(array_map('normalizeGsId', $parentDoc['files']));
 		usort($children, function ($a, $b) use ($order) {
-			$oa = $order[$a] ?? PHP_INT_MAX;
-			$ob = $order[$b] ?? PHP_INT_MAX;
+			$oa = $order[normalizeGsId($a)] ?? PHP_INT_MAX;
+			$ob = $order[normalizeGsId($b)] ?? PHP_INT_MAX;
 			if ($oa !== $ob) {
 				return $oa - $ob;
 			}
-			return strcmp($a, $b);
+			return strcmp((string) $a, (string) $b);
 		});
 	}
 
@@ -412,6 +422,11 @@ function getTreeChildrenOrdered($parentId, $filesAll, $parentDoc = null)
 //add datatable tree nodes and hidden cols values
 function addTreeTableNodesToFiles($filesAll)
 {
+	foreach ($filesAll as $id => &$file) {
+		unset($file['tree_id'], $file['tree_id_parent'], $file['tree_depth'], $file['tree_sort'], $file['parent_tree_sort'], $file['_print_order']);
+	}
+	unset($file);
+
 	$printOrder = array();
 	$rootId = $_SESSION['User']['dataDir'];
 	$rootData = getGSFile_fromId($rootId);
