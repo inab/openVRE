@@ -112,7 +112,8 @@ function move(file) {
 			usrPrjStr = JSON.parse(data);
 			$('#modalMove .modal-title').html('Move <strong>' + usrPrjStr.name + '</strong>');
 			if (usrPrjStr.type == "file") {
-				$('#modalMove .modal-body p').html('File <strong>' + usrPrjStr.name + '</strong> currently located at <strong>/' + usrPrjStr.project + '/' + usrPrjStr.execution + '/</strong>');
+				var currentLoc = usrPrjStr.parent_rel_path || usrPrjStr.execution;
+				$('#modalMove .modal-body p').html('File <strong>' + usrPrjStr.name + '</strong> currently located at <strong>/' + usrPrjStr.project + '/' + currentLoc + '/</strong>');
 				$('#col-1-move').addClass('col-md-3');
 				$('#col-1-move').removeClass('col-md-4');
 				$('#col-2-move').addClass('col-md-3');
@@ -144,7 +145,7 @@ function move(file) {
 				$("#project-name").append('<option value="' + v.id + '" ' + sel + '>' + v.name + '</option>');
 				if (v.name == usrPrjStr.project) {
 					$.each(v.executions, function (k1, v1) {
-						if (v1.name == usrPrjStr.execution) var sel = "selected";
+						var sel = (usrPrjStr.parent_path && v1.path == usrPrjStr.parent_path) ? "selected" : "";
 						$("#execution-name").append('<option value="' + v1.id + '" ' + sel + '>' + v1.name + '</option>');
 					});
 				}
@@ -178,7 +179,7 @@ function moveAllFiles() {
 		success: function (data) {
 
 			$('#modalMove .modal-title').html('Move selected files');
-			$('#modalMove .modal-body p').html('Select the project and execution where you want to move all the selected files:');
+			$('#modalMove .modal-body p').html('Select the project and folder where you want to move all the selected files:');
 			$('#col-1-move').addClass('col-md-4');
 			$('#col-1-move').removeClass('col-md-3');
 			$('#col-2-move').addClass('col-md-4');
