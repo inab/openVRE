@@ -354,26 +354,34 @@ function filterFiles_by_dataType($filesAll, $filter_data_types = array())
 
 	// Filter files by data_types
 
-	if ($filter_data_types || is_array($filter_data_types)) {
-		$filesFiltered = array();
-		$dirs_filtered = array();
-		//filter out files with unselected data_types
-		foreach ($filesAll as $fn => $file) {
-			if (isset($file['data_type']) and  in_array($file['data_type'], $filter_data_types)) {
-				$filesFiltered[$fn] = $filesAll[$fn];
-				array_push($dirs_filtered, $file['parentDir']);
-			}
-		}
-		//filter out empty dirs
-		foreach ($filesAll as $fn => $file) {
-			if (isset($file['parentDir']) and  in_array($file['_id'], $dirs_filtered)) {
-				$filesFiltered[$fn] = $filesAll[$fn];
-			}
-		}
-		$filesAll = $filesFiltered;
+	if (!$filter_data_types || !is_array($filter_data_types) || !count($filter_data_types)) {
+		return $filesAll;
 	}
 
-	return $filesAll;
+	$matchingIds = array();
+	foreach ($filesAll as $fn => $file) {
+		if (isset($file['files'])) {
+			continue;
+		}
+		if (isset($file['data_type']) && in_array($file['data_type'], $filter_data_types)) {
+			$matchingIds[] = $fn;
+		}
+	}
+
+	$filesFiltered = array();
+	foreach ($matchingIds as $fileId) {
+		$currentId = $fileId;
+		while ($currentId && isset($filesAll[$currentId])) {
+			$filesFiltered[$currentId] = $filesAll[$currentId];
+			$parentId = $filesAll[$currentId]['parentDir'] ?? null;
+			if (!$parentId || !isset($filesAll[$parentId])) {
+				break;
+			}
+			$currentId = $parentId;
+		}
+	}
+
+	return $filesFiltered;
 }
 
 
