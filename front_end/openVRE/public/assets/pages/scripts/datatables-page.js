@@ -163,7 +163,20 @@ function applyTreeSiblingSort(col, dir) {
   for (i = 0; i < rows.length; i++) {
     rowId = rows[i].getAttribute('data-tt-id');
     if (!seen[rowId]) {
-      ordered.push(rows[i]);
+      var parentId = rows[i].getAttribute('data-tt-parent-id');
+      var inserted = false;
+      if (parentId) {
+        for (var j = 0; j < ordered.length; j++) {
+          if (ordered[j].getAttribute('data-tt-id') === parentId) {
+            ordered.splice(j + 1, 0, rows[i]);
+            inserted = true;
+            break;
+          }
+        }
+      }
+      if (!inserted) {
+        ordered.push(rows[i]);
+      }
     }
   }
 
@@ -202,13 +215,21 @@ function syncTreeRowIndent() {
     var $fileCell = $row.children('td').eq(1);
     var indentPx = filtered ? 0 : depth * 10;
 
-    if (isFolder) {
-      $fileCell.css('padding-left', '0px');
-      $fileCell.find('.truncate').css('padding-left', indentPx + 'px');
-    } else if (depth > 0) {
-      $fileCell.css('padding-left', indentPx + 'px');
-    } else {
-      $fileCell.css('padding-left', '0px');
+    $fileCell.css('padding-left', '0px');
+    $fileCell.find('.truncate').css('padding-left', '0px');
+    $fileCell.find('a, span.enabled, span.disabled').css('padding-left', '0px');
+
+    if (indentPx > 0) {
+      if (isFolder) {
+        $fileCell.find('.truncate').css('padding-left', indentPx + 'px');
+      } else {
+        var $label = $fileCell.find('a, span.enabled, span.disabled').first();
+        if ($label.length) {
+          $label.css('padding-left', indentPx + 'px');
+        } else {
+          $fileCell.css('padding-left', indentPx + 'px');
+        }
+      }
     }
   });
 }
@@ -367,13 +388,9 @@ $(document).ready(function() {
    ],
    "createdRow": function( row, data, dataIndex ) {
 			var $row = $(row);
-			var treeId = $row.attr('data-tt-id');
-			if($(row).data('tt-parent-id') === undefined) {
-				var depth = treeDepthFromId(treeId);
-				$row.attr('data-tree-depth', depth);
-				if (depth > 0 && !$row.find('input.foldercheck').length) {
-					$('td:nth-child(2)', row).css('padding-left', (depth * 10) + 'px');
-				}
+			var treeId = getTreeRowId($row);
+			if (treeId) {
+				$row.attr('data-tree-depth', treeDepthFromId(treeId));
 			}
 
 		 if($row.find('input.foldercheck').length) {

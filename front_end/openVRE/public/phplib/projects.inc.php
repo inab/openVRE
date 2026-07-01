@@ -937,14 +937,14 @@ function formatData($data)
 				"<span class=\"$state\" 
 					style=\"color:#7f8c8d; cursor:not-allowed;\"
 					title=\"Remote file (not accessible)\">
-					&nbsp;&nbsp;&nbsp;$filename
+					$filename
 				</span>";
 		} else {
 			$data['show_file_url'] =
 				"<a class=\"$state\" 
 					href=\"workspace/workspace.php?op=openPlainFile&fn={$data['_id_URL']}\" 
 					title=\"open file $filename\" target=\"_blank\">
-					&nbsp;&nbsp;&nbsp;$filename
+					$filename
 				</a>";
 		}
 		
