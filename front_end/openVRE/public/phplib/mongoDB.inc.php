@@ -197,6 +197,12 @@ function getGSFile_filteredBy($fn, $filters)
 
 function getGSFiles_filteredBy($filters, $asRoot = 0)
 {
+	// Match workspace visibility: show unless explicitly hidden (false/0).
+	// Uploads use boolean true; tool results often use integer 1; older records may omit visible.
+	if (array_key_exists('visible', $filters) && $filters['visible'] === true) {
+		$filters['visible'] = ['$nin' => [false, 0]];
+	}
+
 	$filter_filesCol = [];
 	$filter_filesMetaCol = [];
 	foreach ($filters as $attribute => $value) {
