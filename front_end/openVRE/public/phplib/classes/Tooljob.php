@@ -1506,11 +1506,20 @@ EOF;
 		$mugfile['_id'] = $file['_id'];
 
 		if (isset($file['path'])) {
-			if (preg_match('/^\//', $file['path']) || preg_match('/^' . $_SESSION['User']['id'] . '/', $file['path'])) {
-				$path = explode("/", $file['path']);
-				$mugfile['file_path'] = implode("/", array_slice($path, -3, 3));
+			$path = $file['path'];
+			$userId = $file['owner'] ?? $_SESSION['User']['id'];
+
+			if (preg_match('/^\//', $path)) {
+				$dataPrefix = rtrim($GLOBALS['dataDir'], '/') . '/';
+				$path = (strpos($path, $dataPrefix) === 0)
+					? substr($path, strlen($dataPrefix))
+					: ltrim($path, '/');
+			}
+
+			if ($userId && preg_match('/^' . preg_quote($userId, '/') . '\//', $path)) {
+				$mugfile['file_path'] = substr($path, strlen($userId) + 1);
 			} else {
-				$mugfile['file_path'] = $file['path'];
+				$mugfile['file_path'] = $path;
 			}
 		} else {
 			$mugfile['file_path'] = null;
