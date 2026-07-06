@@ -33,14 +33,7 @@ function collectMoveTargetDirsRecursive($dirId, $projectPath, &$dirs)
 		"path" => $dir["path"],
 	];
 
-	$childIds = $dir['files'];
-	foreach ($GLOBALS['filesCol']->find(array('parentDir' => $dirId), array('projection' => array('_id' => 1))) as $doc) {
-		if (!in_array($doc['_id'], $childIds, true)) {
-			$childIds[] = $doc['_id'];
-		}
-	}
-
-	foreach ($childIds as $childId) {
+	foreach ($dir['files'] as $childId) {
 		$child = getGSFile_fromId($childId);
 		if ($child && isset($child['files'])) {
 			collectMoveTargetDirsRecursive($childId, $projectPath, $dirs);
