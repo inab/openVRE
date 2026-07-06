@@ -23,9 +23,7 @@ function collectMoveTargetDirsRecursive($dirId, $projectPath, &$dirs)
 		return;
 	}
 
-	$relPath = (strlen($projectPath) < strlen($dir['path']))
-		? substr($dir['path'], strlen($projectPath) + 1)
-		: basename($dir['path']);
+	$relPath = substr($dir['path'], strlen($projectPath) + 1);
 
 	$dirs[] = [
 		"id"   => $dir["_id"],
