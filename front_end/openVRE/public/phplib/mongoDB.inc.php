@@ -74,17 +74,11 @@ function collectGSFilesFromDirRecursive($dirId, &$files, $onlyVisible)
 		return;
 	}
 
-	$childIds = $dirData['files'];
-	foreach ($GLOBALS['filesCol']->find(array('parentDir' => $dirId), array('projection' => array('_id' => 1))) as $doc) {
-		if (!in_array($doc['_id'], $childIds, true)) {
-			$childIds[] = $doc['_id'];
-		}
-	}
-	if (count($childIds) == 0) {
+	if (count($dirData['files']) == 0) {
 		return;
 	}
 
-	foreach ($childIds as $d) {
+	foreach ($dirData['files'] as $d) {
 		$fData = $onlyVisible
 			? getGSFile_filteredBy($d, array('visible' => array('$ne' => false)))
 			: getGSFile_fromId($d);
