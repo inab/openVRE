@@ -33,19 +33,42 @@ function getTreeParentId($row) {
   return $row.attr('data-tt-parent-id');
 }
 
+function createFolderIconHtml($nameCell) {
+  if ($nameCell.hasClass('highlighted_folder')) {
+    return '<span class="fa-stack fa-lg collapse-folder">' +
+      '<i class="fa fa-folder-open fa-stack-1x font-blue-oleo" style="left: 0px;top: -9px;"></i>' +
+      '<i class="fa fa-folder-open-o font-green" style="position: absolute;left: 0px;top: -9px;"></i>' +
+      '</span>';
+  }
+  return '<i class="fa fa-folder-open collapse-folder" aria-hidden="true"></i>';
+}
+
+function ensureFolderRowPresentation($row) {
+  var $row = $($row);
+  var $nameCell = $row.children('td').eq(1);
+
+  $row.addClass('folder-row');
+  $row.css({ 'font-weight': 'bold', color: '#337ab7' });
+
+  var $line = $nameCell.children('.folder-name-line').first();
+  if ($line.length && !$line.children('.collapse-folder').length) {
+    $line.prepend(createFolderIconHtml($nameCell));
+  }
+}
+
 function setFolderRowIcon($tr, isOpen) {
-  var $td = $('td:first-child', $tr);
-  var $icon = $td.find('.collapse-folder');
+  var $nameCell = $tr.children('td').eq(1);
+  var $icon = $nameCell.find('.collapse-folder');
   if (!$icon.length) {
     return;
   }
-  if ($td.hasClass('highlighted_folder')) {
+  if ($nameCell.hasClass('highlighted_folder')) {
     if (isOpen) {
-      $icon.html('<i class="fa fa-folder-open fa-stack-1x font-blue-oleo" style="left:-5px;top: -9px;"></i>' +
-        '<i class="fa fa-folder-open-o font-green" style="position: absolute;left: 4px;top: -9px;"></i>');
+      $icon.html('<i class="fa fa-folder-open fa-stack-1x font-blue-oleo" style="left:0px;top: -9px;"></i>' +
+        '<i class="fa fa-folder-open-o font-green" style="position: absolute;left: 0px;top: -9px;"></i>');
     } else {
-      $icon.html('<i class="fa fa-folder fa-stack-1x font-blue-oleo" style="left:-5px;top: -9px;"></i>' +
-        '<i class="fa fa-folder-o font-green" style="position: absolute;left: 4px;top: -9px;"></i>');
+      $icon.html('<i class="fa fa-folder fa-stack-1x font-blue-oleo" style="left:0px;top: -9px;"></i>' +
+        '<i class="fa fa-folder-o font-green" style="position: absolute;left: 0px;top: -9px;"></i>');
     }
   } else {
     $icon.removeClass('fa-folder fa-folder-open').addClass(isOpen ? 'fa-folder-open' : 'fa-folder');
@@ -213,15 +236,21 @@ function syncTreeRowIndent() {
     var depth = treeDepthFromId(treeId);
     var isFolder = $row.find('input.foldercheck').length > 0;
     var $fileCell = $row.children('td').eq(1);
-    var indentPx = filtered ? 0 : depth * 10;
+    var indentPx = filtered ? 0 : (depth * 30);
 
     $fileCell.css('padding-left', '0px');
+    $fileCell.find('.folder-name-line').css('padding-left', '10px');
     $fileCell.find('.truncate').css('padding-left', '0px');
     $fileCell.find('a, span.enabled, span.disabled').css('padding-left', '0px');
 
     if (indentPx > 0) {
       if (isFolder) {
-        $fileCell.find('.truncate').css('padding-left', indentPx + 'px');
+        var $folderLine = $fileCell.children('.folder-name-line');
+        if ($folderLine.length) {
+          $folderLine.css('padding-left', indentPx + 'px');
+        } else {
+          $fileCell.css('padding-left', indentPx + 'px');
+        }
       } else {
         var $label = $fileCell.find('a, span.enabled, span.disabled').first();
         if ($label.length) {
@@ -355,23 +384,6 @@ $(document).ready(function() {
 	responsive:true,
 	stateSave: true,
 	stateLoaded: function (settings, data) {
-		// Tree view overrides (disabled — restore pagination behaviour):
-		// data.order = [];
-		// data.start = 0;
-		// data.length = -1;
-		// col1SearchValue = '';
-		// col2SearchValue = '';
-		// col3SearchValue = '';
-		// activeSortCol = null;
-		// activeSortDir = 'asc';
-		// for (var c in cols) {
-		// 	cols[c] = 'asc';
-		// }
-		// if (data.columns) {
-		// 	for (var i = 0; i < data.columns.length; i++) {
-		// 		data.columns[i].search.search = '';
-		// 	}
-		// }
 		if(data.columns[1].search.search != '') {
 			col1SearchValue = (data.columns[1].search.search);
 		}
@@ -394,22 +406,7 @@ $(document).ready(function() {
 			}
 
 		 if($row.find('input.foldercheck').length) {
-				$(row).css('font-weight', 'bold');
-				$(row).css('color', '#337ab7');
-				if($('td:first-child', row).hasClass('highlighted_folder')) {
-					/*var folderIcon = '<span class="fa-stack fa-lg" style="height: 0;">' +
-  				'<i class="fa fa-folder fa-stack-1x font-blue-oleo" style="left:-5px;top: -9px;"></i>' + 
-  				'<i class="fa fa-folder-o font-green" style="position: absolute;left: 5px;top: -9px;"></i>' + 
-					'</span>';*/
-					var folderIcon = '<span class="fa-stack fa-lg collapse-folder" style="height: 0;">' +
-  				'<i class="fa fa-folder-open fa-stack-1x font-blue-oleo" style="left:-5px;top: -9px;"></i>' +
-  				'<i class="fa fa-folder-open-o font-green" style="position: absolute;left: 4px;top: -9px;"></i>' +
-					'</span>';
-				}else{
-					//var folderIcon = '<i class="fa fa-folder" aria-hidden="true" style="font-size:18px;margin-left:5px;"></i>';
-					var folderIcon = '<i class="fa fa-folder-open collapse-folder" aria-hidden="true" style="font-size:18px;margin-left:5px;"></i>';
-				}
-		 		$('td:first-child .mt-checkbox', row).after(folderIcon);
+				ensureFolderRowPresentation($row);
 
 		 }else {
 		
@@ -555,15 +552,15 @@ $(document).ready(function() {
 
   // BOTONS DE + INFO
   expandInfo = function(op){
-	$(op).parent().find('.extra_info').slideToggle();
-	$(op).toggleClass('expand_info_up');
+    $(op).parent().find('.extra_info').slideToggle();
+    $(op).toggleClass('expand_info_up');
   }
 
   // CHECKBOXES
   // global
   $('#workspace').find('.group-checkable').change(function () {
-	var checked = $(this).is(":checked");	
-	$('input[type=checkbox]', table.rows().nodes()).prop('checked', checked);	
+    var checked = $(this).is(":checked");	
+    $('input[type=checkbox]', table.rows().nodes()).prop('checked', checked);	
   });
   
   // folders
@@ -585,24 +582,24 @@ $(document).ready(function() {
 
   // JSON with the data of the files
   $(table.rows().nodes()).each(function() {
-	var $row = $(this);
-	var jqTds = $('>td', $row);
+    var $row = $(this);
+    var jqTds = $('>td', $row);
 
-	if ($row.find('input.foldercheck').length) {
-		allFolders[getTreeRowId($row)] = parseFolderLabel(jqTds[1].innerText);
-		return;
-	}
+    if ($row.find('input.foldercheck').length) {
+      allFolders[getTreeRowId($row)] = parseFolderLabel(jqTds[1].innerText);
+      return;
+    }
 
-	var record = fileRecordFromRow($row);
-	if (!record) return;
+    var record = fileRecordFromRow($row);
+    if (!record) return;
 
-	if (jqTds[1].innerHTML.indexOf('extra_info') != -1) {
-		record.metadata = jqTds[1].innerHTML.substring(
-			jqTds[1].innerHTML.lastIndexOf('<table>') + 7,
-			jqTds[1].innerHTML.lastIndexOf('</table>')
-		).replace(/(\n\t|\n|\t)/gm, '');
-	}
-	allFiles.push(record);
+    if (jqTds[1].innerHTML.indexOf('extra_info') != -1) {
+      record.metadata = jqTds[1].innerHTML.substring(
+        jqTds[1].innerHTML.lastIndexOf('<table>') + 7,
+        jqTds[1].innerHTML.lastIndexOf('</table>')
+      ).replace(/(\n\t|\n|\t)/gm, '');
+    }
+    allFiles.push(record);
   });
   //******************************************
   // console.log(JSON.stringify(allFiles));
@@ -612,13 +609,13 @@ $(document).ready(function() {
   // check if there's at least one file checked
   checkIfSomeChecked = function(){
   	var ch = false
-	for(i in allFiles){
-		if(allFiles[i].checked) {
-			ch = true;
-			break;
-		}
-	}
-	return ch;
+    for(i in allFiles){
+      if(allFiles[i].checked) {
+        ch = true;
+        break;
+      }
+    }
+    return ch;
   }
 
   // show / hide tools and buttons of the run tools portlet
@@ -636,39 +633,39 @@ $(document).ready(function() {
 
   // add / remove file to the run tools portlet
   drawToolsList = function(ch, id, fl, fd, id_or, meta, fileId){
-	if(ch){
-	  var str_meta = '';
-		meta = (meta || '').replace(/"/g, "\'");
+    if(ch){
+      var str_meta = '';
+      meta = (meta || '').replace(/"/g, "\'");
 
-	  if(meta != ''){
-		str_meta = 	' <a href="javascript:;" onmouseover="javascript:;" class="popovers" data-trigger="hover" data-container="body" data-content="<table>' + meta  + '</table>" data-original-title="Metadata">' + 
-				'<i class="fa fa-info-circle"></i>' + 
-				'</a>';
-	  }
-	  $('#list-files-run-tools').append('<li class="tool-' + id + ' tool-list-item">'+
-	  '<div class="col1">'+
-		'<div class="cont">'+
-        	'<div class="cont-col1">'+
-            	'<div class="label label-sm label-info">'+
-                	'<i class="fa fa-file"></i>'+
-                '</div>'+
-            '</div>'+
-            '<div class="cont-col2">'+
-                '<div class="desc">' + (fd ? '<span class="text-info" style="font-weight:bold;">' + fd + ' /</span> ' : '') + fl + str_meta +
-				'</div>'+
-            '</div>'+
+      if(meta != ''){
+      str_meta = 	' <a href="javascript:;" onmouseover="javascript:;" class="popovers" data-trigger="hover" data-container="body" data-content="<table>' + meta  + '</table>" data-original-title="Metadata">' + 
+          '<i class="fa fa-info-circle"></i>' + 
+          '</a>';
+      }
+      $('#list-files-run-tools').append('<li class="tool-' + id + ' tool-list-item">'+
+      '<div class="col1">'+
+      '<div class="cont">'+
+            '<div class="cont-col1">'+
+                '<div class="label label-sm label-info">'+
+                    '<i class="fa fa-file"></i>'+
+                  '</div>'+
+              '</div>'+
+              '<div class="cont-col2">'+
+                  '<div class="desc">' + (fd ? '<span class="text-info" style="font-weight:bold;">' + fd + ' /</span> ' : '') + fl + str_meta +
+          '</div>'+
+              '</div>'+
+          '</div>'+
         '</div>'+
-      '</div>'+
-	  '<div class="col2">'+
-		'<div class="label label-sm label-danger" style="float: right;padding:0">'+
-            '<a href="javascript:removeFromToolsList(\'tool-' + id  + '\', \'' + id_or  + '\');" title="Clear file from list" class="btn btn-icon-only red" style="width: 25px;height: 25px;padding-top: 1px;"><i class="fa fa-times-circle"></i></a>'+
+      '<div class="col2">'+
+      '<div class="label label-sm label-danger" style="float: right;padding:0">'+
+              '<a href="javascript:removeFromToolsList(\'tool-' + id  + '\', \'' + id_or  + '\');" title="Clear file from list" class="btn btn-icon-only red" style="width: 25px;height: 25px;padding-top: 1px;"><i class="fa fa-times-circle"></i></a>'+
+          '</div>'+
         '</div>'+
-      '</div>'+
-	  '</li>');
-	  $('.popovers').popover({html:true});
-	}else{
-	  $('.tool-' + id).remove();
-	}
+      '</li>');
+      $('.popovers').popover({html:true});
+    }else{
+      $('.tool-' + id).remove();
+    }
 
   }
 
@@ -853,8 +850,8 @@ $(document).ready(function() {
       var folderAction = "visible";
       //open
       if($(td).hasClass('highlighted_folder')) {
-        $(record).html('<i class="fa fa-folder-open fa-stack-1x font-blue-oleo" style="left:-5px;top: -9px;"></i>' +
-        '<i class="fa fa-folder-open-o font-green" style="position: absolute;left: 4px;top: -9px;"></i>');
+        $(record).html('<i class="fa fa-folder-open fa-stack-1x font-blue-oleo" style="left: 0px;top: -9px;"></i>' +
+        '<i class="fa fa-folder-open-o font-green" style="position: absolute;left: 0px;top: -9px;"></i>');
       } else {
         $(record).removeClass('fa-folder');
         $(record).addClass('fa-folder-open');
@@ -864,8 +861,8 @@ $(document).ready(function() {
       $(tr).addClass("folder-off");
       var folderAction = "hidden";
       if($(td).hasClass('highlighted_folder')) {
-        $(this).html('<i class="fa fa-folder fa-stack-1x font-blue-oleo" style="left:-5px;top: -9px;"></i>' +
-        '<i class="fa fa-folder-o font-green" style="position: absolute;left: 4px;top: -9px;"></i>');
+        $(this).html('<i class="fa fa-folder fa-stack-1x font-blue-oleo" style="left: 0px;top: -9px;"></i>' +
+        '<i class="fa fa-folder-o font-green" style="position: absolute;left: 0px;top: -9px;"></i>');
       } else {
         $(this).addClass('fa-folder');
         $(this).removeClass('fa-folder-open');

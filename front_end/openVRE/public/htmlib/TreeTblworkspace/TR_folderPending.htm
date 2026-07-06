@@ -7,7 +7,12 @@
 	 </label>
 </td>
 <td data-order="##name_sort_key##">
-	<span class="truncate" title="##filename##">##filename##</span>
+	<div class="folder-name-line">
+		<span class="truncate" title="##filename##">##filename##</span>
+		<a href="javascript:viewFileMeta('##_id##', '##longfilename##', 0);">
+			<i class="fa fa-info-circle"></i>
+		</a>
+	</div>
 	<!--  span style="font-weight:bold;" search="yes"   type="execution" -->
 	<!--<span class="expand_info" onclick="expandInfo(this)"></span>-->
 	<div class="extra_info">
@@ -17,8 +22,6 @@
 			##analyses##
   		</table>
 	</div>
-	<a href="javascript:viewFileMeta('##_id##', '##longfilename##', 0);" style="margin-left:5px;"><i class="fa fa-info-circle"></i></a>
-	
 </td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
