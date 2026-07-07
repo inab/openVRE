@@ -12,9 +12,13 @@ const COPY_FILES = [
   ['jquery/dist/jquery.min.js', 'jquery.min.js'],
   // js-cookie
   ['js-cookie/src/js.cookie.js', 'js.cookie.min.js'],
+  // jquery-cookiebar
   ['jquery.cookiebar/jquery.cookieBar.min.js', 'jquery-cookiebar/jquery.cookieBar.min.js'],
+  // jquery-blockui
   ['jquery-blockui/jquery.blockUI.js', 'jquery.blockui.min.js'],
+  // clipboardjs
   ['clipboard/dist/clipboard.min.js', 'clipboardjs/clipboard.min.js'],
+  // jquery-validation
   ['jquery-validation/dist/jquery.validate.js', 'jquery-validation/js/jquery.validate.js'],
   ['jquery-validation/dist/jquery.validate.min.js', 'jquery-validation/js/jquery.validate.min.js'],
   ['jquery-validation/dist/additional-methods.js', 'jquery-validation/js/additional-methods.js'],
