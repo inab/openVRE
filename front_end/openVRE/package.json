@@ -1,0 +1,12 @@
+{
+  "name": "openvre-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "node scripts/copy-plugins.js",
+    "copy-plugins": "node scripts/copy-plugins.js"
+  },
+  "dependencies": {
+    "js-cookie": "2.0.4"
+  }
+}
