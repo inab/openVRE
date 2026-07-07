@@ -66,7 +66,7 @@ const COPY_DIRS = [
     'js',
     'scss'
   ]],
-  ['select2/dist/js', 'select2/js', ['i18n']],
+  ['select2/dist/js', 'select2/js'],
   ['select2/dist/css', 'select2/css'],
   ['jquery-validation/dist/localization', 'jquery-validation/js/localization']
 ];
