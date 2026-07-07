@@ -8,6 +8,9 @@ const ROOT = path.resolve(__dirname, '..');
 const NM = path.join(ROOT, 'node_modules');
 const PLUGINS = path.join(ROOT, 'public/assets/global/plugins');
 const COPY_FILES = [
+  // jquery
+  ['jquery/dist/jquery.min.js', 'jquery.min.js'],
+  // js-cookie
   ['js-cookie/src/js.cookie.js', 'js.cookie.min.js'],
   ['jquery.cookiebar/jquery.cookieBar.min.js', 'jquery-cookiebar/jquery.cookieBar.min.js'],
   ['jquery-blockui/jquery.blockUI.js', 'jquery.blockui.min.js'],
