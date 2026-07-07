@@ -12,6 +12,26 @@ const COPY_FILES = [
   ['jquery.cookiebar/jquery.cookieBar.min.js', 'jquery-cookiebar/jquery.cookieBar.min.js'],
   ['jquery-blockui/jquery.blockUI.js', 'jquery.blockui.min.js'],
 ];
+const COPY_DIRS = [
+  ['flot', 'flot', [
+    'examples',
+    '.travis.yml',
+    'API.md',
+    'CONTRIBUTING.md',
+    'LICENSE.txt',
+    'FAQ.md',
+    'Makefile',
+    'NEWS.md',
+    'PLUGINS.md',
+    'README.md',
+    'component.json',
+    'excanvas.js',
+    'excanvas.min.js',
+    'flot.jquery.json',
+    'jquery.js',
+    'package.json',
+  ]],
+];
 
 function nm(...parts) {
   return path.join(NM, ...parts);
@@ -31,10 +51,34 @@ function copyFile(src, dest) {
   return true;
 }
 
+function copyDir(src, dest, excluded = []) {
+  if (!fs.existsSync(src)) {
+    console.warn(`  skip missing: ${path.relative(ROOT, src)}`);
+    return false;
+  }
+  ensureDir(path.dirname(dest));
+  const excludedPaths = new Set(excluded.map((name) => path.join(src, name)));
+  fs.cpSync(src, dest, {
+    recursive: true,
+    filter(currentSrc) {
+      for (const excludedPath of excludedPaths) {
+        if (currentSrc === excludedPath || currentSrc.startsWith(`${excludedPath}${path.sep}`)) {
+          return false;
+        }
+      }
+      return true;
+    },
+  });
+  return true;
+}
+
 function copyPlugins() {
   console.log('Copying related assets to public/assets/global/plugins...');
   for (const [from, to] of COPY_FILES) {
     copyFile(nm(...from.split('/')), path.join(PLUGINS, to));
+  }
+  for (const [from, to, excluded] of COPY_DIRS) {
+    copyDir(nm(...from.split('/')), path.join(PLUGINS, to), excluded);
   }
   console.log('\nDone.');
 }
