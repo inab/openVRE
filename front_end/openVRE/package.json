@@ -13,6 +13,7 @@
     "flot": "0.8.3",
     "jquery-blockui": "^2.7.0",
     "jquery.cookiebar": "0.0.1",
-    "js-cookie": "2.0.4"
+    "js-cookie": "2.0.4",
+    "select2": "4.0.3"
   }
 }
