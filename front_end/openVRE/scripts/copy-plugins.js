@@ -25,6 +25,7 @@ const COPY_FILES = [
   // jquery-validation
   ['jquery-validation/dist/jquery.validate.js', 'jquery-validation/js/jquery.validate.js'],
   ['jquery-validation/dist/additional-methods.js', 'jquery-validation/js/additional-methods.js'],
+  ['jquery-validation/README.md', 'jquery-validation/README.md'],
 
 ];
 const COPY_DIRS = [
