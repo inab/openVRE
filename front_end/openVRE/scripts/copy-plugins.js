@@ -31,6 +31,16 @@ const COPY_DIRS = [
     'jquery.js',
     'package.json',
   ]],
+  ['fancybox/dist', 'fancybox/source', [
+    'helpers/css',
+    'helpers/js',
+    'helpers/img',
+    'helpers/scss',
+    'img',
+    'css',
+    'js',
+    'scss'
+  ]],
 ];
 
 function nm(...parts) {
