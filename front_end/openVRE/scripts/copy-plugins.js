@@ -8,6 +8,9 @@ const ROOT = path.resolve(__dirname, '..');
 const NM = path.join(ROOT, 'node_modules');
 const PLUGINS = path.join(ROOT, 'public/assets/global/plugins');
 const COPY_FILES = [
+  // bootstrap
+  ['bootstrap/dist/js/bootstrap.js', 'bootstrap/js/bootstrap.js'],
+  ['bootstrap/dist/js/bootstrap.min.js', 'bootstrap/js/bootstrap.min.js'],
   // jquery
   ['jquery/dist/jquery.min.js', 'jquery.min.js'],
   // js-cookie
@@ -24,6 +27,15 @@ const COPY_FILES = [
 
 ];
 const COPY_DIRS = [
+  ['bootstrap/dist/css', 'bootstrap/css', [
+    'bootstrap-theme.css',
+    'bootstrap-theme.css.map',
+    'bootstrap-theme.min.css',
+    'bootstrap-theme.min.css.map',
+    'bootstrap.css.map',
+    'bootstrap.min.css.map',
+  ]],
+  ['bootstrap/dist/fonts', 'bootstrap/fonts/bootstrap'],
   ['flot', 'flot', [
     'examples',
     '.travis.yml',
