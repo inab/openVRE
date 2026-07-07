@@ -7,7 +7,8 @@
     "copy-plugins": "node scripts/copy-plugins.js"
   },
   "dependencies": {
-    "js-cookie": "2.0.4",
-    "jquery.cookiebar": "0.0.1"
+    "jquery-blockui": "^2.7.0",
+    "jquery.cookiebar": "0.0.1",
+    "js-cookie": "2.0.4"
   }
 }

@@ -10,6 +10,7 @@ const PLUGINS = path.join(ROOT, 'public/assets/global/plugins');
 const COPY_FILES = [
   ['js-cookie/src/js.cookie.js', 'js.cookie.min.js'],
   ['jquery.cookiebar/jquery.cookieBar.min.js', 'jquery-cookiebar/jquery.cookieBar.min.js'],
+  ['jquery-blockui/jquery.blockUI.js', 'jquery.blockui.min.js'],
 ];
 
 function nm(...parts) {
