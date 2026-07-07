@@ -11,6 +11,7 @@ const COPY_FILES = [
   ['js-cookie/src/js.cookie.js', 'js.cookie.min.js'],
   ['jquery.cookiebar/jquery.cookieBar.min.js', 'jquery-cookiebar/jquery.cookieBar.min.js'],
   ['jquery-blockui/jquery.blockUI.js', 'jquery.blockui.min.js'],
+  ['clipboard/dist/clipboard.min.js', 'clipboardjs/clipboard.min.js'],
 ];
 const COPY_DIRS = [
   ['flot', 'flot', [

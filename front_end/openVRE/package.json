@@ -7,10 +7,12 @@
     "copy-plugins": "node scripts/copy-plugins.js"
   },
   "dependencies": {
+    "clipboard": "1.5.12",
+    "dropzone": "3.8.4",
+    "fancybox": "2.1.5",
+    "flot": "0.8.3",
     "jquery-blockui": "^2.7.0",
     "jquery.cookiebar": "0.0.1",
-    "js-cookie": "2.0.4",
-    "fancybox": "2.1.5",
-    "flot": "0.8.3"
+    "js-cookie": "2.0.4"
   }
 }
