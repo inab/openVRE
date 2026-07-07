@@ -17,6 +17,7 @@ const COPY_FILES = [
   ['js-cookie/src/js.cookie.js', 'js.cookie.min.js'],
   // jquery-cookiebar
   ['jquery.cookiebar/jquery.cookieBar.min.js', 'jquery-cookiebar/jquery.cookieBar.min.js'],
+  ['jquery.cookiebar/README.md', 'jquery-cookiebar/README.md'],
   // jquery-blockui
   ['jquery-blockui/jquery.blockUI.js', 'jquery.blockui.min.js'],
   // clipboardjs
