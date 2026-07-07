@@ -20,9 +20,8 @@ const COPY_FILES = [
   ['clipboard/dist/clipboard.min.js', 'clipboardjs/clipboard.min.js'],
   // jquery-validation
   ['jquery-validation/dist/jquery.validate.js', 'jquery-validation/js/jquery.validate.js'],
-  ['jquery-validation/dist/jquery.validate.min.js', 'jquery-validation/js/jquery.validate.min.js'],
   ['jquery-validation/dist/additional-methods.js', 'jquery-validation/js/additional-methods.js'],
-  ['jquery-validation/dist/additional-methods.min.js', 'jquery-validation/js/additional-methods.min.js'],
+
 ];
 const COPY_DIRS = [
   ['flot', 'flot', [
