@@ -7,7 +7,10 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const NM = path.join(ROOT, 'node_modules');
 const PLUGINS = path.join(ROOT, 'public/assets/global/plugins');
-const COOKIE_DEST = path.join(PLUGINS, 'js.cookie.min.js');
+const COPY_FILES = [
+  ['js-cookie/src/js.cookie.js', 'js.cookie.min.js'],
+  ['jquery.cookiebar/jquery.cookieBar.min.js', 'jquery-cookiebar/jquery.cookieBar.min.js'],
+];
 
 function nm(...parts) {
   return path.join(NM, ...parts);
@@ -28,8 +31,10 @@ function copyFile(src, dest) {
 }
 
 function copyPlugins() {
-  console.log('Copying js-cookie to public/assets/global/plugins...');
-  copyFile(nm('js-cookie', 'src', 'js.cookie.js'), COOKIE_DEST);
+  console.log('Copying related assets to public/assets/global/plugins...');
+  for (const [from, to] of COPY_FILES) {
+    copyFile(nm(...from.split('/')), path.join(PLUGINS, to));
+  }
   console.log('\nDone.');
 }
 
