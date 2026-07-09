@@ -74,6 +74,8 @@ const COPY_DIRS = [
   ['select2/dist/css', 'select2/css'],
   ['jquery-validation/dist/localization', 'jquery-validation/js/localization'],
   ['bootstrap-switch/dist/js', 'bootstrap-switch/js'],
+  ['font-awesome/css', 'font-awesome/css'],
+  ['font-awesome/fonts', 'font-awesome/fonts'],
 ];
 
 function nm(...parts) {
