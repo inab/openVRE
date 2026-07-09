@@ -26,7 +26,11 @@ const COPY_FILES = [
   ['jquery-validation/dist/jquery.validate.js', 'jquery-validation/js/jquery.validate.js'],
   ['jquery-validation/dist/additional-methods.js', 'jquery-validation/js/additional-methods.js'],
   ['jquery-validation/README.md', 'jquery-validation/README.md'],
-
+  // bootstrap-switch
+  ['bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css', 'bootstrap-switch/css/bootstrap-switch.css'],
+  ['bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css', 'bootstrap-switch/css/bootstrap-switch.min.css'],
+  ['bootstrap-switch/LICENSE', 'bootstrap-switch/LICENSE'],
+  ['bootstrap-switch/README.md', 'bootstrap-switch/README.md'],
 ];
 const COPY_DIRS = [
   ['bootstrap/dist/css', 'bootstrap/css', [
@@ -68,7 +72,8 @@ const COPY_DIRS = [
   ]],
   ['select2/dist/js', 'select2/js'],
   ['select2/dist/css', 'select2/css'],
-  ['jquery-validation/dist/localization', 'jquery-validation/js/localization']
+  ['jquery-validation/dist/localization', 'jquery-validation/js/localization'],
+  ['bootstrap-switch/dist/js', 'bootstrap-switch/js'],
 ];
 
 function nm(...parts) {
