@@ -107,9 +107,9 @@
   background-color: #868686;
 }
 
-/*.progress-step:hover .progress-marker {
+.progress-step:hover .progress-marker {
   background-color: #56ADF5;
-}*/
+}
 
 .progress-tracker--center .progress-step {
   text-align: center;

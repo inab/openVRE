@@ -1082,6 +1082,15 @@ h4.progress-title {
     background-color: #bda131;
 }
 
+/* Disable progress-tracker plugin hover highlight (#56ADF5). */
+.progress-step:hover .progress-marker {
+    background-color: #ccc;
+}
+
+.progress-step.is-active:hover .progress-marker {
+    background-color: #bda131;
+}
+
 .progress-step .progress-marker .fa-check {
     font-size: 20px;
     margin-top: 3px;

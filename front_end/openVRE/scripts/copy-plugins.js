@@ -34,6 +34,9 @@ const COPY_FILES = [
   ['easy-pie-chart/dist/angular.easypiechart.min.js', 'jquery-easypiechart/angular.easypiechart.min.js'],
   ['easy-pie-chart/LICENSE', 'jquery-easypiechart/LICENSE'],
   ['easy-pie-chart/Readme.md', 'jquery-easypiechart/Readme.md'],
+  // progress-tracker (CSS-only; compiled dist from npm)
+  ['progress-tracker/app/styles/progress-tracker.css', 'progress-tracker/progress-tracker.css'],
+  ['progress-tracker/favicon.ico', 'progress-tracker/favicon.ico'],
   // bootstrap-switch
   ['bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css', 'bootstrap-switch/css/bootstrap-switch.css'],
   ['bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css', 'bootstrap-switch/css/bootstrap-switch.min.css'],
