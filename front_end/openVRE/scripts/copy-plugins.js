@@ -68,6 +68,11 @@ const COPY_DIRS = [
   ['bootstrap-switch/dist/js', 'bootstrap-switch/js'],
   ['font-awesome/css', 'font-awesome/css'],
   ['font-awesome/fonts', 'font-awesome/fonts'],
+  ['counterup', 'counterup', [
+    'package.json',
+    '.npmignore',
+    'counterup.jquery.json'
+  ]],
 ];
 
 // Remote assets not available (or not wanted) from npm.
@@ -119,6 +124,17 @@ const REMOTE_DOWNLOADS = [
       'jquery.flot.symbol.min.js',
       'jquery.flot.threshold.min.js',
       'jquery.flot.time.min.js',
+    ],
+  },
+  {
+    type: 'cdn',
+    name: 'waypoints',
+    version: '2.0.3',
+    base: 'https://cdnjs.cloudflare.com/ajax/libs/waypoints/2.0.3',
+    files: [
+      // counterup depends on waypoints but does not bundle it; v2.x is required
+      // for the jQuery .waypoint() API and triggerOnce option used by counterup 1.0.
+      ['waypoints.min.js', 'counterup/jquery.waypoints.min.js'],
     ],
   },
   {
