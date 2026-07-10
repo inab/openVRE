@@ -16,8 +16,6 @@ const COPY_FILES = [
   ['bootstrap/dist/js/bootstrap.min.js', 'bootstrap/js/bootstrap.min.js'],
   // jquery
   ['jquery/dist/jquery.min.js', 'jquery.min.js'],
-  // js-cookie
-  ['js-cookie/src/js.cookie.js', 'js.cookie.min.js'],
   // jquery-cookiebar
   ['jquery.cookiebar/jquery.cookieBar.min.js', 'jquery-cookiebar/jquery.cookieBar.min.js'],
   ['jquery.cookiebar/README.md', 'jquery-cookiebar/README.md'],
@@ -114,6 +112,15 @@ const REMOTE_DOWNLOADS = [
     clean: true,
     dirs: [],
     rootFiles: ['README.md', 'jquery.slimscroll.js', 'jquery.slimscroll.min.js', 'slimScroll.jquery.json'],
+  },
+  {
+    type: 'cdn',
+    name: 'js-cookie',
+    version: '2.0.4',
+    base: 'https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.0.4',
+    files: [
+      ['js.cookie.js', 'js.cookie.min.js'],
+    ],
   },
   {
     type: 'cdn',
