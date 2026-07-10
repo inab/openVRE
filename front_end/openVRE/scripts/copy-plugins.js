@@ -10,10 +10,6 @@ const ROOT = path.resolve(__dirname, '..');
 const NM = path.join(ROOT, 'node_modules');
 const PLUGINS = path.join(ROOT, 'public/assets/global/plugins');
 
-const FANCYBOX_VERSION = '2.1.5';
-const FANCYBOX_GITHUB = `https://raw.githubusercontent.com/fancyapps/fancybox/v${FANCYBOX_VERSION}`;
-const FANCYBOX_DIRS = ['source', 'lib'];
-const FANCYBOX_ROOT_FILES = ['README.md', 'CHANGELOG.md'];
 const COPY_FILES = [
   // bootstrap
   ['bootstrap/dist/js/bootstrap.js', 'bootstrap/js/bootstrap.js'],
@@ -54,7 +50,6 @@ const COPY_DIRS = [
     '.travis.yml',
     'API.md',
     'CONTRIBUTING.md',
-    'LICENSE.txt',
     'FAQ.md',
     'Makefile',
     'NEWS.md',
@@ -73,6 +68,76 @@ const COPY_DIRS = [
   ['bootstrap-switch/dist/js', 'bootstrap-switch/js'],
   ['font-awesome/css', 'font-awesome/css'],
   ['font-awesome/fonts', 'font-awesome/fonts'],
+];
+
+// Remote assets not available (or not wanted) from npm.
+// type: 'cdn'   — download explicit files from a versioned base URL
+// type: 'github' — download folders from a tagged GitHub repo via the API
+const REMOTE_DOWNLOADS = [
+  {
+    type: 'github',
+    name: 'fancybox',
+    version: '2.1.5',
+    repo: 'fancyapps/fancybox',
+    ref: 'v2.1.5',
+    base: 'https://raw.githubusercontent.com/fancyapps/fancybox/v2.1.5',
+    dest: 'fancybox',
+    clean: true,
+    dirs: ['source', 'lib'],
+    rootFiles: ['README.md', 'CHANGELOG.md'],
+  },
+  {
+    type: 'cdn',
+    name: 'jquery-validate',
+    version: '1.14.0',
+    base: 'https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.14.0',
+    files: [
+      ['jquery.validate.min.js', 'jquery-validation/js/jquery.validate.min.js'],
+      ['additional-methods.min.js', 'jquery-validation/js/additional-methods.min.js'],
+    ],
+  },
+  {
+    type: 'cdn',
+    name: 'flot',
+    version: '0.8.3',
+    base: 'https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3',
+    dest: 'flot',
+    files: [
+      'jquery.colorhelpers.min.js',
+      'jquery.flot.min.js',
+      'jquery.flot.canvas.min.js',
+      'jquery.flot.categories.min.js',
+      'jquery.flot.crosshair.min.js',
+      'jquery.flot.errorbars.min.js',
+      'jquery.flot.fillbetween.min.js',
+      'jquery.flot.image.min.js',
+      'jquery.flot.navigate.min.js',
+      'jquery.flot.pie.min.js',
+      'jquery.flot.resize.min.js',
+      'jquery.flot.selection.min.js',
+      'jquery.flot.stack.min.js',
+      'jquery.flot.symbol.min.js',
+      'jquery.flot.threshold.min.js',
+      'jquery.flot.time.min.js',
+    ],
+  },
+  {
+    type: 'cdn',
+    name: 'flot-axislabels',
+    version: '2.0.1',
+    base: 'https://raw.githubusercontent.com/markrcote/flot-axislabels/release-2.0.1',
+    dest: 'flot',
+    files: [
+      'jquery.flot.axislabels.js',
+    ],
+  },
+];
+
+const FLOT_ALL_MIN_PARTS = [
+  'jquery.colorhelpers.min.js',
+  'jquery.flot.min.js',
+  'jquery.flot.categories.min.js',
+  'jquery.flot.resize.min.js',
 ];
 
 function nm(...parts) {
@@ -140,35 +205,90 @@ function downloadFile(url, dest) {
   });
 }
 
-async function listFancyboxFiles() {
-  const treeUrl = `https://api.github.com/repos/fancyapps/fancybox/git/trees/v${FANCYBOX_VERSION}?recursive=1`;
+function resolveFileEntry(entry, defaultDestDir) {
+  if (Array.isArray(entry)) {
+    return entry;
+  }
+  const dest = defaultDestDir ? path.posix.join(defaultDestDir, entry) : entry;
+  return [entry, dest];
+}
+
+async function listGithubFiles(repo, ref, dirs = [], rootFiles = []) {
+  const treeUrl = `https://api.github.com/repos/${repo}/git/trees/${ref}?recursive=1`;
   const { tree } = await fetchJson(treeUrl);
-  const dirPrefixes = FANCYBOX_DIRS.map((dir) => `${dir}/`);
+  const dirPrefixes = dirs.map((dir) => `${dir}/`);
   const files = tree
     .filter((entry) => entry.type === 'blob')
     .map((entry) => entry.path)
     .filter((filePath) => dirPrefixes.some((prefix) => filePath.startsWith(prefix)));
-  return [...FANCYBOX_ROOT_FILES, ...files.sort()];
+  return [...rootFiles, ...files.sort()];
 }
 
-async function downloadFancybox() {
-  const destRoot = path.join(PLUGINS, 'fancybox');
-  if (fs.existsSync(destRoot)) {
+async function downloadCdnFiles({ name, version, base, dest, files }) {
+  console.log(`Downloading ${name} ${version} from cdn...`);
+  for (const entry of files) {
+    const [remotePath, destPath] = resolveFileEntry(entry, dest);
+    const url = `${base}/${remotePath}`;
+    const target = path.join(PLUGINS, destPath);
+    try {
+      await downloadFile(url, target);
+      console.log(`  ${destPath}`);
+    } catch (err) {
+      console.warn(`  skip failed: ${destPath} (${err.message})`);
+    }
+  }
+}
+
+async function downloadGithubTree({ name, version, repo, ref, base, dest, clean, dirs, rootFiles }) {
+  const destRoot = path.join(PLUGINS, dest);
+  if (clean && fs.existsSync(destRoot)) {
     fs.rmSync(destRoot, { recursive: true, force: true });
   }
 
-  console.log(`Downloading fancybox ${FANCYBOX_VERSION} from GitHub...`);
-  const files = await listFancyboxFiles();
+  console.log(`Downloading ${name} ${version} from GitHub...`);
+  const files = await listGithubFiles(repo, ref, dirs, rootFiles);
   for (const file of files) {
-    const url = `${FANCYBOX_GITHUB}/${file}`;
-    const dest = path.join(destRoot, file);
+    const url = `${base}/${file}`;
+    const target = path.join(destRoot, file);
     try {
-      await downloadFile(url, dest);
+      await downloadFile(url, target);
       console.log(`  ${file}`);
     } catch (err) {
       console.warn(`  skip failed: ${file} (${err.message})`);
     }
   }
+}
+
+async function downloadRemoteAssets(downloads) {
+  for (const spec of downloads) {
+    if (spec.type === 'cdn') {
+      await downloadCdnFiles(spec);
+    } else if (spec.type === 'github') {
+      await downloadGithubTree(spec);
+    } else {
+      console.warn(`  skip unknown download type: ${spec.type}`);
+    }
+  }
+}
+
+function buildFlotAllMin() {
+  const flotDir = path.join(PLUGINS, 'flot');
+  const parts = FLOT_ALL_MIN_PARTS.map((file) => {
+    const src = path.join(flotDir, file);
+    if (!fs.existsSync(src)) {
+      console.warn(`  skip flot bundle: missing ${file}`);
+      return null;
+    }
+    return fs.readFileSync(src, 'utf8');
+  }).filter(Boolean);
+
+  if (parts.length !== FLOT_ALL_MIN_PARTS.length) {
+    return;
+  }
+
+  const dest = path.join(flotDir, 'jquery.flot.all.min.js');
+  fs.writeFileSync(dest, `${parts.join('\n')}\n`);
+  console.log('  flot/jquery.flot.all.min.js (bundled)');
 }
 
 function copyDir(src, dest, excluded = []) {
@@ -200,7 +320,8 @@ async function copyPlugins() {
   for (const [from, to, excluded] of COPY_DIRS) {
     copyDir(nm(...from.split('/')), path.join(PLUGINS, to), excluded);
   }
-  await downloadFancybox();
+  await downloadRemoteAssets(REMOTE_DOWNLOADS);
+  buildFlotAllMin();
   console.log('\nDone.');
 }
 
