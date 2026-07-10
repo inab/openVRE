@@ -105,6 +105,16 @@ const REMOTE_DOWNLOADS = [
   },
   {
     type: 'cdn',
+    name: 'jquery-sparkline',
+    version: '2.1.2',
+    // v2.1.2 tag on GitHub only ships source; built dist is on cdnjs.
+    base: 'https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2',
+    files: [
+      ['jquery.sparkline.min.js', 'jquery.sparkline.min.js'],
+    ],
+  },
+  {
+    type: 'cdn',
     name: 'jquery-validate',
     version: '1.14.0',
     base: 'https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.14.0',
