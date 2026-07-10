@@ -236,6 +236,19 @@ const REMOTE_DOWNLOADS = [
   },
   {
     type: 'cdn',
+    name: 'simple-line-icons-extras',
+    version: '2d47e408c253',
+    // Not shipped in npm 1.0.0; vendored extras from openVRE-core-dev history.
+    base: 'https://raw.githubusercontent.com/inab/openVRE-core-dev/2d47e408c253/front_end/openVRE/public/assets/global/plugins/simple-line-icons',
+    dest: 'simple-line-icons',
+    files: [
+      'icons-lte-ie7.js',
+      'License.txt',
+      'Readme.txt',
+    ],
+  },
+  {
+    type: 'cdn',
     name: 'flot-axislabels',
     version: '2.0.1',
     base: 'https://raw.githubusercontent.com/markrcote/flot-axislabels/release-2.0.1',
@@ -392,6 +405,45 @@ async function downloadRemoteAssets(downloads) {
   }
 }
 
+const SIMPLE_LINE_ICON_FONT_FILES = [
+  'Simple-Line-Icons.eot',
+  'Simple-Line-Icons.svg',
+  'Simple-Line-Icons.ttf',
+  'Simple-Line-Icons.woff',
+];
+
+function rewriteSimpleLineIconsCss(css) {
+  return css.replace(/\.\.\/fonts\//g, 'fonts/');
+}
+
+function minifyCss(css) {
+  return css
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*([{}:;,])\s*/g, '$1')
+    .trim();
+}
+
+function copySimpleLineIcons() {
+  const pkgCss = nm('simple-line-icons/css/simple-line-icons.css');
+  const destDir = path.join(PLUGINS, 'simple-line-icons');
+  if (!fs.existsSync(pkgCss)) {
+    console.warn(`  skip missing: ${path.relative(ROOT, pkgCss)}`);
+    return;
+  }
+
+  ensureDir(path.join(destDir, 'fonts'));
+  for (const file of SIMPLE_LINE_ICON_FONT_FILES) {
+    copyFile(nm('simple-line-icons/fonts', file), path.join(destDir, 'fonts', file));
+  }
+
+  const css = rewriteSimpleLineIconsCss(fs.readFileSync(pkgCss, 'utf8'));
+  fs.writeFileSync(path.join(destDir, 'simple-line-icons.css'), css);
+  fs.writeFileSync(path.join(destDir, 'simple-line-icons.min.css'), minifyCss(css));
+  console.log('  simple-line-icons/simple-line-icons.css');
+  console.log('  simple-line-icons/simple-line-icons.min.css');
+}
+
 function buildFlotAllMin() {
   const flotDir = path.join(PLUGINS, 'flot');
   const parts = FLOT_ALL_MIN_PARTS.map((file) => {
@@ -442,6 +494,7 @@ async function copyPlugins() {
     copyDir(nm(...from.split('/')), path.join(PLUGINS, to), excluded);
   }
   await downloadRemoteAssets(REMOTE_DOWNLOADS);
+  copySimpleLineIcons();
   buildFlotAllMin();
   console.log('\nDone.');
 }
