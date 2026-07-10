@@ -92,6 +92,18 @@ const REMOTE_DOWNLOADS = [
     rootFiles: ['README.md', 'CHANGELOG.md'],
   },
   {
+    type: 'github',
+    name: 'jquery-knob',
+    version: '1.2.8',
+    repo: 'aterrien/jQuery-Knob',
+    ref: '1.2.8',
+    base: 'https://raw.githubusercontent.com/aterrien/jQuery-Knob/1.2.8',
+    dest: 'jquery-knob',
+    clean: true,
+    dirs: ['js'],
+    rootFiles: ['LICENSE', 'README.md', 'knob.jquery.json'],
+  },
+  {
     type: 'cdn',
     name: 'jquery-validate',
     version: '1.14.0',

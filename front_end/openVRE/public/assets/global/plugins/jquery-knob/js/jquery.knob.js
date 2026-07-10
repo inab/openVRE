@@ -10,7 +10,15 @@
  *
  * Thanks to vor, eskimoblood, spiffistan, FabrizioC
  */
-(function($) {
+(function (factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(['jquery'], factory);
+    } else {
+        // Browser globals
+        factory(jQuery);
+    }
+}(function ($) {
 
     /**
      * Kontrol library
@@ -652,8 +660,8 @@
                     }
                 );
 
-            //this.$c.bind("mousewheel DOMMouseScroll", mw);
-            //this.$.bind("mousewheel DOMMouseScroll", mw)
+            this.$c.bind("mousewheel DOMMouseScroll", mw);
+            this.$.bind("mousewheel DOMMouseScroll", mw)
         };
 
         this.init = function () {
@@ -788,4 +796,5 @@
         ).parent();
     };
 
-})(jQuery);
+}));
+
