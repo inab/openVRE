@@ -201,6 +201,38 @@ const REMOTE_DOWNLOADS = [
   },
   {
     type: 'cdn',
+    name: 'ace',
+    version: '1.1.3',
+    base: 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.3',
+    dest: 'markdown',
+    files: [
+      'ace.js',
+    ],
+  },
+  {
+    type: 'cdn',
+    name: 'bootstrap-markdown-editor',
+    version: '2.0.2',
+    // inacho/bootstrap-markdown-editor dist; local copy was a custom minify of this build.
+    base: 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-markdown-editor/2.0.2',
+    dest: 'markdown',
+    files: [
+      ['css/bootstrap-markdown-editor.css', 'bootstrap-markdown-editor.css'],
+      ['js/bootstrap-markdown-editor.js', 'bootstrap-markdown-editor.js'],
+    ],
+  },
+  {
+    type: 'cdn',
+    name: 'marked',
+    version: '0.3.2',
+    base: 'https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2',
+    dest: 'markdown',
+    files: [
+      ['marked.min.js', 'marked.min.js'],
+    ],
+  },
+  {
+    type: 'cdn',
     name: 'flot-axislabels',
     version: '2.0.1',
     base: 'https://raw.githubusercontent.com/markrcote/flot-axislabels/release-2.0.1',
