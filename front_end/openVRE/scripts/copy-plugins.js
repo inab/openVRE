@@ -124,6 +124,20 @@ const REMOTE_DOWNLOADS = [
   },
   {
     type: 'cdn',
+    name: 'toastr',
+    version: '2.1.0',
+    base: 'https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.0',
+    dest: 'bootstrap-toastr',
+    clean: true,
+    files: [
+      ['css/toastr.css', 'toastr.css'],
+      ['css/toastr.min.css', 'toastr.min.css'],
+      ['js/toastr.js', 'toastr.js'],
+      ['js/toastr.min.js', 'toastr.min.js'],
+    ],
+  },
+  {
+    type: 'cdn',
     name: 'jquery-sparkline',
     version: '2.1.2',
     // v2.1.2 tag on GitHub only ships source; built dist is on cdnjs.
@@ -281,17 +295,25 @@ async function listGithubFiles(repo, ref, dirs = [], rootFiles = []) {
   return [...rootFiles, ...files.sort()];
 }
 
-async function downloadCdnFiles({ name, version, base, dest, files }) {
+async function downloadCdnFiles({ name, version, base, dest, clean, files }) {
+  const destRoot = dest ? path.join(PLUGINS, dest) : null;
+  if (clean && destRoot && fs.existsSync(destRoot)) {
+    fs.rmSync(destRoot, { recursive: true, force: true });
+  }
+
   console.log(`Downloading ${name} ${version} from cdn...`);
   for (const entry of files) {
     const [remotePath, destPath] = resolveFileEntry(entry, dest);
+    const targetPath = dest && !destPath.includes('/')
+      ? path.posix.join(dest, destPath)
+      : destPath;
     const url = `${base}/${remotePath}`;
-    const target = path.join(PLUGINS, destPath);
+    const target = path.join(PLUGINS, targetPath);
     try {
       await downloadFile(url, target);
-      console.log(`  ${destPath}`);
+      console.log(`  ${targetPath}`);
     } catch (err) {
-      console.warn(`  skip failed: ${destPath} (${err.message})`);
+      console.warn(`  skip failed: ${targetPath} (${err.message})`);
     }
   }
 }
