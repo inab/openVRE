@@ -104,6 +104,18 @@ const REMOTE_DOWNLOADS = [
     rootFiles: ['LICENSE', 'README.md', 'knob.jquery.json'],
   },
   {
+    type: 'github',
+    name: 'jquery-slimscroll',
+    version: '1.3.2',
+    repo: 'rochal/jQuery-slimScroll',
+    ref: 'v1.3.2',
+    base: 'https://raw.githubusercontent.com/rochal/jQuery-slimScroll/v1.3.2',
+    dest: 'jquery-slimscroll',
+    clean: true,
+    dirs: [],
+    rootFiles: ['README.md', 'jquery.slimscroll.js', 'jquery.slimscroll.min.js', 'slimScroll.jquery.json'],
+  },
+  {
     type: 'cdn',
     name: 'jquery-sparkline',
     version: '2.1.2',
