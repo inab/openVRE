@@ -1,23 +1,27 @@
 /**!
- * easyPieChart
+ * easy-pie-chart
  * Lightweight plugin to render simple, animated and retina optimized pie charts
  *
  * @license 
  * @author Robert Fleischmann <rendro87@gmail.com> (http://robert-fleischmann.de)
- * @version 2.1.5
+ * @version 2.1.7
  **/
 
-(function(root, factory) {
-    if(typeof exports === 'object') {
-        module.exports = factory(require('angular'));
-    }
-    else if(typeof define === 'function' && define.amd) {
-        define(['angular'], factory);
-    }
-    else {
-        factory(root.angular);
-    }
-}(this, function(angular) {
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module unless amdModuleId is set
+    define(["angular"], function (a0) {
+      return (factory(a0));
+    });
+  } else if (typeof exports === 'object') {
+    // Node. Does not work with strict CommonJS, but
+    // only CommonJS-like environments that support module.exports,
+    // like Node.
+    module.exports = factory(require("angular"));
+  } else {
+    factory(angular);
+  }
+}(this, function (angular) {
 
 (function (angular) {
 
@@ -27,7 +31,7 @@
 
 		.directive('easypiechart', [function() {
 			return {
-				restrict: 'A',
+				restrict: 'AE',
 				require: '?ngModel',
 				scope: {
 					percent: '=',
@@ -67,6 +71,7 @@
 		}]);
 
 })(angular);
+
 /**
  * Renderer to render the chart on a canvas object
  * @param {DOMElement} el      DOM element to host the canvas (root of the plugin)
@@ -78,7 +83,7 @@ var CanvasRenderer = function(el, options) {
 
 	el.appendChild(canvas);
 
-	if (typeof(G_vmlCanvasManager) !== 'undefined') {
+	if (typeof(G_vmlCanvasManager) === 'object') {
 		G_vmlCanvasManager.initElement(canvas);
 	}
 
@@ -173,7 +178,7 @@ var CanvasRenderer = function(el, options) {
 	 */
 	var drawBackground = function() {
 		if(options.scaleColor) drawScale();
-		if(options.trackColor) drawCircle(options.trackColor, options.lineWidth, 1);
+		if(options.trackColor) drawCircle(options.trackColor, options.trackWidth || options.lineWidth, 1);
 	};
 
   /**
@@ -182,7 +187,7 @@ var CanvasRenderer = function(el, options) {
   this.getCanvas = function() {
     return canvas;
   };
-  
+
   /**
     * Canvas 2D context 'ctx' accessor
    */
@@ -266,6 +271,7 @@ var EasyPieChart = function(el, opts) {
 		scaleLength: 5,
 		lineCap: 'round',
 		lineWidth: 3,
+		trackWidth: undefined,
 		size: 110,
 		rotate: 0,
 		animate: {

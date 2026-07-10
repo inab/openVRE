@@ -27,6 +27,13 @@ const COPY_FILES = [
   ['jquery-validation/dist/jquery.validate.js', 'jquery-validation/js/jquery.validate.js'],
   ['jquery-validation/dist/additional-methods.js', 'jquery-validation/js/additional-methods.js'],
   ['jquery-validation/README.md', 'jquery-validation/README.md'],
+  // easy-pie-chart (jquery-easypiechart)
+  ['easy-pie-chart/dist/jquery.easypiechart.js', 'jquery-easypiechart/jquery.easypiechart.js'],
+  ['easy-pie-chart/dist/jquery.easypiechart.min.js', 'jquery-easypiechart/jquery.easypiechart.min.js'],
+  ['easy-pie-chart/dist/angular.easypiechart.js', 'jquery-easypiechart/angular.easypiechart.js'],
+  ['easy-pie-chart/dist/angular.easypiechart.min.js', 'jquery-easypiechart/angular.easypiechart.min.js'],
+  ['easy-pie-chart/LICENSE', 'jquery-easypiechart/LICENSE'],
+  ['easy-pie-chart/Readme.md', 'jquery-easypiechart/Readme.md'],
   // bootstrap-switch
   ['bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css', 'bootstrap-switch/css/bootstrap-switch.css'],
   ['bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css', 'bootstrap-switch/css/bootstrap-switch.min.css'],
