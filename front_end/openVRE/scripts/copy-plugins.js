@@ -42,6 +42,9 @@ const COPY_FILES = [
   ['bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css', 'bootstrap-switch/css/bootstrap-switch.min.css'],
   ['bootstrap-switch/LICENSE', 'bootstrap-switch/LICENSE'],
   ['bootstrap-switch/README.md', 'bootstrap-switch/README.md'],
+  // typeahead.js
+  ['typeahead.js/dist/typeahead.bundle.min.js', 'typeahead/typeahead.bundle.min.js'],
+  ['typeahead.js/LICENSE', 'typeahead/LICENSE'],
 ];
 const COPY_DIRS = [
   ['bootstrap/dist/css', 'bootstrap/css', [
@@ -232,6 +235,19 @@ const REMOTE_DOWNLOADS = [
     dest: 'markdown',
     files: [
       ['marked.min.js', 'marked.min.js'],
+    ],
+  },
+  {
+    type: 'cdn',
+    name: 'typeahead-extras',
+    version: '2d47e408c253',
+    // Not in typeahead.js npm (or README differs from npm package).
+    base: 'https://raw.githubusercontent.com/inab/openVRE-core-dev/2d47e408c253/front_end/openVRE/public/assets/global/plugins/typeahead',
+    dest: 'typeahead',
+    files: [
+      'README.md',
+      'typeahead.css',
+      'handlebars.min.js',
     ],
   },
   {
