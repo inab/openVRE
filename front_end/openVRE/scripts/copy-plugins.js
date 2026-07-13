@@ -9,6 +9,7 @@ const http = require('http');
 const ROOT = path.resolve(__dirname, '..');
 const NM = path.join(ROOT, 'node_modules');
 const PLUGINS = path.join(ROOT, 'public/assets/global/plugins');
+const PLUGIN_OVERLAYS = path.join(ROOT, 'plugin-overlays');
 
 const COPY_FILES = [
   // bootstrap
@@ -248,6 +249,21 @@ const REMOTE_DOWNLOADS = [
       'README.md',
       'typeahead.css',
       'handlebars.min.js',
+    ],
+  },
+  {
+    type: 'cdn',
+    name: 'dropzone',
+    version: '2d47e408c253',
+    // dropzone@3.8.4 in package.json pins version; plugin files pinned (npm downloads differ).
+    base: 'https://raw.githubusercontent.com/inab/openVRE-core-dev/2d47e408c253/front_end/openVRE/public/assets/global/plugins/dropzone',
+    dest: 'dropzone',
+    files: [
+      'dropzone.min.js',
+      'dropzone.min.css',
+      'basic.min.css',
+      'LICENSE',
+      'README.md',
     ],
   },
   {
@@ -501,6 +517,32 @@ function copyDir(src, dest, excluded = []) {
   return true;
 }
 
+function copyPluginOverlays() {
+  if (!fs.existsSync(PLUGIN_OVERLAYS)) {
+    return;
+  }
+
+  console.log('Copying plugin overlays...');
+  const walk = (relativeDir) => {
+    const absDir = path.join(PLUGIN_OVERLAYS, relativeDir);
+    for (const entry of fs.readdirSync(absDir, { withFileTypes: true })) {
+      const rel = relativeDir ? path.posix.join(relativeDir, entry.name) : entry.name;
+      if (entry.isDirectory()) {
+        walk(rel);
+        continue;
+      }
+      if (!entry.isFile()) {
+        continue;
+      }
+      const dest = path.join(PLUGINS, rel);
+      if (copyFile(path.join(PLUGIN_OVERLAYS, rel), dest)) {
+        console.log(`  ${rel} (overlay)`);
+      }
+    }
+  };
+  walk('');
+}
+
 async function copyPlugins() {
   console.log('Copying related assets to public/assets/global/plugins...');
   for (const [from, to] of COPY_FILES) {
@@ -513,6 +555,7 @@ async function copyPlugins() {
   // await copyJsmol(); // optional — see commented section at end of file
   copySimpleLineIcons();
   buildFlotAllMin();
+  copyPluginOverlays();
   console.log('\nDone.');
 }
 
