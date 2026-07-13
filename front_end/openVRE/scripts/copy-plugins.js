@@ -43,10 +43,12 @@ const COPY_FILES = [
   ['bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css', 'bootstrap-switch/css/bootstrap-switch.min.css'],
   ['bootstrap-switch/LICENSE', 'bootstrap-switch/LICENSE'],
   ['bootstrap-switch/README.md', 'bootstrap-switch/README.md'],
-  // typeahead.js — bundle, LICENSE, handlebars from npm; theme CSS in plugin-overlays
+  // typeahead.js
   ['typeahead.js/dist/typeahead.bundle.min.js', 'typeahead/typeahead.bundle.min.js'],
   ['typeahead.js/LICENSE', 'typeahead/LICENSE'],
   ['handlebars/dist/handlebars.min.js', 'typeahead/handlebars.min.js'],
+  // bootstrap-fileinput (jasny-bootstrap)
+  ['jasny-bootstrap/js/fileinput.js', 'bootstrap-fileinput/bootstrap-fileinput.js'],
 ];
 const COPY_DIRS = [
   ['bootstrap/dist/css', 'bootstrap/css', [
