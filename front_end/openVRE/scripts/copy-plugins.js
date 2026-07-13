@@ -49,6 +49,8 @@ const COPY_FILES = [
   ['handlebars/dist/handlebars.min.js', 'typeahead/handlebars.min.js'],
   // bootstrap-fileinput (jasny-bootstrap)
   ['jasny-bootstrap/js/fileinput.js', 'bootstrap-fileinput/bootstrap-fileinput.js'],
+  // ngl — ngl.js from npm@0.9.0;
+  ['ngl/dist/ngl.js', 'ngl.js'],
 ];
 const COPY_DIRS = [
   ['bootstrap/dist/css', 'bootstrap/css', [
