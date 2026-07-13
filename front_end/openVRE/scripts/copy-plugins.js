@@ -494,10 +494,89 @@ async function copyPlugins() {
     copyDir(nm(...from.split('/')), path.join(PLUGINS, to), excluded);
   }
   await downloadRemoteAssets(REMOTE_DOWNLOADS);
+  // await copyJsmol(); // optional — see commented section at end of file
   copySimpleLineIcons();
   buildFlotAllMin();
   console.log('\nDone.');
 }
+
+/*
+ * ---------------------------------------------------------------------------
+ * OPTIONAL: jsmol (~18 MB installed, ~50 MB SourceForge download on postinstall)
+ * ---------------------------------------------------------------------------
+ * Not referenced in this repo (3D structures use NGL instead). Confirm with the
+ * team before enabling. To restore:
+ *   1. Uncomment the requires below and this entire block.
+ *   2. Uncomment `await copyJsmol()` in copyPlugins().
+ *
+ * const os = require('os');
+ * const { execSync } = require('child_process');
+ *
+ * // Minimal JSmol deploy: j2s + jsmol.php from Jmol 14.0.5 binary;
+ * // openVRE-specific JSmol.min.js and j2s/up demo files from repo history.
+ * const JSMOL_SPEC = {
+ *   jmolVersion: '14.0.5',
+ *   jsmolVersion: '13.3.9',
+ *   archiveUrl: 'https://downloads.sourceforge.net/project/jmol/Jmol/Version%2014.0/Version%2014.0.5/Jmol-14.0.5-binary.zip',
+ *   innerZip: 'jmol-14.0.5/jsmol.zip',
+ *   openvreCommit: '2d47e408c253',
+ *   extras: [
+ *     'JSmol.min.js',
+ *     'j2s/up/index.html',
+ *     'j2s/up/upload.php',
+ *     'j2s/up/upload/TSS_V136_filter.gff',
+ *     'j2s/up/upload/TSS_ih_methyl_V136_noMet.rep1.gff',
+ *   ],
+ * };
+ *
+ * function extractZip(zipPath, destDir) {
+ *   ensureDir(destDir);
+ *   execSync(`unzip -q -o ${JSON.stringify(zipPath)} -d ${JSON.stringify(destDir)}`, { stdio: 'pipe' });
+ * }
+ *
+ * async function copyJsmol() {
+ *   const { jmolVersion, jsmolVersion, archiveUrl, innerZip, openvreCommit, extras } = JSMOL_SPEC;
+ *   const dest = path.join(PLUGINS, 'jsmol');
+ *
+ *   console.log(`Installing jsmol (Jmol ${jmolVersion}, JSmol ${jsmolVersion})...`);
+ *   if (fs.existsSync(dest)) {
+ *     fs.rmSync(dest, { recursive: true, force: true });
+ *   }
+ *   ensureDir(dest);
+ *
+ *   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openvre-jsmol-'));
+ *   try {
+ *     const archivePath = path.join(tempDir, 'jmol-binary.zip');
+ *     await downloadFile(archiveUrl, archivePath);
+ *
+ *     const outerDir = path.join(tempDir, 'outer');
+ *     extractZip(archivePath, outerDir);
+ *
+ *     const innerZipPath = path.join(outerDir, innerZip);
+ *     if (!fs.existsSync(innerZipPath)) {
+ *       throw new Error(`missing inner archive: ${innerZip}`);
+ *     }
+ *
+ *     const innerDir = path.join(tempDir, 'inner');
+ *     extractZip(innerZipPath, innerDir);
+ *
+ *     const jsmolRoot = path.join(innerDir, 'jsmol');
+ *     copyDir(path.join(jsmolRoot, 'j2s'), path.join(dest, 'j2s'));
+ *     copyFile(path.join(jsmolRoot, 'php', 'jsmol.php'), path.join(dest, 'jsmol.php'));
+ *     console.log('  j2s/ (from Jmol binary)');
+ *     console.log('  jsmol.php');
+ *
+ *     const base = `https://raw.githubusercontent.com/inab/openVRE-core-dev/${openvreCommit}/front_end/openVRE/public/assets/global/plugins/jsmol`;
+ *     for (const file of extras) {
+ *       const target = path.join(dest, file);
+ *       await downloadFile(`${base}/${file}`, target);
+ *       console.log(`  ${file} (${openvreCommit})`);
+ *     }
+ *   } finally {
+ *     fs.rmSync(tempDir, { recursive: true, force: true });
+ *   }
+ * }
+ */
 
 copyPlugins().catch((err) => {
   console.error(err);
