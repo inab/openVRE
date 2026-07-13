@@ -43,9 +43,10 @@ const COPY_FILES = [
   ['bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css', 'bootstrap-switch/css/bootstrap-switch.min.css'],
   ['bootstrap-switch/LICENSE', 'bootstrap-switch/LICENSE'],
   ['bootstrap-switch/README.md', 'bootstrap-switch/README.md'],
-  // typeahead.js
+  // typeahead.js — bundle, LICENSE, handlebars from npm; theme CSS in plugin-overlays
   ['typeahead.js/dist/typeahead.bundle.min.js', 'typeahead/typeahead.bundle.min.js'],
   ['typeahead.js/LICENSE', 'typeahead/LICENSE'],
+  ['handlebars/dist/handlebars.min.js', 'typeahead/handlebars.min.js'],
 ];
 const COPY_DIRS = [
   ['bootstrap/dist/css', 'bootstrap/css', [
@@ -236,47 +237,6 @@ const REMOTE_DOWNLOADS = [
     dest: 'markdown',
     files: [
       ['marked.min.js', 'marked.min.js'],
-    ],
-  },
-  {
-    type: 'cdn',
-    name: 'typeahead-extras',
-    version: '2d47e408c253',
-    // Not in typeahead.js npm (or README differs from npm package).
-    base: 'https://raw.githubusercontent.com/inab/openVRE-core-dev/2d47e408c253/front_end/openVRE/public/assets/global/plugins/typeahead',
-    dest: 'typeahead',
-    files: [
-      'README.md',
-      'typeahead.css',
-      'handlebars.min.js',
-    ],
-  },
-  {
-    type: 'cdn',
-    name: 'dropzone',
-    version: '2d47e408c253',
-    // dropzone@3.8.4 in package.json pins version; plugin files pinned (npm downloads differ).
-    base: 'https://raw.githubusercontent.com/inab/openVRE-core-dev/2d47e408c253/front_end/openVRE/public/assets/global/plugins/dropzone',
-    dest: 'dropzone',
-    files: [
-      'dropzone.min.js',
-      'dropzone.min.css',
-      'basic.min.css',
-      'LICENSE',
-      'README.md',
-    ],
-  },
-  {
-    type: 'cdn',
-    name: 'simple-line-icons-extras',
-    version: '2d47e408c253',
-    // Not shipped in npm 1.0.0; vendored extras from openVRE-core-dev history.
-    base: 'https://raw.githubusercontent.com/inab/openVRE-core-dev/2d47e408c253/front_end/openVRE/public/assets/global/plugins/simple-line-icons',
-    dest: 'simple-line-icons',
-    files: [
-      'icons-lte-ie7.js',
-      'License.txt',
-      'Readme.txt',
     ],
   },
   {
@@ -572,20 +532,12 @@ async function copyPlugins() {
  * const { execSync } = require('child_process');
  *
  * // Minimal JSmol deploy: j2s + jsmol.php from Jmol 14.0.5 binary;
- * // openVRE-specific JSmol.min.js and j2s/up demo files from repo history.
+ * // JSmol.min.js and j2s/up/* extras: keep in plugin-overlays/jsmol/ if needed.
  * const JSMOL_SPEC = {
  *   jmolVersion: '14.0.5',
  *   jsmolVersion: '13.3.9',
  *   archiveUrl: 'https://downloads.sourceforge.net/project/jmol/Jmol/Version%2014.0/Version%2014.0.5/Jmol-14.0.5-binary.zip',
  *   innerZip: 'jmol-14.0.5/jsmol.zip',
- *   openvreCommit: '2d47e408c253',
- *   extras: [
- *     'JSmol.min.js',
- *     'j2s/up/index.html',
- *     'j2s/up/upload.php',
- *     'j2s/up/upload/TSS_V136_filter.gff',
- *     'j2s/up/upload/TSS_ih_methyl_V136_noMet.rep1.gff',
- *   ],
  * };
  *
  * function extractZip(zipPath, destDir) {
@@ -594,7 +546,7 @@ async function copyPlugins() {
  * }
  *
  * async function copyJsmol() {
- *   const { jmolVersion, jsmolVersion, archiveUrl, innerZip, openvreCommit, extras } = JSMOL_SPEC;
+ *   const { jmolVersion, jsmolVersion, archiveUrl, innerZip } = JSMOL_SPEC;
  *   const dest = path.join(PLUGINS, 'jsmol');
  *
  *   console.log(`Installing jsmol (Jmol ${jmolVersion}, JSmol ${jsmolVersion})...`);
@@ -624,13 +576,6 @@ async function copyPlugins() {
  *     copyFile(path.join(jsmolRoot, 'php', 'jsmol.php'), path.join(dest, 'jsmol.php'));
  *     console.log('  j2s/ (from Jmol binary)');
  *     console.log('  jsmol.php');
- *
- *     const base = `https://raw.githubusercontent.com/inab/openVRE-core-dev/${openvreCommit}/front_end/openVRE/public/assets/global/plugins/jsmol`;
- *     for (const file of extras) {
- *       const target = path.join(dest, file);
- *       await downloadFile(`${base}/${file}`, target);
- *       console.log(`  ${file} (${openvreCommit})`);
- *     }
  *   } finally {
  *     fs.rmSync(tempDir, { recursive: true, force: true });
  *   }
