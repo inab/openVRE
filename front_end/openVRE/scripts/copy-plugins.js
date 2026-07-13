@@ -260,6 +260,19 @@ const FLOT_ALL_MIN_PARTS = [
   'jquery.flot.resize.min.js',
 ];
 
+// codemirror@5.6.0s
+const CODEMIRROR_FILES = [
+  'lib/codemirror.js',
+  'lib/codemirror.css',
+  'mode/css/css.js',
+  'mode/javascript/javascript.js',
+  'mode/htmlmixed/htmlmixed.js',
+  'theme/ambiance.css',
+  'theme/material.css',
+  'theme/neat.css',
+  'theme/neo.css',
+];
+
 function nm(...parts) {
   return path.join(NM, ...parts);
 }
@@ -479,6 +492,22 @@ function copyDir(src, dest, excluded = []) {
   return true;
 }
 
+function copyCodemirror() {
+  const pkgRoot = nm('codemirror');
+  if (!fs.existsSync(pkgRoot)) {
+    console.warn('  skip missing: codemirror (npm)');
+    return;
+  }
+
+  console.log('Copying codemirror 5.6.0 from npm...');
+  for (const rel of CODEMIRROR_FILES) {
+    const dest = path.join(PLUGINS, 'codemirror', rel);
+    if (copyFile(path.join(pkgRoot, rel), dest)) {
+      console.log(`  codemirror/${rel}`);
+    }
+  }
+}
+
 function copyPluginOverlays() {
   if (!fs.existsSync(PLUGIN_OVERLAYS)) {
     return;
@@ -517,6 +546,7 @@ async function copyPlugins() {
   // await copyJsmol(); // optional — see commented section at end of file
   copySimpleLineIcons();
   buildFlotAllMin();
+  copyCodemirror();
   copyPluginOverlays();
   console.log('\nDone.');
 }
