@@ -49,8 +49,9 @@ const COPY_FILES = [
   ['handlebars/dist/handlebars.min.js', 'typeahead/handlebars.min.js'],
   // bootstrap-fileinput (jasny-bootstrap)
   ['jasny-bootstrap/js/fileinput.js', 'bootstrap-fileinput/bootstrap-fileinput.js'],
-  // ngl — ngl.js from npm@0.9.0;
+  // ngl — ngl.js from npm@0.9.0; ngl.last.js in plugin-overlays
   ['ngl/dist/ngl.js', 'ngl.js'],
+  // datatables — full tree in plugin-overlays/datatables/ (except Sorting icons.psd)
 ];
 const COPY_DIRS = [
   ['bootstrap/dist/css', 'bootstrap/css', [
