@@ -22,6 +22,7 @@ const COPY_FILES = [
   // jquery-cookiebar
   ['jquery.cookiebar/jquery.cookieBar.min.js', 'jquery-cookiebar/jquery.cookieBar.min.js'],
   ['jquery.cookiebar/README.md', 'jquery-cookiebar/README.md'],
+  ['jquery.cookiebar/license.txt', 'jquery-cookiebar/license.txt'],
   // jquery-blockui
   ['jquery-blockui/jquery.blockUI.js', 'jquery.blockui.min.js'],
   // clipboardjs
@@ -51,6 +52,15 @@ const COPY_FILES = [
   ['handlebars/dist/handlebars.min.js', 'typeahead/handlebars.min.js'],
   // bootstrap-fileinput (jasny-bootstrap)
   ['jasny-bootstrap/js/fileinput.js', 'bootstrap-fileinput/bootstrap-fileinput.js'],
+  // select2 (js/css dirs via COPY_DIRS)
+  ['select2/README.md', 'select2/README.md'],
+  ['select2-bootstrap-theme/dist/select2-bootstrap.min.css', 'select2/css/select2-bootstrap.min.css'],
+  ['select2-bootstrap-theme/src/select2-bootstrap.scss', 'select2/sass/select2-bootstrap.min.scss'],
+  // simple-line-icons (css/fonts via copySimpleLineIcons; legacy extras from webfont package)
+  ['simple-line-icons-webfont/License.txt', 'simple-line-icons/License.txt'],
+  ['simple-line-icons-webfont/Readme.txt', 'simple-line-icons/Readme.txt'],
+  ['simple-line-icons-webfont/icons-lte-ie7.js', 'simple-line-icons/icons-lte-ie7.js'],
+  ['simple-line-icons-webfont/fonts/Simple-Line-Icons.dev.svg', 'simple-line-icons/fonts/Simple-Line-Icons.dev.svg'],
   // ngl — ngl.js from npm@0.9.0; ngl.last.js in plugin-overlays
   ['ngl/dist/ngl.js', 'ngl.js'],
   // datatables — full tree in plugin-overlays/datatables/ (except Sorting icons.psd)
@@ -99,6 +109,15 @@ const COPY_DIRS = [
 // type: 'cdn'   — download explicit files from a versioned base URL
 // type: 'github' — download folders from a tagged GitHub repo via the API
 const REMOTE_DOWNLOADS = [
+  {
+    type: 'cdn',
+    name: 'select2-license',
+    version: '4.0.3',
+    base: 'https://raw.githubusercontent.com/select2/select2/4.0.3',
+    files: [
+      ['LICENSE.md', 'select2/LICENSE.md'],
+    ],
+  },
   {
     type: 'github',
     name: 'fancybox',
@@ -539,7 +558,8 @@ function copyPluginOverlays() {
   walk('');
 }
 
-// jsmol — j2s + jsmol.php + JSmol.min.js from Jmol 14.0.5 (SourceForge); vendored JSmol.min.js overlay if needed
+// jsmol — j2s + jsmol.php + JSmol.min.js from Jmol 14.0.5 (SourceForge);
+// j2s/up/ upload demo (index.html, upload.php) + vendored JSmol.min.js in plugin-overlays/jsmol/
 const JSMOL_SPEC = {
   jmolVersion: '14.0.5',
   jsmolVersion: '13.3.9',

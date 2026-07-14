@@ -4,8 +4,6 @@
 // Variables
 // --------------------------------------------------
 
-@import "../../../../../sass/global/variables";
-
 // Bootstrap defaults not available as pre-defined variables
 // These should not be overridden.
 // @see https://github.com/twbs/bootstrap-sass/blob/master/assets/stylesheets/bootstrap/_forms.scss#L127
@@ -24,6 +22,10 @@ $form-control-transition: border-color ease-in-out .15s, box-shadow ease-in-out 
 $dropdown-arrow-color: $input-color-placeholder !default;
 $dropdown-box-shadow: 0 6px 12px rgba(0,0,0,.175) !default;
 $clear-selection-color: $dropdown-arrow-color !default;
+
+
+
+
 
 //
 // Mixins
