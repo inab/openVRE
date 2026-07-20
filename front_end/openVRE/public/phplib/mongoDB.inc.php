@@ -61,35 +61,46 @@ function getGSFilesFromDir($dataSelection = array(), $onlyVisible = 0)
 		return [];
 	}
 
-	// retrieve File Data and Metada for each file in directory
+    // retrieve File Data and Metadata for each file in directory recursively
+	collectGSFilesFromDirRecursive($dirData['_id'], $files, $onlyVisible);
+
+	return $files;
+}
+
+function collectGSFilesFromDirRecursive($dirId, &$files, $onlyVisible)
+{
+	$dirData = $GLOBALS['filesCol']->findOne(array('_id' => $dirId));
+	if (!isset($dirData['files'])) {
+		return;
+	}
+
+	if (count($dirData['files']) == 0) {
+		return;
+	}
+
 	foreach ($dirData['files'] as $d) {
 		$fData = $onlyVisible
 			? getGSFile_filteredBy($d, array('visible' => array('$ne' => false)))
 			: getGSFile_fromId($d);
 
+		if (!$fData || !isset($fData['_id'])) {
+			continue;
+		}
+
 		if ($fData['path'] == $_SESSION['User']['id']) { // home file
 			continue;
 		}
 
-		$fData['mtime'] = $fData['mtime']->toDateTime()->format('U'); # UTC DateTime to seconds
+		if (is_object($fData['mtime'])) {
+			$fData['mtime'] = $fData['mtime']->toDateTime()->format('U'); # UTC DateTime to seconds
+		}
 
 		$files[$fData['_id']] = $fData;
-		if (isset($fData['files']) && count($fData['files']) > 0) {
-			foreach ($fData['files'] as $dd) {
-				$ffData = $onlyVisible
-					? getGSFile_filteredBy($dd, array('visible' => array('$ne' => false)))
-					: getGSFile_fromId($dd);
 
-				if (is_object($ffData['mtime'])) {
-					$ffData['mtime'] = $ffData['mtime']->toDateTime()->format('U');
-				}
-
-				$files[$ffData['_id']] = $ffData;
-			}
+		if (isset($fData['files'])) {
+			collectGSFilesFromDirRecursive($fData['_id'], $files, $onlyVisible);
 		}
 	}
-
-	return $files;
 }
 
 function isFilePresentFromPath($filePath, $asRoot = 0)
@@ -180,6 +191,12 @@ function getGSFile_filteredBy($fn, $filters)
 
 function getGSFiles_filteredBy($filters, $asRoot = 0)
 {
+	// Match workspace visibility: show unless explicitly hidden (false/0).
+	// Uploads use boolean true; tool results often use integer 1; older records may omit visible.
+	if (array_key_exists('visible', $filters) && $filters['visible'] === true) {
+		$filters['visible'] = ['$nin' => [false, 0]];
+	}
+
 	$filter_filesCol = [];
 	$filter_filesMetaCol = [];
 	foreach ($filters as $attribute => $value) {
@@ -599,7 +616,7 @@ function createGSDirBNS($dirPath, $asRoot = 0)
 		$parentPath = dirname($absoluteDirPath);
 		$parentDirId = getGSFileId_fromPath($parentPath, 1);
 		if (is_null($parentDirId)) {
-			createGSDirBNS($parentPath);
+			$parentDirId = createGSDirBNS($parentPath, $asRoot);
 		}
 	}
 
@@ -919,7 +936,11 @@ function calcGSUsedSpaceDir($fn)
 	$files = $GLOBALS['filesCol']->find(array('parentDir' => $fn))->toArray();
 	$size = 0;
 	foreach ($files as $f) {
-		$size += $f['size'];
+		if (isset($f['files']) && count($f['files']) > 0) {
+			$size += calcGSUsedSpaceDir($f['_id']);
+		} else {
+			$size += $f['size'];
+		}
 	}
 	return $size;
 }

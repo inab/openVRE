@@ -354,76 +354,226 @@ function filterFiles_by_dataType($filesAll, $filter_data_types = array())
 
 	// Filter files by data_types
 
-	if ($filter_data_types || is_array($filter_data_types)) {
-		$filesFiltered = array();
-		$dirs_filtered = array();
-		//filter out files with unselected data_types
-		foreach ($filesAll as $fn => $file) {
-			if (isset($file['data_type']) and  in_array($file['data_type'], $filter_data_types)) {
-				$filesFiltered[$fn] = $filesAll[$fn];
-				array_push($dirs_filtered, $file['parentDir']);
-			}
-		}
-		//filter out empty dirs
-		foreach ($filesAll as $fn => $file) {
-			if (isset($file['parentDir']) and  in_array($file['_id'], $dirs_filtered)) {
-				$filesFiltered[$fn] = $filesAll[$fn];
-			}
-		}
-		$filesAll = $filesFiltered;
+	if (!$filter_data_types || !is_array($filter_data_types) || !count($filter_data_types)) {
+		return $filesAll;
 	}
 
-	return $filesAll;
+	$matchingIds = array();
+	foreach ($filesAll as $fn => $file) {
+		if (isset($file['files'])) {
+			continue;
+		}
+		if (isset($file['data_type']) && in_array($file['data_type'], $filter_data_types)) {
+			$matchingIds[] = $fn;
+		}
+	}
+
+	$filesFiltered = array();
+	foreach ($matchingIds as $fileId) {
+		$currentId = $fileId;
+		while ($currentId && isset($filesAll[$currentId])) {
+			$filesFiltered[$currentId] = $filesAll[$currentId];
+			$parentId = $filesAll[$currentId]['parentDir'] ?? null;
+			if (!$parentId || !isset($filesAll[$parentId])) {
+				break;
+			}
+			$currentId = $parentId;
+		}
+	}
+
+	return $filesFiltered;
 }
 
+
+function normalizeGsId($id)
+{
+	if ($id instanceof \MongoDB\BSON\ObjectId) {
+		return (string) $id;
+	}
+	return $id;
+}
+
+
+function getTreeChildrenOrdered($parentId, $filesAll, $parentDoc = null)
+{
+	$parentId = normalizeGsId($parentId);
+	$children = array();
+	foreach ($filesAll as $id => $file) {
+		if (isset($file['parentDir']) && normalizeGsId($file['parentDir']) === $parentId) {
+			$children[] = $id;
+		}
+	}
+
+	if ($parentDoc && isset($parentDoc['files']) && count($parentDoc['files'])) {
+		$order = array_flip(array_map('normalizeGsId', $parentDoc['files']));
+		usort($children, function ($a, $b) use ($order) {
+			$oa = $order[normalizeGsId($a)] ?? PHP_INT_MAX;
+			$ob = $order[normalizeGsId($b)] ?? PHP_INT_MAX;
+			if ($oa !== $ob) {
+				return $oa - $ob;
+			}
+			return strcmp((string) $a, (string) $b);
+		});
+	}
+
+	return array_values(array_unique($children));
+}
 
 //add datatable tree nodes and hidden cols values
 function addTreeTableNodesToFiles($filesAll)
 {
+	foreach ($filesAll as $id => &$file) {
+		unset($file['tree_id'], $file['tree_id_parent'], $file['tree_depth'], $file['tree_sort'], $file['parent_tree_sort'], $file['_print_order']);
+	}
+	unset($file);
+
+	$printOrder = array();
+	$rootId = $_SESSION['User']['dataDir'];
+	$rootData = getGSFile_fromId($rootId);
+
 	$n = 1;
-	foreach ($filesAll as $r) {
-		// Add Tree Nodes
-		if (isset($r['files'])) {
-			if (isset($filesAll[$r['_id']]['tree_id']) && $filesAll[$r['_id']]['tree_id'])
-				continue;
-			
-			$filesAll[$r['_id']]['tree_id']     = $n;
-			$filesAll[$r['_id']]['size']	= calcGSUsedSpaceDir($r['_id']);
-			$filesAll[$r['_id']]['size_parent'] = $filesAll[$r['_id']]['size'];
-			//$filesAll[$r['_id']]['mtime_parent'] = (isset($r['atime']) ? $r['atime']->toDateTime()->format('U') : $r['mtime']);
-			$filesAll[$r['_id']]['mtime_parent'] =
-				((isset($r['atime']) && ($t = $r['atime']->toDateTime()->getTimestamp()) > 0) 
-					? $t
-					: ((isset($r['mtime']) && $r['mtime'] > 0) 
-						? $r['mtime']
-						: (!empty($filesAll[$r['_id']]['mtime_parent'])
-							? $filesAll[$r['_id']]['mtime_parent']
-							: time())));	
-			if ($filesAll[$r['_id']]['mtime_parent'] == 0) {
-					$_SESSION['errorData']['Error'][] =
-						"MTIME_PARENT STILL ZERO for " . $r['_id'] .
-						" | atime=" . (isset($r['atime']) ? $r['atime']->toDateTime()->getTimestamp() : 'NULL') .
-						" | mtime=" . ($r['mtime'] ?? 'NULL') .
-						" | existing=" . ($filesAll[$r['_id']]['mtime_parent'] ?? 'NULL');
-				}			
-			$i = 1;
-			foreach ($r['files'] as $rr) {
-				$filesAll[$rr]['tree_id']       = "$n.$i";
-				$filesAll[$rr]['tree_id_parent'] = $n;
-				$filesAll[$rr]['size_parent']   = $filesAll[$r['_id']]['size_parent'];
-				$filesAll[$rr]['mtime_parent']  = $filesAll[$r['_id']]['mtime_parent'];
-				$i++;
-			}
-			$n++;
-		} else {
-			if (isset($r['pending'])) {
-				$dir = $r['parentDir'];
+	foreach (getTreeChildrenOrdered($rootId, $filesAll, $rootData) as $childId) {
+		assignTreeIdsRecursive($childId, (string)$n, null, $filesAll, $printOrder);
+		$n++;
+	}
+
+	foreach ($filesAll as $id => $r) {
+		if (!isset($r['tree_id']) && !isset($r['files']) && isset($r['pending'])) {
+			$dir = $r['parentDir'];
+			if (isset($filesAll[$dir])) {
 				$filesAll[$dir]['pending'] = "true";
 			}
 		}
 	}
 
+	$order = 0;
+	foreach (array_unique($printOrder) as $id) {
+		if (isset($filesAll[$id])) {
+			$filesAll[$id]['_print_order'] = $order++;
+		}
+	}
+
 	return $filesAll;
+}
+
+function assignTreeIdsRecursive($nodeId, $treeId, $parentTreeId, &$filesAll, &$printOrder, $executionMeta = null)
+{
+	if (!isset($filesAll[$nodeId])) {
+		return;
+	}
+
+	$r = &$filesAll[$nodeId];
+
+	if (isset($r['tree_id']) && $r['tree_id']) {
+		return;
+	}
+
+	$r['tree_id'] = $treeId;
+	if ($parentTreeId !== null && $parentTreeId !== '') {
+		$r['tree_id_parent'] = $parentTreeId;
+	}
+
+	if (isset($r['files'])) {
+		$r['size'] = calcGSUsedSpaceDir($nodeId);
+
+		if ($executionMeta === null) {
+			$r['size_parent'] = $r['size'];
+			if (isset($r['atime']) && ($t = $r['atime']->toDateTime()->getTimestamp()) > 0) {
+				$r['mtime_parent'] = $t;
+			} elseif (isset($r['mtime']) && $r['mtime'] > 0) {
+				$r['mtime_parent'] = is_object($r['mtime'])
+					? $r['mtime']->toDateTime()->getTimestamp()
+					: $r['mtime'];
+			} elseif (!empty($r['mtime_parent'])) {
+				// keep existing
+			} else {
+				$r['mtime_parent'] = time();
+			}
+			if ($r['mtime_parent'] == 0) {
+				$_SESSION['errorData']['Error'][] =
+					"MTIME_PARENT STILL ZERO for " . $nodeId .
+					" | atime=" . (isset($r['atime']) ? $r['atime']->toDateTime()->getTimestamp() : 'NULL') .
+					" | mtime=" . ($r['mtime'] ?? 'NULL') .
+					" | existing=" . ($r['mtime_parent'] ?? 'NULL');
+			}
+			$executionMeta = array(
+				'size_parent'  => $r['size_parent'],
+				'mtime_parent' => $r['mtime_parent'],
+			);
+		}
+
+		$printOrder[] = $nodeId;
+
+		$i = 1;
+		foreach (getTreeChildrenOrdered($nodeId, $filesAll, $r) as $childId) {
+			if (!isset($filesAll[$childId]) || !empty($filesAll[$childId]['tree_id'])) {
+				continue;
+			}
+			assignTreeIdsRecursive($childId, $treeId . '.' . $i, $treeId, $filesAll, $printOrder, $executionMeta);
+			$i++;
+		}
+	} else {
+		if ($executionMeta !== null) {
+			$r['size_parent']  = $executionMeta['size_parent'];
+			$r['mtime_parent'] = $executionMeta['mtime_parent'];
+		}
+		if (isset($r['pending'])) {
+			$dir = $r['parentDir'];
+			if (isset($filesAll[$dir])) {
+				$filesAll[$dir]['pending'] = "true";
+			}
+		}
+		$printOrder[] = $nodeId;
+	}
+}
+
+function sortFilesForTable($filesAll)
+{
+	$withOrder = array();
+	$withoutOrder = array();
+
+	foreach ($filesAll as $id => $file) {
+		if (isset($file['_print_order'])) {
+			$withOrder[] = array('order' => $file['_print_order'], 'id' => $id);
+		} else {
+			$withoutOrder[$id] = $file;
+		}
+	}
+
+	usort($withOrder, function ($a, $b) {
+		if ($a['order'] !== $b['order']) {
+			return $a['order'] - $b['order'];
+		}
+		return strcmp($a['id'], $b['id']);
+	});
+
+	$sorted = array();
+	foreach ($withOrder as $entry) {
+		$id = $entry['id'];
+		$printOrd = $entry['order'];
+		$filesAll[$id]['tree_sort'] = str_pad((string)$printOrd, 6, '0', STR_PAD_LEFT);
+		unset($filesAll[$id]['_print_order']);
+		$sorted[$id] = $filesAll[$id];
+	}
+	foreach ($withoutOrder as $id => $file) {
+		$sorted[$id] = $file;
+	}
+
+	$treeIdToSort = array();
+	foreach ($sorted as $file) {
+		if (!empty($file['tree_id']) && !empty($file['tree_sort'])) {
+			$treeIdToSort[$file['tree_id']] = $file['tree_sort'];
+		}
+	}
+	foreach ($sorted as $id => $file) {
+		if (!empty($file['tree_id_parent'])) {
+			$sorted[$id]['parent_tree_sort'] = $treeIdToSort[$file['tree_id_parent']] ?? '000000';
+		} else {
+			$sorted[$id]['parent_tree_sort'] = '000000';
+		}
+	}
+
+	return $sorted;
 }
 
 function printTable($filesAll = array())
@@ -440,6 +590,9 @@ function printTable($filesAll = array())
 		<tbody><?php
 
 				foreach ($filesAll as $r) {
+					if (!isset($r['tree_id']) && !isset($r['pending'])) {
+						continue;
+					}
 					// is dir
 					if (isset($r['files'])) {
 						if (preg_match('/\/\./', $r['_id'])) {
@@ -784,14 +937,14 @@ function formatData($data)
 				"<span class=\"$state\" 
 					style=\"color:#7f8c8d; cursor:not-allowed;\"
 					title=\"Remote file (not accessible)\">
-					&nbsp;&nbsp;&nbsp;$filename
+					$filename
 				</span>";
 		} else {
 			$data['show_file_url'] =
 				"<a class=\"$state\" 
 					href=\"workspace/workspace.php?op=openPlainFile&fn={$data['_id_URL']}\" 
 					title=\"open file $filename\" target=\"_blank\">
-					&nbsp;&nbsp;&nbsp;$filename
+					$filename
 				</a>";
 		}
 		
@@ -871,8 +1024,13 @@ function formatData($data)
 		$tList = getToolsByDT($data['data_type'], 1);
 		$data['tools_list'] = '<ul class="dropdown-menu pull-right" role="menu">';
 		if (sizeof($tList) > 0) {
+			$toolsFrontDir = __DIR__ . '/../tools/front/';
+			$defaultIconPath = $toolsFrontDir . 'tool_skeleton/assets/ws/icon.php';
+			$defaultIcon = is_file($defaultIconPath) ? file_get_contents($defaultIconPath) : '';
 			foreach ($tList as $t) {
-				$data['tools_list'] .= '<li><a href="tools/front/' . $t[0] . '/input.php?fn[]=' . $data['_id_URL'] . '" class="' . $t[0] . '">' . file_get_contents('..tools/front/' . $t[0] . '/assets/ws/icon.php') . ' ' . $t[1] . '</a></li>';
+				$iconPath = $toolsFrontDir . $t[0] . '/assets/ws/icon.php';
+				$icon = is_file($iconPath) ? file_get_contents($iconPath) : $defaultIcon;
+				$data['tools_list'] .= '<li><a href="tools/front/' . $t[0] . '/input.php?fn[]=' . $data['_id_URL'] . '" class="' . $t[0] . '">' . $icon . ' ' . $t[1] . '</a></li>';
 			}
 			$data['tools_button'] = 'block';
 		} else {
@@ -1065,6 +1223,31 @@ function formatData($data)
 		$data['compressionLink'] = "<li><a  href=\"workspace/workspace.php?op=$func&fn=" . $data['_id_URL'] . "\" class=\"enabled\"><i class=\"$img\"></i> $linkTxt</a></li>";
 		//$data['compressionLink'] = "<li><a  href=\"javascript:;\" class=\"disabled\"><i class=\"$img\"></i> $linkTxt</a></li>";
 	}
+
+	if (isset($data['tree_id'])) {
+		$data['tree_depth'] = substr_count($data['tree_id'], '.');
+	}
+	if (empty($data['tree_id_parent'])) {
+		$data['tree_id_parent'] = '';
+	}
+
+	if (empty($data['tree_sort'])) {
+		$data['tree_sort'] = '999999';
+	}
+	if (empty($data['parent_tree_sort'])) {
+		$data['parent_tree_sort'] = '000000';
+	}
+
+	$name = $data['longfilename'] ?? $data['filename'] ?? '';
+	$mtime = (int)($data['mtime_parent'] ?? 0);
+	$size = (int)($data['size_parent'] ?? 0);
+	$data['name_sort_key'] = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+	$data['format_sort_key'] = htmlspecialchars($data['format'] ?? '', ENT_QUOTES, 'UTF-8');
+	$data['data_type_sort_key'] = htmlspecialchars($data['file_data_type'] ?? '', ENT_QUOTES, 'UTF-8');
+	$data['execution_sort_key'] = htmlspecialchars($data['execution'] ?? $name, ENT_QUOTES, 'UTF-8');
+	$data['date_sort_key'] = str_pad((string)$mtime, 12, '0', STR_PAD_LEFT);
+	$data['size_sort_key'] = str_pad((string)$size, 12, '0', STR_PAD_LEFT);
+
 	return $data;
 }
 

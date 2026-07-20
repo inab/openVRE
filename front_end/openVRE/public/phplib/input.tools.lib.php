@@ -17,7 +17,16 @@ function matchFormat_File($type, $fileList)
 		if (isset($file["fn"]) && preg_grep("/" . $file['format'] . "/i", $type)) {
 			$p = explode("/", $file['path']);
 			$proj = getProject($p[1]);
-			$a[0] = $proj['name'] . " / $p[2] / $p[3]";
+			if (preg_match('/\/(__PROJ[^\/]*)\/(.*)$/', $file['path'], $match)) {
+				$relParts = explode('/', $match[2]);
+				array_pop($relParts);
+				$a[0] = $proj['name'];
+				if (count($relParts)) {
+					$a[0] .= ' / ' . implode(' / ', $relParts);
+				}
+			} else {
+				$a[0] = $proj['name'] . " / $p[2] / $p[3]";
+			}
 			$a[1] = $file['fn'];
 			$output[] = $a;
 		}

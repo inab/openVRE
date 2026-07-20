@@ -8,7 +8,7 @@
       ##lastuploaded##
    </td>
     <!-- 1: File -->
-   <td>
+   <td data-order="##name_sort_key##">
       <div>
       ##show_file_url##
       </div>
@@ -17,16 +17,16 @@
       </div>
    </td>
     <!-- 2: File type -->
-   <td>##format##</td>
+   <td data-order="##format_sort_key##">##format##</td>
     <!-- 3: Data type -->
-   <td title="##file_data_type##"><span class="truncate">##file_data_type##</span></td>
+   <td title="##file_data_type##" data-order="##data_type_sort_key##"><span class="truncate">##file_data_type##</span></td>
    <!-- 4: Execution -->
-   <td title="##longexecutionname##"><span class="truncate">##execution##</span></td>
+   <td title="##longexecutionname##" data-order="##execution_sort_key##"><span class="truncate">##execution##</span></td>
    <!-- 5: Location (NEW) -->
    <!-- 6: Date -->
-   <td title="##mtime##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
+   <td title="##mtime##" data-order="##date_sort_key##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
     <!-- 7: Size -->
-   <td>##size##</td>
+   <td data-order="##size_sort_key##">##size##</td>
    <!-- 8: Actions -->
    <td>
       <div class="btn-group" style="float:left; position:absolute; margin-top:-10px!important;">
@@ -58,9 +58,9 @@
       </div>
    </td>
    <!-- 9: OrderNAME (hidden) -->
-   <td>1</td>
+   <td>##tree_sort##</td>
    <!-- 10: OrderDATE (hidden) -->
-   <td>##mtime_parent##</td>
+   <td>##parent_tree_sort##</td>
    <!-- 11: OrderSIZE (hidden) -->
    <td>##size_parent##</td>
 </tr>

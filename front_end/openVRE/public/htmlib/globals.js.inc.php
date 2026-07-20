@@ -77,10 +77,8 @@ echo '};';
 
 echo '
 
-var allFiles = [];';
-
-echo '
-
+var allFiles = [];
+var allFolders = {};
 var table = "";';
 
 /*******************************************/

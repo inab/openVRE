@@ -422,19 +422,22 @@ if (isset($_REQUEST['op'])) {
 
 		case 'moveFiles':
 		case 'moveFile':
-			if (is_null($_REQUEST['target'])) {
+			if (empty($_REQUEST['target'])) {
 				getWorkspaceLogger()->error("Error while moving file. Target path not given.");
-				exit("Error while moving file. Target path not given.");
+				print('{"error":true, "msg": "Error while moving file. Target path not given."}');
+				die();
 			}
 
 			try {
 				moveFiles($_REQUEST['fn'], $_REQUEST['target']);
 				getWorkspaceLogger()->info("File/s successfully moved!!");
-			} catch (UnexpectedValueException $e) {
+				print('{"error":false, "msg": "File/s successfully moved!"}');
+				die();
+			} catch (Exception $e) {
 				getWorkspaceLogger()->error($e->getMessage());
-				exit($e->getMessage());
+				print(json_encode(array('error' => true, 'msg' => $e->getMessage())));
+				die();
 			}
-
 			break;
 		case 'moveDir':
 			if (is_null($_REQUEST['target'])) {

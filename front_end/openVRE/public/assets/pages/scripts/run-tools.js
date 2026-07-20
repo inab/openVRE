@@ -62,11 +62,9 @@ removeFromToolsList = function(id, id_or) {
 			$(this).prop('checked', false);
 		}
 	});
-	var folderId = 0; 
 	for(i in allFiles){
 		if((allFiles[i].rowId) == id_or) {
 			allFiles[i].checked = false;
-			folderId = allFiles[i].folderId; 
 			break;
 		}
 	}
@@ -76,20 +74,14 @@ removeFromToolsList = function(id, id_or) {
 	  	$('#btn-rmv-all').hide();
 	}
 
-	// update folder state if it was the last file
-	var fcheck = true;
-	$('input[type=checkbox]', table.rows().nodes()).each(function() { 
-		if ($(this).parent().parent().parent().attr('data-tt-parent-id') == folderId) {
-			//console.log($(this).is(":checked"));
-			if($(this).is(":checked")) {
-				fcheck = true;
-				return false;
-			}else{ 
-				fcheck = false;
-			}
+	// uncheck ancestor folder checkboxes when no descendant file remains checked
+	var treeId = id_or;
+	while (treeId && treeId.indexOf('.') !== -1) {
+		treeId = treeId.substring(0, treeId.lastIndexOf('.'));
+		if (!hasCheckedDescendantFiles(treeId)) {
+			$('tr[data-tt-id="' + treeId + '"] input.foldercheck:not(:disabled)').prop('checked', false);
 		}
-	});
-	if(!fcheck) $('tr[data-tt-id=' + folderId + '] input[type=checkbox].foldercheck').prop('checked', false);
+	}
 
 }
 
