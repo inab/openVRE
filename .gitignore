@@ -19,6 +19,3 @@ volumes/
 # Python
 __pycache__/
 *.pyc
-
-# Node modules
-node_modules/

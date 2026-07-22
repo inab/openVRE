@@ -23,7 +23,7 @@ const http = require('http');
 
 const ROOT = path.resolve(__dirname, '..');
 const NM = path.join(ROOT, 'node_modules');
-const PLUGINS = path.join(ROOT, 'public/assets/global/plugins');
+const PLUGINS = path.join(ROOT, 'plugins-to-copy');
 const PLUGIN_OVERLAYS = path.join(ROOT, 'plugin-overlays');
 
 const fromNpm = (...parts) => path.join(NM, ...parts);
