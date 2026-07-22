@@ -10,7 +10,6 @@
  *   - npm node_modules (COPY_FILES, COPY_DIRS, and custom tasks)
  *   - CDN / GitHub (REMOTE_DOWNLOADS)
  *   - plugin-overlays/ (vendored or customized files)
- *   - JSmol SourceForge archive (copyJsmol)
  */
 
 const fs = require('fs');
@@ -101,9 +100,6 @@ const COPY_FILES = [
   ['simple-line-icons-webfont/Readme.txt', 'simple-line-icons/Readme.txt'],
   ['simple-line-icons-webfont/icons-lte-ie7.js', 'simple-line-icons/icons-lte-ie7.js'],
   ['simple-line-icons-webfont/fonts/Simple-Line-Icons.dev.svg', 'simple-line-icons/fonts/Simple-Line-Icons.dev.svg'],
-
-  // ngl — ngl.js from npm@0.9.0; ngl.last.js in plugin-overlays
-  ['ngl/dist/ngl.js', 'ngl.js'],
 
   // datatables — full tree in plugin-overlays/datatables/ (except Sorting icons.psd)
 ];
@@ -623,54 +619,9 @@ function copyPluginOverlays() {
   walkOverlayDir('');
 }
 
-// jsmol — j2s + jsmol.php + JSmol.min.js from Jmol 14.0.5 (SourceForge);
-// j2s/up/ upload demo (index.html, upload.php) + vendored JSmol.min.js in plugin-overlays/jsmol/
-const JSMOL_SPEC = {
-  jmolVersion: '14.0.5',
-  jsmolVersion: '13.3.9',
-  archiveUrl: 'https://downloads.sourceforge.net/project/jmol/Jmol/Version%2014.0/Version%2014.0.5/Jmol-14.0.5-binary.zip',
-  innerZip: 'jmol-14.0.5/jsmol.zip',
-};
-
 function extractZip(zipPath, destDir) {
   ensureDir(destDir);
   execSync(`unzip -q -o ${JSON.stringify(zipPath)} -d ${JSON.stringify(destDir)}`, { stdio: 'pipe' });
-}
-
-async function copyJsmol() {
-  const { jmolVersion, archiveUrl, innerZip } = JSMOL_SPEC;
-  const dest = toPlugins('jsmol');
-
-  log.step(`Installing jsmol (Jmol ${jmolVersion}) from SourceForge...`);
-  cleanPluginsDir('jsmol');
-  ensureDir(dest);
-
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openvre-jsmol-'));
-  try {
-    const archivePath = path.join(tempDir, 'jmol-binary.zip');
-    await downloadFile(archiveUrl, archivePath);
-
-    const outerDir = path.join(tempDir, 'outer');
-    extractZip(archivePath, outerDir);
-
-    const innerZipPath = path.join(outerDir, innerZip);
-    if (!fs.existsSync(innerZipPath)) {
-      throw new Error(`missing inner archive: ${innerZip}`);
-    }
-
-    const innerDir = path.join(tempDir, 'inner');
-    extractZip(innerZipPath, innerDir);
-
-    const jsmolRoot = path.join(innerDir, 'jsmol');
-    copyDir(path.join(jsmolRoot, 'j2s'), path.join(dest, 'j2s'));
-    copyFile(path.join(jsmolRoot, 'php', 'jsmol.php'), path.join(dest, 'jsmol.php'));
-    copyFile(path.join(jsmolRoot, 'JSmol.min.js'), path.join(dest, 'JSmol.min.js'));
-    log.copied('jsmol/j2s/');
-    log.copied('jsmol/jsmol.php');
-    log.copied('jsmol/JSmol.min.js');
-  } finally {
-    fs.rmSync(tempDir, { recursive: true, force: true });
-  }
 }
 
 function copyNpmFiles() {
@@ -694,7 +645,6 @@ const STEPS = [
   { name: 'npm files', run: copyNpmFiles },
   { name: 'npm directories', run: copyNpmDirs },
   { name: 'remote assets', run: () => downloadRemoteAssets(REMOTE_DOWNLOADS) },
-  { name: 'jsmol', run: copyJsmol },
   { name: 'simple-line-icons', run: copySimpleLineIcons },
   { name: 'flot bundle', run: buildFlotAllMin },
   { name: 'codemirror', run: copyCodemirror },
