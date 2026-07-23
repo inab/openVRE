@@ -7,7 +7,7 @@
 	##lastuploaded##
 </td>
 
-<td>
+<td data-order="##name_sort_key##">
 	<a class="##state## truncate"  href="workspace/workspace.php?op=##openFunction##&fn=##_id_URL##" target="_blank" title="##filename##">##toolname## session</a>
 	<!--<span class="expand_info" onclick="expandInfo(this)"></span>-->
 	<div class="extra_info">
@@ -24,8 +24,8 @@
 </td>
 <td><a href="javascript:goInteractiveTool('##toolContainerName##');"><i class="fa fa-spinner fa-pulse" style="color:#004d66;"></i> <span style="font-weight:bold;" class="job-running">##pending##</span>&nbsp; <i class="fa fa-share-square-o"></i></a></td>
 <td></td>
-<td title="##execution##"><span class="truncate">##execution##</span></td>
-<td title="##mtime##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
+<td title="##execution##" data-order="##execution_sort_key##"><span class="truncate">##execution##</span></td>
+<td title="##mtime##" data-order="##date_sort_key##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
 <td>0.00 B</td>
 <td>
 	<div class="btn-group" style="float:left; position:absolute; margin-top:-10px!important;">
@@ -40,7 +40,7 @@
 		</ul>
 	</div>
 </td>
-<td>1</td>
-<td>##mtime_parent##</td>
+<td>##tree_sort##</td>
+<td>##parent_tree_sort##</td>
 <td>##size_parent##</td>
 </tr> 
