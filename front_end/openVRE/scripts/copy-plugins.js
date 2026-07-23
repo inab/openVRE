@@ -113,7 +113,7 @@ const COPY_DIRS = [
     'bootstrap.css.map',
     'bootstrap.min.css.map',
   ]],
-  ['bootstrap/dist/fonts', 'bootstrap/fonts/bootstrap'],
+  ['bootstrap/dist/fonts', 'bootstrap/fonts'],
   ['flot', 'flot', [
     'examples',
     '.travis.yml',
