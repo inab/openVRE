@@ -4,7 +4,7 @@ FROM webdevops/php-apache:8.3
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
-RUN apt install -y nodejs
+RUN apt install -y nodejs npm
 RUN apt-get install -y autoconf pkg-config libssl-dev libapache2-mod-auth-openidc lua5.4 lua-socket
 RUN a2enmod proxy proxy_http ssl auth_openidc lua
 RUN docker-php-ext-install bcmath
@@ -52,6 +52,7 @@ USER application
 
 WORKDIR /var/www/html/openVRE/public
 RUN pwd
-EXPOSE 80 443
+EXPOSE 80
+# EXPOSE 443
 
 CMD setup.sh && /opt/docker/bin/entrypoint.sh supervisord
