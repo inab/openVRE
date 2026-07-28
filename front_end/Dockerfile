@@ -5,7 +5,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
 RUN a2enmod proxy proxy_http
-RUN apt install -y nodejs
+RUN apt install -y nodejs npm
 RUN apt-get install -y autoconf pkg-config libssl-dev
 RUN docker-php-ext-install bcmath
 RUN echo "extension=mongodb.so" >> /usr/local/etc/php/conf.d/mongodb.ini
@@ -39,6 +39,7 @@ WORKDIR /var/www/html
 ADD openVRE /var/www/html/openVRE
 RUN cd openVRE
 WORKDIR /var/www/html/openVRE
+RUN npm ci
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN composer self-update
 RUN composer update --ignore-platform-req=ext-mongodb --ignore-platform-req=ext-mongodb
