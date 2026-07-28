@@ -155,44 +155,6 @@ function createUserFromToken($login, $token, $userInfo = array(), $anonID = fals
 }
 
 
-// create anonymous user - without being authentified by the Auth Server
-function createUserAnonymous($sampleData)
-{
-    $userAttributes = array(
-        "Email"        => substr(md5(rand()), 0, 25) . "",
-        "Type"         => UserType::Guest->value,
-        "Name"         => "Guest",
-        "Surname"      => "",
-        "AuthProvider" => "VRE"
-    );
-
-    $objUser = new User($userAttributes['Email'], "", $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", "");
-    if (!$objUser) {
-        return false;
-    }
-
-    $userArray = (array) $objUser;
-    $_SESSION['userId'] = $userArray['id'];
-    $_SESSION['User']   = $userArray;
-    $_SESSION['anonID'] = $userArray['Email'];
-
-    $dataDirId = prepUserWorkSpace($userArray['id'], $userArray['activeProject'], $sampleData);
-    $userArray['dataDir'] = $dataDirId;
-    $userArray['terms']  =  "1";
-    $_SESSION['User']['dataDir'] = $dataDirId;
-    $_SESSION['User']['terms'] = "1";
-
-    // register user in mongo. NOT in ldap nor in the oauth2 provider
-    try {
-        saveNewUser($userArray);
-    } catch (Exception $e) {
-        getUsersLogger()->error("Error saving new user into Mongo database");
-        getUsersLogger()->error($e->getMessage());
-        exit('Login error: cannot create anonymous user');
-    }
-}
-
-
 function getUserById($id, $options = array())
 {
     return $GLOBALS['usersCol']->findOne(["_id" => $id], $options);

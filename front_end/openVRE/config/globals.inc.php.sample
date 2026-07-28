@@ -126,7 +126,6 @@ $GLOBALS['ROLES'] = array(
 		"0"=>"Admin",
 		"1"=>"Tool Dev.",
 		"2"=>"Common",
-		"3" =>"Anonymous"
 );
 $GLOBALS['NO_GUEST'] = array(0,1,2,100,101); // 100, 101?
 $GLOBALS['PREMIUM'] = array(0,1);
