@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__ . "/../../vendor/autoload.php";
 
 $connectionUri = "mongodb://" . getenv('MONGO_CREDENTIALS') . "@" . getenv('MONGO_SERVER') . "/?authSource=" . getenv('MONGO_MAIN_DB');
 $VREConn =  new MongoDB\Client(

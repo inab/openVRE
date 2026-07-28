@@ -19,11 +19,9 @@ function redirectOutside()
 	} else {
 		header("Location: /login.php");
 	}
-	
-	if (!checkTermsOfUse()) {
-		if (pathinfo($_SERVER['PHP_SELF'])['filename'] != 'usrProfile') {
-			redirect($GLOBALS['BASEURL'] . "user/usrProfile.php");
-		}
+
+	if (!checkTermsOfUse() && (pathinfo($_SERVER['PHP_SELF'])['filename'] != 'usrProfile')) {
+		redirect($GLOBALS['BASEURL'] . "user/usrProfile.php");
 	}
 }
 

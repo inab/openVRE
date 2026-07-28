@@ -1057,89 +1057,51 @@ class Tooljob
 			$this->logger->error("No free ports available to run the interactive tool.");
 			throw new UnexpectedValueException("No free ports available to run the interactive tool.");
 		}
-		$this->containerName = $tool['infrastructure']['container_image'];
 
-		$checkEnvironment = <<<EOF
-			FREE_PORT=$hostPort
+		$networkName = $GLOBALS['networkName'];
 
-			current_user=\$(whoami)
-			current_groups=\$(groups)
-			checking=\$(getent group | grep docker)
-			docker_socket_permissions=\$(ls -l /var/run/docker.sock)
-
-			echo "Free port: \$FREE_PORT"
-			echo "Current user: \$current_user"
-			echo "Groups: \$current_groups"
-			echo "Checking: \$checking"
-			echo "Docker socket permissions: \$docker_socket_permissions"
-		EOF;
-
-		$configureDockerGroup = <<<EOF
-			if echo "\$current_groups" | grep -q "docker"; then
-				echo "User \$current_user is already in the 'docker' group."
-			else
-				echo "User \$current_user is not in the 'docker' group. Attempting to add..."
-
-				sudo usermod -aG docker "\$current_user"
-
-				if [ \$? -eq 0 ]; then
-					echo "User \$current_user has been added to the 'docker' group."
-					echo "Please log out and log back in for the group changes to take effect."
-				else
-					echo "Failed to add user \$current_user to the 'docker' group."
-				fi
-			fi
-		EOF;
-
-		$runContainer = <<<EOF
+		$cmd = <<<EOF
 			CONTAINER_ID=\$(docker run \
 			--rm \
 			--privileged \
 			-v /var/run/docker.sock:/var/run/docker.sock -d \
-			--net={$GLOBALS['network_name']} --name $this->containerName \
+			--name $this->containerName \
+			--net $networkName \
 			$cmd_envs \
-			-v {$this->pub_dir_volumes}:{$GLOBALS['shared']}public_tmp/ \
-			-v {$this->root_dir_volumes}:{$GLOBALS['shared']}userdata_tmp/{$_SESSION['User']['id']} \
 			--hostname $this->containerName \
-			-p \$FREE_PORT:{$tool['infrastructure']['container_port']} {$tool['infrastructure']['container_image']});
+			-p $hostPort:{$tool['infrastructure']['container_port']} {$tool['infrastructure']['container_image']} {$tool['infrastructure']['executable']});
 		EOF;
 
-		$checkContainerStatus = <<<EOF
-	if ! docker top \$CONTAINER_ID &>/dev/null; then
-		printf '%s | %s\n' "$(date)" "Container crashed unexpectedly...";
-		exit 1;
-	fi
-
-	if ! docker inspect --format='{{.State.Running}}' \$CONTAINER_ID | grep -q true; then
-		printf '%s | %s\n' "$(date)" "Container not running anymore";
-		exit 1;
-	fi
-EOF;
-
-		$reportContainerInfo = <<<EOF
-	CONTAINER_URL="http://$this->containerName:$container_port"
-	printf '%s | %s\n' "\$(date)" "ContainerID: \$CONTAINER_ID";
-	printf '%s | %s\n' "\$(date)" "ExposedPort: \$FREE_PORT";
-	printf '%s | %s\n' "\$(date)" "ContainerURL: \$CONTAINER_URL";
-EOF;
 
 		$monitorContainer = <<<EOF
-		docker logs -f \$CONTAINER_ID &> $this->log_file_virtual &
-		printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
-		if timeout 420 wget --retry-connrefused --tries=10 --waitretry=100 -O /dev/null \$CONTAINER_URL; then
-			printf '%s | %s\n' "\$(date)" "Service UP";
-		else
-			printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
-		fi
+			docker logs -f \$CONTAINER_ID &> $this->log_file_virtual &
+			CONTAINER_URL="http://$this->containerName:$container_port";
+			EXIT_CODE_FILE="/tmp/exit_code_$this->containerName"
+			printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
+			if timeout 420 wget --retry-connrefused --tries=0 --wait=7 -O /dev/null \$CONTAINER_URL; then
+				printf '%s | %s\n' "\$(date)" "Service UP";
+			else
+				printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
+			fi
 
-		printf '%s | %s\n' "\$(date)" "Wait while container is running...";
-		exit_code="\$(docker wait \$CONTAINER_ID)";
-		printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
+			cleanup() {
+				printf '%s | %s\n' "\$(date)" "Stop container...";
+				docker stop $this->containerName 2>/dev/null
+				wait $!  2>/dev/null
+				exit_code=$(cat \$EXIT_CODE_FILE)
+				rm -f \$EXIT_CODE_FILE
+				printf '%s | Container has stopped (exit code = %s) \n' "\$(date)" "\$exit_code";
+				exit 0
+			}
 
-		echo '# End time:' \$(date) >> $this->log_file_virtual;
-EOF;
+			trap cleanup SIGTERM SIGUSR1 SIGUSR2
 
-		return $checkEnvironment . "\n" . $configureDockerGroup . "\n" . $runContainer . "\n" . $checkContainerStatus . "\n" . $reportContainerInfo . "\n" . $monitorContainer;
+			printf '%s | %s\n' "\$(date)" "Wait while container is running...";
+			docker wait $this->containerName > \$EXIT_CODE_FILE &
+			wait $!
+		EOF;
+
+		return $cmd . "\n" . $monitorContainer;
 	}
 
 
@@ -1185,15 +1147,16 @@ EOF;
 			throw new UnexpectedValueException("Tool '$this->toolId' not properly registered.");
 		}
 
-		$timestamp = date('Y-m-d_H-i-s');
-		$this->containerName = $tool['infrastructure']['container_image'] . "_" . $_SESSION['User']['id'] . "_" . $timestamp;
+		$this->containerName = $tool['infrastructure']['container_image'] . "_" . $_SESSION['User']['activeProject'];
 		$cmd_envs = "";
+		$envReplacements = ['$this->containerName' => $this->containerName];
 		foreach ($tool['infrastructure']['container_env'] as $env_key => $env_value) {
+			$env_value = str_replace(array_keys($envReplacements), array_values($envReplacements), $env_value);
 			$cmd_envs .= "-e $env_key=$env_value ";
 		}
 
 		foreach ($tool['infrastructure']['volumes'] as $hostDir => $containerDir) {
-			$userHomeDir = $GLOBALS['shared'] . "userdata_tmp/{$_SESSION['User']['id']}" . "/" . $this->project;
+			$userHomeDir = $this->root_dir_volumes . "/" . $this->project;
 			$cmd_envs .= "-v $userHomeDir" . "$hostDir:$containerDir ";
 		}
 
