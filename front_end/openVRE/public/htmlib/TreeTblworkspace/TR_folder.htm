@@ -1,4 +1,4 @@
-<tr data-tt-id="##tree_id##">
+<tr data-tt-id="##tree_id##" %%tree_depth% data-tt-parent-id="##tree_id_parent##" %%>
 	<td class="highlighted_folder">
 
 		<label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
@@ -6,8 +6,13 @@
 			<span></span>
 		</label>
 	</td>
-	<td class="highlighted_folder">
-		<span class="truncate" title="##longfilename##">##longfilename## </span>
+	<td class="highlighted_folder" data-order="##name_sort_key##">
+		<div class="folder-name-line">
+			<span class="truncate" title="##longfilename##">##longfilename## </span>
+			<a href="javascript:viewFileMeta('##_id##', '##longfilename##', 0);">
+				<i class="fa fa-info-circle"></i>
+			</a>
+		</div>
 		<!--  span style="font-weight:bold;" search="yes"   type="execution" -->
 		<!--<span class="expand_info" onclick="expandInfo(this)"></span>-->
 		<div class="extra_info">
@@ -23,14 +28,12 @@
 
 			</table>
 		</div>
-		<a href="javascript:viewFileMeta('##_id##', '##longfilename##', 0);" style="margin-left:5px;"><i
-				class="fa fa-info-circle"></i></a>
 	</td>
 	<td>&nbsp;</td>
 	<td>&nbsp;</td>
-	<td class="highlighted_folder" title="##longfilename##"><span class="truncate">##longfilename##</span></td>
-	<td class="highlighted_folder" title="##mtime##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
-	<td class="highlighted_folder">##size##</td>
+	<td class="highlighted_folder" title="##longfilename##" data-order="##execution_sort_key##"><span class="truncate">##longfilename##</span></td>
+	<td class="highlighted_folder" title="##mtime##" data-order="##date_sort_key##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
+	<td class="highlighted_folder" data-order="##size_sort_key##">##size##</td>
 	<td class="highlighted_folder">
 		<div class="btn-group" style="float:left; position:absolute; margin-top:-10px!important;">
 			<button class="btn btn-xs blue-madison dropdown-toggle" type="button" data-toggle="dropdown"
@@ -49,7 +52,7 @@
 			</ul>
 		</div>
 	</td>
-	<td>-1000</td>
-	<td>##mtime_parent##</td>
+	<td>##tree_sort##</td>
+	<td>##parent_tree_sort##</td>
 	<td>##size_parent##</td>
 </tr>

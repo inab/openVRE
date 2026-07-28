@@ -35,7 +35,7 @@ $projects = getProjects_byOwner();
 $allFiles = getFilesToDisplay(array('_id' => $_SESSION['User']['dataDir']));
 
 $files = (isset($dtlist['list']) ? filterFiles_by_dataType($allFiles, $dtlist["list"]) : $allFiles);
-$files = addTreeTableNodesToFiles($files);
+$files = sortFilesForTable(addTreeTableNodesToFiles($files));
 
 ?>
 
@@ -809,7 +809,7 @@ If you want to <strong>re-use your session</strong>, make sure you save the <str
 							</div>
 							<div class="col-md-3" id="col-2-move">
 								<div class="form-group">
-									<label class="control-label">Select execution</label>
+									<label class="control-label">Select folder</label>
 									<select name="" id="execution-name" class="form-control"></select>
 								</div>
 							</div>
