@@ -357,7 +357,8 @@ switch (pathinfo($_SERVER['PHP_SELF'])['filename']) {
 	case 'visualizers':
 	case 'sampleDataList':
 	case 'form':
-	case 'linkedAccount': ?>
+	case 'linkedAccount':
+	case 'logout': ?>
 		<script src="assets/layouts/layout/scripts/layout.js" type="text/javascript"></script>
 		<script src="assets/layouts/layout/scripts/main.js?v=<?php echo rand(); ?>" type="text/javascript"></script>
 		<script src="assets/layouts/layout/scripts/cookie-toolbar.js" type="text/javascript"></script>
