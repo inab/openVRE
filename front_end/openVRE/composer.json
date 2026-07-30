@@ -4,7 +4,7 @@
     "auth0/auth0-php": "^8.0",
     "chadicus/slim-oauth2": "^3.1",
     "erusev/parsedown": "^1.7",
-    "firebase/php-jwt": "^6.11",
+    "firebase/php-jwt": "^7.0",
     "guzzlehttp/guzzle": "*",
     "justinrainbow/json-schema": "^5.2",
     "league/oauth2-google": "^2.0",

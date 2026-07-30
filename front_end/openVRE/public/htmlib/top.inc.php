@@ -7,7 +7,7 @@ $avatarColors = array('#0f7e8c', '#a3d86d', '#9113ff', '#edc642', '#2ac5a3', '#f
 $bgColorAvatar = array_rand($avatarColors, 1);
 
 $filename = glob('../assets/avatars/' . $_SESSION['User']['id'] . '.*');
-$avatarImg = (isset($filename[0])?$filename[0]:false);
+$avatarImg = (isset($filename[0]) ? $filename[0] : false);
 if (file_exists($avatarImg)) {
     $avatarExists = 1;
     $dispClassAv1 = '';
@@ -27,7 +27,7 @@ if (file_exists($avatarImg)) {
         <!-- BEGIN LOGO -->
         <div class="page-logo">
             <a href="workspace/">
-                <img src="assets/layouts/layout/img/VRE_blue.svg" alt="logo" class="logo-default" style="width:45%"/>
+                <img src="assets/layouts/layout/img/VRE_blue.svg" alt="logo" class="logo-default" style="width:45%" />
             </a>
             <div class="menu-toggler sidebar-toggler">
                 <span></span>
@@ -36,7 +36,7 @@ if (file_exists($avatarImg)) {
         <!-- END LOGO -->
         <!-- BEGIN RESPONSIVE MENU TOGGLER -->
         <a href="javascript:;" class="menu-toggler responsive-toggler" data-toggle="collapse" data-target=".navbar-collapse">
-	    <span></span>
+            <span></span>
         </a>
         <!-- END RESPONSIVE MENU TOGGLER -->
         <!-- BEGIN TOP NAVIGATION MENU -->
@@ -69,7 +69,7 @@ if (file_exists($avatarImg)) {
                             <?php } ?>
                             <li class="divider"> </li>
                             <li>
-                                <a id="logout-button" href="javascript:;">
+                                <a id="logout-button" href="<?php echo $GLOBALS['URL'] . 'redirect_uri?logout=' . $GLOBALS['URL_logout']; ?>">
                                     <i class="fa fa-power-off" style="font-size:16px;"></i> Log Out </a>
                             </li>
                         </ul>

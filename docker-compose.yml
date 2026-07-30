@@ -81,8 +81,10 @@ services:
       MONGO_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
       MONGO_MAIN_DB: ${MONGO_MAIN_DB}
       MONGO_SERVER: ${MONGO_SERVER}
-      SERVER_DOMAIN: ${FQDN_HOST}
+      NETWORK_NAME: ${NETWORK_NAME}
+      SERVER_DOMAIN: ${SERVER_DOMAIN}
       SERVER_PORT: ${FRONTEND_PORT}
+      SERVER_DOMAIN_PROTOCOL: ${SERVER_DOMAIN_PROTOCOL}
       VAULT_ADDR: ${VAULT_ADDR}
       VAULT_API_VERSION: ${VAULT_API_VERSION}
       VAULT_ROLENAME: ${VAULT_ROLENAME}
@@ -92,6 +94,7 @@ services:
       - ./front_end/openVRE/public/:/var/www/html/openVRE/public
       - ./front_end/openVRE/config:/var/www/html/openVRE/config
       - ./front_end/openVRE/data:/var/www/html/openVRE/data
+      - ./front_end/openVRE/apache/check_tool_access.lua:/opt/docker/etc/httpd/check_tool_access.lua
       - ./front_end/openVRE/apache/server.conf:/opt/docker/etc/httpd/conf.d/10-server.conf
       - ./tools/front:/var/www/html/openVRE/public/tools/front
       - ./shared_data:/shared_data

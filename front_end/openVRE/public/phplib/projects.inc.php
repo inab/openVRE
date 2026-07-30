@@ -779,7 +779,7 @@ function formatData($data)
 					$remoteMtime = $remoteMtime->toDateTime()->format('U');
 				}
 				$remoteMtimeFormatted = datefmt_format(getDateTimeFormat(), $remoteMtime);
-	
+
 				// Append to mtime display
 				$data['mtime'] .= " <br><span style='font-size:10px; color:#16a085;'>[Remote: {$remoteMtimeFormatted}]</span>";
 			}
@@ -856,7 +856,7 @@ function formatData($data)
 			if (isset($entry['size']) && is_numeric($entry['size'])) {
 				$factor = floor((strlen($entry['size']) - 1) / 3);
 				$remoteSizeFormatted = sprintf("%.2f %s", $entry['size'] / pow(1024, $factor), @$sz[$factor]);
-	
+
 				// Append on a new line
 				$data['size'] .= "<br><span style='font-size:10px; color:#16a085;'>[Remote: {$remoteSizeFormatted}]</span>";
 			}
@@ -917,12 +917,12 @@ function formatData($data)
 
 
 	//file_url
-		
+
 	if (isset($data['file_url']) || isset($data['path'])) {
 
 		$has_remote = false;
 
-		$filename = $data['longfilename'] 
+		$filename = $data['longfilename']
 			?? basename($data['path'] ?? $data['file_url'] ?? 'unknown');
 
 		$state = $data['state'] ?? '';
@@ -947,7 +947,6 @@ function formatData($data)
 					$filename
 				</a>";
 		}
-		
 	}
 	//remote_path && location
 	$locationMap = [
@@ -958,7 +957,7 @@ function formatData($data)
 	if (isset($data['remote_paths'])) {
 		$html = '';
 		$seen = [];
-		foreach ($data['remote_paths'] as $entry) {  
+		foreach ($data['remote_paths'] as $entry) {
 			$remotePath = $entry['remote_path'] ?? '';
 			$location   = $entry['location'] ?? 'unknown';
 			$key = $location . '|' . $remotePath;
@@ -972,7 +971,7 @@ function formatData($data)
 			$short  = $locationMap[$locKey] ?? strtoupper(substr($locKey, 0, 3)); // map the location to $locationMaps or do the 3 first letter of the system in MongoDB
 			$remote_file = basename($entry['remote_path']);
 			$html .=
-            "<span style='margin-left:6px;'>
+				"<span style='margin-left:6px;'>
                 <i class='fa fa-exchange' style='color:#16a085;' 
                     title='Transferred to: {$entry['location']}'>
                 </i>
@@ -981,11 +980,10 @@ function formatData($data)
                 </span>
             </span>";
 		}
-		
-		$data['show_remote_path'] = $html;
 
+		$data['show_remote_path'] = $html;
 	} else {
-    	$data['show_remote_path'] = ''; // nothing if no remote copy
+		$data['show_remote_path'] = ''; // nothing if no remote copy
 	}
 
 
@@ -1396,54 +1394,53 @@ function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 			$outs_data = array($outs_data[0]);
 		}
 
-				// start 	
-				foreach ($outs_data as $out_data) {
+		// start 	
+		foreach ($outs_data as $out_data) {
+			if ($debug) {
+				print "<br/> START OUTPUT ITEM REGISTRATION FOR THE FOLLOWING OUT_DATA:<br/>\n";
+				var_dump($out_data);
+				print "<\br>_____________\n";
+				var_dump($out_data['path']);
+				print "<\br>_____________\n";
+				var_dump($out_data['meta_data']);
+				print "<\br>_____________\n";
+			}
+
+			if (!isset($out_data['path']) || empty($out_data['path'])) {
+				// Recover from remote_paths
+				if (isset($out_data['meta_data']['remote_paths'][0]['remote_path'])) {
+					$remote_path = $out_data['meta_data']['remote_paths'][0]['remote_path'];
 					if ($debug) {
-						print "<br/> START OUTPUT ITEM REGISTRATION FOR THE FOLLOWING OUT_DATA:<br/>\n";
-						var_dump($out_data);
-						print "<\br>_____________\n";
-						var_dump($out_data['path']);
-						print "<\br>_____________\n";
-						var_dump($out_data['meta_data']);
-						print "<\br>_____________\n";
+						print "<br/>Recovering path from remote_paths: $remote_path<br/>";
+						$_SESSION['errorData']['Error'][] = "Recovering path from remote_paths: $remote_path";
 					}
-
-					if (!isset($out_data['path']) || empty($out_data['path'])) {
-						// Recover from remote_paths
-						if (isset($out_data['meta_data']['remote_paths'][0]['remote_path'])) {
-							$remote_path = $out_data['meta_data']['remote_paths'][0]['remote_path'];
-							if ($debug) {
-								print "<br/>Recovering path from remote_paths: $remote_path<br/>";
-								$_SESSION['errorData']['Error'][] = "Recovering path from remote_paths: $remote_path";
-							}
-							// this is right (?)
-							$out_data['path'] = $remote_path;
-
-						} else {
-							if ($is_required) {
-								$_SESSION['errorData']['Error'][] = "Job output file ($out_name) not created";
-								$msg = "Job output file ($out_name) not created";
-								$msg .= ". No 'path' and no usable 'remote_paths' found.";
-								$msg .= ". Job metadata: " . print_r($out_data, true);
-								$_SESSION['errorData']['Error'][] = $msg;
-								log_addOutregister($pid, $msg);
-								$job_in_err = 1;
-							}
-							continue;
-							}
+					// this is right (?)
+					$out_data['path'] = $remote_path;
+				} else {
+					if ($is_required) {
+						$_SESSION['errorData']['Error'][] = "Job output file ($out_name) not created";
+						$msg = "Job output file ($out_name) not created";
+						$msg .= ". No 'path' and no usable 'remote_paths' found.";
+						$msg .= ". Job metadata: " . print_r($out_data, true);
+						$_SESSION['errorData']['Error'][] = $msg;
+						log_addOutregister($pid, $msg);
+						$job_in_err = 1;
 					}
+					continue;
+				}
+			}
 
 
-					// resolve virtual path to local absolute path
-					$rfn = resolvePath_toLocalAbsolutePath($out_data['path'], $job);
+			// resolve virtual path to local absolute path
+			$rfn = resolvePath_toLocalAbsolutePath($out_data['path'], $job);
 
-					$outPath  = fromAbsPath_toPath($rfn);
-					$fileId   = getGSFileId_fromPath($outPath);
-					if ($debug)
-						print "PID = [$pid] path=" . $out_data['path'] . " --> fn=$outPath rfn=$rfn . Has Id? $fileId <br/>\n";
+			$outPath  = fromAbsPath_toPath($rfn);
+			$fileId   = getGSFileId_fromPath($outPath);
+			if ($debug)
+				print "PID = [$pid] path=" . $out_data['path'] . " --> fn=$outPath rfn=$rfn . Has Id? $fileId <br/>\n";
 
 
-					//convert stage out data into MuGFile
+			//convert stage out data into MuGFile
 
 			//associated_files and associated_id/_master: convert to fileIds 
 			$metaReferences = array();
@@ -1501,7 +1498,7 @@ function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 					} else {
 						$fileInfo = saveResults($outPath, $metadata, $job);
 					}
-					
+
 					getProjectLogger()->debug("Job output outfile ($out_name) generated (" . basename($rfn) . ").");
 				} catch (Exception $e) {
 					$_SESSION['errorData']['Error'][] = "Job output file (" . basename($rfn) . ") generated, but with wrong metadata.";
@@ -1635,10 +1632,9 @@ function saveResults($filePath, $metaData = array(), $job = array(), $rfn = 0, $
 		if ($is_remote) {
 			$rfn = $filePath;
 		} else { {
-			$rfn  = $GLOBALS['dataDir'] . "/" . $filePath;
+				$rfn  = $GLOBALS['dataDir'] . "/" . $filePath;
+			}
 		}
-	}
-		
 	}
 
 	if (preg_match('/^\//', $filePath) && !$is_remote) {
@@ -1662,9 +1658,9 @@ function saveResults($filePath, $metaData = array(), $job = array(), $rfn = 0, $
 	$parentPath = dirname($filePath);
 
 	if ($is_remote) {
-		 $parentPath = fromAbsPath_toPath($job['output_dir']);
-		 $parentId = getGSFileId_fromPath($parentPath, $asRoot);
-		 if (!$parentId) {
+		$parentPath = fromAbsPath_toPath($job['output_dir']);
+		$parentId = getGSFileId_fromPath($parentPath, $asRoot);
+		if (!$parentId) {
 			$_SESSION['errorData']['Error'][] =
 				"Cannot attach remote file '" . basename($filePath) . "' to job output directory '$parentPath'";
 			return 0;
@@ -1781,8 +1777,8 @@ function  build_outputs_list($tool, $stageout_job, $stageout_file)
 			array_push($stageout_data[$out['name']], $out);
 		}
 	}
-	if ($debug)	{
-		
+	if ($debug) {
+
 		print "\n__________FROM FILE________________\n";
 		print json_encode($stageout_meta, JSON_PRETTY_PRINT);
 
@@ -1795,7 +1791,7 @@ function  build_outputs_list($tool, $stageout_job, $stageout_file)
 		print "\n__________MERGED (FILE + JOB)________________\n";
 		print json_encode($stageout_meta, JSON_PRETTY_PRINT);
 	}
-	
+
 	// merging file data from tool and stageout_file
 	$outs_meta = array();
 	foreach ($tool['output_files'] as $out_name => $out_data) {
@@ -1962,25 +1958,36 @@ function refresh_token($force = false)
 	if (!$_SESSION['userToken']->getToken()) {
 		ob_clean();
 		header('Location: ' . $GLOBALS['BASEURL'] . '/htmlib/errordb.php?msg=Authentification Session Expired. <a href=' . $GLOBALS['URL'] . '>Login again</a>');
+		exit;
 	}
 
 	$existingToken = $_SESSION['userToken'];
-	$provider = new Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . $_SERVER['PHP_SELF']]);
 
 	if ($force || $existingToken->hasExpired()) {
-		try {
-			$newToken = $provider->getAccessToken('refresh_token', ['refresh_token' => $existingToken->getRefreshToken()]);
-		} catch (Exception $e) {
-			$_SESSION['errorData']['Error'][] = "Cannot validate token from refresh token.";
-			$_SESSION['errorData']['Error'][] = $e->getMessage();
+		$freshAccessToken = $_SERVER['OIDC_access_token'] ?? null;
+
+		if (!$freshAccessToken) {
+			getProjectLogger()->error("No access token in OIDC headers.");
 			return false;
 		}
 
-		// load new token in session
-		$_SESSION['userToken'] = $newToken;
+		if ($freshAccessToken === $existingToken->getToken()) {
+			$redirectUri  = $GLOBALS['URL'] . '/redirect_uri';
+			$currentUrl   = $GLOBALS['URL'] . $_SERVER['REQUEST_URI'];
+			header('Location: ' . $redirectUri
+				. '?refresh='      . urlencode($currentUrl)
+				. '&access_token=' . urlencode($freshAccessToken));
+			exit;
+		}
+
+		$_SESSION['userToken'] = new AccessToken([
+			'access_token' => $freshAccessToken,
+			'expires'      => (int)($_SERVER['OIDC_access_token_expires'] ?? 0),
+		]);
+
 		return true;
 	} else {
-		$_SESSION['errorData']['Warning'][] = "Access token not expired yet. <a href='applib/refreshToken.php?force=1'>Force refresh</a>";
+		getProjectLogger()->error("Access token not expired yet.");
 		return false;
 	}
 }

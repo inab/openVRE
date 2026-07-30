@@ -1,7 +1,8 @@
 <?php
 
-require __DIR__ . "/../../config/bootstrap.php";
+require_once __DIR__ . "/../../config/bootstrap.php";
 
+use League\OAuth2\Client\Token\AccessToken;
 use OpenVRE\LoggerFactory;
 use OpenVRE\Oauth2Provider;
 
@@ -18,15 +19,43 @@ function getLoginLogger()
 }
 
 
-// Setting auth server
-$provider = new Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . "applib/loginToken.php"]);
+if (isset($_SERVER['OIDC_access_token'])) {
+    getLoginLogger()->info("Get OIDC claims.");
+    $userInfo = [];
+    foreach ($_SERVER as $key => $value) {
+        if (strpos($key, 'OIDC_CLAIM_') === 0) {
+            $claim = substr($key, strlen('OIDC_CLAIM_'));
+            $userInfo[$claim] = $value;
+        }
+    }
 
-// Get auth code. Redirect user to the authorization URL
-if (!isset($_GET['code'])) {
+    $userToken = [];
+    $userToken['access_token'] = $_SERVER['OIDC_access_token'];
+    $userToken['expires'] = $_SERVER['OIDC_access_token_expires'];
+    $accessToken = new AccessToken($userToken);
 
+    $user = getUserById(sanitizeString($_SERVER['OIDC_CLAIM_email']));
+    if (is_null($user)) {
+        try {
+            $user = createUserFromToken($_SERVER['OIDC_CLAIM_email'], $accessToken, $userInfo, false);
+            getLoginLogger()->info("Created new user from user access token.");
+        } catch (\Exception $e) {
+            exit('Login error: failed to create local VRE user: ' . $e->getMessage());
+        }
+    }
+
+    $user = loadUserWithToken($user, $userInfo, $accessToken);
+    getLoginLogger()->info("Loaded existing user from access token.");
+
+    if ($user) {
+        redirect("../home/redirect.php");
+    } else {
+        redirect($GLOBALS['URL']);
+    }
+} elseif (!isset($_GET['code'])) {
+    $provider = new Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . "applib/loginToken.php"]);
     // Fetch the authorization URL from the provider; returns urlAuthorize and generates state
     $authorizationUrl = $provider->getAuthorizationUrl();
-    getLoginLogger()->info("Redirect user to the authorization URL: " . $authorizationUrl);
 
     header('Location: ' . $authorizationUrl);
     exit;
@@ -37,10 +66,9 @@ if (!isset($_GET['code'])) {
     if (isset($_SESSION['oauth2state'])) {
         unset($_SESSION['oauth2state']);
     }
-
     exit('Login error: invalid state. Start login process again, please.');
 } else {
-
+    $provider = new Oauth2Provider(['redirectUri' => $GLOBALS['URL'] . "applib/loginToken.php"]);
     // Get an access token using the authorization code grant.
     try {
         $accessToken = $provider->getAccessToken('authorization_code', ['code' => $_GET['code']]);
@@ -63,35 +91,6 @@ if (!isset($_GET['code'])) {
     if (is_null($userInfo['email'])) {
         $_SESSION['errorData']['Error'][] = "User is authentified, but the claims on the received OIDC token are not correct. At least 'email' attribute is expected.";
         redirect("../home/redirect.php");
-    }
-
-    function base64UrlDecode($input)
-    {
-        $remainder = strlen($input) % 4;
-        if ($remainder) {
-            $padlen = 4 - $remainder;
-            $input .= str_repeat('=', $padlen);
-        }
-        return base64_decode(strtr($input, '-_', '+/'));
-    }
-
-    $_SESSION['allowedDatasetIds'] = [];
-    if (isset($userInfo['ga4gh_passport_v1'])) {
-        $gh4ghPassport = $userInfo['ga4gh_passport_v1'];
-
-        foreach ($gh4ghPassport as $gh4ghVisaJwt) {
-            $gh4ghVisaTokenParts = explode(".", $gh4ghVisaJwt);
-            $gh4ghTokenHeader = base64UrlDecode($gh4ghVisaTokenParts[0]);
-            $gh4ghTokenPayload = base64UrlDecode($gh4ghVisaTokenParts[1]);
-            $gh4ghJwtHeader = json_decode($gh4ghTokenHeader);
-            $gh4ghJwtPayload = json_decode($gh4ghTokenPayload);
-
-            if ($gh4ghJwtPayload->ga4gh_visa_v1->type == "ControlledAccessGrants") {
-                array_push($_SESSION['allowedDatasetIds'], $gh4ghJwtPayload->ga4gh_visa_v1->value);
-            }
-        }
-
-        getLoginLogger()->info("GA4GH passport obtained from user access token and included into user session info.");
     }
 
     // Check if user exists.
