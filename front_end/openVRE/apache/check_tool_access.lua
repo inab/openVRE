@@ -6,14 +6,14 @@ function check_access(r)
     local tool_segment = r.uri:match("^/interactive%-tool/([^/]+)")
     if not tool_segment then
         r:err("check_tool_access: no tool_segment found, passing through")
-        return 200
+        return apache2.OK
     end
     r:err("check_tool_access: tool_segment=" .. tool_segment)
 
     local project_id = tool_segment:match("__PROJ.+$")
     if not project_id then
         r:err("check_tool_access: could not parse project_id from: " .. tool_segment)
-        return 403
+        return apache2.HTTP_FORBIDDEN
     end
     r:err("check_tool_access: project_id=" .. project_id)
 
@@ -30,9 +30,9 @@ function check_access(r)
     r:err("check_tool_access: http status=" .. tostring(status))
 
     if status == "200" then
-        return 200
+        return apache2.OK
     else
         r:err("check_tool_access: denied user=" .. user .. " project=" .. project_id)
-        return 403
+        return apache2.HTTP_FORBIDDEN
     end
 end
