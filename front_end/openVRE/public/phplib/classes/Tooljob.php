@@ -1058,7 +1058,7 @@ class Tooljob
 			throw new UnexpectedValueException("No free ports available to run the interactive tool.");
 		}
 
-		$networkName = $GLOBALS['networkName'];
+		$networkName = $GLOBALS['NETWORK_NAME'];
 
 		$cmd = <<<EOF
 			CONTAINER_ID=\$(docker run \
