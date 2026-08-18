@@ -699,6 +699,6 @@ function closeModalTool() {
 
 
 function goInteractiveTool(toolContainerName) {
-	location.href = "interactive-tool/" + toolContainerName + "/";
+	window.open("interactive-tool/" + toolContainerName + "/", "_blank");
 }
 
