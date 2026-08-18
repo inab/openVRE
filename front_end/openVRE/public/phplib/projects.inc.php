@@ -1777,20 +1777,6 @@ function  build_outputs_list($tool, $stageout_job, $stageout_file)
 			array_push($stageout_data[$out['name']], $out);
 		}
 	}
-	if ($debug) {
-
-		print "\n__________FROM FILE________________\n";
-		print json_encode($stageout_meta, JSON_PRETTY_PRINT);
-
-		print "\n__________FROM JOB________________\n";
-		print json_encode($stageout_data, JSON_PRETTY_PRINT);
-
-		// Merge FILE + JOB (job overrides file)
-		$stageout_meta = array_merge($stageout_meta, $stageout_data);
-
-		print "\n__________MERGED (FILE + JOB)________________\n";
-		print json_encode($stageout_meta, JSON_PRETTY_PRINT);
-	}
 
 	// merging file data from tool and stageout_file
 	$outs_meta = array();
