@@ -30,6 +30,7 @@ $dtlist = ((isset($_REQUEST["tool"]) && $_REQUEST["tool"] != "") ? getAvailableD
 
 // project list
 $projects = getProjects_byOwner();
+syncProjectFiles($projects);
 
 //update files workspace content (job and files)
 $allFiles = getFilesToDisplay(array('_id' => $_SESSION['User']['dataDir']));

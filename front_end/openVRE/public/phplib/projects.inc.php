@@ -2269,3 +2269,130 @@ function moveFiles($fns, $target_fn)
 		*/
 	}
 }
+
+
+function syncProjectFiles($projects)
+{
+	foreach ($projects as $projectId => $projectAttributes) {
+		$projectFullPath = $GLOBALS['dataDir'] . "/" . $projectAttributes['path'];
+
+		if (!is_dir($projectFullPath)) {
+			continue; // skip projects whose root path doesn't exist
+		}
+
+		syncDirectoryRecursive($projectFullPath, $projectAttributes['path'], $projectId, null);
+	}
+}
+
+
+function syncDirectoryRecursive($fullFolderPath, $relativeFolderPath, $projectId, $parentDirId)
+{
+	$entries = scandir($fullFolderPath);
+
+	foreach ($entries as $entry) {
+		// skip hidden files/folders (this also covers "." and "..")
+		if ($entry[0] === '.') {
+			continue;
+		}
+
+		$relativePath = $relativeFolderPath . "/" . $entry;
+		$fullPath = $fullFolderPath . "/" . $entry;
+
+		if (is_dir($fullPath)) {
+			// skip folders named "run*" (e.g. "run001")
+			if (fnmatch('run*', $entry)) {
+				continue;
+			}
+
+			// ensure this subdirectory itself is registered, then recurse into it
+			$subDirId = ensureDirRegistered($relativePath, $projectId, $parentDirId);
+			syncDirectoryRecursive($fullPath, $relativePath, $projectId, $subDirId);
+		} else {
+			ensureFileRegistered($relativePath, $fullPath, $projectId, $parentDirId);
+		}
+	}
+}
+
+function ensureDirRegistered($relativePath, $projectId, $parentDirId)
+{
+	$existingId = getGSFileId_fromPath($relativePath);
+	if ($existingId) {
+		return $existingId;
+	}
+
+	$dirId = createLabel();
+
+	$mongoDirDocument = array(
+		'_id'       => $dirId,
+		'mtime'     => new MongoDB\BSON\UTCDateTime(strtotime("now") * 1000),
+		'owner'     => $_SESSION['User']['id'],
+		'path'      => $relativePath,
+		'project'   => $projectId,
+		'parentDir' => $parentDirId,
+		'type'      => "dir",
+		'files'     => []
+	);
+
+	$GLOBALS['filesCol']->updateOne(
+		['_id' => $dirId],
+		['$set' => $mongoDirDocument],
+		['upsert' => true]
+	);
+
+	if ($parentDirId) {
+		$GLOBALS['filesCol']->updateOne(
+			['_id' => $parentDirId],
+			['$addToSet' => ['files' => $dirId]]
+		);
+	}
+
+	return $dirId;
+}
+
+function ensureFileRegistered($relativePath, $fullPath, $projectId, $parentDirId)
+{
+	if (getGSFileId_fromPath($relativePath)) {
+		return; // already registered
+	}
+
+	$fileId = createLabel();
+
+	$mongoFileDocument = array(
+		'_id'       => $fileId,
+		'mtime'     => new MongoDB\BSON\UTCDateTime(strtotime("now") * 1000),
+		'owner'     => $_SESSION['User']['id'],
+		'size'      => filesize($fullPath),
+		'path'      => $relativePath,
+		'project'   => $projectId,
+		'parentDir' => $parentDirId,
+		'type'      => "file"
+	);
+
+	$mongoFileMetadataDocument = array(
+		'_id'         => $fileId,
+		'compressed'  => false,
+		'data_type'   => null,
+		'format'      => null,
+		'validated'   => true,
+		'visible'     => true
+	);
+
+	$GLOBALS['filesCol']->updateOne(
+		['_id' => $fileId],
+		['$set' => $mongoFileDocument],
+		['upsert' => true]
+	);
+
+	$GLOBALS['filesMetaCol']->updateOne(
+		['_id' => $fileId],
+		['$set' => $mongoFileMetadataDocument],
+		['upsert' => true]
+	);
+
+	if ($parentDirId) {
+		$GLOBALS['filesCol']->updateOne(
+			['_id' => $parentDirId],
+			['$addToSet' => ['files' => $fileId]]
+		);
+	}
+}
