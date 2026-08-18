@@ -85,7 +85,7 @@ use OpenVRE\UserType;
             <a href="cookies/">Our Cookie Policy</a>
         </div>
         <div class="mt-cookie-consent-bar-action">
-            <a href="javascript:;" class="mt-cookie-consent-btn btn green">Understand</a>
+            <a type="button" class="mt-cookie-consent-btn btn green">Understand</a>
         </div>
     </div>
 </div>

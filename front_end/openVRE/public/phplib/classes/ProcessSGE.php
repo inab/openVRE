@@ -41,7 +41,7 @@ class ProcessSGE
 
 	private Logger $logger;
 
-	public function __construct($cl = false, $workDir = "", $queue = "srv.q", $jobname = "", $cpu = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log")
+	public function __construct($cl = false, $workDir = "", $queue = "local.q", $jobname = "", $cpu = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log")
 	{
 		$this->logger = LoggerFactory::getLogger("Process SGE interface");
 		$current_user = posix_getpwuid(posix_geteuid());
