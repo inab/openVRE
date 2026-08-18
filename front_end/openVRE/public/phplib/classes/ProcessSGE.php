@@ -94,7 +94,7 @@ class ProcessSGE
 	public function setFullCommand()
 	{
 		$workDir = $this->workDir;
-		$command = QSUB . " -N '" . $this->jobname . "' -wd $workDir -q " . $this->queue . " -o " . $this->logFile . " -e " . $this->errFile;
+		$command = QSUB . " -notify -N '" . $this->jobname . "' -wd $workDir -q " . $this->queue . " -o " . $this->logFile . " -e " . $this->errFile;
 		if ($this->cpu > 1) {
 			$command .= " -l cpu=" . $this->cpu;
 		}
@@ -177,7 +177,7 @@ class ProcessSGE
 		$command = QDEL . ' ' . $pid;
 		exec($command, $r);
 		$res = join(" ", $r);
-		log_addInfo($jobid, "SGE/qdel: " . $res);
+		$this->logger->info("Job stopped: " . $res);
 		if (preg_match('/has deleted/i', $res) || preg_match('/registered the job \d+ for deletion/', $res)) {
 			return array(true, $res);
 		} else {
