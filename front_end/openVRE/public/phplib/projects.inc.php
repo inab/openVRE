@@ -1756,7 +1756,7 @@ function  build_outputs_list($tool, $stageout_job, $stageout_file)
 
 			array_push($stageout_meta[$out['name']], $out);
 		}
-	} elseif ($tool['external'] !== false) {
+	} elseif ($tool['external'] !== false && !$tool['infrastructure']['interactive']) {
 		$_SESSION['errorData']['Warning'][] = date("h:i:s") . ": Tool stageout file '" . $stageout_file . "' is not found";
 		getProjectLogger()->warning("Tool stageout file '" . $stageout_file . "' is not found");
 	}
