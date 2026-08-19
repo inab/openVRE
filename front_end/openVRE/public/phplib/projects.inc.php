@@ -3,9 +3,7 @@
 use League\OAuth2\Client\Token\AccessToken;
 use OpenVRE\LoggerFactory;
 use OpenVRE\NotFoundException;
-use OpenVRE\Oauth2Provider;
 use OpenVRE\UserType;
-use OpenVRE\VaultClient;
 
 
 function getProjectLogger()
@@ -18,6 +16,7 @@ function getProjectLogger()
 
 	return $logger;
 }
+
 
 function prepUserWorkSpace($homeDir, $projectDir, $sampleData = "", $projectData = array(), $verbose = false, $asRoot = 0)
 {
@@ -1280,6 +1279,7 @@ function updatePendingFiles($sessionId)
 				// and consequently reload workspace (checkPendingJobs.php)
 			} else {
 				getProjectLogger()->info("Automatic job update detects job $pid is not running anymore");
+				LoggerFactory::getPersistentLogger()->info("Automatic job update detects job {pid} is not running anymore", array('pid' => $pid));
 				$SGE_updated[$pid] = $job;
 				$SGE_updated[$pid]['state'] = "NOT_RUNNING";
 			}
@@ -1356,6 +1356,7 @@ function processRunningJobInfo($job, $jobProcess, $pid, $title, $descrip, &$file
 function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 {
 	getProjectLogger()->info("Workspace reload detects job $pid is not running anymore");
+	LoggerFactory::getPersistentLogger()->info("Workspace reload detects job {pid} is not running anymore", array('pid' => $pid));
 
 	unset($_SESSION['errorData']);
 	$job_in_err = 0;
@@ -1366,6 +1367,7 @@ function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 		getProjectLogger()->error("Tool '" . $job['toolId'] . "' received from JobTool not registered");
 		getProjectLogger()->error("Cannot obtain results from '$title' in folder '" . basename($job['working_dir']) . "'. Job metadata is not valid.");
 		getProjectLogger()->error("Failed to register $pid job outfiles. Job metadata has toolId '" . $job['toolId'] . "'");
+		LoggerFactory::getPersistentLogger()->error("Failed to register {pid} job outfiles. Tool {toolId} not registered.", array('pid' => $pid, 'toolId' => $job['toolId']));
 		$job_in_err = 1;
 		return;
 	}
@@ -1377,6 +1379,7 @@ function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 	getProjectLogger()->debug("Finished building output from toolINFO + stageout_file + stageout_data: " . json_encode($outs_files));
 	if (empty($outs_files)) {
 		getProjectLogger()->warning("Failed to register $pid job outfiles. Output file list empty.");
+		LoggerFactory::getPersistentLogger()->warning("Failed to register {pid} job outfiles. Output file list empty.", array('pid' => $pid));
 		$job_in_err = 1;
 	}
 
@@ -1414,7 +1417,7 @@ function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 						print "<br/>Recovering path from remote_paths: $remote_path<br/>";
 						$_SESSION['errorData']['Error'][] = "Recovering path from remote_paths: $remote_path";
 					}
-					// this is right (?)
+					
 					$out_data['path'] = $remote_path;
 				} else {
 					if ($is_required) {
@@ -1423,7 +1426,7 @@ function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 						$msg .= ". No 'path' and no usable 'remote_paths' found.";
 						$msg .= ". Job metadata: " . print_r($out_data, true);
 						$_SESSION['errorData']['Error'][] = $msg;
-						log_addOutregister($pid, $msg);
+						LoggerFactory::getPersistentLogger()->error("Job output file {outName} not created.", array('outName' => $out_name));
 						$job_in_err = 1;
 					}
 					continue;
@@ -1481,8 +1484,9 @@ function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 
 			// job successfully finished and already in mongo. Update medatada
 			if ($fileId) {
-				getProjectLogger()->debug("JOB $pid finished successfully.");
+				getProjectLogger()->info("JOB $pid finished successfully.");
 				getProjectLogger()->debug("Updating only outfile $out_name '$rfn' metadata from job $pid");
+				LoggerFactory::getPersistentLogger()->info("Job {pid} finished successfully.", array('pid' => $pid));
 				list($out_vre, $metadata) = getVREfile_fromFile($out_data);
 				addMetadataToFile($fileId, $metadata);
 			} elseif (is_file($rfn) || is_dir($rfn) || isset($out_data['meta_data']['remote_paths'][0]['remote_path'])) { // job successfully finished but not yet on mongo. Save output
@@ -1547,6 +1551,7 @@ function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 	if ($job_in_err) {
 		getProjectLogger()->error("Failed to register all job outfiles");
 		getProjectLogger()->error("JOB $pid FINISHED but with errors");
+		LoggerFactory::getPersistentLogger()->error("Job {pid} finished with errors. Failed to register all job outfiles.", array('pid' => $pid));
 
 		$logFileP = $job['log_file'];
 		$logFile  = fromAbsPath_toPath($job['log_file']);
@@ -1570,7 +1575,8 @@ function processFinishedJobInfo($job, $pid, $title, &$filesPending)
 			}
 		}
 	} else {
-		getProjectLogger()->debug("JOB $pid finished successfully.");
+		getProjectLogger()->info("JOB $pid finished successfully.");
+		LoggerFactory::getPersistentLogger()->info("Job {pid} finished successfully.", array('pid' => $pid));
 	}
 }
 

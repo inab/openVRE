@@ -40,7 +40,7 @@ class LoggerFactory
         return $logger;
     }
 
-    
+
     public static function getPersistentLogger(): Logger
     {
         if (isset(self::$loggers['app-mongodb'])) {
@@ -53,6 +53,10 @@ class LoggerFactory
         $logger->pushHandler($mongodb);
         $logger->pushProcessor(new UidProcessor());
         $logger->pushProcessor(new PsrLogMessageProcessor());
+        $logger->pushProcessor(function ($record) {
+            $record['extra']['userId'] = $_SESSION['User']['id'];
+            return $record;
+        });
         self::$loggers['app-mongodb'] = $logger;
 
         return $logger;

@@ -131,6 +131,7 @@ class ProcessSGE
 
 		if (is_null($jobState[0])) {
 			$job['state'] = "FINISHING";
+			LoggerFactory::getPersistentLogger()->info("Job {pid} finished", array("pid" => $pid));
 		} else {
 			list($pid, $state) = explode("\t", $jobState[0]);
 			$job['state'] = $this->jobState[$state];
@@ -178,6 +179,7 @@ class ProcessSGE
 		exec($command, $r);
 		$res = join(" ", $r);
 		$this->logger->info("Job stopped: " . $res);
+		LoggerFactory::getPersistentLogger()->info("Job {pid} stopped", array("pid" => $pid));
 		if (preg_match('/has deleted/i', $res) || preg_match('/registered the job \d+ for deletion/', $res)) {
 			return array(true, $res);
 		} else {
