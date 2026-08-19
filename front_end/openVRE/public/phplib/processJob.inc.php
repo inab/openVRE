@@ -19,22 +19,37 @@ function getJobProcessLogger()
 }
 
 
+function getPersistentLogger()
+{
+    static $persistentLogger = null;
+
+    if ($persistentLogger === null) {
+        $persistentLogger = LoggerFactory::getPersistentLogger();
+    }
+
+    return $persistentLogger;
+}
+
+
 function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log", $jobManager = "docker_SGE", $toolId = "", $jobOptions = array())
 {
     getJobProcessLogger()->info("Start job submission via SGE");
 
     if (is_null($_SESSION['User']['id'])) {
         getJobProcessLogger()->error("User ID not found in session.");
+        getPersistentLogger()->error("User ID userId not found in session.", array('userId' => $_SESSION['User']['id']));
         throw new NotFoundException("User ID not found in session.");
     }
 
     if (!file_exists($shFile)) {
         getJobProcessLogger()->error("Shell script file does not exist: $shFile");
+        getPersistentLogger()->error("Shell script file shFile does not exist", array('shFile' => $shFile));
         throw new NotFoundException("Shell script file does not exist: $shFile");
     }
 
     if (!is_dir($workDir)) {
         getJobProcessLogger()->error("Working directory does not exist: $workDir");
+        getPersistentLogger()->error("Working directory workDir does not exist", array('workDir' => $workDir));
         throw new NotFoundException("Working directory does not exist: $workDir");
     }
 

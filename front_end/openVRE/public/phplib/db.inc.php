@@ -20,7 +20,7 @@ $VREConn =  new MongoDB\Client(
 // create handlers
 
 $dbname = getenv('MONGO_MAIN_DB');
-
+$GLOBALS['mongodbClient']         = $VREConn;
 $GLOBALS['db']              = $VREConn->$dbname;
 $GLOBALS['usersCol']        = $GLOBALS['db']->users;
 $GLOBALS['filesCol']        = $GLOBALS['db']->files;
@@ -28,10 +28,10 @@ $GLOBALS['filesMetaCol']    = $GLOBALS['db']->filesMetadata;
 $GLOBALS['logMailCol']      = $GLOBALS['db']->checkMail;
 $GLOBALS['toolsCol']        = $GLOBALS['db']->tools;
 $GLOBALS['visualizersCol']  = $GLOBALS['db']->visualizers;
-$GLOBALS['fileFormatsCol']    = $GLOBALS['db']->file_formats;
+$GLOBALS['fileFormatsCol']  = $GLOBALS['db']->file_formats;
 $GLOBALS['dataTypesCol']    = $GLOBALS['db']->data_types;
 $GLOBALS['helpsCol']        = $GLOBALS['db']->helps;
 $GLOBALS['sampleDataCol']   = $GLOBALS['db']->sampleData;
-$GLOBALS['logExecutionsCol'] = $GLOBALS['db']->log_executions;
+$GLOBALS['actionLogs']      = $GLOBALS['db']->action_logs;
 //adding new cred for SITES collection
 $GLOBALS['sitesCol']   = $GLOBALS['db']->sites;

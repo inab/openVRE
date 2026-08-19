@@ -24,9 +24,25 @@ if (db.getUser("$MONGO_INITDB_USERNAME") === null) {
 EOF
 
 for mongo_document in /init_documents/*.json; do
-    mongoimport --db ${MONGO_MAIN_DB} \
-                --jsonArray \
-                --username ${MONGO_INITDB_USERNAME} \
-                --password ${MONGO_INITDB_PASSWORD} \
-                --file $mongo_document
+    collection_name=$(basename "$mongo_document" .json)
+
+    # Strip all whitespace and compare to "[]" to detect an empty array
+    stripped_content=$(tr -d '[:space:]' < "$mongo_document")
+
+    if [ "$stripped_content" == "[]" ]; then
+        echo "Creating empty collection: ${collection_name}"
+        mongosh "${MONGO_MAIN_DB}" \
+            --username "${MONGO_INITDB_USERNAME}" \
+            --password "${MONGO_INITDB_PASSWORD}" \
+            --authenticationDatabase "${MONGO_MAIN_DB}" \
+            --eval "db.createCollection('${collection_name}')"
+    else
+        echo "Importing into collection: ${collection_name}"
+        mongoimport --db "${MONGO_MAIN_DB}" \
+            --collection "${collection_name}" \
+            --jsonArray \
+            --username "${MONGO_INITDB_USERNAME}" \
+            --password "${MONGO_INITDB_PASSWORD}" \
+            --file "$mongo_document"
+    fi
 done
