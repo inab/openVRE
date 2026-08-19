@@ -1899,14 +1899,20 @@ function downloadFile($rfn)
 
 		$fhandle = fopen($rfn, 'r');
 		fseek($fhandle, $offset); // seek to the requested offset, this is 0 if it's not a partial content request
-		$data = fread($fhandle, $length);
 		fclose($fhandle);
 
 		header('HTTP/1.1 206 Partial Content');
 		header('Content-Range: bytes ' . $offset . '-' . ($offset + $length) . '/' . $size);
 	}
-	header("Content-Disposition: attachment;filename=" . $filename);
-	header('Content-Type: ' . $content_type);
+
+	if (strtolower($fileExtension) === 'html' || strtolower($fileExtension) === 'htm') {
+		header("Content-Disposition: inline; filename=\"$filename\"");
+		header("Content-Type: text/html; charset=UTF-8");
+	} else {
+		header("Content-Disposition: attachment; filename=\"$filename\"");
+		header("Content-Type: " . $content_type);
+	}
+
 	header("Accept-Ranges: bytes");
 	header("Pragma: public");
 	header("Expires: -1");
