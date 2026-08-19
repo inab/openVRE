@@ -698,7 +698,7 @@ function closeModalTool() {
 }
 
 
-function goInteractiveTool(toolContainerName) {
-	window.open("interactive-tool/" + toolContainerName + "/", "_blank");
+function goInteractiveTool(id) {
+	window.open('launch-interactive/?pid=' + id, "_blank");
 }
 
