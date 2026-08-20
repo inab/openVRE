@@ -25,16 +25,19 @@ function execJob($workDir, $shFile, $queue, $cpus = 1, $mem = 0, $logFile = "job
 
     if (is_null($_SESSION['User']['id'])) {
         getJobProcessLogger()->error("User ID not found in session.");
+        LoggerFactory::getPersistentLogger()->error("User ID {userId} not found in session.", array('userId' => $_SESSION['User']['id']));
         throw new NotFoundException("User ID not found in session.");
     }
 
     if (!file_exists($shFile)) {
         getJobProcessLogger()->error("Shell script file does not exist: $shFile");
+        LoggerFactory::getPersistentLogger()->error("Shell script file {shFile} does not exist", array('shFile' => $shFile));
         throw new NotFoundException("Shell script file does not exist: $shFile");
     }
 
     if (!is_dir($workDir)) {
         getJobProcessLogger()->error("Working directory does not exist: $workDir");
+        LoggerFactory::getPersistentLogger()->error("Working directory {workDir} does not exist", array('workDir' => $workDir));
         throw new NotFoundException("Working directory does not exist: $workDir");
     }
 
@@ -251,6 +254,7 @@ function delJob($pid, $launcherType = null, $login = null)
     }
 
     $_SESSION['errorData']['Info'][] = "Job successfully cancelled";
+    LoggerFactory::getPersistentLogger()->info("Job {pid} successfully cancelled", array('pid' => $pid));
 
     // wait to make qdel/terminateActivity effective
     sleep(15);

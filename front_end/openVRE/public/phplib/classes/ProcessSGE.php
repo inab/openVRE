@@ -41,7 +41,7 @@ class ProcessSGE
 
 	private Logger $logger;
 
-	public function __construct($cl = false, $workDir = "", $queue = "srv.q", $jobname = "", $cpu = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log")
+	public function __construct($cl = false, $workDir = "", $queue = "local.q", $jobname = "", $cpu = 1, $mem = 0, $logFile = "job_output.log", $errFile = "job_error.log")
 	{
 		$this->logger = LoggerFactory::getLogger("Process SGE interface");
 		$current_user = posix_getpwuid(posix_geteuid());
@@ -94,7 +94,7 @@ class ProcessSGE
 	public function setFullCommand()
 	{
 		$workDir = $this->workDir;
-		$command = QSUB . " -N '" . $this->jobname . "' -wd $workDir -q " . $this->queue . " -o " . $this->logFile . " -e " . $this->errFile;
+		$command = QSUB . " -notify -N '" . $this->jobname . "' -wd $workDir -q " . $this->queue . " -o " . $this->logFile . " -e " . $this->errFile;
 		if ($this->cpu > 1) {
 			$command .= " -l cpu=" . $this->cpu;
 		}
@@ -131,6 +131,7 @@ class ProcessSGE
 
 		if (is_null($jobState[0])) {
 			$job['state'] = "FINISHING";
+			LoggerFactory::getPersistentLogger()->info("Job {pid} finished", array("pid" => $pid));
 		} else {
 			list($pid, $state) = explode("\t", $jobState[0]);
 			$job['state'] = $this->jobState[$state];
@@ -177,7 +178,8 @@ class ProcessSGE
 		$command = QDEL . ' ' . $pid;
 		exec($command, $r);
 		$res = join(" ", $r);
-		log_addInfo($jobid, "SGE/qdel: " . $res);
+		$this->logger->info("Job stopped: " . $res);
+		LoggerFactory::getPersistentLogger()->info("Job {pid} stopped", array("pid" => $pid));
 		if (preg_match('/has deleted/i', $res) || preg_match('/registered the job \d+ for deletion/', $res)) {
 			return array(true, $res);
 		} else {

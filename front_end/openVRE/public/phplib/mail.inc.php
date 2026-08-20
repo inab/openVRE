@@ -21,8 +21,8 @@ function sendEmail($recipient, $subject, $body, $reply = null, $bcc = null)
 		$reply = $GLOBALS['ADMINMAIL'];
 	}
 
-	$mail->AddReplyTo($reply, $GLOBALS['FROMNAME']);
-	$mail->SetFrom($reply, $GLOBALS['FROMNAME']);
+	$mail->SetFrom(getenv('MAIL_USER'), $GLOBALS['FROMNAME']);
+	$mail->AddReplyTo($reply);
 	$mail->Subject = $subject;
 	$mail->Body = $body;
 	$mail->AddAddress($recipient);

@@ -200,6 +200,7 @@ class ProcessSlurm
 
             if (!$line) {
                 $this->logger->debug("ProcessSlurm: getRunningJobInfo: job not running anymore. State: FINISHING");
+                LoggerFactory::getPersistentLogger()->info("Job {pid} finished.", array("pid" => $pid));
                 $job['state'] = "FINISHING";
                 // log message like SGE version:
                 $this->logger->debug("ProcessSlurm: getRunningJobInfo: log message added");
