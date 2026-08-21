@@ -33,5 +33,6 @@ $GLOBALS['dataTypesCol']    = $GLOBALS['db']->data_types;
 $GLOBALS['helpsCol']        = $GLOBALS['db']->helps;
 $GLOBALS['sampleDataCol']   = $GLOBALS['db']->sampleData;
 $GLOBALS['actionLogs']      = $GLOBALS['db']->action_logs;
+$GLOBALS['rolePermissions']      = $GLOBALS['db']->role_permissions;
 //adding new cred for SITES collection
 $GLOBALS['sitesCol']   = $GLOBALS['db']->sites;

@@ -1,0 +1,16 @@
+[
+    {
+        "_id": "admin",
+        "name": "admin",
+        "permissions": [
+            "DeleteFile", "DownloadFile", "EditFile", "MoveFile", "ReadFile"
+        ]
+    },
+    {
+        "_id": "user",
+        "name": "user",
+        "permissions": [
+            "ReadFile"
+        ]
+    }
+]

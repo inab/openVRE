@@ -2,6 +2,7 @@
 
 use OpenVRE\LoggerFactory;
 use OpenVRE\NotFoundException;
+use OpenVRE\Permission;
 use OpenVRE\User;
 use OpenVRE\UserStatus;
 use OpenVRE\UserType;
@@ -97,6 +98,10 @@ function createUserFromToken($login, $token, $userInfo = array(), $anonID = fals
 
         if (isset($userInfo['sub'])) {
             $userAttributes['secretsId'] = $userInfo['sub'];
+        }
+
+        if (isset($userInfo['roles'])) {
+            $userAttributes['roles'] = explode(',', $userInfo['roles']);
         }
 
         $_SESSION['allowedDatasetIds'] = [];
@@ -288,6 +293,7 @@ function loadUserWithToken($user, $userInfo, $token)
     $auxlastlog = $user['lastLogin'];
     $user['lastLogin'] = moment();
     $user['secretsId'] = $userInfo['sub'];
+    $user['roles']     = explode(',', $userInfo['roles']);
     $_SESSION['userToken'] = $token;
     $_SESSION['tokenInfo'] = $userInfo;
 
@@ -407,4 +413,10 @@ function getUserJobPid($login, $pid)
     ));
 
     return $r['lastjobs'] ?? array();
+}
+
+function hasPermissions(string $userId, Permission $requiredPermission) {
+    $userPermissions = getUserPermissions($userId);
+
+    return in_array($requiredPermission->value, $userPermissions);
 }
