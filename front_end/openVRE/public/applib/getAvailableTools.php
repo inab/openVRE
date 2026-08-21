@@ -29,10 +29,8 @@ foreach($tools as $t) {
 
 	echo '<li>';
 	echo '<a href="javascript:runTool(\''.$t['_id'].'\');" class="'.$t['_id'].'">';
-	if (is_file('../tools/front/'.$t['_id'].'/assets/ws/icon.php'))
-		include '../tools/front/'.$t['_id'].'/assets/ws/icon.php';
-	else
-		include '../tools/front/tool_skeleton/assets/ws/icon.php';
+	if (is_file('../tools/'.$t['_id'].'/front/assets/ws/icon.php'))
+		include '../tools/'.$t['_id'].'/front/assets/ws/icon.php';
 	echo ' '.$t['name'];
 	echo '</a>';
 	echo '</li>';

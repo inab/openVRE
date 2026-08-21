@@ -1021,13 +1021,11 @@ function formatData($data)
 		$tList = getToolsByDT($data['data_type'], 1);
 		$data['tools_list'] = '<ul class="dropdown-menu pull-right" role="menu">';
 		if (sizeof($tList) > 0) {
-			$toolsFrontDir = __DIR__ . '/../tools/front/';
-			$defaultIconPath = $toolsFrontDir . 'tool_skeleton/assets/ws/icon.php';
-			$defaultIcon = is_file($defaultIconPath) ? file_get_contents($defaultIconPath) : '';
+			$toolsFrontDir = __DIR__ . '/../tools/';
 			foreach ($tList as $t) {
-				$iconPath = $toolsFrontDir . $t[0] . '/assets/ws/icon.php';
-				$icon = is_file($iconPath) ? file_get_contents($iconPath) : $defaultIcon;
-				$data['tools_list'] .= '<li><a href="tools/front/' . $t[0] . '/input.php?fn[]=' . $data['_id_URL'] . '" class="' . $t[0] . '">' . $icon . ' ' . $t[1] . '</a></li>';
+				$iconPath = $toolsFrontDir . $t[0] . '/front/assets/ws/icon.php';
+				$icon = file_get_contents($iconPath);
+				$data['tools_list'] .= '<li><a href="tools/' . $t[0] . '/front/input.php?fn[]=' . $data['_id_URL'] . '" class="' . $t[0] . '">' . $icon . ' ' . $t[1] . '</a></li>';
 			}
 			$data['tools_button'] = 'block';
 		} else {
@@ -1174,7 +1172,7 @@ function formatData($data)
 	if (isset($data['input_files']) && isset($data['tool'])) {
 		$tool = $GLOBALS['toolsCol']->findOne(array('_id' => $data['tool']));
 		if (!empty($tool)) {
-			$formPath  = "tools/front/" . $data['tool'] . "/input.php";
+			$formPath  = "tools/" . $data['tool'] . "/front/input.php";
 			$data['rerunLink'] = "<li><a href=\"$formPath?rerunDir=" . $data['_id_URL'] . "\"><i class=\"fa fa-share\"></i> Rerun Project</a></li>";
 		}
 	}

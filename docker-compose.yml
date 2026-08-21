@@ -100,7 +100,7 @@ services:
       - ./front_end/openVRE/data:/var/www/html/openVRE/data
       - ./front_end/openVRE/apache/check_tool_access.lua:/opt/docker/etc/httpd/check_tool_access.lua
       - ./front_end/openVRE/apache/server.conf:/opt/docker/etc/httpd/conf.d/10-server.conf
-      - ./tools/front:/var/www/html/openVRE/public/tools/front
+      - ./tools:/var/www/html/openVRE/public/tools
       - ./shared_data:/shared_data
     ports:
       - "${FRONTEND_PORT}:80"
