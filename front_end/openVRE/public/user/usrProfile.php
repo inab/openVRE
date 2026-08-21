@@ -3,9 +3,9 @@
 require __DIR__ . "/../../config/bootstrap.php";
 redirectOutside();
 
-$includeHpc = false;
-$includeEgaFiles = false;
-$includeOpenStack = false;
+$includeEgaFiles = getenv('INCLUDE_EGA_DATASETS') === 'true';
+$includeHpc = getenv('INCLUDE_HPC_DATASETS') === 'true';
+$includeOpenStack = getenv('INCLUDE_OPENSTACK_DATASETS') === 'true';
 
 ?>
 
