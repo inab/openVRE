@@ -170,13 +170,15 @@ switch (pathinfo($_SERVER['PHP_SELF'])['filename']) {
 		break;
 }
 
-// load all tools 
+// load all tools
 $tools = getTools_List();
 sort($tools);
 
-// load all visualizers 
+// load all visualizers
 $visualizers = getVisualizers_List();
 sort($visualizers);
+
+$datasets = [];
 
 ?>
 
@@ -224,31 +226,14 @@ sort($visualizers);
 								<span class="title">Upload Files</span>
 							</a>
 						</li>
-						<li class="nav-item <?php if ($currentSubSection == 'rp') { ?>active open<?php } ?>">
-							<a href="javascript:;" class="nav-link nav-toggle ">
-								<span class="title">Data Archives</span>
-								<span class="arrow"></span>
-							</a>
-
-							<ul class="sub-menu">
-								<li class="nav-item <?php if ($currentSubSubSection == 'bs') { ?>active open<?php } ?>">
-									<a href="getdata/datasets.php" class="nav-link">
-										<span class="title">External Datasets </span>
-									</a>
-								</li>
-								<li class="nav-item <?php if ($currentSubSubSection == 'ps') { ?>active open<?php } ?>">
-									<a href="getdata/objStorage.php" class="nav-link">
-										<span class="title">External Storage</span>
-									</a>
-								</li>
-							</ul> 
-						</li>
-			
-						<li class="nav-item <?php if ($currentSubSection == 'sd') { ?>active open<?php } ?>">
-							<a href="getdata/sampleDataList.php" class="nav-link ">
-								<span class="title">Import example dataset</span>
-							</a>
-						</li>
+						<?php if ($datasets): ?>
+							<li class="nav-item <?php if ($currentSubSection == 'rp') { ?>active open<?php } ?>">
+								<a href="javascript:;" class="nav-link nav-toggle ">
+									<span class="title">Data Archives</span>
+									<span class="arrow"></span>
+								</a>
+							</li>
+						<?php endif; ?>
 					</ul>
 				</li>
 
@@ -334,68 +319,6 @@ sort($visualizers);
 							</ul>
 
 						</li>
-						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h11') { 
-													?>active open<?php //} 
-																	?>">
-							<a href="help/visualizers.php" class="nav-link">
-								<span class="title">Visualizers</span>
-								<span class="arrow <?php //if ($currentSubSection == 'h11') { 
-													?>open<?php //} 
-															?>"></span>
-							</a>
-							<ul class="sub-menu">
-								<?php /*foreach ($visualizers as $t) {
-									$s = $GLOBALS['helpsCol']->find(array('tool' => $t["_id"]));
-									$sections = iterator_to_array($s);
-									$arrSect = array();
-									foreach ($sections as $sec) {
-										$arrSect[] = $sec['help'];
-									} */ ?>
-									<li class="nav-item <?php //if ($currentSubSubSection == $t["_id"]) { 
-														?>active open<?php //} 
-																		?>">
-										<a href="visualizers/<?php //echo $t["_id"]; 
-																?>/help/help.php" class="nav-link">
-											<span class="title"> <?php //echo $t["name"]; 
-																	?> </span>
-										</a>
-									</li>
-								<?php //} 
-								?>
-							</ul>
-						</li> -->
-						<!-- <?php //if (in_array($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { 
-								?>
-							<li class="nav-item  <?php //if ($currentSubSection == 'h7') { 
-													?>active open<?php //} 
-																	?>">
-								<a href="help/hdesk.php" class="nav-link ">
-									<span class="title">Helpdesk</span>
-								</a>
-							</li>
-						<?php //} 
-						?> -->
-						<!-- <li class="nav-item  <?php //if ($currentSubSection == 'h8') { 
-													?>active open<?php //} 
-																	?>">
-							<a href="help/related.php" class="nav-link ">
-								<span class="title">Related Links</span>
-							</a>
-						</li>
-						<li class="nav-item  <?php //if ($currentSubSection == 'h9') { 
-												?>active open<?php //} 
-																?>">
-							<a href="help/refs.php" class="nav-link ">
-								<span class="title">References</span>
-							</a>
-						</li>
-						<li class="nav-item  <?php //if ($currentSubSection == 'h10') { 
-												?>active open<?php //} 
-																?>">
-							<a href="help/ackn.php" class="nav-link ">
-								<span class="title">Acknowledgments</span>
-							</a>
-						</li> -->
 					</ul>
 				</li>
 				<?php if (in_array($_SESSION['User']['Type'], $GLOBALS['NO_GUEST'])) { ?>
