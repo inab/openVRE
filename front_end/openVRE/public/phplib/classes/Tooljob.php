@@ -460,16 +460,28 @@ class Tooljob
 
 				switch ($tool['arguments'][$arg_name]['type']) {
 					case "enum":
-						if (is_null($tool['arguments'][$arg_name]['enum_items']) || (is_null($tool['arguments'][$arg_name]['enum_items']['name']))) {
-							$this->logger->error("Invalid argument enum in tool definition. '$arg_name' has no 'enum_items' or 'enum_items['name]");
-							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-							redirect($GLOBALS['BASEURL'] . "workspace/");
+						//Values as string
+						if (is_array($arg_value)) {
+							$arg_value = reset($arg_value); // take first value
 						}
+						$arg_value = strval($arg_value);
 
-						if (!in_array($arg_value, $tool['arguments'][$arg_name]['enum_items']['name'])) {
-							$this->logger->error("Invalid argument. In '$arg_name' these values are accepted [" . implode(", ", $tool['arguments'][$arg_name]['enum_items']['name']) . "], but found $arg_value");
-							$_SESSION['errorData']['Internal'][] = "There was an internal error launching the tool.";
-							redirect($GLOBALS['BASEURL'] . "workspace/");
+						//If enum exists then validate
+
+						if (isset($tool['arguments'][$arg_name]['enum_items']) && (isset($tool['arguments'][$arg_name]['enum_items']['name']))) {
+							if (!in_array($arg_value, $tool['arguments'][$arg_name]['enum_items']['name'])) {
+								$this->logger->error("Invalid argument. In '$arg_name' these values are accepted [" . implode(", ", $tool['arguments'][$arg_name]['enum_items']['name']) . "], but found $arg_value");
+								$_SESSION['errorData']['Error'][] = "Invalid argument. In '$arg_name' these values are accepted [" . implode(", ", $tool['arguments'][$arg_name]['enum_items']['name']) . "], but found $arg_value";
+								redirect($GLOBALS['BASEURL'] . "workspace/");
+							}
+						} else {
+							//No enum definition
+							// Treat it as a string
+							if (!is_string($arg_value)) {
+								$this->logger->info("Enum '$arg_name' has no enum_items defined. Treated as string..");
+								$_SESSION['errorData']['Info'][] =
+									"Enum '$arg_name' has no enum_items defined. Treated as string..";
+							}
 						}
 
 						break;
@@ -1487,7 +1499,7 @@ class Tooljob
 
 		$pid = execJob($this->working_dir, $this->submission_file, $queue, $cpus, $memory,  $this->stdout_file, $this->stderr_file, $jobManager, $this->toolId, $jobOptions);
 		$this->logger->info("Tool job submitted to SGE queue '$queue' (PID=$pid)");
-		LoggerFactory::getPersistentLogger()->info("Job {pid} for tool {toolId} submitted to SGE queue {queue}", array( "toolId" => $this->toolId, "queue" => $queue, "pid" => $pid));
+		LoggerFactory::getPersistentLogger()->info("Job {pid} for tool {toolId} submitted to SGE queue {queue}", array("toolId" => $this->toolId, "queue" => $queue, "pid" => $pid));
 
 		$this->pid = $pid;
 		return $pid;
