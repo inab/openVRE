@@ -58,7 +58,7 @@ var createDatatableTools = function () {
       	if(d[9]) {
         	launch_buttons += '<a href="visualizers/' + d[8] + '/input.php" class="btn btn-sm green uppercase" style="margin-bottom:10px;"><i class="fa fa-rocket"></i>&nbsp;&nbsp;' + value + '</a><br>';
 				} else {
-        	launch_buttons += '<a href="tools/front/' + d[8] + '/input.php?op=' + index + '" class="btn btn-sm green uppercase" style="margin-bottom:10px;"><i class="fa fa-rocket"></i>&nbsp;&nbsp;' + value + '</a><br>';
+        	launch_buttons += '<a href="tools/' + d[8] + '/front/input.php?op=' + index + '" class="btn btn-sm green uppercase" style="margin-bottom:10px;"><i class="fa fa-rocket"></i>&nbsp;&nbsp;' + value + '</a><br>';
 				}
       });
 

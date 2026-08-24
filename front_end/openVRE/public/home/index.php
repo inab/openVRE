@@ -90,9 +90,9 @@ sort($appList);
 
               <div class="cbp-item <?php echo $kw; ?> ">
                 <!-- REMOVE cbp-singlePageInline to go to new page -->
-                <a href="<?php echo $type; ?>/front/<?php echo $t['_id']; ?>/assets/home/index.html" class="cbp-caption cbp-singlePageInline" data-title="<?php echo $t['title'];?>" rel="nofollow">
+                <a href="<?php echo $type; ?>/<?php echo $t['_id']; ?>/front/assets/home/index.html" class="cbp-caption cbp-singlePageInline" data-title="<?php echo $t['title'];?>" rel="nofollow">
 		<div class="cbp-caption-defaultWrap <?php if ($t['status']!=1){echo "dimmed";} ?>">
-                    <img src="<?php echo $type; ?>/front/<?php echo $t['_id']; ?>/assets/home/logo.png" alt="">
+                    <img src="<?php echo $type; ?>/<?php echo $t['_id']; ?>/front/assets/home/logo.png" alt="">
                   </div>
                   <div class="cbp-caption-activeWrap">
                     <div class="cbp-l-caption-alignLeft">
