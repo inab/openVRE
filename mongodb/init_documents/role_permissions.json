@@ -10,7 +10,7 @@
         "_id": "user",
         "name": "user",
         "permissions": [
-            "ReadFile"
+            "DeleteFile", "DownloadFile", "EditFile", "MoveFile", "ReadFile"
         ]
     }
 ]
