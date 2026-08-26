@@ -46,13 +46,10 @@ RUN composer update --ignore-platform-req=ext-mongodb --ignore-platform-req=ext-
 RUN mkdir logs
 RUN touch logs/application.log
 RUN chmod -R 777 logs/application.log
+COPY --chmod=755 setup.sh /opt/docker/provision/entrypoint.d/front_end-setup.sh
 RUN cd public
-
-USER application
 
 WORKDIR /var/www/html/openVRE/public
 RUN pwd
 EXPOSE 80
 # EXPOSE 443
-
-CMD setup.sh && /opt/docker/bin/entrypoint.sh supervisord
