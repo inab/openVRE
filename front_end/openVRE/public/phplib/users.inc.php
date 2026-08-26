@@ -122,7 +122,7 @@ function createUserFromToken($login, $token, $userInfo = array(), $anonID = fals
         $_SESSION['tokenInfo'] = $userInfo;
     }
 
-    $objUser = new User($userAttributes['Email'], $userAttributes['secretsId'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "");
+    $objUser = new User($userAttributes['Email'], $userAttributes['secretsId'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", $userAttributes['roles']);
 
     $userArray = (array) $objUser;
     //load user in current session
