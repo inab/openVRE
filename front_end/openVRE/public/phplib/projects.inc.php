@@ -645,13 +645,7 @@ function printTable($filesAll = array())
 		print "<input type=\"hidden\" id=\"autorefresh\" value=\"$autorefresh\"/>\n";
 	}
 
-	// Convert the PHP array to JSON and output it to the browser console
 	?>
-	<script>
-		var filesAll = <?php echo json_encode($filesAll); ?>;
-		console.log(filesAll);
-	</script>
-
 <?php
 }
 
