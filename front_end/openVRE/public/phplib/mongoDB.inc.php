@@ -955,3 +955,33 @@ function createLabel()
 	}
 	return $label;
 }
+
+
+function getUserPermissions(string $userId): array {
+	$user = $GLOBALS['usersCol']->findOne(array('_id' => $userId), array('projection' => array('roles' => 1)));
+	if (is_null($user)) {
+		getMongoLogger()->error("Cannot find user with id = $userId.");
+		throw new NotFoundException("Cannot find user with id = $userId.");
+	}
+
+	if (is_null($user['roles'])) {
+		getMongoLogger()->error("Cannot find roles for user with id = $userId.");
+		return array();
+	}
+
+	$userPermissionsDoc = $GLOBALS['rolePermissions']->find(array('_id' => array('$in' => $user['roles'])), array('projection' => array('permissions' => 1, '_id' => 0)));
+	if (is_null($userPermissionsDoc)) {
+		getMongoLogger()->error("Cannot find permissions for user with id = $userId.");
+		return array();
+	}
+
+	$userPermissions = array();
+	foreach ($userPermissionsDoc as $doc) {
+		$userPermissions = array_merge($userPermissions, $doc['permissions']);
+	}
+
+	$userPermissions = array_unique($userPermissions);
+	getMongoLogger()->debug("Found permissions: " . json_encode($userPermissions) . " for user with id = $userId.");
+
+	return $userPermissions;
+}

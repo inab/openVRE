@@ -24,8 +24,9 @@ class User
     public $id; // TODO: diff with _id?
     public $activeProject;
     public Logger $logger;
+    private array $roles = [];
 
-    public function __construct(string $email, string $secretsId, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject)
+    public function __construct(string $email, string $secretsId, string $surname, string $name, string $inst, int $type, string $diskQuota, string $dataDir, ?string $authProvider, string $activeProject, array $roles)
     {
         $this->logger = LoggerFactory::getLogger('User');
         if ($type != UserType::Guest->value && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -62,6 +63,7 @@ class User
 
         $this->Surname = ucfirst($this->Surname);
         $this->Name    = ucfirst($this->Name);
+        $this->roles = $roles;
 
         $_SESSION['userVaultInfo'] = array(
             "vaultKey"     => null
@@ -217,6 +219,16 @@ class User
     public function setRegistrationDate(string $registrationDate): void
     {
         $this->registrationDate = $registrationDate;
+    }
+
+    public function getRoles(): array
+    {
+        return $this->roles;
+    }
+
+    public function setRoles(array $roles): void
+    {
+        $this->roles = $roles;
     }
 
     public function toDocument(): array

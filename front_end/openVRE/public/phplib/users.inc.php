@@ -2,6 +2,7 @@
 
 use OpenVRE\LoggerFactory;
 use OpenVRE\NotFoundException;
+use OpenVRE\Permission;
 use OpenVRE\User;
 use OpenVRE\UserStatus;
 use OpenVRE\UserType;
@@ -99,6 +100,10 @@ function createUserFromToken($login, $token, $userInfo = array(), $anonID = fals
             $userAttributes['secretsId'] = $userInfo['sub'];
         }
 
+        if (isset($userInfo['roles'])) {
+            $userAttributes['roles'] = explode(',', $userInfo['roles']);
+        }
+
         $_SESSION['allowedDatasetIds'] = [];
         if (isset($userInfo['ga4gh_passport_v1'])) {
             $gh4ghPassport = $userInfo['ga4gh_passport_v1'];
@@ -117,7 +122,7 @@ function createUserFromToken($login, $token, $userInfo = array(), $anonID = fals
         $_SESSION['tokenInfo'] = $userInfo;
     }
 
-    $objUser = new User($userAttributes['Email'], $userAttributes['secretsId'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "");
+    $objUser = new User($userAttributes['Email'], $userAttributes['secretsId'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", $userAttributes['roles']);
 
     $userArray = (array) $objUser;
     //load user in current session
@@ -288,6 +293,7 @@ function loadUserWithToken($user, $userInfo, $token)
     $auxlastlog = $user['lastLogin'];
     $user['lastLogin'] = moment();
     $user['secretsId'] = $userInfo['sub'];
+    $user['roles']     = explode(',', $userInfo['roles']);
     $_SESSION['userToken'] = $token;
     $_SESSION['tokenInfo'] = $userInfo;
 
@@ -407,4 +413,10 @@ function getUserJobPid($login, $pid)
     ));
 
     return $r['lastjobs'] ?? array();
+}
+
+function hasPermissions(string $userId, Permission $requiredPermission) {
+    $userPermissions = getUserPermissions($userId);
+
+    return in_array($requiredPermission->value, $userPermissions);
 }
