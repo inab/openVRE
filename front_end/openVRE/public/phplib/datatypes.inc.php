@@ -4,63 +4,42 @@
 /////// QUERY FILETYPES / DATATYPES
 /////////////////////////////////
 
-function getFileTypesList() {
+function getFileTypesList()
+{
 
-	$ft = $GLOBALS['fileTypesCol']->find(array(),array('_id' => 1));
+	$ft = $GLOBALS['fileFormatsCol']->find(array(), array('_id' => 1));
 
 	return iterator_to_array($ft);
-
 }
 
-function getDataTypesList() {
+function getDataTypesList()
+{
 
-	$dt = $GLOBALS['dataTypesCol']->find(array(),array('_id' => 1));
+	$dt = $GLOBALS['dataTypesCol']->find(array(), array('_id' => 1));
 
 	return iterator_to_array($dt);
-
 }
 
-function getDataTypeFromFileType($filetype) {
+function getDataTypeFromFileType($filetype)
+{
 
-	$dt = $GLOBALS['dataTypesCol']->find(array('file_types' => array('$in' => array($filetype))),array('_id' => 1));
+	$dt = $GLOBALS['dataTypesCol']->find(array('formats' => array('$in' => array($filetype))), array('_id' => 1));
 
 	return iterator_to_array($dt);
-
 }
 
-function getFileTypeFromExtension($fileExtension) {
-	$dataType = $GLOBALS['fileTypesCol']->find(['extension' => ['$in' => [$fileExtension]], ['_id' => 1]]);
+function getFileTypeFromExtension($fileExtension)
+{
+	$dataType = $GLOBALS['fileFormatsCol']->find(['extension' => ['$in' => [$fileExtension]], ['_id' => 1]]);
 	return iterator_to_array($dataType);
 }
 
-function getDataTypeName($datatype) {
+function getDataTypeName($datatype)
+{
 	$dt = $GLOBALS['dataTypesCol']->findOne(array('_id' => $datatype), array('name' => 1));
-	if (isset($dt['name'])){
+	if (isset($dt['name'])) {
 		return $dt['name'];
-	}else{
+	} else {
 		return $datatype;
 	}
-
-}
-
-function getFeaturesFromDataType($datatype, $filetype) {
-
-	$dt = $GLOBALS['dataTypesCol']->findOne(array('_id' => $datatype), array('assembly' => 1, 'taxon_id' => 1, 'paired' => 1, 'sorted' => 1, ));
-
-	$res = array();
-
-	$res["_id"] = $dt["_id"];
-	$res["taxon_id"] = false;
-	$res["assembly"] = false;
-	$res["paired"] = false;
-	$res["sorted"] = false;
-
-
-	if (isset($dt["taxon_id"])) $res["taxon_id"] = true;
-	if (isset($dt["assembly"]) && in_array($filetype,$dt["assembly"])) $res["assembly"] = true;
-	if (isset($dt["paired"]  ) && in_array($filetype,$dt["paired"])  ) $res["paired"] = true;
-	if (isset($dt["sorted"]  ) && in_array($filetype,$dt["sorted"])  ) $res["sorted"] = true;
-
-	return $res;
-
 }

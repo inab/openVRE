@@ -29,7 +29,7 @@ function loadToolButtons(tool) {
 			var cont_btns = '';
 
 			$.each(JSON.parse(data), function(k,v) {
-				cont_btns += '<a href="tools/' + tool + '/input.php?op=' + k + '"  class="cbp-l-inline-view btn blue btn-outline">' + v + '</a>';
+				cont_btns += '<a href="tools/' + tool + '/front/input.php?op=' + k + '"  class="cbp-l-inline-view btn blue btn-outline">' + v + '</a>';
 			});		
 
 			$("#btns-exc-tool").html(cont_btns);

@@ -4,9 +4,9 @@ FROM webdevops/php-apache:8.3
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
-RUN a2enmod proxy proxy_http ssl
-RUN apt install -y nodejs
-RUN apt-get install -y autoconf pkg-config libssl-dev
+RUN apt install -y nodejs npm
+RUN apt-get install -y autoconf pkg-config libssl-dev libapache2-mod-auth-openidc lua5.4 lua-socket
+RUN a2enmod proxy proxy_http ssl auth_openidc lua
 RUN docker-php-ext-install bcmath
 RUN echo "extension=mongodb.so" >> /usr/local/etc/php/conf.d/mongodb.ini
 RUN apt install -y docker.io
@@ -24,9 +24,9 @@ RUN apt-get update && apt-get install -y libmcrypt-dev \
     && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ \
     && docker-php-ext-install gd 
 
-RUN apt-get update && apt-get install gnupg curl
-RUN curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc |gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
-RUN echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] http://repo.mongodb.org/apt/debian bookworm/mongodb-org/7.0 main" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+RUN apt-get update && apt-get install -y gnupg curl
+RUN curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor
+RUN echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] http://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list
 RUN apt-get update
 RUN apt-get install -y mongodb-org
 
@@ -39,18 +39,17 @@ WORKDIR /var/www/html
 ADD openVRE /var/www/html/openVRE
 RUN cd openVRE
 WORKDIR /var/www/html/openVRE
+RUN npm ci
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN composer self-update
 RUN composer update --ignore-platform-req=ext-mongodb --ignore-platform-req=ext-mongodb
 RUN mkdir logs
 RUN touch logs/application.log
 RUN chmod -R 777 logs/application.log
+COPY --chmod=755 setup.sh /opt/docker/provision/entrypoint.d/front_end-setup.sh
 RUN cd public
-
-USER application
 
 WORKDIR /var/www/html/openVRE/public
 RUN pwd
-EXPOSE 443
-
-CMD setup.sh && /opt/docker/bin/entrypoint.sh supervisord
+EXPOSE 80
+# EXPOSE 443

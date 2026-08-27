@@ -1,6 +1,11 @@
 <?php
 
 require __DIR__ . "/../../config/bootstrap.php";
+
+use OpenVRE\UserStatus;
+use OpenVRE\UserType;
+
+
 redirectOutside();
 
 
@@ -8,7 +13,7 @@ redirectOutside();
 $help = (isset($_REQUEST['sec']) ? $_REQUEST['sec'] : "help");
 // get tool id
 if (! isset($_REQUEST['tool'])) {
-	$_SESSION['errorData']['error'][] = "Cannot find hep page. 'tool' parameter not received";
+	$_SESSION['errorData']['error'][] = "Cannot find help page. 'tool' parameter not received";
 	redirect($GLOBALS['BASEURL'] . "help/tools.php");
 }
 $tool = $_REQUEST['tool'];
@@ -21,7 +26,7 @@ else $tdev = array();
 
 if ((isset($_SESSION['User'])
 		&& ($user['Status'] == UserStatus::Active->value)
-		&& (allowedRoles($user['Type'], $GLOBALS['TOOLDEV']))
+		&& (in_array($user['Type'], $GLOBALS['TOOLDEV']))
 		&& (in_array($tool, $tdev))) ||
 	(isset($_SESSION['User'])
 		&& ($user['Status'] == UserStatus::Active->value)

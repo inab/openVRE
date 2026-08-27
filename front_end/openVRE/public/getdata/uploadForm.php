@@ -2,6 +2,7 @@
 
 require __DIR__ . "/../../config/bootstrap.php";
 redirectOutside();
+$includeEgaFiles = false;
 
 ?>
 
@@ -51,7 +52,8 @@ redirectOutside();
 										them over the area below. You can also
 										<a href="javascript:$('.nav-tabs a[href=\'#create_file\']').click();">create a text file</a> from
 										a sequence or <a href="javascript:$('.nav-tabs a[href=\'#load_from_url\']').click();">load a file</a>
-										to your workspace from an external URL.</p>
+										to your workspace from an external URL.
+									</p>
 
 								</div>
 
@@ -79,9 +81,9 @@ redirectOutside();
 										<li class="uppercase">
 											<a href="#load_from_url" data-toggle="tab"> Load file from an external URL </a>
 										</li>
-										<li class="uppercase">
+										<!-- <li class="uppercase">
 											<a href="#load_from_ega" data-toggle="tab"> Load file from EGA </a>
-										</li>
+										</li> -->
 									</ul>
 									<div class="tab-content">
 										<div class="tab-pane active" id="upload_files">
@@ -127,7 +129,7 @@ redirectOutside();
 
 											if (isset($_SESSION['errorData'])) {
 												if (isset($_SESSION['errorData']['Info'])) {
-													?>
+											?>
 													<div class="alert alert-info">
 													<?php
 												} else {
@@ -142,91 +144,93 @@ redirectOutside();
 														}
 														unset($_SESSION['errorData']);
 														?>
-													</div>
-
-												<?php } ?>
-
-												<form class="down-form" action="javascript:;" method="post">
-													<div class="alert alert-danger display-hide" id="alert-down-form2">
-														Error downloading file, please, try again.
-													</div>
-													<div class="form-group">
-														<label>External URL *</label>
-
-														<div class="input-icon">
-															<i class="fa-li fa fa-cloud-download font-green" style="line-height:10px;"></i>
-															<input type="url" class="form-control" id="dfUrl" name="url" placeholder="http://public/path/to/file">
-															<input type="hidden" id="dfUploadType" name="uploadType" value="url" />
-															<br />
-															<p style="font-size:0.9em"><i>For password-protected sites, include the credentials in the URL. Format: [protocol]://[username]:[password]@server/path/to/file.<br />Notice that strange characters should be UTF-8 codified.</i></p>
 														</div>
-														<button class="btn green" type="submit" id="btn-down-remote" style="margin-top:20px;">SEND DATA</button>
 
-														<div class="progress-bar-down progress display-hide" style="margin-top:20px;">
-															<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width:0%;">
-																<span class="sr-only"> 20% Complete </span>
+													<?php } ?>
+
+													<form class="down-form" action="javascript:;" method="post">
+														<div class="alert alert-danger display-hide" id="alert-down-form2">
+															Error downloading file, please, try again.
+														</div>
+														<div class="form-group">
+															<label>External URL *</label>
+
+															<div class="input-icon">
+																<i class="fa-li fa fa-cloud-download font-green" style="line-height:10px;"></i>
+																<input type="url" class="form-control" id="dfUrl" name="url" placeholder="http://public/path/to/file">
+																<input type="hidden" id="dfUploadType" name="uploadType" value="url" />
+																<br />
+																<p style="font-size:0.9em"><i>For password-protected sites, include the credentials in the URL. Format: [protocol]://[username]:[password]@server/path/to/file.<br />Notice that strange characters should be UTF-8 codified.</i></p>
 															</div>
+															<button class="btn green" type="submit" id="btn-down-remote" style="margin-top:20px;">SEND DATA</button>
+
+															<div class="progress-bar-down progress display-hide" style="margin-top:20px;">
+																<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width:0%;">
+																	<span class="sr-only"> 20% Complete </span>
+																</div>
+															</div>
+
 														</div>
 
+													</form>
 													</div>
-
-												</form>
-										</div>
-										<div class="tab-pane" id="load_from_ega">
-											<p> Load data from EGA </p>
-											<?php
-												try {
-													require 'fetchEgaDatasets.php';
-												} catch (Exception $e) {
-													$_SESSION['errorData']['Error']['EGA'] = 'Failed to fetch EGA datasets: ' . $e->getMessage();
-												}
-
-												try {
-													require 'egaFiles.php';
-												} catch (Exception $e) {
-													$_SESSION['errorData']['Error']['EGA'] = 'Failed to fetch EGA files: ' . $e->getMessage();
-												}
-
-												?>
-
-											<?php
-
-											if (isset($_SESSION['errorData']) && isset($_SESSION['errorData']['Error']) && isset($_SESSION['errorData']['Error']['EGA'])) {
-												if (isset($_SESSION['errorData']['Info'])) {
-													?>
-													<div class="alert alert-info">
-													<?php
-												} else {
-													?>
-														<div class="alert alert-warning">
-														<?php } ?>
-														<?php foreach ($_SESSION['errorData'] as $subTitle => $txts) {
-															print "$subTitle<br/>";
-															foreach ($txts as $txt) {
-																print "<div style=\"margin-left:20px;\">$txt</div>";
+													<?php if ($includeEgaFiles): ?>
+														<div class="tab-pane" id="load_from_ega">
+															<p> Load data from EGA </p>
+															<?php
+															try {
+																require 'fetchEgaDatasets.php';
+															} catch (Exception $e) {
+																$_SESSION['errorData']['Error']['EGA'] = 'Failed to fetch EGA datasets: ' . $e->getMessage();
 															}
-														}
-														unset($_SESSION['errorData']);
-														?>
-													</div>
 
-												<?php } ?>
+															try {
+																require 'egaFiles.php';
+															} catch (Exception $e) {
+																$_SESSION['errorData']['Error']['EGA'] = 'Failed to fetch EGA files: ' . $e->getMessage();
+															}
+
+															?>
+
+															<?php
+
+															if (isset($_SESSION['errorData']) && isset($_SESSION['errorData']['Error']) && isset($_SESSION['errorData']['Error']['EGA'])) {
+																if (isset($_SESSION['errorData']['Info'])) {
+															?>
+																	<div class="alert alert-info">
+																	<?php
+																} else {
+																	?>
+																		<div class="alert alert-warning">
+																		<?php } ?>
+																		<?php foreach ($_SESSION['errorData'] as $subTitle => $txts) {
+																			print "$subTitle<br/>";
+																			foreach ($txts as $txt) {
+																				print "<div style=\"margin-left:20px;\">$txt</div>";
+																			}
+																		}
+																		unset($_SESSION['errorData']);
+																		?>
+																		</div>
+
+																	<?php } ?>
+																	</div>
+														</div>
+													<?php endif; ?>
 										</div>
 									</div>
+									<!-- END TAB PORTLET-->
 								</div>
 							</div>
-							<!-- END TAB PORTLET-->
 						</div>
+						<!-- END CONTENT BODY -->
 					</div>
-				</div>
-				<!-- END CONTENT BODY -->
-			</div>
-			<!-- END CONTENT -->
+					<!-- END CONTENT -->
 
 
-			<?php
+					<?php
 
-			require "../htmlib/footer.inc.php";
-			require "../htmlib/js.inc.php";
+					require "../htmlib/footer.inc.php";
+					require "../htmlib/js.inc.php";
 
-			?>
+					?>

@@ -1,3 +1,10 @@
+<?php
+
+use OpenVRE\UserType;
+
+?>
+
+
 <div class="modal fade bs-modal" id="modalSessionExpired" tabindex="-1" role="basic" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -45,7 +52,7 @@
     </div>
 </div>
 
-<input type="hidden" id="type-of-user" value="<?php echo $_SESSION['User']['Type']->value; ?>" />
+<input type="hidden" id="type-of-user" value="<?php echo $_SESSION['User']['Type']; ?>" />
 
 <div class="modal fade bs-modal" id="modalLogoutGuest" tabindex="-1" role="basic" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -78,7 +85,7 @@
             <a href="cookies/">Our Cookie Policy</a>
         </div>
         <div class="mt-cookie-consent-bar-action">
-            <a href="javascript:;" class="mt-cookie-consent-btn btn green">Understand</a>
+            <a type="button" class="mt-cookie-consent-btn btn green">Understand</a>
         </div>
     </div>
 </div>

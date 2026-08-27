@@ -29,9 +29,11 @@ var CountdownToken = function () {
 
 				$("#token-exp-date").val("Token will expire in " + minutes.substr(-2) + "m " + seconds.substr(-2) + "s, at " + formattedTime);
 
-				if (distance < 0) {
+				if (distance < 30000) {
 					clearInterval(x);
-					$("#token-exp-date").val("This Token is expired...  It needs a refresh!");
+					$("#token-exp-date").val("Token is about to expire, refreshing...");
+					globalThis.location.href = 'applib/refreshToken.php?force=1';
+
 				}
 
 				iteration--;
@@ -43,50 +45,6 @@ var CountdownToken = function () {
 
 }();
 
-
-var CountdownRefreshToken = function () {
-
-	return {
-		//main function to initiate the module
-		init: function () {
-
-			var countDownDate = $('#exp-refrtoken').val() * 1000;
-
-			var iteration = 0;
-
-			var x = setInterval(function () {
-
-				//var now = new Date().getTime();
-				var now = ($('#curr-time').val() - iteration) * 1000;
-
-
-				var distance = countDownDate - now;
-
-				var hours = "0" + Math.floor((distance % (1000 * 60 * 60 * 60)) / (1000 * 60 * 60));
-				var minutes = "0" + Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-				var seconds = "0" + Math.floor((distance % (1000 * 60)) / 1000);
-
-				var d = new Date(countDownDate);
-				var h = "0" + d.getHours();
-				var m = "0" + d.getMinutes();
-
-				var formattedTime = h.substr(-2) + ':' + m.substr(-2) + ' CET (' + d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear() + ')';
-
-				$("#refrtoken-exp-date").val("Token will expire in " + hours.substr(-2) + "h " + minutes.substr(-2) + "m " + seconds.substr(-2) + "s, at " + formattedTime);
-
-				if (distance < 0) {
-					clearInterval(x);
-					$("#refrtoken-exp-date").val("This Token is expired...  It needs a refresh!");
-				}
-
-				iteration--;
-
-			}, 1000);
-
-		}
-	}
-
-}();
 
 var ComponentsClipboard = function () {
 
@@ -333,7 +291,6 @@ jQuery(document).ready(function () {
 	Profile.init();
 	ComponentsClipboard.init();
 	CountdownToken.init();
-	CountdownRefreshToken.init();
 
 });
 

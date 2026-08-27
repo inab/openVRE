@@ -1,0 +1,53 @@
+<tr data-tt-id="##tree_id##" data-tt-parent-id="##tree_id_parent##">
+
+<td>
+	<label style="padding-left: 30px;">
+		
+	</label>
+	##lastuploaded##
+</td>
+
+<td data-order="##name_sort_key##">
+	<a class="##state## truncate"  href="workspace/workspace.php?op=##openFunction##&fn=##_id_URL##" title="open file ##filename##" target="_blank">##filename##</a>
+    	<a href="javascript:viewFileMeta('##_id##', '##longfilename##', 1);" style="margin-left:3px;" class="font-yellow-saffron"><i class="fa fa-exclamation-triangle"></i></a>
+		</a>
+	<span style="color:#7f8c8d; font-size:11px; margin-left:5px;">
+		Synchronizing file metadata from remote server...
+	</span>
+</td>
+<td data-order="##format_sort_key##">##format##</td>
+<td></td>
+<td title="##execution##" data-order="##execution_sort_key##"><span class="truncate">##execution##</span></td>
+<td title="##mtime##" data-order="##date_sort_key##"><span class="truncate2" title="##mtime##">##mtime##</span></td>
+<td data-order="##size_sort_key##">##size##</td>
+<td>
+	<div class="btn-group" style="float:left; position:absolute; margin-top:-10px!important;">
+    	<button class="btn btn-xs blue-madison dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
+				<i class="fa fa-cogs"></i>
+				<i class="fa fa-angle-down"></i>
+		</button>
+	  <ul class="dropdown-menu pull-right" role="menu">
+			##metadataLink##
+			##renameLink##
+			<li><a href="workspace/workspace.php?op=downloadFile&fn=##_id_URL##"><i class="fa fa-download"></i> Download file </a></li>
+			<li><a href="javascript:deleteFile('##_id_URL##');"><i class="fa fa-trash-o"></i> Delete file </a></li>
+			##compressionLink##
+		</ul>
+	</div>
+	<!--<div class="btn-group">
+    	<button class="btn btn-xs green dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false"> Actions
+			<i class="fa fa-angle-down"></i>
+		</button>
+	  <ul class="dropdown-menu pull-right" role="menu">
+			##metadataLink##
+			<li><a href="workspace/workspace.php?op=downloadFile&fn=##_id_URL##"><i class="fa fa-download"></i> Download file </a></li>
+			<li><a href="javascript:deleteFile('##_id_URL##');"><i class="fa fa-trash-o"></i> Delete file </a></li>
+			##compressionLink##
+		</ul>
+	</div>-->
+</td>
+<td>##tree_sort##</td>
+<td>##parent_tree_sort##</td>
+<td>##size_parent##</td>
+ </tr>
+

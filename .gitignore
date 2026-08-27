@@ -1,9 +1,17 @@
+#Environmental variables
 .env
 composer.lock
 front_end/openVRE/config/globals.inc.php
+shared_data
+tools/*
+!tools/mock_tool
+vault/config/public-key.pem
+vault/file/*
 vault/config/jwt-user-policies.hcl
 vault/config/public-key.pem
 vendor/
+volumes/
+
 *.cnf
 *.crt
 *.csr
@@ -11,3 +19,7 @@ vendor/
 *.pem
 *.srl
 .jwks
+
+# Python
+__pycache__/
+*.pyc
