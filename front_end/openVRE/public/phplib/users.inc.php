@@ -124,7 +124,7 @@ function createUserFromToken($login, $token, $userInfo = array(), $anonID = fals
 
     $objUser = new User($userAttributes['Email'], $userAttributes['secretsId'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", $userAttributes['roles']);
 
-    $userArray = (array) $objUser;
+    $userArray = $objUser->toDocument();
     //load user in current session
     $_SESSION['userId'] = $userArray['id']; //OBSOLETE
     $_SESSION['User'] = $userArray;
