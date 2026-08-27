@@ -8,13 +8,16 @@ tools/*
 vault/config/public-key.pem
 vault/file/*
 vault/config/jwt-user-policies.hcl
+vault/config/public-key.pem
 vendor/
-
-#Volumes environment
 volumes/
+
+*.cnf
 *.crt
+*.csr
 *.key
 *.pem
+*.srl
 .jwks
 
 # Python

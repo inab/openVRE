@@ -22,6 +22,7 @@ cd openVRE-core-dev
 ```
 
 ## Configuration
+## Configuration
 
 First thing, is to create and configure your own  `.env` file:
 
@@ -48,10 +49,18 @@ Run the `docker-compose.yml` file once you have set up your OpenVRE instance wit
 
 ``` bash
 docker compose --profile "local_auth" up -d 
+Run the `docker-compose.yml` file once you have set up your OpenVRE instance with the following command: 
+
+``` bash
+docker compose --profile "local_auth" up -d 
 ```
 
 and check the status of the resulting containers:
 
+
+and check the status of the resulting containers:
+
 ```
+docker ps
 docker ps
 ```

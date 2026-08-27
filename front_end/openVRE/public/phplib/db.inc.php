@@ -2,20 +2,30 @@
 
 require_once __DIR__ . "/../../vendor/autoload.php";
 
-$connectionUri = "mongodb://" . getenv('MONGO_CREDENTIALS') . "@" . getenv('MONGO_SERVER') . "/?authSource=" . getenv('MONGO_MAIN_DB');
-$VREConn =  new MongoDB\Client(
-	$connectionUri,
-	array(
-		'readConcernLevel' => 'local'
-	),
-	array(
-		'typeMap' => array(
-			'root'     => 'array',
-			'document' => 'array',
-			'array'    => 'array'
+try {
+	$connectionUri = getenv('MONGO_TLS_MODE') == "requireTLS"
+		? "mongodb://" . getenv('MONGO_CREDENTIALS') . "@" . getenv('MONGO_SERVER') . "/?authSource=" . getenv('MONGO_MAIN_DB') . "&tls=true&tlsCAFile=" . getenv('MONGO_CA_FILE') . "&tlsCertificateKeyFile=" . getenv('MONGO_CERT_KEYFILE')
+		: "mongodb://" . getenv('MONGO_CREDENTIALS') . "@" . getenv('MONGO_SERVER') . "/?authSource=" . getenv('MONGO_MAIN_DB');
+
+	$VREConn =  new MongoDB\Client(
+		$connectionUri,
+		array(
+			'readConcernLevel' => 'local'
+		),
+		array(
+			'typeMap' => array(
+				'root'     => 'array',
+				'document' => 'array',
+				'array'    => 'array'
+			)
 		)
-	)
-);
+	);
+} catch (MongoConnectionException $e) {
+	error_log($e->getMessage());
+	header('Location: ' . $GLOBALS['BASEURL'] . '/htmlib/errordb.php?msg=Cannot connect to VRE MuG database');
+} catch (MongoException $e) {
+	die('Error: ' . $e->getMessage());
+}
 
 // create handlers
 
