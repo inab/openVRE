@@ -1,16 +1,27 @@
 <?php
 
-/*
- * users.inc.php
- * 
- */
+use OpenVRE\LoggerFactory;
+use OpenVRE\NotFoundException;
+use OpenVRE\Permission;
+use OpenVRE\User;
+use OpenVRE\UserStatus;
+use OpenVRE\UserType;
 
-//require_once "classes/User.php";
+
+function getUsersLogger()
+{
+    static $logger = null;
+
+    if ($logger === null) {
+        $logger = LoggerFactory::getLogger('Users interface');
+    }
+
+    return $logger;
+}
 
 
 function checkLoggedIn()
 {
-
     if (isset($_SESSION['User']) && isset($_SESSION['User']['_id'])) {
         $user = getUserById($_SESSION['User']['_id']);
     }
@@ -27,23 +38,34 @@ function checkAdmin()
 {
     $user = getUserById($_SESSION['User']['_id']);
 
-    return isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (allowedRoles($user['Type'], $GLOBALS['ADMIN']));
+    return isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (in_array($user['Type'], $GLOBALS['ADMIN']));
 }
 
 function checkToolDev()
 {
     $user = getUserById($_SESSION['User']['_id']);
 
-    return isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (allowedRoles($user['Type'], $GLOBALS['TOOLDEV']) || allowedRoles($user['Type'], $GLOBALS['ADMIN']));
+    return isset($_SESSION['User']) && ($user['Status'] == UserStatus::Active->value) && (in_array($user['Type'], $GLOBALS['TOOLDEV']) || in_array($user['Type'], $GLOBALS['ADMIN']));
 }
 
+
+function base64UrlDecode($input)
+{
+    $remainder = strlen($input) % 4;
+    if ($remainder) {
+        $padlen = 4 - $remainder;
+        $input .= str_repeat('=', $padlen);
+    }
+    return base64_decode(strtr($input, '-_', '+/'));
+}
+
+
 // create user - after being authentified by the Auth Server
-function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID = false)
+function createUserFromToken($login, $token, $userInfo = array(), $anonID = false)
 {
     if (!$anonID) {
         $userAttributes = array(
             "Email"        => $login,
-            "JWT"          => $jwt,
             "Type"         => UserType::Registered->value
         );
     } else {
@@ -51,134 +73,90 @@ function createUserFromToken($login, $token, $jwt, $userinfo = array(), $anonID 
         // overwrite currently logged anon user
         if ($userAttributes) {
             $userAttributes["Email"] = $login;
-            $userAttributes["JWT"]   = $jwt;
             $userAttributes["Type"]  = UserType::Registered->value;
         } else {
             $userAttributes = array(
                 "Email"        => $login,
-                "JWT"          => $jwt,
                 "Type"         => UserType::Registered->value
             );
         }
     }
 
     $_SESSION['userToken'] = $token;
-    if (isset($userinfo) && $userinfo) {
-        if (isset($userinfo['family_name'])) {
-            $userAttributes['Surname'] = $userinfo['family_name'];
+    if (isset($userInfo) && $userInfo) {
+        if (isset($userInfo['family_name'])) {
+            $userAttributes['Surname'] = $userInfo['family_name'];
         }
 
-        if (isset($userinfo['given_name'])) {
-            $userAttributes['Name'] = $userinfo['given_name'];
+        if (isset($userInfo['given_name'])) {
+            $userAttributes['Name'] = $userInfo['given_name'];
         }
 
-        if (isset($userinfo['provider'])) {
-            $userAttributes['AuthProvider'] = $userinfo['provider'];
+        if (isset($userInfo['provider'])) {
+            $userAttributes['AuthProvider'] = $userInfo['provider'];
         }
 
-        if (isset($userinfo['sub'])) {
-            $userAttributes['secretsId'] = $userinfo['sub'];
+        if (isset($userInfo['sub'])) {
+            $userAttributes['secretsId'] = $userInfo['sub'];
         }
 
-        $_SESSION['tokenInfo'] = $userinfo;
+        if (isset($userInfo['roles'])) {
+            $userAttributes['roles'] = explode(',', $userInfo['roles']);
+        }
+
+        $_SESSION['allowedDatasetIds'] = [];
+        if (isset($userInfo['ga4gh_passport_v1'])) {
+            $gh4ghPassport = $userInfo['ga4gh_passport_v1'];
+
+            foreach ($gh4ghPassport as $gh4ghVisaJwt) {
+                $gh4ghVisaTokenParts = explode(".", $gh4ghVisaJwt);
+                $gh4ghTokenPayload = base64UrlDecode($gh4ghVisaTokenParts[1]);
+                $gh4ghJwtPayload = json_decode($gh4ghTokenPayload);
+
+                if ($gh4ghJwtPayload->ga4gh_visa_v1->type == "ControlledAccessGrants") {
+                    array_push($_SESSION['allowedDatasetIds'], $gh4ghJwtPayload->ga4gh_visa_v1->value);
+                }
+            }
+        }
+
+        $_SESSION['tokenInfo'] = $userInfo;
     }
 
-    $objUser = new User($userAttributes['Email'], $userAttributes['secretsId'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", $userAttributes['JWT']);
-    if (!$objUser) {
-        return false;
-    }
+    $objUser = new User($userAttributes['Email'], $userAttributes['secretsId'], $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", $userAttributes['roles']);
 
-    $userArray = (array) $objUser;
+    $userArray = $objUser->toDocument();
     //load user in current session
     $_SESSION['userId'] = $userArray['id']; //OBSOLETE
     $_SESSION['User'] = $userArray;
 
     // create user directory
     if (!$userArray['dataDir']) {
+        getUsersLogger()->debug("Creating workspace for user: " . $userArray['id']);
         // create new workspace
         $dataDirId =  prepUserWorkSpace($userArray['id'], $userArray['activeProject']);
-        if (!$dataDirId) {
-            $_SESSION['errorData']['Error'][] = "Error creating data dir";
-
-            return false;
-        }
-
         $userArray['dataDir'] = $dataDirId;
         $_SESSION['User']['dataDir'] = $dataDirId;
-    } else {
-        // change ownership for re-used  workspace
-        $workspace_files = getGSFileIdsFromDir($userArray['dataDir'], 1);
-        foreach ($workspace_files as $fn) { // TODO: complete or remove
-        }
+        getUsersLogger()->info("Workspace created for user: " . $userArray['id']);
     }
 
     // register user in mongo. NOT in ldap, as user exists for a oauth2 provider
-    $r = saveNewUser($userArray);
-    if (!$r) {
-        $_SESSION['errorData']['Error'][] = "User creation failed while registering it into the database. Please, manually clean orphan files for " . $userArray['id'] . "(" . $dataDirId . ")";
-        echo 'Error saving new user into Mongo database';
+    try {
+        getUsersLogger()->debug("Saving new user into Mongo database");
+        saveNewUser($userArray);
+    } catch (Exception $e) {
+        getUsersLogger()->error("Error saving new user into Mongo database");
         unset($_SESSION['User']);
-
-        return false;
-    }
-    if ($anonID) { // TODO: complete or remove
-        // if replacing anon user, delete old anon from mongo
-        //    	$GLOBALS['usersCol']->deleteOne(array('_id'=> $anonID));    
+        throw $e;
     }
 
     // if not all user metadata mapped from oauth2 provider, ask the user
     if (!$userArray['Name'] || !$userArray['Surname'] || !$userArray['Inst']) {
+        getUsersLogger()->info("User metadata incomplete, redirecting to profile page");
         redirect($GLOBALS['BASEURL'] . 'user/usrProfile.php');
         exit(0);
     }
 
-    return true;
-}
-
-
-// create anonymous user - without being authentified by the Auth Server
-function createUserAnonymous($sampleData)
-{
-    $userAttributes = array(
-        "Email"        => substr(md5(rand()), 0, 25) . "",
-        "Type"         => UserType::Guest->value,
-        "Name"         => "Guest",
-        "Surname"      => "",
-        "AuthProvider" => "VRE"
-    );
-
-    $objUser = new User($userAttributes['Email'], "", $userAttributes['Surname'], $userAttributes['Name'], "", $userAttributes['Type'], "", "", $userAttributes['AuthProvider'], "", "");
-    if (!$objUser) {
-        return false;
-    }
-
-    $userArray = (array) $objUser;
-    $_SESSION['userId'] = $userArray['id']; //TODO: OBSOLETE?
-    $_SESSION['User']   = $userArray;
-    $_SESSION['anonID'] = $userArray['Email'];
-
-    $dataDirId = prepUserWorkSpace($userArray['id'], $userArray['activeProject'], $sampleData);
-    if (!$dataDirId) {
-        $_SESSION['errorData']['Error'][] = "Error creating data dir";
-        return false;
-    }
-
-    $userArray['dataDir'] = $dataDirId;
-    $userArray['terms']  =  "1";
-    $_SESSION['User']['dataDir'] = $dataDirId;
-    $_SESSION['User']['terms'] = "1";
-
-    // register user in mongo. NOT in ldap nor in the oauth2 provider
-    $r = saveNewUser($userArray);
-    if (!$r) {
-        $_SESSION['errorData']['Error'][] = "User creation failed while registering it into the database. Please, manually clean orphan files for " . $userArray['id'] . "(" . $dataDirId . ")";
-        echo 'Error saving new user into Mongo database';
-        unset($_SESSION['User']);
-
-        return false;
-    }
-
-    return true;
+    return $userArray;
 }
 
 
@@ -201,7 +179,7 @@ function getUsersByFilter($filter, $options = array())
 
 
 // load user to SESSION
-function setUser($f, $lastLogin = FALSE)
+function setUser($f, $lastLogin = false)
 {
     $aux = (array)$f;
     $_SESSION['User']   = $aux;
@@ -210,112 +188,31 @@ function setUser($f, $lastLogin = FALSE)
     if (!isset($_SESSION['lastUserLogin']) && $lastLogin) $_SESSION['lastUserLogin'] = $lastLogin;
 }
 
-function delUser($id, $asRoot = 1, $force = false)
+
+//delete user data from Mongo and disk
+function delUser($id)
 {
-
-    //delete data from Mongo and disk
-
     $homePath =  $id;
-    $homeId = getGSFileId_fromPath($homePath, $asRoot);
-    if (!$homeId) {
-        $homePath =  "$id/";
-        $homeId = getGSFileId_fromPath($homePath, $asRoot);
+    $homeId = getGSFileId_fromPath($homePath, 1);
+    if (is_null($homeId)) {
+        getUsersLogger()->error("Cannot delete directory from database.");
+        throw new NotFoundException("Cannot delete directory from database. Path $homePath not found.");
     }
 
-    if ($homeId) {
-        $home   = getGSFile_fromId($homeId, "all", $asRoot);
-
-        $r = deleteGSDirBNS($homeId, $asRoot, $force);
-        if ($r == 0) {
-            $_SESSION['errorData']['Error'][] = "Cannot delete $homeId directory from database.";
-            if (!$force) {
-                return 0;
-            }
-        }
-    } else {
-        if (!$force) {
-            $_SESSION['errorData']['Error'][] = "Cannot delete user. It has no data registered, at least homeDir '$id/' is not found in DB";
-            return 0;
-        }
-    }
+    deleteGSDirBNS($homeId, 1);
 
     $rfn =  $GLOBALS['dataDir'] . "/" . $homePath;
     if (is_dir($rfn)) {
         exec("rm -r \"$rfn\" 2>&1", $output);
     }
 
-    //delete user from mongo
     $GLOBALS['usersCol']->deleteOne(array('id' => $id));
-
-    return 1;
-}
-
-
-function injectMugIdToKeycloak($login, $id)
-{
-
-    $kc_token = get_keycloak_admintoken();
-
-    if ($kc_token  && isset($kc_token['access_token'])) {
-        $kc_user = get_keycloak_user($login, $kc_token['access_token']);
-        print "\n\n\nKC USER\n";
-        var_dump($kc_user);
-        if ($kc_user && isset($kc_user['id'])) {
-            $attributes = array();
-            if ($kc_user['attributes'])
-                $attributes = $kc_user['attributes'];
-            $attributes['vre_id'] = array($id);
-            $data = array("attributes" => $attributes);
-            print "\nPOST DATA\n";
-            var_dump(json_encode($data));
-            $r = update_keycloak_user($kc_user['id'], json_encode($data), $kc_token['access_token']);
-
-            if (!$r) {
-                $_SESSION['errorData']['Warning'][] = "User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Cannot update " . $aux['_id'] . " in its registry";
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            $_SESSION['errorData']['Warning'][] = "User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Cannot get " . $aux['_id'] . " from its registry";
-            return false;
-        }
-    } else {
-        $_SESSION['errorData']['Warning'][] = "User not valid to be used outside VRE. Could not inject 'vre_id' into Auth Server. Token not created";
-        return false;
-    }
-}
-
-function resetPasswordViaKeycloak($login, $id)
-{
-
-    $kc_token = get_keycloak_admintoken();
-
-    if ($kc_token  && isset($kc_token['access_token'])) {
-        $kc_user = get_keycloak_user($login, $kc_token['access_token']);
-        if ($kc_user && isset($kc_user['id'])) {
-
-            $r = update_keycloak_userPass($kc_user['id'], $kc_token['access_token']);
-
-            if (!$r) {
-                $_SESSION['errorData']['Warning'][] = "Cannot reset password from VRE. Cannot update " . $aux['_id'] . " registration entry";
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            $_SESSION['errorData']['Warning'][] = "Cannot reset password from VRE.";
-            return false;
-        }
-    } else {
-        $_SESSION['errorData']['Warning'][] = "Cannot reset password from VRE. Token not created";
-        return false;
-    }
 }
 
 
 function logoutUser()
 {
+    getUsersLogger()->info("User " . $_SESSION['User']['id'] . " logging out");
     session_unset();
 }
 
@@ -328,12 +225,7 @@ function logoutAnon()
 
 function saveNewUser($user)
 {
-    $r = $GLOBALS['usersCol']->insertOne($user);
-    if (!$r) {
-        return false;
-    }
-
-    return true;
+    return $GLOBALS['usersCol']->insertOne($user);
 }
 
 function updateUser($user)
@@ -358,27 +250,25 @@ function loadUser($login, $pass)
 {
     // check user exists
     $user = getUserById($login);
-    if (!$user['_id'] || $user['Status'] == UserStatus::Inactive->value) {
-        $_SESSION['errorData']['Error'][] = "Requested user (_id = $login) not found. Cannot load user.";
-        return False;
+    if (empty($user['_id']) || $user['Status'] == UserStatus::Inactive->value) {
+        getUsersLogger()->error("Requested user (_id = $login) not found. Cannot load user.");
+        throw new NotFoundException("Requested user (_id = $login) not found. Cannot load user.");
     }
+
     // check pass/token verifies - except when loading an ANON or when impersonating
     $pass_verified =  check_password($pass, null);
-    $impersonating =  (isset($_SESSION['User']) && $_SESSION['User']['Type'] == UserType::Admin->value && $pass == 99 ? TRUE : FALSE);
-    $loadingAnon   =  ($user['Type'] == UserType::Guest ? TRUE : FALSE);
+    $impersonating =  isset($_SESSION['User']) && $_SESSION['User']['Type'] == UserType::Admin->value && $pass == 99;
+    $loadingAnon   =  $user['Type'] == UserType::Guest;
 
     if (!$pass_verified) {
         if (!$loadingAnon  && !$impersonating) {
-            //$_SESSION['errorData']['Error'][]="Trying to load user without password from SESSION data. Rejected!";
             // keep open SESSION
             $user['lastReload'] = moment();
             updateUser($user);
             setUser($user);
-            return False;
-        } else {
-            if ($impersonating) {
-                $_SESSION['errorData']['Info'][] = "User $login successfully impersonated!";
-            }
+            return;
+        } elseif ($impersonating) {
+            getUsersLogger()->info("User $login successfully impersonated");
         }
     }
 
@@ -387,48 +277,51 @@ function loadUser($login, $pass)
     $user['lastLogin'] = moment();
     updateUser($user);
 
-
-    // load user into SESSION 
+    // load user into SESSION
     setUser($user, $auxlastlog);
 
     return $user;
 }
 
-function loadUserWithToken($userinfo, $token, $jwt)
+function loadUserWithToken($user, $userInfo, $token)
 {
-    $user = getUserById($userinfo['email']);
-    if (!$user['_id'] || $user['Status'] == UserStatus::Inactive->value) {
-        return false;
+    if ($user['Status'] == UserStatus::Inactive->value) {
+        getUsersLogger()->error("Requested user is inactive. Cannot load user.");
+        throw new UnexpectedValueException("Requested user is inactive. Cannot load user.");
     }
 
     $auxlastlog = $user['lastLogin'];
     $user['lastLogin'] = moment();
+    $user['secretsId'] = $userInfo['sub'];
+    $user['roles']     = explode(',', $userInfo['roles']);
     $_SESSION['userToken'] = $token;
-    $_SESSION['tokenInfo'] = $userinfo;
+    $_SESSION['tokenInfo'] = $userInfo;
+
+    $_SESSION['allowedDatasetIds'] = [];
+    if (isset($userInfo['ga4gh_passport_v1'])) {
+        $gh4ghPassport = $userInfo['ga4gh_passport_v1'];
+
+        foreach ($gh4ghPassport as $gh4ghVisaJwt) {
+            $gh4ghVisaTokenParts = explode(".", $gh4ghVisaJwt);
+            $gh4ghTokenPayload = base64UrlDecode($gh4ghVisaTokenParts[1]);
+            $gh4ghJwtPayload = json_decode($gh4ghTokenPayload);
+
+            if ($gh4ghJwtPayload->ga4gh_visa_v1->type == "ControlledAccessGrants") {
+                array_push($_SESSION['allowedDatasetIds'], $gh4ghJwtPayload->ga4gh_visa_v1->value);
+            }
+        }
+    }
 
     updateUser($user);
     setUser($user, $auxlastlog);
 
     $_SESSION['userVaultInfo'] = array(
-        "jwt"          => $jwt ??  "",
         "vaultKey"     => null,
-        "secretPath"   => $GLOBALS['secretPath'] ?? '',
-        "vaultRolename" => $GLOBALS['vaultRolename'] ?? '',
-        "vaultUrl"     => $GLOBALS['vaultUrl'] ?? ''
     );
 
     return $user;
 }
 
-function allowedRoles($role, $allowed)
-{
-
-    if (in_array($role, $allowed)) {
-        return true;
-    } else {
-        return false;
-    }
-}
 
 function getUser_diskQuota($login)
 {
@@ -442,6 +335,7 @@ function getUser_diskQuota($login)
 
 function saveUserJobs($login, $jobInfo)
 {
+    getUsersLogger()->debug("Updating user $login with job data: " . json_encode($jobInfo));
     $GLOBALS['usersCol']->updateOne(
         array('_id' => $login),
         array('$set'   => array('lastjobs' => $jobInfo)),
@@ -451,25 +345,28 @@ function saveUserJobs($login, $jobInfo)
 
 function delUserJob($login, $pid)
 {
+    getUsersLogger()->debug("Deleting job $pid from user $login");
     $GLOBALS['usersCol']->updateOne(
         array('_id' => $login),
         array('$unset' => array("lastjobs.$pid" => 1))
     );
-    //array('$pull' => array("lastjobs" => $pid ))
-    //multi
 }
+
 
 function addUserJob($login, $data, $pid)
 {
     $pid = strval($pid);
     $lastjobs = getUserJobs($login);
     $lastjobs[$pid] = $data;
+    getUsersLogger()->debug("Adding job $pid to user $login");
+    getUsersLogger()->debug("Job data: " . json_encode($data));
     $GLOBALS['usersCol']->updateOne(
         array('_id' => $login),
         array('$set'   => array('lastjobs' => $lastjobs)),
         array('upsert' => true)
     );
 }
+
 
 function getUserJobs($login)
 {
@@ -516,4 +413,10 @@ function getUserJobPid($login, $pid)
     ));
 
     return $r['lastjobs'] ?? array();
+}
+
+function hasPermissions(string $userId, Permission $requiredPermission) {
+    $userPermissions = getUserPermissions($userId);
+
+    return in_array($requiredPermission->value, $userPermissions);
 }

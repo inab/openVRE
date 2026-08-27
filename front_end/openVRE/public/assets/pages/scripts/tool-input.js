@@ -15,7 +15,7 @@ function openHelp() {
 
 }
 
-// Alejandro: Temporal fix: lengthMenu SHOW ALL rows a get rid of pagination. Until we find
+// Temporal fix: lengthMenu SHOW ALL rows a get rid of pagination. Until we find
 // how to Select All fn can check all pages and not just the first one.
 // ORIGINAL: "lengthMenu": [[10,20],[10,20]]
 var createDatatable = function() {
@@ -165,7 +165,7 @@ var createModal = function() {
 					obj.help +
 	                                '</div>'+
 	                                '<li style="list-style-type: none">Edit your file\'s metadata finding your file in the <span class="btn green btn-xs"><i class="fa fa-desktop"></i> User workspace</span>, and selecting from there the file\'s toolkit: <button class="btn btn-xs blue-madison dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true"><i class="fa fa-cogs"></i><i class="fa fa-angle-down"></i></button><i class="fa fa-caret-right"></i><span class="btn blue-madison btn-xs"><i class="fa fa-pencil"></i>Edit Metadata</span> </li> ' +
-	                                '<li style="list-style-type: none; margin-top:18px;"><a target="_blank" href="' + baseURL + 'tools/' + $("input[name=tool]").val() + '/help/inputs.php" style="margin-top:-3px;">Go to the extended tool\'s help</a></li>' +
+	                                '<li style="list-style-type: none; margin-top:18px;"><a target="_blank" href="' + baseURL + 'tools/' + $("input[name=tool]").val() + '/front/help/inputs.php" style="margin-top:-3px;">Go to the extended tool\'s help</a></li>' +
 	                                '</ul>' +
 					'</div>'
 				);
@@ -265,7 +265,7 @@ var createModal = function() {
 	    //console.log(selectedFiles);
 	}
 
-	// Alejandro: Select All fn
+	// Select All fn
 	changeAllCheckbox = function(op, name, id, path, execution) {
 		names = name.split(" ");
 		ids = id.split(" ");

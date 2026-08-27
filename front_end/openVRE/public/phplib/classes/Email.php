@@ -1,5 +1,7 @@
 <?php
 
+namespace OpenVRE;
+
 class Email {
 
     public $_id; //= timestamp

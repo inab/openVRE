@@ -1,5 +1,9 @@
 <?php
 require __DIR__ . "/../../config/bootstrap.php";
+
+use OpenVRE\UserType;
+
+
 redirectOutside();
 
 $asRoot = checkAdmin();
@@ -14,7 +18,7 @@ if ($_REQUEST["type"] != 2) {
 	$job = getUserJobPid($login, $_REQUEST["id"]);
 	$mt = $job[$_REQUEST["id"]];
 	$job_path = getAttr_fromGSFileId($mt["_id"], "path", $asRoot);
-	if ($job_path) {
+	if (isset($job_path)) {
 		$mt["path"] = $job_path;
 	}
 }
@@ -71,12 +75,12 @@ if (!$mt) {
 
 							// Validated
 
-							if (!isset($mt["validated"]) || $mt["validated"]) {
-								$mt['validated'] = "TRUE";
+							if (is_null($mt["validated"]) || $mt["validated"]) {
+								$mt['validated'] = "true";
 							} else {
-								$mt['validated'] = "FALSE";
+								$mt['validated'] = "false";
 							}
-							if ($mt['validated'] == "FALSE") {
+							if ($mt['validated'] == "false") {
 ?>
 	<table class="table table-striped table-bordered">
 		<tbody>
@@ -88,7 +92,7 @@ if (!$mt) {
 			<tr>
 				<td><?php echo nl2br($mt["validated"]); ?>
 					&nbsp;&nbsp;
-					<?php if ($mt["validated"] == "FALSE") { ?>
+					<?php if ($mt["validated"] == "false") { ?>
 						<a style="margin-left:10px;" href="getdata/editFile.php?fn[]=<?php echo $mt["_id"]; ?>" class="btn btn-xs green">Validate Metadata</a>
 					<?php } ?>
 				</td>
@@ -97,35 +101,10 @@ if (!$mt) {
 	</table>
 <?php
 							}
-
-
 							// Data_type, file_type, and OTHER METADATA (for files)
-
 							if ($_REQUEST["type"] == 1) {
 								// show data_type, file_type
 								$dt = $GLOBALS['dataTypesCol']->findOne(array('_id' => $mt["data_type"]));
-
-								// show taxon_id and assembly
-								if (!isset($mt["oeb_dataset_id"])) {
-									$datasetId = "N/A";
-								} else {
-									$datasetId = $mt['oeb_dataset_id'];
-								}
-								if (!isset($mt["oeb_community_ids"])) {
-									$community  = "N/A";
-								} else {
-									$communities = getCommunities();
-									if (!is_array($mt['oeb_community_ids'])) {
-										$mt['oeb_community_ids'] = array($mt['oeb_community_ids']);
-									}
-									foreach ($mt['oeb_community_ids'] as $comm) {
-										if (isset($communities[$comm])) {
-											$community = '<a href="https://openebench.bsc.es/html/scientific/' . $comm . '" target="_blank">' . $communities[$comm]["acronym"] . '</a> ';
-										} else {
-											$community = "$comm";
-										}
-									}
-								}
 
 ?>
 	<table class="table table-striped table-bordered">
@@ -136,9 +115,9 @@ if (!$mt) {
 			</tr>
 			<tr>
 				<td><?php echo $dt["name"];
-								if (!isset($dt["name"])) echo "N/A"; ?></td>
+								if (is_null($dt["name"])) echo "N/A"; ?></td>
 				<td><?php echo $mt["format"];
-								if (!isset($mt["format"])) echo "N/A"; ?></td>
+								if (is_null($mt["format"])) echo "N/A"; ?></td>
 			</tr>
 		</tbody>
 	</table>
@@ -155,9 +134,9 @@ if (!$mt) {
 				<tr>
 					<td><?php echo $mt["paired"] . " end"; ?></td>
 					<td><?php if ($mt["sorted"] == "sorted") {
-										echo "TRUE";
+										echo "true";
 									} else {
-										echo "FALSE";
+										echo "false";
 									} ?></td>
 				</tr>
 			</tbody>
@@ -256,7 +235,7 @@ if (isset($mt['input_files']) || $mt['source_url']) {
 										print "Data externally loaded or created";
 									} else {
 										$path = getAttr_fromGSFileId($inp, 'path', $asRoot);
-										if ($path) {
+										if (isset($path)) {
 											print printFilePath_fromPath($path, $asRoot);
 										} else {
 											print "Data provenance lost. Internally annotated as $inp";
@@ -342,7 +321,7 @@ if (isset($mt["arguments"])) {
 								foreach ($v as $val) echo $val . "<br>";
 								echo "</td></tr>";
 							} elseif (gettype($v) == "boolean") {
-								$v = ($v ? "TRUE" : "FALSE");
+								$v = ($v ? "true" : "false");
 								echo "<tr><td>$k</td><td>$v</td></tr>";
 							} else {
 								echo "<tr><td>$k</td><td>$v</td></tr>";
@@ -362,7 +341,7 @@ if (isset($mt["arguments"])) {
 // cloudName, memory and cpus
 $mem = "";
 $cpus = "";
-if (!isset($mt['cloudName']) || strlen($mt["cloudName"]) == 0)
+if (is_null($mt['cloudName']) || strlen($mt["cloudName"]) == 0)
 	$mt['cloudName'] = $GLOBALS['cloud'];
 
 if (isset($mt['imageType'])) {
@@ -410,7 +389,7 @@ if ($_SESSION['User']['Type'] ==  UserType::Admin->value || $_SESSION['User']['T
 	<table class="table table-striped table-bordered">
 		<tbody>
 			<tr>
-				<th style="background-color: #e7ecf1;"><b>Metadata resource - <a href="http://multiscale-genomics.readthedocs.io/projects/mg-dm-api/rest.html" title="Data Management RESTful API" target="_blank">DMP</a></b></th>
+				<th style="background-color: #e7ecf1;"><b>Metadata resource - <a href="" title="Data Management RESTful API" target="_blank">DMP</a></b></th>
 			</tr>
 			<tr>
 				<td>
@@ -471,7 +450,7 @@ if ($_SESSION['User']['Type'] ==  UserType::Admin->value || $_SESSION['User']['T
 	if (file_exists($mt['log_file'])) { ?>
 		<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['log_file']); ?>" class="btn green" target="_blank"><i class="fa fa-file-text-o"></i> VIEW LOG FILE </a>
 	<?php } else { ?>
-		<a href="javascript:;" class="btn grey tooltips" data-container="body" data-html="true" data-placement="bottom" data-original-title="<p align='left' style='margin:0'>Fie not available</p>"><i class="fa fa-exclamation-triangle"></i> VIEW LOG FILE </a>
+		<a href="javascript:;" class="btn grey tooltips" data-container="body" data-html="true" data-placement="bottom" data-original-title="<p align='left' style='margin:0'>File not available</p>"><i class="fa fa-exclamation-triangle"></i> VIEW LOG FILE </a>
 	<?php }
 
 
@@ -482,7 +461,7 @@ if ($_SESSION['User']['Type'] ==  UserType::Admin->value || $_SESSION['User']['T
 		<?php if (file_exists($mt['submission_file'])) { ?>
 			<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['submission_file']); ?>" class="btn green" target="_blank"><i class="fa fa-paper-plane"></i> VIEW SUBMIT FILE </a>
 		<?php } else { ?>
-			<a href="javascript:;" class="btn grey tooltips" data-container="body" data-html="true" data-placement="bottom" data-original-title="<p align='left' style='margin:0'>Fie not available</p>"><i class="fa fa-exclamation-triangle"></i> VIEW SUBMIT FILE </a>
+			<a href="javascript:;" class="btn grey tooltips" data-container="body" data-html="true" data-placement="bottom" data-original-title="<p align='left' style='margin:0'>File not available</p>"><i class="fa fa-exclamation-triangle"></i> VIEW SUBMIT FILE </a>
 		<?php } ?>
 		<?php if (file_exists($mt['config_file'])) { ?>
 			<a href="workspace/workspace.php?op=openPlainFileFromPath&fnPath=<?php echo urlencode($mt['config_file']); ?>" class="btn green" target="_blank"><i class="fa fa-cog"></i> VIEW CONFIG FILE </a>

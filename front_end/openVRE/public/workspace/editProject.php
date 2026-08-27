@@ -7,14 +7,14 @@ require "../htmlib/header.inc.php";
 
 // load project from REQUEST
  
-if (!isset($_REQUEST['id'])){
+if (is_null($_REQUEST['id'])){
     $_SESSION['errorData']['Error'][]="In order to rename or edit a project, please, first select it from the 'Project' drop down menu";
     redirect($GLOBALS['BASEURL']."workspace/");
 }
 
 $project = getProject($_REQUEST['id']);
 
-if (!isset($project['name'])){
+if (is_null($project['name'])){
     $_SESSION['errorData']['Error'][]="Sorry, the selected project code (".$_REQUEST['id'].") is not valid or your user have no access to it. Please, contact <a href=\"mailto:".$GLOBALS['helpdeskMail']."\">us to reporting this error.</a>";
     redirect($GLOBALS['BASEURL']."workspace/");
 }
