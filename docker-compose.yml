@@ -9,17 +9,13 @@ services:
       MONGO_INITDB_USERNAME: ${MONGO_INITDB_USERNAME}
       MONGO_INITDB_PASSWORD: ${MONGO_INITDB_PASSWORD}
       MONGO_MAIN_DB: ${MONGO_MAIN_DB}
-      MONGO_TLS_MODE: ${MONGO_TLS_MODE}
     ports:
       - "${MONGO_PORT}:27017"
-    command: mongod --bind_ip_all --tlsMode ${MONGO_TLS_MODE} # --tlsCertificateKeyFile ${MONGO_CERT_KEYFILE} --tlsCAFile ${MONGO_CA_COMBINED_FILE}
+    command: mongod
     volumes:
       - mongo_data:/data/db:rw
       - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
       - ./mongodb/init_documents:/init_documents:ro
-      - ./mongodb/mongod.conf:/etc/mongo/mongod.conf:ro
-      # - ${MONGO_SSL_COMBINED_CAFILE}:${MONGO_CA_COMBINED_FILE}:ro
-      # - ${MONGO_SSL_KEYFILE}:${MONGO_CERT_KEYFILE}:ro
     networks:
       net_vre:
         ipv4_address: 172.21.0.10
@@ -36,13 +32,11 @@ services:
     ports:
       - "${VAULT_PORT}:8200"
     volumes:
-      - vault_data:/vault/data
       - ./vault/config:/vault/config
-      - "${VAULT_SSL_PEM}:${VAULT_CERT_PEM}:ro"
-      - "${VAULT_SSL_KEY}:${VAULT_CERT_KEY}:ro"
+      - ./vault/vault-init.sh:/vault-init.sh
     cap_add:
       - IPC_LOCK
-    command: server
+    command: /bin/sh -c "vault server -dev & sleep 30 && /vault-init.sh && wait"
     networks:
       net_vre:
         ipv4_address: 172.21.0.18
@@ -56,30 +50,16 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_DB: ${KEYCLOAK_DB_VENDOR}
-      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
-      KC_DB_SCHEMA: ${KEYCLOAK_DB_SCHEMA}
-      KC_DB_URL_DATABASE: ${KEYCLOAK_DB_NAME}
-      KC_DB_URL_HOST: ${KEYCLOAK_DB_HOST}
-      KC_DB_USERNAME: ${KEYCLOAK_DB_USER}
       KC_HOSTNAME: ${KEYCLOAK_SERVER}
-      KC_HTTP_ENABLED: ${KEYCLOAK_HTTP_ENABLED}
-      # KC_HTTPS_CERTIFICATE_FILE: ${KEYCLOAK_CERT_PEM}
-      # KC_HTTPS_CERTIFICATE_KEY_FILE: ${KEYCLOAK_CERT_KEY}
-      KC_PROXY_HEADERS: xforwarded
       KEYCLOAK_SECRET: ${KEYCLOAK_SECRET}
     volumes:
       - ${KEYCLOAK_REALMS_DIR}:${KEYCLOAK_IMPORT_DIR}:ro
-      # - ${KEYCLOAK_SSL_PEM}:${KEYCLOAK_CERT_PEM}
-      # - ${KEYCLOAK_SSL_KEY}:${KEYCLOAK_CERT_KEY}
-    command: ["start", "--import-realm"]
+    command: ["start-dev", "--import-realm"]
     ports:
-      - ${KEYCLOAK_PORT}:8080 # 8443
+      - ${KEYCLOAK_PORT}:8080
     networks:
       net_vre:
         ipv4_address: 172.21.0.12
-    depends_on:
-      - postgres
     restart: on-failure:2
 
   front_end:
@@ -102,8 +82,6 @@ services:
       MAIL_HOST: ${MAIL_HOST}
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}
-      # MONGO_CA_FILE: ${MONGO_CA_FILE}
-      # MONGO_CERT_KEYFILE: ${MONGO_CERT_KEYFILE}
       MONGO_CREDENTIALS: ${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}
       MONGO_MAIN_DB: ${MONGO_MAIN_DB}
       MONGO_SERVER: ${MONGO_SERVER}
@@ -113,7 +91,6 @@ services:
       SERVER_DOMAIN_PROTOCOL: ${SERVER_DOMAIN_PROTOCOL}
       VAULT_ADDR: ${VAULT_ADDR}
       VAULT_API_VERSION: ${VAULT_API_VERSION}
-      VAULT_CERT_CAFILE: ${VAULT_CERT_CAFILE}
       VAULT_ROLENAME: ${VAULT_ROLENAME}
       VAULT_SECRET_PATH: ${VAULT_SECRET_PATH}
     volumes:
@@ -126,7 +103,7 @@ services:
       - ./tools:/var/www/html/openVRE/public/tools
       - ./shared_data:/shared_data
     ports:
-      - "${FRONTEND_PORT}:443"
+      - "${FRONTEND_PORT}:80"
     networks:
       net_vre:
         ipv4_address: 172.21.0.14
@@ -170,10 +147,6 @@ services:
 volumes:
   mongo_data:
     name: ${MONGO_VOLUME}
-  keycloak_data:
-    name: ${KEYCLOAK_DB_VOLUME}
-  vault_data:
-    name: ${VAULT_DATA_VOLUME}
 
 networks:
   net_vre:
