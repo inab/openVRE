@@ -131,7 +131,7 @@ class ProcessSGE
 
 		if (is_null($jobState[0])) {
 			$job['state'] = "FINISHING";
-			LoggerFactory::getPersistentLogger()->info("Job {pid} finished", array("pid" => $pid));
+			$this->logger->info("Job $pid finishing");
 		} else {
 			list($pid, $state) = explode("\t", $jobState[0]);
 			$job['state'] = $this->jobState[$state];
