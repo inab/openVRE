@@ -1,8 +1,10 @@
 <?php
 
-require __DIR__ . "/../../config/bootstrap.php";
+require_once __DIR__ . "/../../config/bootstrap.php";
+
 redirectOutside();
-$includeEgaFiles = false;
+$includeEgaFiles = getenv('INCLUDE_EGA_DATASETS') === 'true';
+
 
 ?>
 
@@ -81,9 +83,11 @@ $includeEgaFiles = false;
 										<li class="uppercase">
 											<a href="#load_from_url" data-toggle="tab"> Load file from an external URL </a>
 										</li>
-										<!-- <li class="uppercase">
-											<a href="#load_from_ega" data-toggle="tab"> Load file from EGA </a>
-										</li> -->
+										<?php if ($includeEgaFiles): ?>
+											<li class="uppercase">
+												<a href="#load_from_ega" data-toggle="tab"> Load file from EGA </a>
+											</li>
+										<?php endif; ?>
 									</ul>
 									<div class="tab-content">
 										<div class="tab-pane active" id="upload_files">
