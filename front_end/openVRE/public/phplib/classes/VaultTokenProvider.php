@@ -16,7 +16,7 @@ class VaultTokenProvider
 
     public function __construct(string $jwt, string $rolename, string $url)
     {
-		$this->jwt = $jwt;
+        $this->jwt = $jwt;
         $this->logger = LoggerFactory::getLogger("Vault token interface");
         $this->rolename = $rolename;
         $this->url = $url;
@@ -39,6 +39,12 @@ class VaultTokenProvider
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        if (getenv('VAULT_CERT_CAFILE') !== false) {
+            curl_setopt($ch, CURLOPT_CAINFO, getenv('VAULT_CERT_CAFILE'));
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+            curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
+        }
 
         $response = curl_exec($ch);
         if ($response === false) {

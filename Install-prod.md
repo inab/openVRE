@@ -35,8 +35,10 @@ Edit the new `.env` file and adapt it to your own environment.
 Then, do the same for the `globals.inc.php` file:
 
 ``` bash
-cp front_end/openVRE/config/globals.inc.php.sample front_end/openVRE/config/globals.inc.php
+cp front_end/openVRE/config/globals.inc.php.sample-prod front_end/openVRE/config/globals.inc.php
 ```
+
+Remove commented certificates from the `docker-compose-prod.yml` file that your instance will use (in case you use a proxy not all the certificates are required). You may use the template script `generate-certs.sh` to generate them.
 
 After that, you will need to manually run some [steps to set up your Vault service](https://github.com/inab/openVRE/blob/main/vault/vault-init.md). 
 
