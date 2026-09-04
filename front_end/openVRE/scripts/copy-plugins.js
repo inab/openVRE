@@ -59,9 +59,11 @@ const COPY_FILES = [
   // clipboardjs
   ['clipboard/dist/clipboard.min.js', 'clipboardjs/clipboard.min.js'],
 
-  // jquery-validation
+  // jquery-validation (min + full dist from npm; version pinned by package.json)
   ['jquery-validation/dist/jquery.validate.js', 'jquery-validation/js/jquery.validate.js'],
+  ['jquery-validation/dist/jquery.validate.min.js', 'jquery-validation/js/jquery.validate.min.js'],
   ['jquery-validation/dist/additional-methods.js', 'jquery-validation/js/additional-methods.js'],
+  ['jquery-validation/dist/additional-methods.min.js', 'jquery-validation/js/additional-methods.min.js'],
   ['jquery-validation/README.md', 'jquery-validation/README.md'],
 
   // easy-pie-chart (jquery-easypiechart)
@@ -233,17 +235,6 @@ const REMOTE_DOWNLOADS = [
     base: 'https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2',
     files: [
       ['jquery.sparkline.min.js', 'jquery.sparkline.min.js'],
-    ],
-  },
-  {
-    // Minified builds preferred over unminified npm dist copies.
-    type: 'cdn',
-    name: 'jquery-validate',
-    version: '1.14.0',
-    base: 'https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.14.0',
-    files: [
-      ['jquery.validate.min.js', 'jquery-validation/js/jquery.validate.min.js'],
-      ['additional-methods.min.js', 'jquery-validation/js/additional-methods.min.js'],
     ],
   },
   {

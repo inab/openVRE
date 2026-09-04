@@ -139,7 +139,7 @@ services:
       - ./front_end/openVRE/config:/var/www/html/openVRE/config
       - ./front_end/openVRE/data:/var/www/html/openVRE/data
       - ./front_end/openVRE/apache/check_tool_access.lua:/opt/docker/etc/httpd/check_tool_access.lua
-      - ./front_end/openVRE/apache/server.conf:/opt/docker/etc/httpd/conf.d/10-server.conf
+      - ./front_end/openVRE/apache/server-prod.conf:/opt/docker/etc/httpd/conf.d/10-server.conf
       - ./tools:/var/www/html/openVRE/public/tools
       - ./shared_data:/shared_data
       - ${FRONTEND_SSL_PEM}:${FRONTEND_CERT_PEM}:ro
