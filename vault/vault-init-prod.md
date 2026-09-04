@@ -31,6 +31,7 @@ docker compose run --rm --entrypoint /bin/sh vault-server -c "chown -R $VAULT_US
 ```
 
 ## Start the Vault and Keycloak containers
+If your Keycloak instance is already running or is hosted elsewhere, only start the Vault container.
 
 ```bash
 docker compose up vault-server keycloak -d
@@ -52,7 +53,7 @@ apk add jq
 
 ```bash
 vault operator init
-vault operator unseal
+vault operator unseal # 3 times
 vault login
 ```
 
