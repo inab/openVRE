@@ -375,8 +375,8 @@ $datasets = [];
 					</li>
 				<?php } ?>
 
-				<li class="nav-item active open beta-long" style="color:#b4bcc8;margin-left:18px;margin-top:10px;font-size:12px;">This is the 1.1 version of <?php echo $GLOBALS['AppPrefix']; ?> VRE</li>
-				<li class="nav-item active open beta-short" style="color:#b4bcc8;margin-left:8px;margin-top:10px;font-size:12px;display:none;">v1.1</li>
+				<li class="nav-item active open beta-long" style="color:#b4bcc8;margin-left:18px;margin-top:10px;font-size:12px;">This is the <?php echo $GLOBALS['AppVersion']; ?> version of <?php echo $GLOBALS['AppPrefix']; ?> VRE</li>
+				<li class="nav-item active open beta-short" style="color:#b4bcc8;margin-left:8px;margin-top:10px;font-size:12px;display:none;"><?php echo $GLOBALS['AppVersion']; ?></li>
 
 			</ul>
 			<!-- END SIDEBAR MENU -->
