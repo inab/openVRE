@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . "/../../config/globals.inc.php";
+require_once __DIR__."/../../config/bootstrap.php";
 
 
 use OpenVRE\LoggerFactory;
