@@ -53,10 +53,6 @@ RUN apt-get update -y && apt-get install -y gridengine-exec gridengine-master gr
 RUN useradd -m application \
     && echo "application:application" | chpasswd
 
-# Make sure host and container share the same GID for group 'docker', bc it has reading permissions to the socket file
-ARG DOCKER_GROUP
-RUN groupmod -g $DOCKER_GROUP docker
-RUN usermod -aG docker application
 
 # Add setup script and set permissions
 ADD setup_gridengine.sh /usr/local/bin/setup_gridengine.sh
