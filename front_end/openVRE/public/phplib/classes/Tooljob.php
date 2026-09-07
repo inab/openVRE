@@ -1090,7 +1090,7 @@ class Tooljob
 			CONTAINER_URL="http://$this->containerName:$container_port";
 			EXIT_CODE_FILE="/tmp/exit_code_$this->containerName"
 			printf '%s | %s\n' "\$(date)" "Waiting for the service URL to become available in the internal network...";
-			if timeout 420 wget --retry-connrefused --tries=0 --wait=7 -O /dev/null \$CONTAINER_URL; then
+			if timeout 420 wget --retry-connrefused --tries=10 --wait=7 -O /dev/null \$CONTAINER_URL; then
 				printf '%s | %s\n' "\$(date)" "Service UP";
 			else
 				printf '%s | %s\n' "\$(date)" "Service TIMEOUT (7 minutes)";
@@ -1232,6 +1232,7 @@ class Tooljob
 
 			$cmd =  "docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock -d" .
 				" " . $customToolParameters .
+				" --net " . $GLOBALS['NETWORK_NAME'] .
 				"--memory=" . $tool['infrastructure']['memory'] . "g" .
 				" -v " . $this->pub_dir_volumes . ":" . $GLOBALS['shared'] . "public_tmp/ " .
 				" -v " . $this->root_dir_volumes . ":" . $GLOBALS['shared'] . "userdata_tmp/{$_SESSION['User']['id']}" .
