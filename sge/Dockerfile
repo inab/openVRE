@@ -1,5 +1,5 @@
 # Use an official Debian image as the base image
-FROM debian:bullseye-20241111-slim
+FROM debian:bookworm-20260824-slim
 
 # Set non-interactive mode for apt-get
 ENV DEBIAN_FRONTEND noninteractive
